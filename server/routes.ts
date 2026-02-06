@@ -15,6 +15,7 @@ const socketMessageSchema = insertMessageSchema.extend({
 });
 
 const contactSchema = z.object({
+  sessionId: z.string().min(1),
   userEmail: z.string().email(),
   userName: z.string().min(1),
   pageUrl: z.string().optional(),
@@ -24,6 +25,7 @@ const contactSchema = z.object({
 interface UserSession {
   email: string;
   name: string;
+  sessionId: string;
   pageUrl?: string;
   pageTitle?: string;
 }
@@ -43,14 +45,13 @@ export async function registerRoutes(
 
   const userSessions = new Map<string, UserSession>();
 
-  app.get("/api/messages/:email", async (req, res) => {
+  app.get("/api/messages/session/:sessionId", async (req, res) => {
     try {
-      const emailSchema = z.string().email();
-      const parsed = emailSchema.safeParse(req.params.email);
-      if (!parsed.success) {
-        return res.status(400).json({ message: "Email inválido" });
+      const sessionId = req.params.sessionId;
+      if (!sessionId || sessionId.length < 5) {
+        return res.status(400).json({ message: "Session ID invalido" });
       }
-      const messages = await storage.getMessagesByEmail(parsed.data);
+      const messages = await storage.getMessagesBySessionId(sessionId);
       res.json(messages);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener mensajes" });
@@ -61,17 +62,23 @@ export async function registerRoutes(
     try {
       const parsed = socketMessageSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Datos de mensaje inválidos" });
+        return res.status(400).json({ message: "Datos de mensaje invalidos" });
+      }
+
+      const sessionId = req.body.sessionId;
+      if (!sessionId || typeof sessionId !== "string") {
+        return res.status(400).json({ message: "Session ID requerido" });
       }
 
       const message = await storage.createMessage({
+        sessionId,
         userEmail: parsed.data.userEmail,
         userName: parsed.data.userName,
         sender: parsed.data.sender,
         content: parsed.data.content,
       });
 
-      io.to(`user:${parsed.data.userEmail}`).emit("new_message", message);
+      io.to(`session:${sessionId}`).emit("new_message", message);
 
       if (parsed.data.sender === "user") {
         const pageUrl = req.body.pageUrl || "";
@@ -79,12 +86,13 @@ export async function registerRoutes(
         setTimeout(async () => {
           try {
             const autoReply = await storage.createMessage({
+              sessionId,
               userEmail: parsed.data.userEmail,
               userName: "Soporte",
               sender: "support",
               content: getAutoReply(parsed.data.content, pageTitle, pageUrl),
             });
-            io.to(`user:${parsed.data.userEmail}`).emit("new_message", autoReply);
+            io.to(`session:${sessionId}`).emit("new_message", autoReply);
           } catch (err: any) {
             log(`Error en auto-respuesta: ${err.message}`, "api");
           }
@@ -102,10 +110,10 @@ export async function registerRoutes(
     try {
       const parsed = contactSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Datos inválidos" });
+        return res.status(400).json({ message: "Datos invalidos" });
       }
 
-      const recentMessages = await storage.getMessagesByEmail(parsed.data.userEmail);
+      const recentMessages = await storage.getMessagesBySessionId(parsed.data.sessionId);
       const lastMessages = recentMessages.slice(-10);
       const chatSummary = lastMessages
         .map((m) => `${m.sender === "user" ? parsed.data.userName : "Soporte"}: ${m.content}`)
@@ -128,15 +136,16 @@ export async function registerRoutes(
       });
 
       const confirmMsg = await storage.createMessage({
+        sessionId: parsed.data.sessionId,
         userEmail: parsed.data.userEmail,
         userName: "Soporte",
         sender: "support",
         content: emailSent
-          ? "Tu solicitud ha sido enviada. Un ejecutivo se pondrá en contacto contigo por correo electrónico lo antes posible."
-          : "Hemos registrado tu solicitud. Un ejecutivo se comunicará contigo pronto.",
+          ? "Tu solicitud ha sido enviada. Un ejecutivo se pondra en contacto contigo por correo electronico lo antes posible."
+          : "Hemos registrado tu solicitud. Un ejecutivo se comunicara contigo pronto.",
       });
 
-      io.to(`user:${parsed.data.userEmail}`).emit("new_message", confirmMsg);
+      io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);
       log(`Solicitud de contacto de ${parsed.data.userName} (${parsed.data.userEmail}) - Email: ${emailSent ? "enviado" : "no enviado"}`, "contact");
       res.json({ confirmed: true });
     } catch (error: any) {
@@ -146,19 +155,19 @@ export async function registerRoutes(
   });
 
   io.on("connection", (socket) => {
-    const { email, name } = socket.handshake.auth as { email: string; name: string };
+    const { email, name, sessionId } = socket.handshake.auth as { email: string; name: string; sessionId: string };
 
-    if (!email || !name) {
+    if (!email || !name || !sessionId) {
       socket.disconnect(true);
       return;
     }
 
-    log(`Usuario conectado: ${name} (${email})`, "socket.io");
-    socket.join(`user:${email}`);
+    log(`Usuario conectado: ${name} (${email}) session:${sessionId}`, "socket.io");
+    socket.join(`session:${sessionId}`);
 
-    userSessions.set(socket.id, { email, name });
+    userSessions.set(socket.id, { email, name, sessionId });
 
-    storage.getMessagesByEmail(email).then((history) => {
+    storage.getMessagesBySessionId(sessionId).then((history) => {
       socket.emit("chat_history", history);
     }).catch((err) => {
       log(`Error al cargar historial: ${err.message}`, "socket.io");
@@ -177,31 +186,39 @@ export async function registerRoutes(
     socket.on("send_message", async (data: unknown) => {
       const parsed = socketMessageSchema.safeParse(data);
       if (!parsed.success) {
-        socket.emit("error", { message: "Datos de mensaje inv\u00e1lidos" });
+        socket.emit("error", { message: "Datos de mensaje invalidos" });
+        return;
+      }
+
+      const session = userSessions.get(socket.id);
+      const sid = (data as any)?.sessionId || session?.sessionId;
+      if (!sid) {
+        socket.emit("error", { message: "Session ID requerido" });
         return;
       }
 
       try {
         const message = await storage.createMessage({
+          sessionId: sid,
           userEmail: parsed.data.userEmail,
           userName: parsed.data.userName,
           sender: parsed.data.sender,
           content: parsed.data.content,
         });
 
-        io.to(`user:${parsed.data.userEmail}`).emit("new_message", message);
+        io.to(`session:${sid}`).emit("new_message", message);
 
         if (parsed.data.sender === "user") {
-          const session = userSessions.get(socket.id);
           setTimeout(async () => {
             try {
               const autoReply = await storage.createMessage({
+                sessionId: sid,
                 userEmail: parsed.data.userEmail,
                 userName: "Soporte",
                 sender: "support",
                 content: getAutoReply(parsed.data.content, session?.pageTitle, session?.pageUrl),
               });
-              io.to(`user:${parsed.data.userEmail}`).emit("new_message", autoReply);
+              io.to(`session:${sid}`).emit("new_message", autoReply);
             } catch (err: any) {
               log(`Error en auto-respuesta: ${err.message}`, "socket.io");
             }
@@ -216,12 +233,12 @@ export async function registerRoutes(
     socket.on("contact_executive", async (data: unknown) => {
       const parsed = contactSchema.safeParse(data);
       if (!parsed.success) {
-        socket.emit("error", { message: "Datos inv\u00e1lidos" });
+        socket.emit("error", { message: "Datos invalidos" });
         return;
       }
 
       try {
-        const recentMessages = await storage.getMessagesByEmail(parsed.data.userEmail);
+        const recentMessages = await storage.getMessagesBySessionId(parsed.data.sessionId);
         const lastMessages = recentMessages.slice(-10);
         const chatSummary = lastMessages
           .map((m) => `${m.sender === "user" ? parsed.data.userName : "Soporte"}: ${m.content}`)
@@ -246,15 +263,16 @@ export async function registerRoutes(
         socket.emit("contact_confirmed");
 
         const confirmMsg = await storage.createMessage({
+          sessionId: parsed.data.sessionId,
           userEmail: parsed.data.userEmail,
           userName: "Soporte",
           sender: "support",
           content: emailSent
-            ? "Tu solicitud ha sido enviada. Un ejecutivo se pondr\u00e1 en contacto contigo por correo electr\u00f3nico lo antes posible."
-            : "Hemos registrado tu solicitud. Un ejecutivo se comunicar\u00e1 contigo pronto.",
+            ? "Tu solicitud ha sido enviada. Un ejecutivo se pondra en contacto contigo por correo electronico lo antes posible."
+            : "Hemos registrado tu solicitud. Un ejecutivo se comunicara contigo pronto.",
         });
 
-        io.to(`user:${parsed.data.userEmail}`).emit("new_message", confirmMsg);
+        io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);
         log(`Solicitud de contacto de ${parsed.data.userName} (${parsed.data.userEmail}) - Email: ${emailSent ? "enviado" : "no enviado"}`, "contact");
       } catch (error: any) {
         log(`Error en solicitud de contacto: ${error.message}`, "socket.io");

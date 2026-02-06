@@ -17,10 +17,10 @@ export function getSocket(): Socket {
   return socket;
 }
 
-export function connectSocket(email: string, name: string): Socket {
+export function connectSocket(email: string, name: string, sessionId: string): Socket {
   const s = getSocket();
   if (!s.connected) {
-    s.auth = { email, name };
+    s.auth = { email, name, sessionId };
     s.connect();
   }
   return s;

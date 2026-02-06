@@ -13,11 +13,12 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 1. **Widget States**: Launcher button (closed) + Chat window (open), with postMessage events (`open_chat`/`close_chat`) with dimensions for iframe resizing
 2. **Auto-Authentication**: Reads `?email=` and `?name=` URL params for WordPress logged-in users
 3. **Page Context Detection**: Reads `?page_url=` and `?page_title=` params, or receives page info via postMessage from parent, to provide contextual auto-replies
-4. **Guest Form**: Welcome form (in Spanish) for visitors without URL params, saves to localStorage
-5. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
-6. **Message Persistence**: All messages stored in PostgreSQL, history loaded on reconnect
-7. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary and page context
-8. **Auto-replies**: Keyword-based auto-reply system in Spanish with page context awareness
+4. **Guest Form**: Welcome form (in Spanish) asking for email, problem type (dropdown), game/product name, and user name. Saves to localStorage with unique session ID
+5. **Session-Based Privacy**: Each chat gets a unique session ID (generated client-side). Messages are stored/fetched by sessionId, not email. Email is only used for executive contact. This prevents users from seeing each other's chat history even if they enter the same email
+6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
+7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
+8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary and page context
+9. **Auto-replies**: Intelligent keyword-based auto-reply system in Spanish with product knowledge (PS Plus, Game Pass, gift cards, specific games) and page context awareness
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages + contact_requests tables) and TypeScript types

@@ -5,12 +5,14 @@ import { z } from "zod";
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().default("legacy"),
   userEmail: text("user_email").notNull(),
   userName: text("user_name").notNull(),
   sender: text("sender", { enum: ["user", "support"] }).notNull(),
   content: text("content").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 }, (table) => [
+  index("idx_messages_session_id").on(table.sessionId),
   index("idx_messages_user_email").on(table.userEmail),
 ]);
 

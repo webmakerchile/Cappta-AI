@@ -3,17 +3,17 @@ import { db } from "./db";
 import { eq, asc } from "drizzle-orm";
 
 export interface IStorage {
-  getMessagesByEmail(email: string): Promise<Message[]>;
+  getMessagesBySessionId(sessionId: string): Promise<Message[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getMessagesByEmail(email: string): Promise<Message[]> {
+  async getMessagesBySessionId(sessionId: string): Promise<Message[]> {
     return await db
       .select()
       .from(messages)
-      .where(eq(messages.userEmail, email))
+      .where(eq(messages.sessionId, sessionId))
       .orderBy(asc(messages.timestamp));
   }
 

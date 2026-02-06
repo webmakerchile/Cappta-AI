@@ -7,6 +7,16 @@ import type { Message } from "@shared/schema";
 interface ChatUser {
   email: string;
   name: string;
+  sessionId: string;
+}
+
+function generateSessionId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 interface PageInfo {
@@ -44,14 +54,15 @@ export function useChat() {
     });
 
     if (isValidParam(email) && isValidParam(name)) {
-      setUser({ email: email!, name: name! });
-      try { localStorage.setItem("chat_user", JSON.stringify({ email, name })); } catch {}
+      const sessionId = generateSessionId();
+      setUser({ email: email!, name: name!, sessionId });
+      try { localStorage.setItem("chat_user", JSON.stringify({ email, name, sessionId })); } catch {}
     } else {
       try {
         const stored = localStorage.getItem("chat_user");
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed.email && parsed.name) {
+          if (parsed.email && parsed.name && parsed.sessionId) {
             setUser(parsed);
           }
         }
@@ -76,7 +87,13 @@ export function useChat() {
   }, [pageInfo]);
 
   const { data: messages = [] } = useQuery<Message[]>({
-    queryKey: ["/api/messages", user?.email],
+    queryKey: ["/api/messages", user?.sessionId],
+    queryFn: async () => {
+      if (!user) return [];
+      const res = await fetch(`/api/messages/session/${user.sessionId}`);
+      if (!res.ok) throw new Error("Error loading messages");
+      return res.json();
+    },
     enabled: !!user,
     refetchInterval: 4000,
     staleTime: 2000,
@@ -88,7 +105,7 @@ export function useChat() {
     let socketConnected = false;
 
     try {
-      const socket = connectSocket(user.email, user.name);
+      const socket = connectSocket(user.email, user.name, user.sessionId);
 
       socket.on("connect", () => {
         socketConnected = true;
@@ -102,12 +119,12 @@ export function useChat() {
       });
 
       socket.on("chat_history", (history: Message[]) => {
-        queryClient.setQueryData(["/api/messages", user.email], history);
+        queryClient.setQueryData(["/api/messages", user.sessionId], history);
       });
 
       socket.on("new_message", (msg: Message) => {
         queryClient.setQueryData(
-          ["/api/messages", user.email],
+          ["/api/messages", user.sessionId],
           (old: Message[] | undefined) => {
             const existing = old || [];
             if (existing.some(m => m.id === msg.id)) return existing;
@@ -152,6 +169,7 @@ export function useChat() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content: content.trim(),
+            sessionId: user.sessionId,
             userEmail: user.email,
             userName: user.name,
             sender: "user",
@@ -163,7 +181,7 @@ export function useChat() {
         if (res.ok) {
           const msg = await res.json();
           queryClient.setQueryData(
-            ["/api/messages", user.email],
+            ["/api/messages", user.sessionId],
             (old: Message[] | undefined) => {
               const existing = old || [];
               if (existing.some(m => m.id === msg.id)) return existing;
@@ -172,7 +190,7 @@ export function useChat() {
           );
 
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/messages", user.email] });
+            queryClient.invalidateQueries({ queryKey: ["/api/messages", user.sessionId] });
           }, 2500);
         }
       } catch {
@@ -181,6 +199,7 @@ export function useChat() {
           if (socket.connected) {
             socket.emit("send_message", {
               content: content.trim(),
+              sessionId: user.sessionId,
               userEmail: user.email,
               userName: user.name,
               sender: "user",
@@ -200,6 +219,7 @@ export function useChat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          sessionId: user.sessionId,
           userEmail: user.email,
           userName: user.name,
           pageUrl: pageInfo.url,
@@ -210,7 +230,7 @@ export function useChat() {
       if (res.ok) {
         setContactRequested(true);
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["/api/messages", user.email] });
+          queryClient.invalidateQueries({ queryKey: ["/api/messages", user.sessionId] });
         }, 1500);
       }
     } catch {
@@ -218,6 +238,7 @@ export function useChat() {
         const socket = getSocket();
         if (socket.connected) {
           socket.emit("contact_executive", {
+            sessionId: user.sessionId,
             userEmail: user.email,
             userName: user.name,
             pageUrl: pageInfo.url,
@@ -229,7 +250,8 @@ export function useChat() {
   }, [user, contactRequested, pageInfo]);
 
   const login = useCallback((email: string, name: string, problemType?: string, gameName?: string) => {
-    const userData = { email, name };
+    const sessionId = generateSessionId();
+    const userData = { email, name, sessionId };
     try { localStorage.setItem("chat_user", JSON.stringify(userData)); } catch {}
     setUser(userData);
 
@@ -253,6 +275,7 @@ export function useChat() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               content: introMessage,
+              sessionId,
               userEmail: email,
               userName: name,
               sender: "user",
@@ -262,7 +285,7 @@ export function useChat() {
           });
           if (res.ok) {
             setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/messages", email] });
+              queryClient.invalidateQueries({ queryKey: ["/api/messages", sessionId] });
             }, 2500);
           }
         } catch {}
