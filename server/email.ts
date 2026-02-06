@@ -10,6 +10,21 @@ interface ContactEmailData {
   pageUrl?: string | null;
   pageTitle?: string | null;
   chatSummary?: string | null;
+  problemType?: string | null;
+  gameName?: string | null;
+}
+
+function getProblemTypeLabel(problemType: string): string {
+  const labels: Record<string, string> = {
+    compra: "Quiero comprar un producto",
+    problema_cuenta: "Problema con mi cuenta",
+    entrega: "No he recibido mi producto",
+    devolucion: "Solicitar devoluci\u00f3n o cambio",
+    info_producto: "Informaci\u00f3n sobre un producto",
+    precio: "Consulta de precios",
+    otro: "Otro",
+  };
+  return labels[problemType] || problemType;
 }
 
 export async function sendContactNotification(data: ContactEmailData): Promise<boolean> {
@@ -35,6 +50,16 @@ export async function sendContactNotification(data: ContactEmailData): Promise<b
                 <td style="padding: 10px 0; border-bottom: 1px solid #333; color: #999;">Correo:</td>
                 <td style="padding: 10px 0; border-bottom: 1px solid #333;"><a href="mailto:${data.userEmail}" style="color: #9d6fff; text-decoration: none;">${data.userEmail}</a></td>
               </tr>
+              ${data.problemType ? `
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #333; color: #999;">En qu\u00e9 necesitas ayuda?:</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #333; color: #fff; font-weight: 600;">${getProblemTypeLabel(data.problemType)}</td>
+              </tr>` : ""}
+              ${data.gameName ? `
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #333; color: #999;">Juego/Producto:</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #333; color: #fff; font-weight: 600;">${data.gameName}</td>
+              </tr>` : ""}
               ${data.pageTitle ? `
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #333; color: #999;">P\u00e1gina:</td>

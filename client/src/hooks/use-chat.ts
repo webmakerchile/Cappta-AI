@@ -8,6 +8,8 @@ interface ChatUser {
   email: string;
   name: string;
   sessionId: string;
+  problemType?: string;
+  gameName?: string;
 }
 
 function generateSessionId(): string {
@@ -224,6 +226,8 @@ export function useChat() {
           userName: user.name,
           pageUrl: pageInfo.url,
           pageTitle: pageInfo.title,
+          problemType: user.problemType,
+          gameName: user.gameName,
         }),
       });
 
@@ -243,6 +247,8 @@ export function useChat() {
             userName: user.name,
             pageUrl: pageInfo.url,
             pageTitle: pageInfo.title,
+            problemType: user.problemType,
+            gameName: user.gameName,
           });
         }
       } catch {}
@@ -251,7 +257,7 @@ export function useChat() {
 
   const login = useCallback((email: string, name: string, problemType?: string, gameName?: string) => {
     const sessionId = generateSessionId();
-    const userData = { email, name, sessionId };
+    const userData: ChatUser = { email, name, sessionId, problemType, gameName };
     try { localStorage.setItem("chat_user", JSON.stringify(userData)); } catch {}
     setUser(userData);
 

@@ -20,6 +20,8 @@ const contactSchema = z.object({
   userName: z.string().min(1),
   pageUrl: z.string().optional(),
   pageTitle: z.string().optional(),
+  problemType: z.string().optional(),
+  gameName: z.string().optional(),
 });
 
 interface UserSession {
@@ -125,6 +127,8 @@ export async function registerRoutes(
         pageUrl: parsed.data.pageUrl || null,
         pageTitle: parsed.data.pageTitle || null,
         chatSummary: chatSummary || null,
+        problemType: parsed.data.problemType || null,
+        gameName: parsed.data.gameName || null,
       });
 
       const emailSent = await sendContactNotification({
@@ -133,6 +137,8 @@ export async function registerRoutes(
         pageUrl: parsed.data.pageUrl,
         pageTitle: parsed.data.pageTitle,
         chatSummary,
+        problemType: parsed.data.problemType,
+        gameName: parsed.data.gameName,
       });
 
       const confirmMsg = await storage.createMessage({
@@ -250,6 +256,8 @@ export async function registerRoutes(
           pageUrl: parsed.data.pageUrl || null,
           pageTitle: parsed.data.pageTitle || null,
           chatSummary: chatSummary || null,
+          problemType: parsed.data.problemType || null,
+          gameName: parsed.data.gameName || null,
         });
 
         const emailSent = await sendContactNotification({
@@ -258,6 +266,8 @@ export async function registerRoutes(
           pageUrl: parsed.data.pageUrl,
           pageTitle: parsed.data.pageTitle,
           chatSummary,
+          problemType: parsed.data.problemType,
+          gameName: parsed.data.gameName,
         });
 
         socket.emit("contact_confirmed");

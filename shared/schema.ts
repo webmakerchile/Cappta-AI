@@ -23,6 +23,8 @@ export const contactRequests = pgTable("contact_requests", {
   pageUrl: text("page_url"),
   pageTitle: text("page_title"),
   chatSummary: text("chat_summary"),
+  problemType: text("problem_type"),
+  gameName: text("game_name"),
   notified: boolean("notified").default(false).notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
