@@ -1,0 +1,37 @@
+Actúa como un Ingeniero Full Stack Senior especializado en arquitecturas de micro-frontends y sistemas en tiempo real.
+
+OBJETIVO DEL PROYECTO:
+Necesito crear una aplicación de Chat Widget "Stand-alone" usando React + Vite (Frontend) y Node.js/Express + Socket.io (Backend). Esta aplicación vivirá dentro de un Iframe en un sitio WordPress externo y debe comunicarse con la ventana padre para gestionar su redimensionamiento.
+
+STACK TECNOLÓGICO:
+- Frontend: React, Vite, Tailwind CSS, Lucide React (iconos).
+- Backend: Node.js, Express, Socket.io.
+- Base de Datos: MongoDB (o Replit DB) para persistencia de mensajes.
+
+REQUERIMIENTOS DE ARQUITECTURA CRÍTICOS:
+
+1. GESTIÓN DE ESTADO HÍBRIDA (IFRAME):
+La aplicación debe comportarse como un Widget.
+- Estado "Cerrado": Solo muestra un botón flotante (Launcher).
+- Estado "Abierto": Muestra la ventana de chat completa.
+- IMPORTANTE: Cada vez que el estado cambie (abrir/cerrar), la app debe enviar un evento `window.parent.postMessage` con el payload 'open_chat' o 'close_chat' para que el sitio WordPress redimensione el Iframe dinámicamente.
+
+2. AUTENTICACIÓN E IDENTIDAD (Lógica de Negocio):
+La aplicación debe leer los parámetros URL al cargar (`window.location.search`) buscando `?email=...` y `?name=...`.
+- ESCENARIO A (Usuario Logueado en WordPress): Si los parámetros existen, iniciar sesión automáticamente, cargar el historial de chat de ese email desde la DB y conectar el socket.
+- ESCENARIO B (Visitante): Si NO hay parámetros, mostrar un "Formulario de Bienvenida" (Gatekeeper) pidiendo Nombre y Correo. Al enviar, guardar en LocalStorage, cargar historial previo si existe y conectar socket.
+
+3. PERSISTENCIA DE DATOS (Backend):
+- Crea un Schema de Mongoose/DB para `Messages`.
+- Campos requeridos: `user_email` (index), `sender` ('user' | 'support'), `content`, `timestamp`.
+- Al conectar el Socket, el servidor debe buscar y emitir todo el historial de mensajes asociado al `user_email`.
+
+4. UI/UX (Estilo):
+- Estética: "Gaming/Dark Mode".
+- Colores: Fondo oscuro (#1a1a1a), Acentos en Morado Neón (#6200EA), Texto blanco.
+- El contenedor principal debe tener fondo transparente para que solo se vea el botón cuando está minimizado.
+
+ENTREGABLE:
+Genera la estructura de archivos completa, el servidor `server.js` con la configuración de Socket.io y CORS (permitiendo acceso desde cualquier origen para evitar bloqueos de Iframe), y los componentes de React (`App.jsx`, `ChatWindow.jsx`, `Launcher.jsx`).
+
+Por favor, prioriza el manejo de CORS y la lógica de `postMessage` ya que es una integración cross-origin.
