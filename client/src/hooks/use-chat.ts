@@ -228,11 +228,47 @@ export function useChat() {
     }
   }, [user, contactRequested, pageInfo]);
 
-  const login = useCallback((email: string, name: string) => {
+  const login = useCallback((email: string, name: string, problemType?: string, gameName?: string) => {
     const userData = { email, name };
     try { localStorage.setItem("chat_user", JSON.stringify(userData)); } catch {}
     setUser(userData);
-  }, []);
+
+    if (problemType && gameName) {
+      const problemLabels: Record<string, string> = {
+        compra: "Quiero comprar un producto",
+        problema_cuenta: "Problema con mi cuenta",
+        entrega: "No he recibido mi producto",
+        devolucion: "Solicitar devolucion o cambio",
+        info_producto: "Informacion sobre un producto",
+        precio: "Consulta de precios",
+        otro: "Otro",
+      };
+      const label = problemLabels[problemType] || problemType;
+      const introMessage = `Hola, mi consulta es: ${label}. Producto/Juego: ${gameName}`;
+
+      setTimeout(async () => {
+        try {
+          const res = await fetch("/api/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: introMessage,
+              userEmail: email,
+              userName: name,
+              sender: "user",
+              pageUrl: pageInfo.url,
+              pageTitle: pageInfo.title,
+            }),
+          });
+          if (res.ok) {
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/messages", email] });
+            }, 2500);
+          }
+        } catch {}
+      }, 500);
+    }
+  }, [pageInfo]);
 
   return {
     user,

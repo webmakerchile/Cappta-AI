@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { guestFormSchema, type GuestForm } from "@shared/schema";
-import { User, Mail, ArrowRight, Headphones, X } from "lucide-react";
+import { Mail, ArrowRight, Headphones, X, AlertCircle, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,11 +12,28 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface WelcomeFormProps {
-  onSubmit: (email: string, name: string) => void;
+  onSubmit: (email: string, name: string, problemType: string, gameName: string) => void;
   onClose: () => void;
 }
+
+const PROBLEM_TYPES = [
+  { value: "compra", label: "Quiero comprar un producto" },
+  { value: "problema_cuenta", label: "Problema con mi cuenta" },
+  { value: "entrega", label: "No he recibido mi producto" },
+  { value: "devolucion", label: "Solicitar devolucion o cambio" },
+  { value: "info_producto", label: "Informacion sobre un producto" },
+  { value: "precio", label: "Consulta de precios" },
+  { value: "otro", label: "Otro" },
+];
 
 export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
   const form = useForm<GuestForm>({
@@ -24,11 +41,13 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
     defaultValues: {
       name: "",
       email: "",
+      problemType: "",
+      gameName: "",
     },
   });
 
   const handleSubmit = (data: GuestForm) => {
-    onSubmit(data.email, data.name);
+    onSubmit(data.email, data.name, data.problemType, data.gameName);
   };
 
   return (
@@ -46,50 +65,25 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
           <X className="w-4 h-4 text-white" />
         </button>
       </div>
-      <div className="flex flex-col items-center pt-6 pb-4 px-6">
-        <div className="w-16 h-16 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-4 border border-[#6200EA]/30">
-          <Headphones className="w-8 h-8 text-[#6200EA]" />
+      <div className="flex flex-col items-center pt-4 pb-3 px-6">
+        <div className="w-14 h-14 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-3 border border-[#6200EA]/30">
+          <Headphones className="w-7 h-7 text-[#6200EA]" />
         </div>
-        <h2 data-testid="text-welcome-title" className="text-xl font-bold text-white mb-1">Bienvenido</h2>
-        <p data-testid="text-welcome-subtitle" className="text-sm text-white/50 text-center">
-          Ingresa tus datos para iniciar una conversación con nuestro equipo
+        <h2 data-testid="text-welcome-title" className="text-lg font-bold text-white mb-1">Bienvenido</h2>
+        <p data-testid="text-welcome-subtitle" className="text-xs text-white/50 text-center">
+          Completa tus datos para iniciar la conversacion
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4 px-6 pb-6 flex-1">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="flex flex-col gap-1.5">
-                <FormLabel className="text-xs font-medium text-white/60 uppercase tracking-wider">
-                  Nombre
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
-                    <Input
-                      data-testid="input-name"
-                      type="text"
-                      {...field}
-                      placeholder="Tu nombre"
-                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage className="text-xs text-red-400" data-testid="error-name" />
-              </FormItem>
-            )}
-          />
-
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-3 px-6 pb-4 flex-1 overflow-y-auto chat-scrollbar">
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="flex flex-col gap-1.5">
-                <FormLabel className="text-xs font-medium text-white/60 uppercase tracking-wider">
-                  Correo
+              <FormItem className="flex flex-col gap-1">
+                <FormLabel className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
+                  Correo electronico
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -108,7 +102,89 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
             )}
           />
 
-          <div className="flex-1" />
+          <FormField
+            control={form.control}
+            name="problemType"
+            render={({ field }) => (
+              <FormItem className="flex flex-col gap-1">
+                <FormLabel className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
+                  Tipo de consulta
+                </FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger
+                      data-testid="select-problem-type"
+                      className="bg-white/5 border-white/10 text-white focus:ring-[#6200EA] focus:border-[#6200EA] [&>span]:text-white/25 [&[data-state=closed]>span:not(:empty)]:text-white"
+                    >
+                      <SelectValue placeholder="Selecciona una opcion" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-[#2a2a2a] border-white/10">
+                    {PROBLEM_TYPES.map((type) => (
+                      <SelectItem
+                        key={type.value}
+                        value={type.value}
+                        data-testid={`option-problem-${type.value}`}
+                        className="text-white/80 focus:bg-[#6200EA]/20 focus:text-white"
+                      >
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage className="text-xs text-red-400" data-testid="error-problem-type" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="gameName"
+            render={({ field }) => (
+              <FormItem className="flex flex-col gap-1">
+                <FormLabel className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
+                  Nombre del juego o producto
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Gamepad2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
+                    <Input
+                      data-testid="input-game-name"
+                      type="text"
+                      {...field}
+                      placeholder="Ej: PS Plus Essential 3 meses"
+                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage className="text-xs text-red-400" data-testid="error-game-name" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="flex flex-col gap-1">
+                <FormLabel className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
+                  Tu nombre
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    data-testid="input-name"
+                    type="text"
+                    {...field}
+                    placeholder="Nombre"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
+                  />
+                </FormControl>
+                <FormMessage className="text-xs text-red-400" data-testid="error-name" />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex-1 min-h-2" />
 
           <Button
             data-testid="button-start-chat"

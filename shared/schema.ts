@@ -43,7 +43,9 @@ export type ContactRequest = typeof contactRequests.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
-  email: z.string().email("Ingresa un correo v\u00e1lido").max(200),
+  email: z.string().email("Ingresa un correo valido").max(200),
+  problemType: z.string().min(1, "Selecciona un tipo de consulta"),
+  gameName: z.string().min(1, "Ingresa el nombre del juego o producto").max(200),
 });
 
 export type GuestForm = z.infer<typeof guestFormSchema>;

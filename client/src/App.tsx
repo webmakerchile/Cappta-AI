@@ -82,7 +82,7 @@ function ChatWidget() {
                 onClose={toggleChat}
               />
             ) : (
-              <WelcomeForm onSubmit={(email, name) => login(email, name)} onClose={toggleChat} />
+              <WelcomeForm onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)} onClose={toggleChat} />
             )}
           </div>
         </div>
