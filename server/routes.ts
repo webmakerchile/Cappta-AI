@@ -36,9 +36,9 @@ export async function registerRoutes(
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
-      credentials: true,
     },
     transports: ["websocket", "polling"],
+    cookie: false,
   });
 
   const userSessions = new Map<string, UserSession>();
@@ -48,12 +48,100 @@ export async function registerRoutes(
       const emailSchema = z.string().email();
       const parsed = emailSchema.safeParse(req.params.email);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Email inv\u00e1lido" });
+        return res.status(400).json({ message: "Email inválido" });
       }
       const messages = await storage.getMessagesByEmail(parsed.data);
       res.json(messages);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener mensajes" });
+    }
+  });
+
+  app.post("/api/messages", async (req, res) => {
+    try {
+      const parsed = socketMessageSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Datos de mensaje inválidos" });
+      }
+
+      const message = await storage.createMessage({
+        userEmail: parsed.data.userEmail,
+        userName: parsed.data.userName,
+        sender: parsed.data.sender,
+        content: parsed.data.content,
+      });
+
+      io.to(`user:${parsed.data.userEmail}`).emit("new_message", message);
+
+      if (parsed.data.sender === "user") {
+        const pageUrl = req.body.pageUrl || "";
+        const pageTitle = req.body.pageTitle || "";
+        setTimeout(async () => {
+          try {
+            const autoReply = await storage.createMessage({
+              userEmail: parsed.data.userEmail,
+              userName: "Soporte",
+              sender: "support",
+              content: getAutoReply(parsed.data.content, pageTitle, pageUrl),
+            });
+            io.to(`user:${parsed.data.userEmail}`).emit("new_message", autoReply);
+          } catch (err: any) {
+            log(`Error en auto-respuesta: ${err.message}`, "api");
+          }
+        }, 1500);
+      }
+
+      res.json(message);
+    } catch (error: any) {
+      log(`Error al guardar mensaje: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al enviar mensaje" });
+    }
+  });
+
+  app.post("/api/contact-executive", async (req, res) => {
+    try {
+      const parsed = contactSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Datos inválidos" });
+      }
+
+      const recentMessages = await storage.getMessagesByEmail(parsed.data.userEmail);
+      const lastMessages = recentMessages.slice(-10);
+      const chatSummary = lastMessages
+        .map((m) => `${m.sender === "user" ? parsed.data.userName : "Soporte"}: ${m.content}`)
+        .join("\n");
+
+      const contactRequest = await storage.createContactRequest({
+        userEmail: parsed.data.userEmail,
+        userName: parsed.data.userName,
+        pageUrl: parsed.data.pageUrl || null,
+        pageTitle: parsed.data.pageTitle || null,
+        chatSummary: chatSummary || null,
+      });
+
+      const emailSent = await sendContactNotification({
+        userName: parsed.data.userName,
+        userEmail: parsed.data.userEmail,
+        pageUrl: parsed.data.pageUrl,
+        pageTitle: parsed.data.pageTitle,
+        chatSummary,
+      });
+
+      const confirmMsg = await storage.createMessage({
+        userEmail: parsed.data.userEmail,
+        userName: "Soporte",
+        sender: "support",
+        content: emailSent
+          ? "Tu solicitud ha sido enviada. Un ejecutivo se pondrá en contacto contigo por correo electrónico lo antes posible."
+          : "Hemos registrado tu solicitud. Un ejecutivo se comunicará contigo pronto.",
+      });
+
+      io.to(`user:${parsed.data.userEmail}`).emit("new_message", confirmMsg);
+      log(`Solicitud de contacto de ${parsed.data.userName} (${parsed.data.userEmail}) - Email: ${emailSent ? "enviado" : "no enviado"}`, "contact");
+      res.json({ confirmed: true });
+    } catch (error: any) {
+      log(`Error en solicitud de contacto: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al procesar solicitud" });
     }
   });
 

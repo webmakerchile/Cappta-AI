@@ -45,17 +45,17 @@ export function useChat() {
 
     if (isValidParam(email) && isValidParam(name)) {
       setUser({ email: email!, name: name! });
-      localStorage.setItem("chat_user", JSON.stringify({ email, name }));
+      try { localStorage.setItem("chat_user", JSON.stringify({ email, name })); } catch {}
     } else {
-      const stored = localStorage.getItem("chat_user");
-      if (stored) {
-        try {
+      try {
+        const stored = localStorage.getItem("chat_user");
+        if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.email && parsed.name) {
             setUser(parsed);
           }
-        } catch {}
-      }
+        }
+      } catch {}
     }
     setIsLoading(false);
   }, []);
@@ -78,75 +78,159 @@ export function useChat() {
   const { data: messages = [] } = useQuery<Message[]>({
     queryKey: ["/api/messages", user?.email],
     enabled: !!user,
+    refetchInterval: 4000,
+    staleTime: 2000,
   });
 
   useEffect(() => {
     if (!user) return;
 
-    const socket = connectSocket(user.email, user.name);
+    let socketConnected = false;
 
-    socket.on("connect", () => {
+    try {
+      const socket = connectSocket(user.email, user.name);
+
+      socket.on("connect", () => {
+        socketConnected = true;
+        setIsConnected(true);
+        socket.emit("page_info", pageInfo);
+      });
+
+      socket.on("disconnect", () => {
+        socketConnected = false;
+        setIsConnected(false);
+      });
+
+      socket.on("chat_history", (history: Message[]) => {
+        queryClient.setQueryData(["/api/messages", user.email], history);
+      });
+
+      socket.on("new_message", (msg: Message) => {
+        queryClient.setQueryData(
+          ["/api/messages", user.email],
+          (old: Message[] | undefined) => {
+            const existing = old || [];
+            if (existing.some(m => m.id === msg.id)) return existing;
+            return [...existing, msg];
+          },
+        );
+      });
+
+      socket.on("contact_confirmed", () => {
+        setContactRequested(true);
+      });
+
+      setTimeout(() => {
+        if (!socketConnected) {
+          setIsConnected(true);
+        }
+      }, 3000);
+    } catch {
       setIsConnected(true);
-      socket.emit("page_info", pageInfo);
-    });
-
-    socket.on("disconnect", () => {
-      setIsConnected(false);
-    });
-
-    socket.on("chat_history", (history: Message[]) => {
-      queryClient.setQueryData(["/api/messages", user.email], history);
-    });
-
-    socket.on("new_message", (msg: Message) => {
-      queryClient.setQueryData(
-        ["/api/messages", user.email],
-        (old: Message[] | undefined) => [...(old || []), msg],
-      );
-    });
-
-    socket.on("contact_confirmed", () => {
-      setContactRequested(true);
-    });
+    }
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("chat_history");
-      socket.off("new_message");
-      socket.off("contact_confirmed");
-      disconnectSocket();
+      try {
+        const socket = getSocket();
+        socket.off("connect");
+        socket.off("disconnect");
+        socket.off("chat_history");
+        socket.off("new_message");
+        socket.off("contact_confirmed");
+        disconnectSocket();
+      } catch {}
     };
   }, [user]);
 
   const sendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       if (!user || !content.trim()) return;
-      const socket = getSocket();
-      socket.emit("send_message", {
-        content: content.trim(),
-        userEmail: user.email,
-        userName: user.name,
-        sender: "user",
-      });
+
+      try {
+        const res = await fetch("/api/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: content.trim(),
+            userEmail: user.email,
+            userName: user.name,
+            sender: "user",
+            pageUrl: pageInfo.url,
+            pageTitle: pageInfo.title,
+          }),
+        });
+
+        if (res.ok) {
+          const msg = await res.json();
+          queryClient.setQueryData(
+            ["/api/messages", user.email],
+            (old: Message[] | undefined) => {
+              const existing = old || [];
+              if (existing.some(m => m.id === msg.id)) return existing;
+              return [...existing, msg];
+            },
+          );
+
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["/api/messages", user.email] });
+          }, 2500);
+        }
+      } catch {
+        try {
+          const socket = getSocket();
+          if (socket.connected) {
+            socket.emit("send_message", {
+              content: content.trim(),
+              userEmail: user.email,
+              userName: user.name,
+              sender: "user",
+            });
+          }
+        } catch {}
+      }
     },
-    [user],
+    [user, pageInfo],
   );
 
-  const requestContact = useCallback(() => {
+  const requestContact = useCallback(async () => {
     if (!user || contactRequested) return;
-    const socket = getSocket();
-    socket.emit("contact_executive", {
-      userEmail: user.email,
-      userName: user.name,
-      pageUrl: pageInfo.url,
-      pageTitle: pageInfo.title,
-    });
+
+    try {
+      const res = await fetch("/api/contact-executive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail: user.email,
+          userName: user.name,
+          pageUrl: pageInfo.url,
+          pageTitle: pageInfo.title,
+        }),
+      });
+
+      if (res.ok) {
+        setContactRequested(true);
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/messages", user.email] });
+        }, 1500);
+      }
+    } catch {
+      try {
+        const socket = getSocket();
+        if (socket.connected) {
+          socket.emit("contact_executive", {
+            userEmail: user.email,
+            userName: user.name,
+            pageUrl: pageInfo.url,
+            pageTitle: pageInfo.title,
+          });
+        }
+      } catch {}
+    }
   }, [user, contactRequested, pageInfo]);
 
   const login = useCallback((email: string, name: string) => {
     const userData = { email, name };
-    localStorage.setItem("chat_user", JSON.stringify(userData));
+    try { localStorage.setItem("chat_user", JSON.stringify(userData)); } catch {}
     setUser(userData);
   }, []);
 

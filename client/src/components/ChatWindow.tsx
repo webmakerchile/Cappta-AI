@@ -161,7 +161,7 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
         <button
           data-testid="button-send"
           type="submit"
-          disabled={!input.trim() || !isConnected}
+          disabled={!input.trim()}
           className="
             w-10 h-10 rounded-md flex items-center justify-center
             bg-[#6200EA] text-white
