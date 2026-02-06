@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Wifi, WifiOff, Headphones, UserRound } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 
@@ -10,6 +10,7 @@ interface ChatWindowProps {
   isConnected: boolean;
   userName: string;
   contactRequested: boolean;
+  onClose: () => void;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -52,7 +53,7 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested }: ChatWindowProps) {
+export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,26 +76,30 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-[#6200EA]/20 border border-[#6200EA]/30 flex items-center justify-center">
-          <Headphones className="w-4 h-4 text-[#6200EA]" />
+      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: "#6200EA" }}>
+        <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
+          <Headphones className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 data-testid="text-header-title" className="text-sm font-semibold text-white truncate">Equipo de Soporte</h3>
           <div className="flex items-center gap-1.5">
             {isConnected ? (
-              <Wifi className="w-3 h-3 text-green-400" />
+              <Wifi className="w-3 h-3 text-green-300" />
             ) : (
-              <WifiOff className="w-3 h-3 text-red-400" />
+              <WifiOff className="w-3 h-3 text-red-300" />
             )}
-            <span data-testid="text-connection-status" className={`text-[11px] ${isConnected ? "text-green-400" : "text-red-400"}`}>
+            <span data-testid="text-connection-status" className={`text-[11px] ${isConnected ? "text-green-200" : "text-red-200"}`}>
               {isConnected ? "En l\u00ednea" : "Conectando..."}
             </span>
           </div>
         </div>
-        <div data-testid="text-user-name" className="text-xs text-white/30 truncate max-w-[100px]">
-          {userName}
-        </div>
+        <button
+          data-testid="button-close-chat"
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
+        >
+          <X className="w-4 h-4 text-white" />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 chat-scrollbar">
@@ -103,9 +108,9 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             <div className="w-14 h-14 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">
               <Headphones className="w-7 h-7 text-[#6200EA]/60" />
             </div>
-            <p className="text-sm text-white/40 mb-1">Sin mensajes a&uacute;n</p>
+            <p className="text-sm text-white/40 mb-1">Sin mensajes a\u00fan</p>
             <p className="text-xs text-white/25">
-              Env&iacute;a un mensaje para iniciar la conversaci&oacute;n
+              Env\u00eda un mensaje para iniciar la conversaci\u00f3n
             </p>
           </div>
         )}

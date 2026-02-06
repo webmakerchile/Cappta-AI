@@ -24,8 +24,8 @@ function ChatWidget() {
     try {
       const payload = {
         type,
-        width: type === "open_chat" ? 390 : 70,
-        height: type === "open_chat" ? 600 : 70,
+        width: type === "open_chat" ? 400 : 70,
+        height: type === "open_chat" ? 620 : 70,
       };
       window.parent.postMessage(payload, "*");
     } catch {}
@@ -58,42 +58,39 @@ function ChatWidget() {
   }
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      {isOpen && (
+    <div
+      className="w-full h-full flex items-end justify-end"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
+    >
+      {isOpen ? (
         <div
           data-testid="chat-widget-container"
-          className="
-            pointer-events-auto
-            fixed bottom-24 right-5
-            w-[370px] h-[520px]
-            rounded-md overflow-hidden
-            animate-slide-up
-            flex flex-col
-          "
+          className="w-full h-full flex flex-col overflow-hidden animate-slide-up"
           style={{
-            background: "linear-gradient(180deg, #1e1e1e 0%, #1a1a1a 100%)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(98,0,234,0.15)",
+            background: "#1a1a1a",
           }}
         >
-          {user ? (
-            <ChatWindow
-              messages={messages}
-              onSend={sendMessage}
-              onContactExecutive={requestContact}
-              isConnected={isConnected}
-              userName={user.name}
-              contactRequested={contactRequested}
-            />
-          ) : (
-            <WelcomeForm onSubmit={(email, name) => login(email, name)} />
-          )}
+          <div className="flex-1 flex flex-col min-h-0">
+            {user ? (
+              <ChatWindow
+                messages={messages}
+                onSend={sendMessage}
+                onContactExecutive={requestContact}
+                isConnected={isConnected}
+                userName={user.name}
+                contactRequested={contactRequested}
+                onClose={toggleChat}
+              />
+            ) : (
+              <WelcomeForm onSubmit={(email, name) => login(email, name)} onClose={toggleChat} />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="p-2">
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} />
         </div>
       )}
-
-      <div className="pointer-events-auto">
-        <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} />
-      </div>
     </div>
   );
 }

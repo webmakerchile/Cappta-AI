@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { guestFormSchema, type GuestForm } from "@shared/schema";
-import { User, Mail, ArrowRight, Headphones } from "lucide-react";
+import { User, Mail, ArrowRight, Headphones, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,9 +15,10 @@ import {
 
 interface WelcomeFormProps {
   onSubmit: (email: string, name: string) => void;
+  onClose: () => void;
 }
 
-export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
+export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
   const form = useForm<GuestForm>({
     resolver: zodResolver(guestFormSchema),
     defaultValues: {
@@ -32,7 +33,20 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col items-center pt-8 pb-6 px-6">
+      <div className="px-4 py-3 flex items-center justify-between" style={{ background: "#6200EA" }}>
+        <div className="flex items-center gap-2">
+          <Headphones className="w-4 h-4 text-white" />
+          <span className="text-sm font-semibold text-white">Chat de Soporte</span>
+        </div>
+        <button
+          data-testid="button-close-welcome"
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
+        >
+          <X className="w-4 h-4 text-white" />
+        </button>
+      </div>
+      <div className="flex flex-col items-center pt-6 pb-4 px-6">
         <div className="w-16 h-16 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-4 border border-[#6200EA]/30">
           <Headphones className="w-8 h-8 text-[#6200EA]" />
         </div>

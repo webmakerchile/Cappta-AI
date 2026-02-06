@@ -14,6 +14,12 @@ interface PageInfo {
   title: string;
 }
 
+function isValidParam(value: string | null): boolean {
+  if (!value) return false;
+  if (value.includes("<?php") || value.includes("<%") || value.trim() === "") return false;
+  return true;
+}
+
 export function useChat() {
   const [user, setUser] = useState<ChatUser | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -29,13 +35,16 @@ export function useChat() {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
     const name = params.get("name");
-    const pageUrl = params.get("page_url") || document.referrer || window.location.href;
-    const pageTitle = params.get("page_title") || document.title || "";
+    const pageUrl = params.get("page_url") || document.referrer || "";
+    const pageTitle = params.get("page_title") || "";
 
-    setPageInfo({ url: pageUrl, title: pageTitle });
+    setPageInfo({
+      url: isValidParam(pageUrl) ? pageUrl : "",
+      title: isValidParam(pageTitle) ? pageTitle : "",
+    });
 
-    if (email && name) {
-      setUser({ email, name });
+    if (isValidParam(email) && isValidParam(name)) {
+      setUser({ email: email!, name: name! });
       localStorage.setItem("chat_user", JSON.stringify({ email, name }));
     } else {
       const stored = localStorage.getItem("chat_user");
