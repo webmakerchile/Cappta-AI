@@ -108,9 +108,9 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             <div className="w-14 h-14 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">
               <Headphones className="w-7 h-7 text-[#6200EA]/60" />
             </div>
-            <p className="text-sm text-white/40 mb-1">Sin mensajes a\u00fan</p>
+            <p className="text-sm text-white/40 mb-1">Sin mensajes aún</p>
             <p className="text-xs text-white/25">
-              Env\u00eda un mensaje para iniciar la conversaci\u00f3n
+              Envía un mensaje para iniciar la conversación
             </p>
           </div>
         )}

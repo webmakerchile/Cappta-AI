@@ -52,7 +52,7 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
         </div>
         <h2 data-testid="text-welcome-title" className="text-xl font-bold text-white mb-1">Bienvenido</h2>
         <p data-testid="text-welcome-subtitle" className="text-sm text-white/50 text-center">
-          Ingresa tus datos para iniciar una conversaci&oacute;n con nuestro equipo
+          Ingresa tus datos para iniciar una conversación con nuestro equipo
         </p>
       </div>
 
