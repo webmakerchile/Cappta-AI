@@ -1,34 +1,20 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Wifi, WifiOff, Headphones } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 
 interface ChatWindowProps {
   messages: Message[];
   onSend: (content: string) => void;
+  onContactExecutive: () => void;
   isConnected: boolean;
   userName: string;
+  contactRequested: boolean;
 }
 
 function formatTime(timestamp: string | Date) {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function TypingIndicator() {
-  return (
-    <div className="flex items-end gap-2 animate-fade-in">
-      <div className="w-7 h-7 rounded-full bg-[#6200EA]/20 border border-[#6200EA]/30 flex items-center justify-center flex-shrink-0">
-        <Headphones className="w-3.5 h-3.5 text-[#6200EA]" />
-      </div>
-      <div className="bg-white/5 border border-white/10 rounded-md rounded-bl-none px-4 py-3">
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#6200EA] typing-dot" />
-          <div className="w-1.5 h-1.5 rounded-full bg-[#6200EA] typing-dot" />
-          <div className="w-1.5 h-1.5 rounded-full bg-[#6200EA] typing-dot" />
-        </div>
-      </div>
-    </div>
-  );
+  return date.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
 
 function MessageBubble({ message }: { message: Message }) {
@@ -66,7 +52,7 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-export function ChatWindow({ messages, onSend, isConnected, userName }: ChatWindowProps) {
+export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +80,7 @@ export function ChatWindow({ messages, onSend, isConnected, userName }: ChatWind
           <Headphones className="w-4 h-4 text-[#6200EA]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 data-testid="text-header-title" className="text-sm font-semibold text-white truncate">Support Team</h3>
+          <h3 data-testid="text-header-title" className="text-sm font-semibold text-white truncate">Equipo de Soporte</h3>
           <div className="flex items-center gap-1.5">
             {isConnected ? (
               <Wifi className="w-3 h-3 text-green-400" />
@@ -102,7 +88,7 @@ export function ChatWindow({ messages, onSend, isConnected, userName }: ChatWind
               <WifiOff className="w-3 h-3 text-red-400" />
             )}
             <span data-testid="text-connection-status" className={`text-[11px] ${isConnected ? "text-green-400" : "text-red-400"}`}>
-              {isConnected ? "Online" : "Connecting..."}
+              {isConnected ? "En l\u00ednea" : "Conectando..."}
             </span>
           </div>
         </div>
@@ -117,9 +103,9 @@ export function ChatWindow({ messages, onSend, isConnected, userName }: ChatWind
             <div className="w-14 h-14 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">
               <Headphones className="w-7 h-7 text-[#6200EA]/60" />
             </div>
-            <p className="text-sm text-white/40 mb-1">No messages yet</p>
+            <p className="text-sm text-white/40 mb-1">Sin mensajes a&uacute;n</p>
             <p className="text-xs text-white/25">
-              Send a message to start the conversation
+              Env&iacute;a un mensaje para iniciar la conversaci&oacute;n
             </p>
           </div>
         )}
@@ -129,9 +115,28 @@ export function ChatWindow({ messages, onSend, isConnected, userName }: ChatWind
         <div ref={messagesEndRef} />
       </div>
 
+      <div className="px-3 pt-2 pb-1 border-t border-white/10">
+        <Button
+          data-testid="button-contact-executive"
+          variant="outline"
+          onClick={onContactExecutive}
+          disabled={contactRequested}
+          className={`
+            w-full mb-2 border-[#6200EA]/30 text-white/70
+            ${contactRequested
+              ? "opacity-50 cursor-not-allowed bg-[#6200EA]/10"
+              : "bg-transparent"
+            }
+          `}
+        >
+          <UserRound className="w-4 h-4 mr-2 text-[#6200EA]" />
+          {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
+        </Button>
+      </div>
+
       <form
         onSubmit={handleSubmit}
-        className="px-3 py-3 border-t border-white/10 flex items-center gap-2"
+        className="px-3 pb-3 flex items-center gap-2"
       >
         <input
           ref={inputRef}
@@ -139,7 +144,7 @@ export function ChatWindow({ messages, onSend, isConnected, userName }: ChatWind
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..."
+          placeholder="Escribe un mensaje..."
           className="
             flex-1 py-2.5 px-3.5 rounded-md
             bg-white/5 border border-white/10

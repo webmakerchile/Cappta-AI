@@ -36,9 +36,9 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
         <div className="w-16 h-16 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-4 border border-[#6200EA]/30">
           <Headphones className="w-8 h-8 text-[#6200EA]" />
         </div>
-        <h2 data-testid="text-welcome-title" className="text-xl font-bold text-white mb-1">Welcome</h2>
+        <h2 data-testid="text-welcome-title" className="text-xl font-bold text-white mb-1">Bienvenido</h2>
         <p data-testid="text-welcome-subtitle" className="text-sm text-white/50 text-center">
-          Enter your details to start chatting with our support team
+          Ingresa tus datos para iniciar una conversaci&oacute;n con nuestro equipo
         </p>
       </div>
 
@@ -50,7 +50,7 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-col gap-1.5">
                 <FormLabel className="text-xs font-medium text-white/60 uppercase tracking-wider">
-                  Name
+                  Nombre
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -59,7 +59,7 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
                       data-testid="input-name"
                       type="text"
                       {...field}
-                      placeholder="Your name"
+                      placeholder="Tu nombre"
                       className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
                     />
                   </div>
@@ -75,7 +75,7 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-col gap-1.5">
                 <FormLabel className="text-xs font-medium text-white/60 uppercase tracking-wider">
-                  Email
+                  Correo
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -84,7 +84,7 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
                       data-testid="input-email"
                       type="email"
                       {...field}
-                      placeholder="your@email.com"
+                      placeholder="tu@correo.com"
                       className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
                     />
                   </div>
@@ -101,7 +101,7 @@ export function WelcomeForm({ onSubmit }: WelcomeFormProps) {
             type="submit"
             className="w-full bg-[#6200EA] border-[#6200EA] text-white"
           >
-            Start Chat
+            Iniciar Chat
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </form>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import type { Message } from "@shared/schema";
 
@@ -9,10 +9,17 @@ interface ChatUser {
   name: string;
 }
 
+interface PageInfo {
+  url: string;
+  title: string;
+}
+
 export function useChat() {
   const [user, setUser] = useState<ChatUser | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [contactRequested, setContactRequested] = useState(false);
+  const [pageInfo, setPageInfo] = useState<PageInfo>({ url: "", title: "" });
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -22,6 +29,10 @@ export function useChat() {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
     const name = params.get("name");
+    const pageUrl = params.get("page_url") || document.referrer || window.location.href;
+    const pageTitle = params.get("page_title") || document.title || "";
+
+    setPageInfo({ url: pageUrl, title: pageTitle });
 
     if (email && name) {
       setUser({ email, name });
@@ -40,6 +51,21 @@ export function useChat() {
     setIsLoading(false);
   }, []);
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && typeof event.data === "object") {
+        if (event.data.type === "page_info") {
+          setPageInfo({
+            url: event.data.url || pageInfo.url,
+            title: event.data.title || pageInfo.title,
+          });
+        }
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [pageInfo]);
+
   const { data: messages = [] } = useQuery<Message[]>({
     queryKey: ["/api/messages", user?.email],
     enabled: !!user,
@@ -52,6 +78,7 @@ export function useChat() {
 
     socket.on("connect", () => {
       setIsConnected(true);
+      socket.emit("page_info", pageInfo);
     });
 
     socket.on("disconnect", () => {
@@ -69,11 +96,16 @@ export function useChat() {
       );
     });
 
+    socket.on("contact_confirmed", () => {
+      setContactRequested(true);
+    });
+
     return () => {
       socket.off("connect");
       socket.off("disconnect");
       socket.off("chat_history");
       socket.off("new_message");
+      socket.off("contact_confirmed");
       disconnectSocket();
     };
   }, [user]);
@@ -92,6 +124,17 @@ export function useChat() {
     [user],
   );
 
+  const requestContact = useCallback(() => {
+    if (!user || contactRequested) return;
+    const socket = getSocket();
+    socket.emit("contact_executive", {
+      userEmail: user.email,
+      userName: user.name,
+      pageUrl: pageInfo.url,
+      pageTitle: pageInfo.title,
+    });
+  }, [user, contactRequested, pageInfo]);
+
   const login = useCallback((email: string, name: string) => {
     const userData = { email, name };
     localStorage.setItem("chat_user", JSON.stringify(userData));
@@ -103,7 +146,9 @@ export function useChat() {
     messages,
     isConnected,
     isLoading,
+    contactRequested,
     sendMessage,
+    requestContact,
     login,
   };
 }

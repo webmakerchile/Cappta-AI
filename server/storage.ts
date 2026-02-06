@@ -1,10 +1,11 @@
-import { messages, type Message, type InsertMessage } from "@shared/schema";
+import { messages, contactRequests, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc } from "drizzle-orm";
 
 export interface IStorage {
   getMessagesByEmail(email: string): Promise<Message[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
+  createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -18,6 +19,11 @@ export class DatabaseStorage implements IStorage {
 
   async createMessage(msg: InsertMessage): Promise<Message> {
     const [created] = await db.insert(messages).values(msg).returning();
+    return created;
+  }
+
+  async createContactRequest(req: InsertContactRequest): Promise<ContactRequest> {
+    const [created] = await db.insert(contactRequests).values(req).returning();
     return created;
   }
 }

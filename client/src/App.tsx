@@ -9,7 +9,16 @@ import { useChat } from "@/hooks/use-chat";
 function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const { user, messages, isConnected, isLoading, sendMessage, login } = useChat();
+  const {
+    user,
+    messages,
+    isConnected,
+    isLoading,
+    contactRequested,
+    sendMessage,
+    requestContact,
+    login,
+  } = useChat();
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -71,8 +80,10 @@ function ChatWidget() {
             <ChatWindow
               messages={messages}
               onSend={sendMessage}
+              onContactExecutive={requestContact}
               isConnected={isConnected}
               userName={user.name}
+              contactRequested={contactRequested}
             />
           ) : (
             <WelcomeForm onSubmit={(email, name) => login(email, name)} />
