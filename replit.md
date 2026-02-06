@@ -17,22 +17,31 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 5. **Session-Based Privacy**: Each chat gets a unique session ID (generated client-side). Messages are stored/fetched by sessionId, not email. Email is only used for executive contact. This prevents users from seeing each other's chat history even if they enter the same email
 6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
-8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary and page context
+8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
 9. **Auto-replies**: Intelligent keyword-based auto-reply system in Spanish with product knowledge (PS Plus, Game Pass, gift cards, specific games) and page context awareness
+10. **Admin Panel** (`/admin`): Private admin page to view all chat sessions, read full conversation histories, and search across all messages
+11. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages + contact_requests tables) and TypeScript types
-- `server/routes.ts` - Socket.io setup, message handling, contact executive, auto-reply logic
-- `server/storage.ts` - Database CRUD operations
+- `server/routes.ts` - Socket.io setup, message handling, contact executive, auto-reply logic, admin API endpoints
+- `server/storage.ts` - Database CRUD operations (session queries, search, admin queries)
 - `server/db.ts` - Database connection pool
-- `server/email.ts` - Resend email notification service
+- `server/email.ts` - Resend email notification service with pre-chat form data
 - `server/seed.ts` - Demo data seeding (Spanish)
-- `client/src/App.tsx` - Main widget container, iframe postMessage logic, QueryClient provider
+- `client/src/App.tsx` - Main app container with routing (/ = widget, /admin = admin panel)
+- `client/src/pages/Admin.tsx` - Admin panel with session list, chat viewer, global search
 - `client/src/components/Launcher.tsx` - Floating chat button
-- `client/src/components/ChatWindow.tsx` - Chat messages area + input + contact executive button
+- `client/src/components/ChatWindow.tsx` - Chat messages area + input + in-chat search + contact executive button
 - `client/src/components/WelcomeForm.tsx` - Guest login form (Spanish)
 - `client/src/hooks/use-chat.ts` - Chat state management hook with TanStack Query integration
 - `client/src/lib/socket.ts` - Socket.io client configuration
+
+## Admin API Endpoints
+- `GET /api/admin/sessions` - List all chat sessions with user info and message counts
+- `GET /api/admin/sessions/:sessionId/messages` - Get full message history for a session
+- `GET /api/admin/search?q=query` - Search across all messages, grouped by session
+- `GET /api/admin/contact-requests` - List all executive contact requests
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string

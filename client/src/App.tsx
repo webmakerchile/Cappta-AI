@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Launcher } from "@/components/Launcher";
 import { ChatWindow } from "@/components/ChatWindow";
 import { WelcomeForm } from "@/components/WelcomeForm";
 import { useChat } from "@/hooks/use-chat";
+
+const AdminPage = lazy(() => import("@/pages/Admin"));
 
 function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -96,9 +98,21 @@ function ChatWidget() {
 }
 
 function App() {
+  const isAdmin = window.location.pathname === "/admin";
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ChatWidget />
+      {isAdmin ? (
+        <Suspense fallback={
+          <div className="h-screen flex items-center justify-center" style={{ background: "#111" }}>
+            <div className="w-8 h-8 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+          </div>
+        }>
+          <AdminPage />
+        </Suspense>
+      ) : (
+        <ChatWidget />
+      )}
     </QueryClientProvider>
   );
 }

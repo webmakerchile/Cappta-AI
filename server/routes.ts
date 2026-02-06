@@ -160,6 +160,81 @@ export async function registerRoutes(
     }
   });
 
+  const ADMIN_KEY = process.env.SESSION_SECRET || "admin-default-key";
+
+  function requireAdmin(req: any, res: any): boolean {
+    const authHeader = req.headers["x-admin-key"] || req.query.key;
+    if (authHeader !== ADMIN_KEY) {
+      res.status(401).json({ message: "No autorizado" });
+      return false;
+    }
+    return true;
+  }
+
+  app.get("/api/admin/sessions", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const sessions = await storage.getAllSessions();
+      res.json(sessions);
+    } catch (error: any) {
+      log(`Error al obtener sesiones: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener sesiones" });
+    }
+  });
+
+  app.get("/api/admin/sessions/:sessionId/messages", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const msgs = await storage.getMessagesBySessionId(req.params.sessionId);
+      res.json(msgs);
+    } catch (error: any) {
+      log(`Error al obtener mensajes de sesion: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener mensajes" });
+    }
+  });
+
+  app.get("/api/admin/search", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+      const results = await storage.searchMessages(query);
+      const grouped: Record<string, { sessionId: string; userName: string; userEmail: string; messages: typeof results }> = {};
+      for (const msg of results) {
+        if (!grouped[msg.sessionId]) {
+          grouped[msg.sessionId] = {
+            sessionId: msg.sessionId,
+            userName: msg.sender === "user" ? msg.userName : "",
+            userEmail: msg.sender === "user" ? msg.userEmail : "",
+            messages: [],
+          };
+        }
+        grouped[msg.sessionId].messages.push(msg);
+        if (msg.sender === "user") {
+          grouped[msg.sessionId].userName = msg.userName;
+          grouped[msg.sessionId].userEmail = msg.userEmail;
+        }
+      }
+      res.json(Object.values(grouped));
+    } catch (error: any) {
+      log(`Error en busqueda: ${error.message}`, "api");
+      res.status(500).json({ message: "Error en busqueda" });
+    }
+  });
+
+  app.get("/api/admin/contact-requests", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const requests = await storage.getContactRequests();
+      res.json(requests);
+    } catch (error: any) {
+      log(`Error al obtener solicitudes: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener solicitudes" });
+    }
+  });
+
   io.on("connection", (socket) => {
     const { email, name, sessionId } = socket.handshake.auth as { email: string; name: string; sessionId: string };
 

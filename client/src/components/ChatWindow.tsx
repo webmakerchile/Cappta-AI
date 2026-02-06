@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 
@@ -18,7 +18,24 @@ function formatTime(timestamp: string | Date) {
   return date.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function highlightText(text: string, query: string) {
+  if (!query || query.length < 2) return <>{text}</>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-[#6200EA]/50 text-white rounded-sm px-0.5">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
+function MessageBubble({ message, searchQuery }: { message: Message; searchQuery: string }) {
   const isUser = message.sender === "user";
 
   return (
@@ -41,7 +58,7 @@ function MessageBubble({ message }: { message: Message }) {
             }
           `}
         >
-          {message.content}
+          {searchQuery ? highlightText(message.content, searchQuery) : message.content}
         </div>
         <span
           className={`text-[10px] text-white/30 ${isUser ? "text-right" : "text-left"}`}
@@ -55,16 +72,27 @@ function MessageBubble({ message }: { message: Message }) {
 
 export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose }: ChatWindowProps) {
   const [input, setInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!showSearch) {
+      inputRef.current?.focus();
+    }
+  }, [showSearch]);
+
+  useEffect(() => {
+    if (showSearch) {
+      searchInputRef.current?.focus();
+    }
+  }, [showSearch]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +101,12 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
       setInput("");
     }
   };
+
+  const filteredMessages = searchQuery.length >= 2
+    ? messages.filter(m => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    : messages;
+
+  const matchCount = searchQuery.length >= 2 ? filteredMessages.length : 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -94,6 +128,13 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           </div>
         </div>
         <button
+          data-testid="button-search-toggle"
+          onClick={() => { setShowSearch(!showSearch); setSearchQuery(""); }}
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${showSearch ? "bg-white/30" : "bg-white/15 hover:bg-white/25"}`}
+        >
+          <Search className="w-4 h-4 text-white" />
+        </button>
+        <button
           data-testid="button-close-chat"
           onClick={onClose}
           className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
@@ -102,21 +143,52 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
         </button>
       </div>
 
+      {showSearch && (
+        <div className="px-3 py-2 border-b border-white/10 flex items-center gap-2 bg-white/[0.03]">
+          <Search className="w-4 h-4 text-white/30 flex-shrink-0" />
+          <input
+            ref={searchInputRef}
+            data-testid="input-chat-search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar en la conversacion..."
+            className="flex-1 bg-transparent text-white text-sm placeholder:text-white/25 focus:outline-none"
+          />
+          {searchQuery.length >= 2 && (
+            <span className="text-[11px] text-white/30 flex-shrink-0">
+              {matchCount} resultado{matchCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          <button
+            data-testid="button-close-search"
+            onClick={() => { setShowSearch(false); setSearchQuery(""); }}
+            className="text-white/30 hover:text-white/60"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 chat-scrollbar">
-        {messages.length === 0 && (
+        {filteredMessages.length === 0 && searchQuery.length >= 2 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <p className="text-sm text-white/40">No se encontraron mensajes con "{searchQuery}"</p>
+          </div>
+        ) : filteredMessages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <div className="w-14 h-14 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">
               <Headphones className="w-7 h-7 text-[#6200EA]/60" />
             </div>
-            <p className="text-sm text-white/40 mb-1">Sin mensajes aún</p>
+            <p className="text-sm text-white/40 mb-1">Sin mensajes aun</p>
             <p className="text-xs text-white/25">
-              Envía un mensaje para iniciar la conversación
+              Envia un mensaje para iniciar la conversacion
             </p>
           </div>
+        ) : (
+          filteredMessages.map((msg) => (
+            <MessageBubble key={msg.id} message={msg} searchQuery={searchQuery} />
+          ))
         )}
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
-        ))}
         <div ref={messagesEndRef} />
       </div>
 
