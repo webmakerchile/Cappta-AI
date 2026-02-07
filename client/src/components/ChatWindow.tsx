@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
@@ -27,11 +26,6 @@ const getPlatformBadge = (platform: string): string => {
   return platformMap[platform] || platform;
 };
 
-interface CannedResponse {
-  id: number;
-  shortcut: string;
-  content: string;
-}
 
 interface QuickReplyButton {
   label: string;
@@ -187,9 +181,6 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showSlashMenu, setShowSlashMenu] = useState(false);
-  const [slashFilter, setSlashFilter] = useState("");
-  const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
   const [showProductBrowser, setShowProductBrowser] = useState(false);
   const [productSearchQuery, setProductSearchQuery] = useState("");
   const [browseProducts, setBrowseProducts] = useState<BrowseProduct[]>([]);
@@ -197,7 +188,6 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const slashMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const productBrowserRef = useRef<HTMLDivElement>(null);
   const productSearchInputRef = useRef<HTMLInputElement>(null);
@@ -256,7 +246,6 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
     const nextState = !showProductBrowser;
     setShowProductBrowser(nextState);
     if (nextState) {
-      setShowSlashMenu(false);
       fetchBrowseProducts("");
       setTimeout(() => productSearchInputRef.current?.focus(), 50);
     } else {
@@ -290,16 +279,6 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
     };
   }, [showProductBrowser]);
 
-  const { data: cannedResponses = [] } = useQuery<CannedResponse[]>({
-    queryKey: ["/api/canned-responses"],
-    queryFn: async () => {
-      const res = await fetch("/api/canned-responses");
-      if (!res.ok) return [];
-      return res.json();
-    },
-    staleTime: 30000,
-  });
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -316,60 +295,12 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
     }
   }, [showSearch]);
 
-  const filteredCanned = cannedResponses.filter(r => {
-    if (!slashFilter) return true;
-    return r.shortcut.toLowerCase().includes(slashFilter.toLowerCase()) ||
-           r.content.toLowerCase().includes(slashFilter.toLowerCase());
-  });
-
-  useEffect(() => {
-    setSelectedSlashIndex(0);
-  }, [slashFilter]);
-
-  const selectCannedResponse = useCallback((response: CannedResponse) => {
-    setInput(response.content);
-    setShowSlashMenu(false);
-    setSlashFilter("");
-    inputRef.current?.focus();
-  }, []);
-
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setInput(val);
-
-    if (val.startsWith("/")) {
-      setShowSlashMenu(true);
-      setSlashFilter(val.slice(1));
-    } else {
-      setShowSlashMenu(false);
-      setSlashFilter("");
-    }
+    setInput(e.target.value);
   }, []);
-
-  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showSlashMenu || filteredCanned.length === 0) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedSlashIndex(prev => (prev + 1) % filteredCanned.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedSlashIndex(prev => (prev - 1 + filteredCanned.length) % filteredCanned.length);
-    } else if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault();
-      selectCannedResponse(filteredCanned[selectedSlashIndex]);
-    } else if (e.key === "Escape") {
-      setShowSlashMenu(false);
-      setSlashFilter("");
-    }
-  }, [showSlashMenu, filteredCanned, selectedSlashIndex, selectCannedResponse]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (showSlashMenu) {
-      setShowSlashMenu(false);
-      return;
-    }
     if (input.trim()) {
       onSend(input);
       setInput("");
@@ -525,43 +456,6 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
       </div>
 
       <div className="relative px-3 pb-3">
-        {showSlashMenu && filteredCanned.length > 0 && (
-          <div
-            ref={slashMenuRef}
-            data-testid="slash-command-menu"
-            className="absolute bottom-full left-3 right-3 mb-1 bg-[#1e1e1e] border border-white/10 rounded-md shadow-lg max-h-48 overflow-y-auto z-50"
-          >
-            <div className="px-3 py-1.5 border-b border-white/[0.06]">
-              <div className="flex items-center gap-1.5 text-[11px] text-white/30">
-                <Zap className="w-3 h-3" />
-                Respuestas rapidas
-              </div>
-            </div>
-            {filteredCanned.map((response, idx) => (
-              <button
-                key={response.id}
-                data-testid={`slash-option-${response.shortcut}`}
-                className={`w-full text-left px-3 py-2 flex flex-col gap-0.5 transition-colors ${
-                  idx === selectedSlashIndex
-                    ? "bg-[#6200EA]/20"
-                    : "hover:bg-white/[0.05]"
-                }`}
-                onMouseEnter={() => setSelectedSlashIndex(idx)}
-                onClick={() => selectCannedResponse(response)}
-              >
-                <span className="text-sm font-medium text-[#6200EA]">/{response.shortcut}</span>
-                <span className="text-xs text-white/40 line-clamp-1">{response.content}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {showSlashMenu && filteredCanned.length === 0 && input.startsWith("/") && (
-          <div className="absolute bottom-full left-3 right-3 mb-1 bg-[#1e1e1e] border border-white/10 rounded-md p-3 z-50">
-            <p className="text-xs text-white/30 text-center">No hay respuestas rapidas disponibles</p>
-          </div>
-        )}
-
         {showProductBrowser && (
           <div
             ref={productBrowserRef}
@@ -682,8 +576,7 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             type="text"
             value={input}
             onChange={handleInputChange}
-            onKeyDown={handleInputKeyDown}
-            placeholder='Escribe un mensaje... (usa "/" para atajos)'
+            placeholder='Escribe un mensaje...'
             className="
               flex-1 py-2.5 px-3.5 rounded-md
               bg-white/5 border border-white/10
@@ -696,7 +589,7 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             data-testid="button-send"
             type="submit"
             size="icon"
-            disabled={!input.trim() || showSlashMenu}
+            disabled={!input.trim()}
             className="bg-[#6200EA] text-white flex-shrink-0"
           >
             <Send className="w-4 h-4" />
