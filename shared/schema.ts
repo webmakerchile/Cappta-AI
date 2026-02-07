@@ -24,6 +24,7 @@ export const sessions = pgTable("sessions", {
   tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
   problemType: text("problem_type"),
   gameName: text("game_name"),
+  adminActive: boolean("admin_active").notNull().default(false),
   lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
