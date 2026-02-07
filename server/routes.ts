@@ -2,13 +2,16 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getSmartAutoReply } from "./autoReply";
 import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import webpush from "web-push";
 
 const socketMessageSchema = insertMessageSchema.extend({
   content: z.string().max(2000),
@@ -72,6 +75,76 @@ export async function registerRoutes(
   });
 
   const userSessions = new Map<string, UserSession>();
+
+  const JWT_SECRET = process.env.SESSION_SECRET || "default-secret";
+
+  function generateToken(user: { id: number; email: string; role: string; displayName: string }) {
+    return jwt.sign({ id: user.id, email: user.email, role: user.role, displayName: user.displayName }, JWT_SECRET, { expiresIn: "30d" });
+  }
+
+  function verifyToken(token: string): { id: number; email: string; role: string; displayName: string } | null {
+    try {
+      return jwt.verify(token, JWT_SECRET) as any;
+    } catch { return null; }
+  }
+
+  function requireAuth(req: any, res: any): { id: number; email: string; role: string; displayName: string } | null {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ message: "No autorizado" });
+      return null;
+    }
+    const token = authHeader.substring(7);
+    const user = verifyToken(token);
+    if (!user) {
+      res.status(401).json({ message: "Token invalido o expirado" });
+      return null;
+    }
+    return user;
+  }
+
+  const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
+  const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails("mailto:cjmdigitales@gmail.com", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  }
+
+  async function sendPushToAdmins(title: string, body: string, sessionId: string) {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+    try {
+      const subs = await storage.getAllPushSubscriptions();
+      for (const sub of subs) {
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            JSON.stringify({ title, body, sessionId, url: "/admin" })
+          );
+        } catch (err: any) {
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            await storage.deletePushSubscription(sub.endpoint);
+          }
+        }
+      }
+    } catch {}
+  }
+
+  (async () => {
+    try {
+      const existing = await storage.getAdminUserByEmail("webmakerchile@gmail.com");
+      if (!existing) {
+        const hash = await bcrypt.hash("peseta832", 12);
+        await storage.createAdminUser({
+          email: "webmakerchile@gmail.com",
+          passwordHash: hash,
+          displayName: "Admin Principal",
+          role: "superadmin",
+        });
+        log("Superadmin creado: webmakerchile@gmail.com", "auth");
+      }
+    } catch (e: any) {
+      log(`Error al crear superadmin: ${e.message}`, "auth");
+    }
+  })();
 
   registerObjectStorageRoutes(app);
 
@@ -300,23 +373,162 @@ export async function registerRoutes(
     }
   });
 
-  const ADMIN_KEY = process.env.SESSION_SECRET;
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email y contraseña requeridos" });
+      }
+      const user = await storage.getAdminUserByEmail(email.toLowerCase().trim());
+      if (!user) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      const valid = await bcrypt.compare(password, user.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      const token = generateToken({ id: user.id, email: user.email, role: user.role, displayName: user.displayName });
+      res.json({ token, user: { id: user.id, email: user.email, role: user.role, displayName: user.displayName } });
+    } catch (error: any) {
+      log(`Error en login: ${error.message}`, "auth");
+      res.status(500).json({ message: "Error en autenticacion" });
+    }
+  });
 
-  function requireAdmin(req: any, res: any): boolean {
-    if (!ADMIN_KEY) {
-      res.status(503).json({ message: "Admin no configurado" });
-      return false;
+  app.get("/api/auth/me", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    const dbUser = await storage.getAdminUserById(user.id);
+    if (!dbUser) {
+      return res.status(401).json({ message: "Usuario no encontrado" });
     }
-    const authHeader = req.headers["x-admin-key"] || req.query.key;
-    if (authHeader !== ADMIN_KEY) {
-      res.status(401).json({ message: "No autorizado" });
-      return false;
+    res.json({ id: dbUser.id, email: dbUser.email, role: dbUser.role, displayName: dbUser.displayName });
+  });
+
+  app.get("/api/admin/users", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo el superadmin puede gestionar usuarios" });
     }
-    return true;
-  }
+    const users = await storage.getAllAdminUsers();
+    res.json(users.map(u => ({ id: u.id, email: u.email, displayName: u.displayName, role: u.role, createdAt: u.createdAt })));
+  });
+
+  app.post("/api/admin/users", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo el superadmin puede crear usuarios" });
+    }
+    try {
+      const { email, password, displayName } = req.body;
+      if (!email || !password || !displayName) {
+        return res.status(400).json({ message: "Email, contraseña y nombre requeridos" });
+      }
+      const existing = await storage.getAdminUserByEmail(email.toLowerCase().trim());
+      if (existing) {
+        return res.status(409).json({ message: "Ya existe un usuario con ese email" });
+      }
+      const hash = await bcrypt.hash(password, 12);
+      const created = await storage.createAdminUser({
+        email: email.toLowerCase().trim(),
+        passwordHash: hash,
+        displayName: displayName.trim(),
+        role: "admin",
+      });
+      res.status(201).json({ id: created.id, email: created.email, displayName: created.displayName, role: created.role, createdAt: created.createdAt });
+    } catch (error: any) {
+      log(`Error al crear usuario: ${error.message}`, "auth");
+      res.status(500).json({ message: "Error al crear usuario" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo el superadmin puede eliminar usuarios" });
+    }
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+    const target = await storage.getAdminUserById(id);
+    if (!target) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (target.role === "superadmin") {
+      return res.status(403).json({ message: "No se puede eliminar al superadmin" });
+    }
+    await storage.deleteAdminUser(id);
+    res.json({ success: true });
+  });
+
+  app.post("/api/admin/change-password", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Contraseña actual y nueva requeridas" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "La nueva contraseña debe tener al menos 6 caracteres" });
+      }
+      const dbUser = await storage.getAdminUserById(user.id);
+      if (!dbUser) return res.status(404).json({ message: "Usuario no encontrado" });
+      const valid = await bcrypt.compare(currentPassword, dbUser.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ message: "Contraseña actual incorrecta" });
+      }
+      const hash = await bcrypt.hash(newPassword, 12);
+      await storage.updateAdminUserPassword(user.id, hash);
+      const newToken = generateToken({ id: user.id, email: user.email, role: user.role, displayName: user.displayName });
+      res.json({ success: true, token: newToken });
+    } catch (error: any) {
+      log(`Error al cambiar contraseña: ${error.message}`, "auth");
+      res.status(500).json({ message: "Error al cambiar contraseña" });
+    }
+  });
+
+  app.get("/api/push/vapid-public-key", (_req, res) => {
+    res.json({ key: VAPID_PUBLIC_KEY });
+  });
+
+  app.post("/api/admin/push-subscribe", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const { endpoint, keys } = req.body;
+      if (!endpoint || !keys?.p256dh || !keys?.auth) {
+        return res.status(400).json({ message: "Datos de suscripcion invalidos" });
+      }
+      await storage.createPushSubscription({
+        adminUserId: user.id,
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+      });
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error al registrar push subscription: ${error.message}`, "push");
+      res.status(500).json({ message: "Error al registrar notificaciones" });
+    }
+  });
+
+  app.delete("/api/admin/push-subscribe", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const { endpoint } = req.body;
+      if (!endpoint) return res.status(400).json({ message: "Endpoint requerido" });
+      await storage.deletePushSubscription(endpoint);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al eliminar suscripcion" });
+    }
+  });
 
   app.get("/api/admin/sessions", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const statusFilter = (req.query.status as string) || "all";
       const sessions = await storage.getAllSessions(statusFilter as "active" | "closed" | "all");
@@ -328,7 +540,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/sessions/:sessionId/messages", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const msgs = await storage.getMessagesBySessionId(req.params.sessionId);
       res.json(msgs);
@@ -339,7 +552,8 @@ export async function registerRoutes(
   });
 
   app.patch("/api/admin/sessions/:sessionId/status", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const { status } = req.body;
       if (status !== "active" && status !== "closed") {
@@ -357,7 +571,8 @@ export async function registerRoutes(
   });
 
   app.patch("/api/admin/sessions/:sessionId/tags", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const { tags } = req.body;
       if (!Array.isArray(tags)) {
@@ -375,7 +590,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/search", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const query = req.query.q as string;
       if (!query || query.length < 2) {
@@ -406,7 +622,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/contact-requests", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const requests = await storage.getContactRequests();
       res.json(requests);
@@ -417,7 +634,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/canned-responses", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const responses = await storage.getCannedResponses();
       res.json(responses);
@@ -427,7 +645,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/admin/canned-responses", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const parsed = insertCannedResponseSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -442,7 +661,8 @@ export async function registerRoutes(
   });
 
   app.patch("/api/admin/canned-responses/:id", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
@@ -455,7 +675,8 @@ export async function registerRoutes(
   });
 
   app.delete("/api/admin/canned-responses/:id", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
@@ -522,7 +743,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/products", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const allProducts = await storage.getProducts();
       res.json(allProducts);
@@ -533,7 +755,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/admin/products", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const parsed = insertProductSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -548,7 +771,8 @@ export async function registerRoutes(
   });
 
   app.patch("/api/admin/products/:id", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
@@ -562,7 +786,8 @@ export async function registerRoutes(
   });
 
   app.delete("/api/admin/products/:id", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
@@ -576,7 +801,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/wc/status", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const status = await getWCSyncStatus();
       res.json(status);
@@ -587,7 +813,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/admin/wc/sync", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       log("Iniciando sincronizacion WooCommerce manual", "woocommerce");
       const result = await syncWooCommerceProducts();
@@ -621,7 +848,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/ratings", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const allRatings = await storage.getAllRatings();
       res.json(allRatings);
@@ -632,7 +860,8 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/sessions/:sessionId/rating", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const rating = await storage.getRatingBySessionId(req.params.sessionId);
       if (!rating) return res.status(404).json({ message: "No hay calificacion para esta sesion" });
@@ -644,7 +873,8 @@ export async function registerRoutes(
   });
 
   app.patch("/api/admin/sessions/:sessionId/admin-active", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const { adminActive } = req.body;
       if (typeof adminActive !== "boolean") {
@@ -678,7 +908,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/admin/sessions/:sessionId/reply", async (req, res) => {
-    if (!requireAdmin(req, res)) return;
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
     try {
       const { content, imageUrl } = req.body;
       if ((!content || typeof content !== "string" || content.trim().length === 0) && !imageUrl) {
@@ -742,6 +973,13 @@ export async function registerRoutes(
       socket.emit("chat_history", []);
     });
 
+    socket.on("join_admin_room", (data: { token: string }) => {
+      const adminUser = verifyToken(data.token);
+      if (adminUser) {
+        socket.join("admin_room");
+      }
+    });
+
     socket.on("page_info", (data: { url?: string; title?: string }) => {
       const session = userSessions.get(socket.id);
       if (session) {
@@ -785,6 +1023,12 @@ export async function registerRoutes(
         io.to(`session:${sid}`).emit("new_message", message);
 
         if (parsed.data.sender === "user") {
+          sendPushToAdmins(
+            `Nuevo mensaje de ${parsed.data.userName}`,
+            parsed.data.content.substring(0, 100),
+            sid
+          );
+          io.to("admin_room").emit("admin_new_message", { sessionId: sid, userName: parsed.data.userName, content: parsed.data.content });
           setTimeout(async () => {
             try {
               const currentSession = await storage.getSession(sid);
@@ -901,6 +1145,12 @@ export async function registerRoutes(
           problemType: parsed.data.problemType,
           gameName: parsed.data.gameName,
         });
+
+        sendPushToAdmins(
+          `Solicitud de ejecutivo`,
+          `${parsed.data.userName} solicita contacto`,
+          parsed.data.sessionId
+        );
 
         socket.emit("contact_confirmed");
 
