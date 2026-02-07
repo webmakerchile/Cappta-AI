@@ -1364,7 +1364,9 @@ export async function getSmartAutoReply(
       }
     }
 
-    const isProductQuery = msg.length >= 3 && (
+    const isPurchaseConfirmation = state.intent === "purchase_intent" && /^\s*(si|sí)?\s*(quiero|dale|ok|claro|bueno|va|vale|por\s*favor|porfa|listo|de\s*una|obvio|afirmativo)\s*(comprar\w*|adquirir\w*|obtener\w*|llevar\w*|proceder)?\s*$/i.test(msg);
+
+    const isProductQuery = msg.length >= 3 && !isPurchaseConfirmation && (
       state.intent === "product_inquiry" ||
       state.intent === "price_inquiry" ||
       state.intent === "purchase_intent" ||
@@ -1376,9 +1378,11 @@ export async function getSmartAutoReply(
       const skipWords = new Set(["hola", "quiero", "busco", "necesito", "tienen", "hay", "ver", "dame", "dime", "muestrame",
         "los", "las", "para", "con", "del", "una", "uno", "mas", "que", "como", "por", "favor",
         "productos", "juegos", "catalogo", "informacion", "info", "porfavor",
-        "si", "no", "ok", "vale", "bueno", "claro",
+        "si", "no", "ok", "vale", "bueno", "claro", "listo", "dale", "obvio", "afirmativo",
         "digital", "ps4", "ps5", "xbox", "xone", "xseries", "nintendo", "switch", "pc",
-        "playstation", "play", "comprar", "precio", "cuanto", "cuesta", "donde", "esta"]);
+        "playstation", "play", "comprar", "comprarlo", "compralo", "comprarle", "adquirir", "adquirirlo",
+        "obtener", "obtenerlo", "llevar", "llevarlo", "proceder",
+        "precio", "cuanto", "cuesta", "donde", "esta"]);
       const queryWords = msg.split(/\s+/).filter(w => w.length >= 2 && !skipWords.has(w));
       const searchQuery = queryWords.join(" ");
 
