@@ -1,0 +1,25 @@
+{
+  "name": "Soporte CJM DIGITALES",
+  "short_name": "CJM Soporte",
+  "description": "Panel de administracion de soporte en vivo - CJM Digitales",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#6200EA",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/logo-192.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

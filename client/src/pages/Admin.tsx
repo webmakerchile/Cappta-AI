@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
-  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star
+  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key
 } from "lucide-react";
 import {
   Select,
@@ -71,21 +71,39 @@ interface RatingData {
 
 const PREDEFINED_TAGS = ["Venta", "Soporte", "Urgente", "Resuelto", "Pendiente"];
 
-function getAdminKey(): string {
-  try { return localStorage.getItem("admin_key") || ""; } catch { return ""; }
+function getAuthToken(): string {
+  try { return localStorage.getItem("admin_token") || ""; } catch { return ""; }
 }
 
-function setAdminKey(key: string) {
-  try { localStorage.setItem("admin_key", key); } catch {}
+function setAuthToken(token: string) {
+  try { localStorage.setItem("admin_token", token); } catch {}
 }
 
-function clearAdminKey() {
-  try { localStorage.removeItem("admin_key"); } catch {}
+function clearAuthToken() {
+  try { localStorage.removeItem("admin_token"); localStorage.removeItem("admin_user"); } catch {}
 }
 
-function adminFetch(url: string) {
-  const key = getAdminKey();
-  return fetch(url, { headers: { "x-admin-key": key } });
+function getStoredUser(): { id: number; email: string; role: string; displayName: string } | null {
+  try {
+    const stored = localStorage.getItem("admin_user");
+    return stored ? JSON.parse(stored) : null;
+  } catch { return null; }
+}
+
+function setStoredUser(user: { id: number; email: string; role: string; displayName: string }) {
+  try { localStorage.setItem("admin_user", JSON.stringify(user)); } catch {}
+}
+
+function adminFetch(url: string, options?: RequestInit) {
+  const token = getAuthToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 function formatDate(date: string | Date | null) {
@@ -118,26 +136,33 @@ function highlightText(text: string, query: string) {
   );
 }
 
-function AdminLogin({ onLogin }: { onLogin: (key: string) => void }) {
-  const [key, setKey] = useState("");
-  const [error, setError] = useState(false);
+function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; role: string; displayName: string }) => void }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!key.trim()) return;
+    if (!email.trim() || !password.trim()) return;
     setLoading(true);
-    setError(false);
+    setError("");
     try {
-      const res = await fetch("/api/admin/sessions", { headers: { "x-admin-key": key.trim() } });
-      if (res.ok) {
-        setAdminKey(key.trim());
-        onLogin(key.trim());
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        setAuthToken(data.token);
+        setStoredUser(data.user);
+        onLogin(data.user);
       } else {
-        setError(true);
+        setError(data.message || "Credenciales incorrectas");
       }
     } catch {
-      setError(true);
+      setError("Error de conexion");
     }
     setLoading(false);
   };
@@ -146,29 +171,35 @@ function AdminLogin({ onLogin }: { onLogin: (key: string) => void }) {
     <div className="h-screen flex items-center justify-center" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
       <div className="w-full max-w-sm mx-4">
         <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-[#6200EA]/15 border border-[#6200EA]/30 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-7 h-7 text-[#6200EA]" />
-          </div>
-          <h1 className="text-xl font-bold text-white mb-1">Panel de Administracion</h1>
-          <p className="text-sm text-white/40">Ingresa la clave de acceso</p>
+          <img src="/logo-192.webp" alt="CJM Digitales" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
+          <h1 className="text-xl font-bold text-white mb-1">Soporte CJM DIGITALES</h1>
+          <p className="text-sm text-white/40">Inicia sesion para acceder al panel</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <Input
-            data-testid="input-admin-key"
-            type="password"
-            value={key}
-            onChange={(e) => { setKey(e.target.value); setError(false); }}
-            placeholder="Clave de administracion"
+            data-testid="input-admin-email"
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(""); }}
+            placeholder="Correo electronico"
             className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
             autoFocus
           />
+          <Input
+            data-testid="input-admin-password"
+            type="password"
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(""); }}
+            placeholder="Contraseña"
+            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
+          />
           {error && (
-            <p data-testid="text-login-error" className="text-sm text-red-400">Clave incorrecta</p>
+            <p data-testid="text-login-error" className="text-sm text-red-400">{error}</p>
           )}
           <Button
             data-testid="button-admin-login"
             type="submit"
-            disabled={loading || !key.trim()}
+            disabled={loading || !email.trim() || !password.trim()}
             className="w-full bg-[#6200EA] border-[#6200EA] text-white"
           >
             {loading ? "Verificando..." : "Ingresar"}
@@ -268,7 +299,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
     mutationFn: async (newTags: string[]) => {
       const res = await fetch(`/api/admin/sessions/${sessionId}/tags`, {
         method: "PATCH",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify({ tags: newTags }),
       });
       if (!res.ok) throw new Error("Error al actualizar tags");
@@ -405,7 +436,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     mutationFn: async (newStatus: string) => {
       const res = await fetch(`/api/admin/sessions/${sessionId}/status`, {
         method: "PATCH",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Error al actualizar estado");
@@ -420,7 +451,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     mutationFn: async (adminActive: boolean) => {
       const res = await fetch(`/api/admin/sessions/${sessionId}/admin-active`, {
         method: "PATCH",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify({ adminActive }),
       });
       if (!res.ok) throw new Error("Error al cambiar modo admin");
@@ -436,7 +467,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     mutationFn: async (data: { content?: string; imageUrl?: string }) => {
       const res = await fetch(`/api/admin/sessions/${sessionId}/reply`, {
         method: "POST",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Error al enviar respuesta");
@@ -902,7 +933,7 @@ function WCSyncSection() {
     mutationFn: async () => {
       const res = await fetch("/api/admin/wc/sync", {
         method: "POST",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -1033,7 +1064,7 @@ function ProductsPanel() {
     mutationFn: async (data: Record<string, unknown>) => {
       const res = await fetch("/api/admin/products", {
         method: "POST",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Error al crear producto");
@@ -1050,7 +1081,7 @@ function ProductsPanel() {
     mutationFn: async ({ id, data }: { id: number; data: Record<string, unknown> }) => {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "PATCH",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Error al actualizar");
@@ -1067,7 +1098,7 @@ function ProductsPanel() {
     mutationFn: async (id: number) => {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "DELETE",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Error al eliminar");
       return res.json();
@@ -1360,7 +1391,7 @@ function CannedResponsesPanel() {
     mutationFn: async (data: { shortcut: string; content: string }) => {
       const res = await fetch("/api/admin/canned-responses", {
         method: "POST",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Error al crear");
@@ -1378,7 +1409,7 @@ function CannedResponsesPanel() {
     mutationFn: async ({ id, data }: { id: number; data: { shortcut?: string; content?: string } }) => {
       const res = await fetch(`/api/admin/canned-responses/${id}`, {
         method: "PATCH",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Error al actualizar");
@@ -1394,7 +1425,7 @@ function CannedResponsesPanel() {
     mutationFn: async (id: number) => {
       const res = await fetch(`/api/admin/canned-responses/${id}`, {
         method: "DELETE",
-        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Error al eliminar");
       return res.json();
@@ -1564,23 +1595,321 @@ function CannedResponsesPanel() {
   );
 }
 
+function playNotificationSound() {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.4);
+  } catch {}
+}
+
+function UsersPanel() {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newName, setNewName] = useState("");
+
+  const { data: users = [], isLoading } = useQuery<{ id: number; email: string; displayName: string; role: string; createdAt: string }[]>({
+    queryKey: ["/api/admin/users"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/users");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { email: string; password: string; displayName: string }) => {
+      const res = await adminFetch("/api/admin/users", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Error al crear usuario");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setIsAdding(false);
+      setNewEmail("");
+      setNewPassword("");
+      setNewName("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await adminFetch(`/api/admin/users/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Error al eliminar");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="p-3 border-b border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
+        <h2 className="text-sm font-semibold text-white">Gestion de Usuarios</h2>
+        <Button
+          data-testid="button-add-user"
+          size="sm"
+          onClick={() => setIsAdding(true)}
+          className="bg-[#6200EA] text-white text-xs"
+          disabled={isAdding}
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          Crear Usuario
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+        {isAdding && (
+          <div className="p-3 rounded-md border border-[#6200EA]/30 bg-[#6200EA]/5">
+            <div className="flex flex-col gap-2">
+              <Input
+                data-testid="input-new-user-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Nombre del usuario"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+                autoFocus
+              />
+              <Input
+                data-testid="input-new-user-email"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Correo electronico"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              />
+              <Input
+                data-testid="input-new-user-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Contraseña (min. 6 caracteres)"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              />
+              {createMutation.isError && (
+                <p className="text-xs text-red-400">{(createMutation.error as Error).message}</p>
+              )}
+              <div className="flex items-center gap-1 justify-end flex-wrap">
+                <Button
+                  data-testid="button-cancel-user"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); }}
+                  className="text-white/40 text-xs"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  data-testid="button-save-user"
+                  size="sm"
+                  onClick={() => createMutation.mutate({ email: newEmail.trim(), password: newPassword, displayName: newName.trim() })}
+                  disabled={!newEmail.trim() || !newPassword.trim() || newPassword.length < 6 || !newName.trim() || createMutation.isPending}
+                  className="bg-[#6200EA] text-white text-xs"
+                >
+                  {createMutation.isPending ? "Creando..." : "Crear Usuario"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {users.map((u) => (
+          <div
+            key={u.id}
+            data-testid={`user-card-${u.id}`}
+            className="p-3 rounded-md border border-white/[0.06] bg-white/[0.03] flex items-center justify-between gap-2"
+          >
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <span className="text-sm font-medium text-white">{u.displayName}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                  u.role === "superadmin" ? "bg-[#6200EA]/15 text-[#6200EA]" : "bg-white/[0.06] text-white/50"
+                }`}>
+                  {u.role === "superadmin" ? "Superadmin" : "Admin"}
+                </span>
+              </div>
+              <p className="text-xs text-white/40">{u.email}</p>
+            </div>
+            {u.role !== "superadmin" && (
+              <Button
+                data-testid={`button-delete-user-${u.id}`}
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  if (confirm(`¿Eliminar usuario "${u.displayName}"?`)) {
+                    deleteMutation.mutate(u.id);
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+                className="text-white/30 hover:text-red-400 flex-shrink-0"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PasswordChangeModal({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const changeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await adminFetch("/api/admin/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al cambiar contraseña");
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.token) setAuthToken(data.token);
+      setSuccess(true);
+      setTimeout(() => onClose(), 1500);
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("La nueva contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    changeMutation.mutate();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div className="bg-[#1a1a2e] border border-white/10 rounded-md p-4 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <h3 className="text-sm font-semibold text-white">Cambiar Contraseña</h3>
+          <button data-testid="button-close-password-modal" onClick={onClose} className="text-white/40 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        {success ? (
+          <div className="flex items-center gap-2 text-green-400">
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-sm">Contraseña actualizada correctamente</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <Input
+              data-testid="input-current-password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => { setCurrentPassword(e.target.value); setError(""); }}
+              placeholder="Contraseña actual"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              autoFocus
+            />
+            <Input
+              data-testid="input-new-password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
+              placeholder="Nueva contraseña (min. 6 caracteres)"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+            />
+            <Input
+              data-testid="input-confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+              placeholder="Confirmar nueva contraseña"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+            />
+            {error && <p className="text-xs text-red-400">{error}</p>}
+            <Button
+              data-testid="button-change-password"
+              type="submit"
+              disabled={!currentPassword || !newPassword || !confirmPassword || changeMutation.isPending}
+              className="w-full bg-[#6200EA] text-white text-sm"
+            >
+              {changeMutation.isPending ? "Cambiando..." : "Cambiar Contraseña"}
+            </Button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState<{ id: number; email: string; role: string; displayName: string } | null>(null);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
-  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products">("conversations");
+  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings">("conversations");
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem("admin_sound") !== "false"; } catch { return true; }
+  });
+  const previousSessionCountRef = useRef<number>(0);
 
   useEffect(() => {
-    const stored = getAdminKey();
-    if (stored) {
-      adminFetch("/api/admin/sessions").then(res => {
-        if (res.ok) setAuthenticated(true);
-        else clearAdminKey();
-      }).catch(() => clearAdminKey());
+    const token = getAuthToken();
+    const user = getStoredUser();
+    if (token && user) {
+      fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error("Invalid");
+        })
+        .then(data => {
+          setAdminUser(data);
+          setAuthenticated(true);
+        })
+        .catch(() => { clearAuthToken(); });
     }
   }, []);
 
@@ -1625,6 +1954,47 @@ export default function AdminPage() {
   const ratingsMap = new Map(allRatings.map(r => [r.sessionId, r]));
   const avgRating = allRatings.length > 0 ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length : 0;
 
+  useEffect(() => {
+    if (!authenticated || !soundEnabled) return;
+    if (sessions.length > previousSessionCountRef.current && previousSessionCountRef.current > 0) {
+      playNotificationSound();
+    }
+    previousSessionCountRef.current = sessions.length;
+  }, [sessions.length, authenticated, soundEnabled]);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    async function subscribePush() {
+      try {
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+        const res = await fetch("/api/push/vapid-public-key");
+        const { key } = await res.json();
+        if (!key) return;
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) return;
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+        const subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: key,
+        });
+        const subJson = subscription.toJSON();
+        await adminFetch("/api/admin/push-subscribe", {
+          method: "POST",
+          body: JSON.stringify({
+            endpoint: subJson.endpoint,
+            keys: subJson.keys,
+          }),
+        });
+      } catch (e) {
+        console.log("Push subscription failed:", e);
+      }
+    }
+    subscribePush();
+  }, [authenticated]);
+
   const isSearching = debouncedSearch.length >= 2;
   const baseSessions = isSearching
     ? searchResults.map((r) => ({
@@ -1658,13 +2028,14 @@ export default function AdminPage() {
   }, []);
 
   const handleLogout = () => {
-    clearAdminKey();
+    clearAuthToken();
     setAuthenticated(false);
+    setAdminUser(null);
     setSelectedSession(null);
   };
 
   if (!authenticated) {
-    return <AdminLogin onLogin={() => setAuthenticated(true)} />;
+    return <AdminLogin onLogin={(user) => { setAdminUser(user); setAuthenticated(true); }} />;
   }
 
   const statusTabs = [
@@ -1686,10 +2057,15 @@ export default function AdminPage() {
               <ArrowLeft className="w-4 h-4 text-white" />
             </button>
           )}
-          <Headphones className="w-5 h-5 text-white" />
-          <h1 data-testid="text-admin-title" className="text-base font-bold text-white">Panel de Administracion</h1>
+          <img src="/logo-192.webp" alt="CJM" className="w-8 h-8 rounded-lg" />
+          <div>
+            <h1 data-testid="text-admin-title" className="text-base font-bold text-white leading-tight">Soporte CJM DIGITALES</h1>
+            {adminUser && (
+              <p className="text-[11px] text-white/60">{adminUser.displayName}</p>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {allRatings.length > 0 && (
             <span data-testid="text-avg-rating" className="text-sm text-white/70 flex items-center gap-1">
               <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
@@ -1701,6 +2077,30 @@ export default function AdminPage() {
             <MessageSquare className="w-4 h-4" />
             <span data-testid="text-session-count">{sessions.length}</span>
           </span>
+          <Button
+            size="icon"
+            variant="ghost"
+            data-testid="button-toggle-sound"
+            onClick={() => {
+              const next = !soundEnabled;
+              setSoundEnabled(next);
+              try { localStorage.setItem("admin_sound", String(next)); } catch {}
+            }}
+            className="text-white/60 hover:text-white"
+            title={soundEnabled ? "Silenciar notificaciones" : "Activar sonido"}
+          >
+            {soundEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            data-testid="button-change-password-trigger"
+            onClick={() => setShowPasswordChange(true)}
+            className="text-white/60 hover:text-white"
+            title="Cambiar contraseña"
+          >
+            <Lock className="w-4 h-4" />
+          </Button>
           <button
             data-testid="button-admin-logout"
             onClick={handleLogout}
@@ -1711,6 +2111,8 @@ export default function AdminPage() {
           </button>
         </div>
       </header>
+
+      {showPasswordChange && <PasswordChangeModal onClose={() => setShowPasswordChange(false)} />}
 
       <div className="border-b border-white/[0.06] flex items-center gap-0 px-2">
         <button
@@ -1750,9 +2152,26 @@ export default function AdminPage() {
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
           )}
         </button>
+        {adminUser?.role === "superadmin" && (
+          <button
+            data-testid="tab-users"
+            onClick={() => setAdminTab("users")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-1.5 ${
+              adminTab === "users" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            Usuarios
+            {adminTab === "users" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
+            )}
+          </button>
+        )}
       </div>
 
-      {adminTab === "products" ? (
+      {adminTab === "users" ? (
+        <UsersPanel />
+      ) : adminTab === "products" ? (
         <ProductsPanel />
       ) : adminTab === "canned" ? (
         <CannedResponsesPanel />
