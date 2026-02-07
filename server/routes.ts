@@ -408,9 +408,6 @@ export async function registerRoutes(
   app.get("/api/admin/users", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
-    if (user.role !== "superadmin") {
-      return res.status(403).json({ message: "Solo el superadmin puede gestionar usuarios" });
-    }
     const users = await storage.getAllAdminUsers();
     res.json(users.map(u => ({ id: u.id, email: u.email, displayName: u.displayName, role: u.role, createdAt: u.createdAt })));
   });

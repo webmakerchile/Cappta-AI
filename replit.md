@@ -31,6 +31,12 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 19. **In-Chat Product Browser**: ShoppingBag button in chat input opens a floating product catalog overlay with search. Users can browse/search products and click to send a product inquiry directly in the conversation.
 20. **Satisfaction Survey**: When the bot detects the conversation is resolved (user says "gracias" or "adios"), it asks if the user wants to end the chat and rate their experience. Shows 1-5 star rating + optional comment. Ratings are stored in the database and visible in the admin panel with per-session ratings, average score, and comments.
 
+21. **JWT Authentication**: Admin panel uses JWT-based email/password authentication instead of API key. Superadmin account (webmakerchile@gmail.com) is auto-seeded on startup. Users can change their own passwords. Superadmin can create/delete admin users.
+22. **User Management**: Superadmin-only tab to create and delete admin users. Regular admins can access all features except user management.
+23. **PWA (Progressive Web App)**: Admin panel is installable as "Soporte CJM DIGITALES" on mobile/desktop. Manifest.json with standalone display, service worker for push notifications, Apple/Android icons.
+24. **Audio Notifications**: Web Audio API beep plays when new sessions appear (configurable via sound toggle in header).
+25. **Push Notifications**: Browser push notifications via VAPID/web-push when admin has the app backgrounded. Subscription managed per admin user.
+
 ## Database Tables
 - `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
 - `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt
@@ -38,6 +44,8 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `contact_requests` - Executive contact requests with chat summary
 - `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category, wcProductId (WooCommerce ID), wcLastSync (last sync timestamp)
 - `ratings` - Satisfaction ratings: sessionId, userEmail, userName, rating (1-5), comment (optional), timestamp
+- `admin_users` - Admin user accounts: email, passwordHash (bcrypt), displayName, role (admin/superadmin), createdAt
+- `push_subscriptions` - Web push notification subscriptions: endpoint, keys (p256dh, auth), createdAt
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types
@@ -58,7 +66,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `client/src/lib/socket.ts` - Socket.io client configuration
 - `server/replit_integrations/object_storage/` - Object storage service, routes (presigned URLs), ACL
 
-## Admin API Endpoints (all require x-admin-key header = SESSION_SECRET)
+## Admin API Endpoints (all require Authorization: Bearer {JWT} header)
 - `GET /api/admin/sessions?status=active|closed|all` - List sessions with filters
 - `GET /api/admin/sessions/:sessionId/messages` - Get full message history
 - `PATCH /api/admin/sessions/:sessionId/status` - Update session status (active/closed)
@@ -77,6 +85,17 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `DELETE /api/admin/products/:id` - Delete product
 - `GET /api/admin/wc/status` - WooCommerce sync status (configured, counts, last sync)
 - `POST /api/admin/wc/sync` - Trigger manual WooCommerce product sync
+- `GET /api/admin/users` - List admin users
+- `POST /api/admin/users` - Create admin user (superadmin only)
+- `DELETE /api/admin/users/:id` - Delete admin user (superadmin only, cannot delete superadmin)
+- `POST /api/admin/change-password` - Change own password
+- `POST /api/admin/push-subscribe` - Subscribe to push notifications
+- `DELETE /api/admin/push-subscribe` - Unsubscribe from push notifications
+
+## Auth API Endpoints (public)
+- `POST /api/auth/login` - Login with email/password, returns JWT token
+- `GET /api/auth/me` - Get current user info from JWT token
+- `GET /api/push/vapid-public-key` - Get VAPID public key for push subscription
 
 ## Public API Endpoints
 - `GET /api/messages/session/:sessionId` - Get messages for a session
@@ -89,10 +108,12 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
 - `RESEND_API_KEY` - Resend API key for email notifications
-- `SESSION_SECRET` - Admin panel authentication key
+- `SESSION_SECRET` - JWT signing secret for admin authentication
 - `WC_CONSUMER_KEY` - WooCommerce REST API consumer key
 - `WC_CONSUMER_SECRET` - WooCommerce REST API consumer secret
 - `WC_STORE_URL` - WordPress/WooCommerce store URL (env var, default: https://cjmdigitales.cl)
+- `VAPID_PUBLIC_KEY` - VAPID public key for web push notifications
+- `VAPID_PRIVATE_KEY` - VAPID private key for web push notifications
 - Notification email: cjmdigitales@gmail.com (configured in server/email.ts)
 
 ## Running
