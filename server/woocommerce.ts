@@ -67,10 +67,33 @@ function detectPlatform(product: WCProduct): string {
 }
 
 function detectCategory(product: WCProduct): string {
-  const combined = `${product.name} ${product.categories.map(c => c.name).join(" ")} ${product.tags.map(t => t.name).join(" ")}`.toLowerCase();
+  const name = product.name.toLowerCase();
+  const categoryNames = product.categories.map(c => c.name.toLowerCase()).join(" ");
+  const tagNames = product.tags.map(t => t.name.toLowerCase()).join(" ");
+  const combined = `${name} ${categoryNames} ${tagNames}`;
+
+  if (/cuenta\s*plus|plus\s*essential|plus\s*extra|plus\s*premium/.test(name)) return "subscription";
+  if (/game\s*pass|gamepass/.test(name)) return "subscription";
+  if (/ps\s*plus|playstation\s*plus|ps\s*\+/.test(name)) return "subscription";
+  if (/ea\s*play|ea\s*access/.test(name)) return "subscription";
+  if (/xbox\s*live\s*gold|xbox\s*gold/.test(name)) return "subscription";
+  if (/nintendo\s*(switch\s*)?online/.test(name)) return "subscription";
+  if (/\bmembresi[aá]\b|\bsuscripci[oó]n\b|\bsubscripci[oó]n\b|\bsubscription\b/.test(name)) return "subscription";
+  if (/(\b\d+\s*(mes|meses|año|años|month|months|year|years)\b).*(plus|pass|live|online|play|cuenta|membership)/i.test(name)) return "subscription";
+  if (/(plus|pass|live|online|play|cuenta|membership).*(\b\d+\s*(mes|meses|año|años|month|months|year|years)\b)/i.test(name)) return "subscription";
+
+  if (/\btarjeta\b/.test(name)) return "card";
+  if (/gift\s*card/.test(name)) return "card";
+  if (/\bsaldo\b/.test(name)) return "card";
+  if (/\brecarga\b/.test(name)) return "card";
+  if (/\bc[oó]digo\b/.test(name)) return "card";
+  if (/\bwallet\b/.test(name)) return "card";
+  if (/\bpsn\b.*\$|\$.*\bpsn\b|\bpsn\s*\d/.test(name)) return "card";
+  if (/xbox\s*gift/.test(name)) return "card";
 
   if (/\bsuscripci[oó]n\b|\bsubscripci[oó]n\b|\bsubscription\b|\bps\s*plus\b|\bgame\s*pass\b|\bmembresi[aá]\b|\bmembers/.test(combined)) return "subscription";
   if (/\btarjeta\b|\bgift\s*card\b|\bsaldo\b|\bwallet\b|\brecarga\b|\bcodigo\b|\bcódigo\b/.test(combined)) return "card";
+
   if (/\bbundle\b|\bpack\b|\bedici[oó]n.*especial\b|\bcolecci[oó]n\b/.test(combined)) return "bundle";
   if (/\bconsola\b|\bconsole\b|\bhardware\b/.test(combined)) return "console";
   if (/\baccesorio\b|\bcontrol\b|\bmando\b|\bheadset\b|\bauricular/.test(combined)) return "accessory";
@@ -89,15 +112,64 @@ function detectAvailability(product: WCProduct): string {
 function generateSearchAliases(product: WCProduct): string[] {
   const aliases: Set<string> = new Set();
   const name = product.name.toLowerCase();
+  const category = detectCategory(product);
 
   aliases.add(name);
   aliases.add(product.slug.replace(/-/g, " "));
 
+  const stopWords = new Set(["para", "con", "del", "los", "las", "una", "uno", "the", "and", "for", "edition", "edicion", "digital", "version", "de", "en", "por", "que", "cuenta"]);
   const words = name.split(/[\s\-–—:,()[\]]+/).filter(w => w.length > 2);
   for (const word of words) {
-    if (!["para", "con", "del", "los", "las", "una", "uno", "the", "and", "for", "edition", "edicion", "digital", "version"].includes(word)) {
+    if (!stopWords.has(word)) {
       aliases.add(word);
     }
+  }
+
+  const multiWordPatterns = name.match(/[a-záéíóúñü]+(?:\s+[a-záéíóúñü]+)+/gi);
+  if (multiWordPatterns) {
+    for (const pattern of multiWordPatterns) {
+      const cleaned = pattern.trim();
+      if (cleaned.split(/\s+/).length >= 2 && cleaned.split(/\s+/).length <= 4) {
+        const patternWords = cleaned.split(/\s+/).filter(w => !stopWords.has(w.toLowerCase()));
+        if (patternWords.length >= 2) {
+          aliases.add(patternWords.join(" "));
+        }
+      }
+    }
+  }
+
+  const timeMatch = name.match(/(\d+)\s*(mes|meses|año|años|month|months|year|years)/i);
+  if (timeMatch) {
+    aliases.add(`${timeMatch[1]} ${timeMatch[2]}`);
+  }
+
+  if (category === "subscription") {
+    aliases.add("suscripcion");
+    aliases.add("suscripciones");
+    aliases.add("subscription");
+    if (/plus/.test(name)) {
+      aliases.add("plus");
+      aliases.add("ps plus");
+      aliases.add("playstation plus");
+    }
+    if (/essential/.test(name)) aliases.add("essential");
+    if (/extra/.test(name)) aliases.add("extra");
+    if (/premium/.test(name)) aliases.add("premium");
+    if (/game\s*pass/.test(name)) {
+      aliases.add("game pass");
+      aliases.add("gamepass");
+    }
+    if (/ea\s*play/.test(name)) aliases.add("ea play");
+    if (/nintendo/.test(name)) aliases.add("nintendo online");
+  }
+
+  if (category === "card") {
+    aliases.add("tarjeta");
+    aliases.add("tarjetas");
+    aliases.add("saldo");
+    aliases.add("gift card");
+    aliases.add("recarga");
+    aliases.add("codigo");
   }
 
   for (const tag of product.tags) {
@@ -260,6 +332,38 @@ export async function syncWooCommerceProducts(): Promise<SyncResult> {
           .where(eq(products.id, rp.id));
         result.details.push(`Marcado agotado (eliminado en WC): ${rp.name}`);
       }
+    }
+
+    try {
+      await db.execute(sql`
+        UPDATE products SET category = 'subscription' WHERE 
+          LOWER(name) LIKE '%cuenta plus%' OR 
+          LOWER(name) LIKE '%plus essential%' OR 
+          LOWER(name) LIKE '%plus extra%' OR 
+          LOWER(name) LIKE '%plus premium%' OR 
+          LOWER(name) LIKE '%game pass%' OR 
+          LOWER(name) LIKE '%gamepass%' OR 
+          LOWER(name) LIKE '%ps plus%' OR 
+          LOWER(name) LIKE '%playstation plus%' OR 
+          LOWER(name) LIKE '%ea play%' OR 
+          LOWER(name) LIKE '%ea access%' OR 
+          LOWER(name) LIKE '%xbox live gold%' OR 
+          LOWER(name) LIKE '%nintendo online%' OR 
+          LOWER(name) LIKE '%nintendo switch online%' OR 
+          (LOWER(name) LIKE '%meses%' AND (LOWER(name) LIKE '%plus%' OR LOWER(name) LIKE '%pass%' OR LOWER(name) LIKE '%cuenta%')) OR
+          (LOWER(name) LIKE '%mes %' AND (LOWER(name) LIKE '%plus%' OR LOWER(name) LIKE '%pass%' OR LOWER(name) LIKE '%cuenta%'))
+      `);
+      await db.execute(sql`
+        UPDATE products SET category = 'card' WHERE 
+          LOWER(name) LIKE '%tarjeta%' OR 
+          LOWER(name) LIKE '%gift card%' OR 
+          LOWER(name) LIKE '%saldo%' OR 
+          LOWER(name) LIKE '%recarga%' OR 
+          LOWER(name) LIKE '%wallet%'
+      `);
+      log("Post-sync category fix applied", "woocommerce");
+    } catch (fixErr: any) {
+      log(`Post-sync category fix error: ${fixErr.message}`, "woocommerce");
     }
 
     log(`WooCommerce sync complete: ${result.created} created, ${result.updated} updated, ${result.errors} errors`, "woocommerce");

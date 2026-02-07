@@ -1125,38 +1125,6 @@ export async function getSmartAutoReply(
 ): Promise<string> {
   const msg = normalize(userMessage);
 
-  const platformBrowseMatch = msg.match(/(?:juegos?\s+(?:de\s+|para\s+)?|quiero\s+(?:un\s+)?(?:juego\s+(?:de\s+|para\s+)?)?)?(play\s*(?:station)?\s*[45]|ps\s*[45]|xbox\s*(?:one|series|360)?)\b/i);
-  if (platformBrowseMatch && catalogLookup && !msg.startsWith("__qr:")) {
-    const platformText = platformBrowseMatch[1].toLowerCase().replace(/\s+/g, "");
-    let browsePlatform = "ps5";
-    if (/play4|ps4|playstation4/.test(platformText)) browsePlatform = "ps4";
-    else if (/play5|ps5|playstation5/.test(platformText)) browsePlatform = "ps5";
-    else if (/xboxone/.test(platformText)) browsePlatform = "xbox_one";
-    else if (/xboxseries/.test(platformText)) browsePlatform = "xbox_series";
-    else if (/xbox/.test(platformText)) browsePlatform = "xbox_series";
-
-    const state = buildConversationState(msg, conversationHistory, sessionData);
-    if (!state.product || state.product.type !== "game") {
-      const platformProducts = await catalogLookup.getByPlatform(browsePlatform);
-      const platformDisplayName = browsePlatform.startsWith("ps") ? "PlayStation " + browsePlatform.replace("ps", "") : browsePlatform.includes("xbox") ? "Xbox" : browsePlatform;
-      if (platformProducts.length === 0) {
-        const text = `No tenemos productos disponibles para ${platformDisplayName} en este momento. Pero puedes contactar a un ejecutivo para consultar disponibilidad.`;
-        return withButtons(text, [
-          {label: "Contactar ejecutivo", value: "__qr:contact"},
-          {label: "Ver otras plataformas", value: "__qr:back"},
-        ]);
-      }
-      const productButtons = platformProducts.slice(0, 6).map(p => ({
-        label: `${p.name} - ${p.price || "Consultar"}`,
-        value: `__qr:product:${p.name}`
-      }));
-      return withButtons(
-        `Estos son nuestros productos disponibles para ${platformDisplayName}:`,
-        productButtons
-      );
-    }
-  }
-
   if (msg.startsWith("__qr:") && catalogLookup) {
     if (msg.startsWith("__qr:platform:")) {
       const platform = msg.replace("__qr:platform:", "");
@@ -1259,6 +1227,157 @@ export async function getSmartAutoReply(
     const durationResponse = getDurationResponse(state, msg);
     if (durationResponse && state.intent !== "product_inquiry") {
       return durationResponse;
+    }
+  }
+
+  if (catalogLookup && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question") {
+    const categoryKeywords: Record<string, string> = {
+      "suscripcion": "subscription", "suscripciones": "subscription", "subscripcion": "subscription",
+      "plus": "subscription", "ps plus": "subscription", "game pass": "subscription", "gamepass": "subscription",
+      "membresia": "subscription", "membresias": "subscription",
+      "tarjeta": "card", "tarjetas": "card", "gift card": "card", "giftcard": "card",
+      "saldo": "card", "recarga": "card", "recargas": "card", "codigo": "card", "codigos": "card",
+      "wallet": "card",
+    };
+
+    let matchedCategory: string | null = null;
+    for (const [keyword, category] of Object.entries(categoryKeywords)) {
+      if (msg.includes(keyword)) {
+        matchedCategory = category;
+        break;
+      }
+    }
+
+    if (matchedCategory) {
+      const categoryProducts = await catalogLookup.getByCategory(matchedCategory);
+      if (categoryProducts.length > 0) {
+        const categoryNames: Record<string, string> = {
+          subscription: "Suscripciones",
+          card: "Tarjetas de saldo",
+        };
+        const productButtons = categoryProducts.slice(0, 8).map(p => ({
+          label: `${p.name} - ${p.price || "Consultar"}`,
+          value: `__qr:product:${p.name}`
+        }));
+        productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+        return withButtons(
+          `Estos son nuestros productos de ${categoryNames[matchedCategory] || matchedCategory}:`,
+          productButtons
+        );
+      }
+    }
+
+    const isProductQuery = msg.length >= 3 && (
+      state.intent === "product_inquiry" ||
+      state.intent === "price_inquiry" ||
+      state.intent === "purchase_intent" ||
+      state.intent === "followup" ||
+      state.intent === "unknown"
+    );
+
+    if (isProductQuery) {
+      const skipWords = new Set(["hola", "quiero", "busco", "necesito", "tienen", "hay", "ver", "dame", "dime", "muestrame",
+        "los", "las", "para", "con", "del", "una", "uno", "mas", "que", "como", "por", "favor",
+        "productos", "juegos", "catalogo", "informacion", "info", "porfavor",
+        "si", "no", "ok", "vale", "bueno", "claro",
+        "digital", "ps4", "ps5", "xbox", "xone", "xseries", "nintendo", "switch", "pc",
+        "playstation", "play", "comprar", "precio", "cuanto", "cuesta", "donde", "esta"]);
+      const queryWords = msg.split(/\s+/).filter(w => w.length >= 2 && !skipWords.has(w));
+      const searchQuery = queryWords.join(" ");
+
+      if (searchQuery.length >= 2) {
+        try {
+          const catalogResults = await catalogLookup.searchByName(searchQuery);
+
+          if (catalogResults.length === 0 && queryWords.length > 1) {
+            for (const word of queryWords) {
+              if (word.length >= 3) {
+                const wordResults = await catalogLookup.searchByName(word);
+                if (wordResults.length > 0) {
+                  const productButtons = wordResults.slice(0, 8).map(p => ({
+                    label: `${p.name} - ${p.price || "Consultar"}`,
+                    value: `__qr:product:${p.name}`
+                  }));
+                  productButtons.push({label: "Ver mas opciones", value: "__qr:back"});
+                  productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+                  return withButtons(
+                    `Encontre estos productos relacionados con "${word}":`,
+                    productButtons
+                  );
+                }
+              }
+            }
+          }
+
+          if (catalogResults.length === 1) {
+            const p = catalogResults[0];
+            const priceText = p.price ? `Precio: ${p.price}` : "Precio: Consultar";
+            const availText = p.availability === "available" ? "Disponible" : p.availability === "preorder" ? "Pre-orden" : "Agotado";
+            const descText = p.description ? ` ${p.description}` : " Entrega digital inmediata.";
+            const text = `${p.name} | ${priceText} | ${availText}.${descText}`;
+            const buttons: Array<{label: string, value?: string, url?: string}> = [];
+            if (p.productUrl && p.availability === "available") {
+              buttons.push({label: "Comprar ahora", url: p.productUrl});
+            }
+            buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+            buttons.push({label: "Ver mas productos", value: "__qr:back"});
+            return withButtons(text, buttons);
+          }
+
+          if (catalogResults.length > 1) {
+            const productButtons = catalogResults.slice(0, 8).map(p => ({
+              label: `${p.name} - ${p.price || "Consultar"}`,
+              value: `__qr:product:${p.name}`
+            }));
+            productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+            return withButtons(
+              `Encontre ${catalogResults.length} productos. Selecciona el que te interesa:`,
+              productButtons
+            );
+          }
+          if (catalogResults.length === 0 && searchQuery.length >= 3) {
+            return withButtons(
+              `No encontre "${searchQuery}" en nuestro catalogo. Puedo ayudarte a buscar otro producto o contactar a un ejecutivo.`,
+              [
+                {label: "Ver productos", value: "__qr:back"},
+                {label: "Contactar ejecutivo", value: "__qr:contact"},
+              ]
+            );
+          }
+        } catch {}
+      }
+    }
+
+    const platformBrowseMatch = msg.match(/(?:juegos?\s+(?:de\s+|para\s+)?|quiero\s+(?:un\s+)?(?:juego\s+(?:de\s+|para\s+)?)?)?(play\s*(?:station)?\s*[45]|ps\s*[45]|xbox\s*(?:one|series|360)?)\b/i);
+    if (platformBrowseMatch && catalogLookup) {
+      const platformText = platformBrowseMatch[1].toLowerCase().replace(/\s+/g, "");
+      let browsePlatform = "ps5";
+      if (/play4|ps4|playstation4/.test(platformText)) browsePlatform = "ps4";
+      else if (/play5|ps5|playstation5/.test(platformText)) browsePlatform = "ps5";
+      else if (/xboxone/.test(platformText)) browsePlatform = "xbox_one";
+      else if (/xboxseries/.test(platformText)) browsePlatform = "xbox_series";
+      else if (/xbox/.test(platformText)) browsePlatform = "xbox_series";
+
+      const platformProducts = await catalogLookup.getByPlatform(browsePlatform);
+      const platformDisplayName = browsePlatform.startsWith("ps") ? "PlayStation " + browsePlatform.replace("ps", "") : browsePlatform.includes("xbox") ? "Xbox" : browsePlatform;
+      if (platformProducts.length > 0) {
+        const productButtons = platformProducts.slice(0, 6).map(p => ({
+          label: `${p.name} - ${p.price || "Consultar"}`,
+          value: `__qr:product:${p.name}`
+        }));
+        return withButtons(
+          `Estos son nuestros productos disponibles para ${platformDisplayName}:`,
+          productButtons
+        );
+      } else {
+        return withButtons(
+          `No tenemos productos disponibles para ${platformDisplayName} en este momento.`,
+          [
+            {label: "Contactar ejecutivo", value: "__qr:contact"},
+            {label: "Ver otras plataformas", value: "__qr:back"},
+          ]
+        );
+      }
     }
   }
 

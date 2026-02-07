@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2, ExternalLink } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2, ExternalLink, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
@@ -25,6 +25,7 @@ interface ChatWindowProps {
   userName: string;
   contactRequested: boolean;
   onClose: () => void;
+  onExitChat: () => void;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -160,7 +161,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: Me
   );
 }
 
-export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose }: ChatWindowProps) {
+export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose, onExitChat }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -326,13 +327,23 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           data-testid="button-search-toggle"
           onClick={() => { setShowSearch(!showSearch); setSearchQuery(""); }}
           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${showSearch ? "bg-white/30" : "bg-white/15 hover:bg-white/25"}`}
+          title="Buscar"
         >
           <Search className="w-4 h-4 text-white" />
+        </button>
+        <button
+          data-testid="button-exit-chat"
+          onClick={onExitChat}
+          className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
+          title="Salir del chat"
+        >
+          <LogOut className="w-4 h-4 text-white" />
         </button>
         <button
           data-testid="button-close-chat"
           onClick={onClose}
           className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
+          title="Minimizar"
         >
           <X className="w-4 h-4 text-white" />
         </button>

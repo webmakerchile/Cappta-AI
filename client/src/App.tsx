@@ -20,6 +20,7 @@ function ChatWidget() {
     sendMessage,
     requestContact,
     login,
+    logout,
   } = useChat();
 
   const postMessageToParent = useCallback((type: string) => {
@@ -41,6 +42,10 @@ function ChatWidget() {
       return next;
     });
   }, [postMessageToParent]);
+
+  const handleExitChat = useCallback(() => {
+    logout();
+  }, [logout]);
 
   useEffect(() => {
     if (!isOpen && messages.length > 0) {
@@ -70,6 +75,7 @@ function ChatWidget() {
           className="w-full h-full flex flex-col overflow-hidden animate-slide-up"
           style={{
             background: "#1a1a1a",
+            opacity: 0,
           }}
         >
           <div className="flex-1 flex flex-col min-h-0">
@@ -82,6 +88,7 @@ function ChatWidget() {
                 userName={user.name}
                 contactRequested={contactRequested}
                 onClose={toggleChat}
+                onExitChat={handleExitChat}
               />
             ) : (
               <WelcomeForm onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)} onClose={toggleChat} />

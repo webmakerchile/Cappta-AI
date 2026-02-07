@@ -282,6 +282,20 @@ export class DatabaseStorage implements IStorage {
   async searchProductsByName(query: string): Promise<Product[]> {
     const normalizedQuery = query.toLowerCase().trim();
 
+    const categoryKeywords: Record<string, string[]> = {
+      subscription: ["suscripcion", "suscripciones", "subscripcion", "subscription", "subscriptions", "membresia", "membresias", "membership"],
+      card: ["tarjeta", "tarjetas", "gift card", "gift cards", "saldo", "recarga", "recargas", "codigo", "codigos"],
+    };
+
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      for (const keyword of keywords) {
+        if (normalizedQuery.includes(keyword)) {
+          const categoryResults = await this.getProductsByCategory(category);
+          if (categoryResults.length > 0) return categoryResults;
+        }
+      }
+    }
+
     const platformAliases: Record<string, string[]> = {
       ps5: ["play 5", "play5", "playstation 5", "ps 5", "ps5"],
       ps4: ["play 4", "play4", "playstation 4", "ps 4", "ps4"],
@@ -311,14 +325,69 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    if (directResults.length > 0) return directResults;
-
-    if (detectedPlatform) {
-      return await this.getProductsByPlatform(detectedPlatform);
+    if (directResults.length > 0) {
+      if (detectedPlatform) {
+        const platformFiltered = directResults.filter(p => p.platform === detectedPlatform || p.platform === "all");
+        if (platformFiltered.length > 0) return platformFiltered;
+      }
+      return directResults;
     }
 
-    const words = normalizedQuery.split(/\s+/).filter(w => w.length >= 3);
+    const stopWords = new Set(["de", "del", "la", "las", "los", "el", "en", "un", "una", "para", "con", "por", "que", "y", "o"]);
+    const words = normalizedQuery.split(/\s+/).filter(w => w.length >= 2 && !stopWords.has(w));
+
+    if (words.length > 1) {
+      const productScores = new Map<number, { product: Product; score: number }>();
+
+      for (const word of words) {
+        const wordPattern = `%${word}%`;
+        const wordResults = await db
+          .select()
+          .from(products)
+          .where(
+            or(
+              ilike(products.name, wordPattern),
+              sql`EXISTS (SELECT 1 FROM unnest(${products.searchAliases}) AS alias WHERE lower(alias) LIKE ${wordPattern})`
+            )
+          );
+
+        for (const product of wordResults) {
+          const existing = productScores.get(product.id);
+          if (existing) {
+            existing.score += 1;
+          } else {
+            productScores.set(product.id, { product, score: 1 });
+          }
+        }
+      }
+
+      if (productScores.size > 0) {
+        const scored = Array.from(productScores.values());
+        scored.sort((a, b) => b.score - a.score);
+
+        const maxScore = scored[0].score;
+        if (maxScore > 1) {
+          const multiMatch = scored.filter(s => s.score > 1).map(s => s.product);
+          if (multiMatch.length > 0) {
+            if (detectedPlatform) {
+              const platformFiltered = multiMatch.filter(p => p.platform === detectedPlatform || p.platform === "all");
+              if (platformFiltered.length > 0) return platformFiltered;
+            }
+            return multiMatch;
+          }
+        }
+
+        const allResults = scored.map(s => s.product);
+        if (detectedPlatform) {
+          const platformFiltered = allResults.filter(p => p.platform === detectedPlatform || p.platform === "all");
+          if (platformFiltered.length > 0) return platformFiltered;
+        }
+        return allResults;
+      }
+    }
+
     for (const word of words) {
+      if (word.length < 3) continue;
       const wordPattern = `%${word}%`;
       const wordResults = await db
         .select()
@@ -329,7 +398,32 @@ export class DatabaseStorage implements IStorage {
             sql`EXISTS (SELECT 1 FROM unnest(${products.searchAliases}) AS alias WHERE lower(alias) LIKE ${wordPattern})`
           )
         );
-      if (wordResults.length > 0) return wordResults;
+      if (wordResults.length > 0) {
+        if (detectedPlatform) {
+          const platformFiltered = wordResults.filter(p => p.platform === detectedPlatform || p.platform === "all");
+          if (platformFiltered.length > 0) return platformFiltered;
+        }
+        return wordResults;
+      }
+    }
+
+    if (detectedPlatform) {
+      return await this.getProductsByPlatform(detectedPlatform);
+    }
+
+    const fuzzyMappings: Record<string, string> = {
+      "suscripcion": "subscription",
+      "suscripciones": "subscription",
+      "subscripcion": "subscription",
+      "membresia": "subscription",
+      "tarjetas": "card",
+      "tarjeta": "card",
+    };
+
+    for (const [fuzzyKey, category] of Object.entries(fuzzyMappings)) {
+      if (normalizedQuery.includes(fuzzyKey)) {
+        return await this.getProductsByCategory(category);
+      }
     }
 
     return [];

@@ -327,6 +327,13 @@ export function useChat() {
     }
   }, [pageInfo]);
 
+  const logout = useCallback(() => {
+    try { localStorage.removeItem("chat_user"); } catch {}
+    setUser(null);
+    setContactRequested(false);
+    try { disconnectSocket(); } catch {}
+  }, []);
+
   return {
     user,
     messages,
@@ -336,5 +343,6 @@ export function useChat() {
     sendMessage,
     requestContact,
     login,
+    logout,
   };
 }
