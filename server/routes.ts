@@ -7,6 +7,7 @@ import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { getSmartAutoReply } from "./autoReply";
 
 const socketMessageSchema = insertMessageSchema.extend({
   content: z.string().max(2000),
@@ -132,12 +133,30 @@ export async function registerRoutes(
             const currentSession = await storage.getSession(sessionId);
             if (currentSession?.adminActive) return;
 
+            const historyMessages = await storage.getMessagesBySessionId(sessionId);
+            const conversationHistory = historyMessages.map(m => ({
+              sender: m.sender,
+              content: m.content,
+            }));
+
+            const replyContent = await getSmartAutoReply(
+              parsed.data.content,
+              conversationHistory,
+              {
+                problemType: req.body.problemType || currentSession?.problemType || null,
+                gameName: req.body.gameName || currentSession?.gameName || null,
+                pageTitle: pageTitle || null,
+                pageUrl: pageUrl || null,
+                userName: parsed.data.userName || null,
+              }
+            );
+
             const autoReply = await storage.createMessage({
               sessionId,
               userEmail: parsed.data.userEmail,
               userName: "Soporte",
               sender: "support",
-              content: getAutoReply(parsed.data.content, pageTitle, pageUrl),
+              content: replyContent,
             });
             io.to(`session:${sessionId}`).emit("new_message", autoReply);
 
@@ -550,12 +569,30 @@ export async function registerRoutes(
               const currentSession = await storage.getSession(sid);
               if (currentSession?.adminActive) return;
 
+              const historyMessages = await storage.getMessagesBySessionId(sid);
+              const conversationHistory = historyMessages.map(m => ({
+                sender: m.sender,
+                content: m.content,
+              }));
+
+              const replyContent = await getSmartAutoReply(
+                parsed.data.content,
+                conversationHistory,
+                {
+                  problemType: currentSession?.problemType || null,
+                  gameName: currentSession?.gameName || null,
+                  pageTitle: session?.pageTitle || null,
+                  pageUrl: session?.pageUrl || null,
+                  userName: parsed.data.userName || null,
+                }
+              );
+
               const autoReply = await storage.createMessage({
                 sessionId: sid,
                 userEmail: parsed.data.userEmail,
                 userName: "Soporte",
                 sender: "support",
-                content: getAutoReply(parsed.data.content, session?.pageTitle, session?.pageUrl),
+                content: replyContent,
               });
               io.to(`session:${sid}`).emit("new_message", autoReply);
             } catch (err: any) {
@@ -636,189 +673,3 @@ export async function registerRoutes(
   return httpServer;
 }
 
-function getAutoReply(userMessage: string, pageTitle?: string, pageUrl?: string): string {
-  const msg = userMessage.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const url = (pageUrl || "").toLowerCase();
-  const title = (pageTitle || "").toLowerCase();
-
-  const pageContext = pageTitle ? ` Veo que estas navegando en "${pageTitle}".` : "";
-
-  const isPlayStation = msg.includes("ps4") || msg.includes("ps5") || msg.includes("playstation") || msg.includes("play station") || msg.includes("sony") || url.includes("ps4") || url.includes("ps5") || url.includes("playstation") || title.includes("ps4") || title.includes("ps5");
-  const isXbox = msg.includes("xbox") || msg.includes("microsoft") || msg.includes("game pass") || msg.includes("gamepass") || url.includes("xbox") || title.includes("xbox");
-
-  if (msg.includes("hola") || msg.includes("buenas") || msg.includes("hey") || msg.includes("hello") || msg.includes("hi") || msg.includes("buen dia") || msg.includes("buenos dias")) {
-    if (isPlayStation) {
-      return `¡Hola! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Tenemos un amplio catalogo de juegos y suscripciones para PS4 y PS5. ¿Que estas buscando? Puedo ayudarte con juegos, tarjetas PlayStation, o suscripciones PS Plus.`;
-    }
-    if (isXbox) {
-      return `¡Hola! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Contamos con juegos y suscripciones para Xbox One y Xbox Series S|X. ¿Te interesa algun juego, tarjeta Xbox, o suscripcion Game Pass?`;
-    }
-    return `¡Hola! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Tenemos juegos y suscripciones para PS4, PS5, Xbox One y Xbox Series. ¿En que puedo ayudarte hoy?`;
-  }
-
-  if (msg.includes("plus essential") || msg.includes("ps plus essential") || msg.includes("psplus essential") || (msg.includes("essential") && (msg.includes("plus") || isPlayStation))) {
-    const duration = extractDuration(msg);
-    if (duration) {
-      return `¡Excelente eleccion! La suscripcion PS Plus Essential de ${duration} te da acceso a juego online multijugador, 2-3 juegos gratis cada mes, descuentos exclusivos en PlayStation Store y almacenamiento en la nube. ¿Quieres que te ayude con el proceso de compra o necesitas mas informacion sobre la entrega?`;
-    }
-    return `PS Plus Essential es el plan base de PlayStation. Incluye juego online multijugador, juegos mensuales gratis, y descuentos en PS Store. Tenemos disponible en planes de 1 mes, 3 meses y 12 meses. ¿Cual te interesa?`;
-  }
-
-  if (msg.includes("plus extra") || msg.includes("ps plus extra") || msg.includes("psplus extra") || (msg.includes("extra") && (msg.includes("plus") || isPlayStation))) {
-    const duration = extractDuration(msg);
-    if (duration) {
-      return `¡Buena eleccion! PS Plus Extra de ${duration} incluye todo lo de Essential MAS un catalogo de hasta 400 juegos de PS4 y PS5 para descargar y jugar. Es como tener Netflix de juegos. ¿Te gustaria proceder con la compra?`;
-    }
-    return `PS Plus Extra incluye todo lo de Essential mas acceso a un catalogo de ~400 juegos descargables de PS4 y PS5. Disponible en 1, 3 y 12 meses. ¿De cual duracion te gustaria saber el precio?`;
-  }
-
-  if (msg.includes("plus premium") || msg.includes("ps plus premium") || msg.includes("psplus premium") || msg.includes("plus deluxe") || (msg.includes("premium") && (msg.includes("plus") || isPlayStation))) {
-    const duration = extractDuration(msg);
-    if (duration) {
-      return `PS Plus Premium de ${duration} es el plan mas completo. Incluye todo lo de Extra mas streaming de juegos en la nube, juegos clasicos de PS1/PS2/PS3/PSP, y pruebas de juegos por tiempo limitado. ¿Quieres mas detalles sobre la compra?`;
-    }
-    return `PS Plus Premium es el plan mas completo de PlayStation. Incluye todo de Extra mas juegos clasicos, streaming en la nube y pruebas de juegos. Disponible en 1, 3 y 12 meses. ¿Cual duracion te interesa?`;
-  }
-
-  if (msg.includes("ps plus") || msg.includes("psplus") || msg.includes("playstation plus") || (msg.includes("plus") && isPlayStation)) {
-    return `Tenemos los 3 niveles de PS Plus disponibles:\n\n• Essential - Juego online + juegos mensuales gratis\n• Extra - Todo de Essential + catalogo de ~400 juegos\n• Premium - Todo de Extra + clasicos + streaming\n\nCada uno disponible en 1, 3 y 12 meses. ¿Cual nivel te interesa?`;
-  }
-
-  if (msg.includes("game pass") || msg.includes("gamepass") || msg.includes("xbox pass")) {
-    if (msg.includes("ultimate")) {
-      const duration = extractDuration(msg);
-      if (duration) {
-        return `¡Game Pass Ultimate de ${duration} es la mejor opcion! Incluye acceso a cientos de juegos en consola, PC y nube, juego online (Xbox Live Gold), EA Play, y juegos de Xbox Studios desde el dia de lanzamiento. ¿Te ayudo con la compra?`;
-      }
-      return `Xbox Game Pass Ultimate incluye juegos en consola + PC + nube, Xbox Live Gold, EA Play y juegos day-one de Microsoft. Tenemos planes de 1, 3 y 12 meses. ¿Cual te interesa?`;
-    }
-    if (msg.includes("core")) {
-      return `Xbox Game Pass Core reemplaza a Xbox Live Gold. Incluye juego online multijugador y acceso a un catalogo selecto de juegos. Es el plan base para jugar online en Xbox. ¿Quieres saber los precios disponibles?`;
-    }
-    return `Tenemos suscripciones Xbox Game Pass disponibles:\n\n• Game Pass Core - Juego online + catalogo selecto\n• Game Pass Standard - Catalogo de cientos de juegos\n• Game Pass Ultimate - Todo incluido + PC + nube + EA Play\n\n¿Cual plan te interesa?`;
-  }
-
-  if (msg.includes("xbox live") || msg.includes("live gold") || (msg.includes("gold") && isXbox)) {
-    return `Xbox Live Gold fue reemplazado por Xbox Game Pass Core, que incluye juego online multijugador y un catalogo de juegos seleccionados. ¿Te gustaria saber mas sobre Game Pass Core u otro plan de Game Pass?`;
-  }
-
-  if (msg.includes("tarjeta") || msg.includes("gift card") || msg.includes("giftcard") || msg.includes("codigo") || msg.includes("saldo") || msg.includes("recarga") || msg.includes("wallet")) {
-    const duration = extractDuration(msg);
-    if (duration) {
-      if (isPlayStation || msg.includes("psn") || msg.includes("playstation") || msg.includes("ps store")) {
-        return `¡Tenemos tarjetas de suscripcion PlayStation de ${duration}! Disponible en PS Plus Essential, Extra y Premium. ¿Cual nivel te interesa? Te puedo dar mas detalles de lo que incluye cada uno.`;
-      }
-      if (isXbox || msg.includes("xbox")) {
-        return `¡Tenemos tarjetas de suscripcion Xbox de ${duration}! Disponible en Game Pass Core, Standard y Ultimate. ¿Cual plan te interesa?`;
-      }
-      return `¡Tenemos tarjetas de suscripcion de ${duration}! ¿Para cual plataforma la necesitas?\n\n• PlayStation: PS Plus Essential, Extra o Premium\n• Xbox: Game Pass Core, Standard o Ultimate\n\nTambien contamos con tarjetas de saldo.`;
-    }
-    if (msg.includes("psn") || msg.includes("playstation") || msg.includes("ps store") || isPlayStation) {
-      const amount = extractMoneyAmount(msg);
-      if (amount) {
-        return `¡Tenemos tarjetas PSN de $${amount}! Las tarjetas de PlayStation Store te permiten agregar saldo a tu cuenta para comprar juegos, DLCs, y contenido digital. La entrega es digital e inmediata por correo. ¿Quieres proceder con la compra?`;
-      }
-      return `Contamos con tarjetas de saldo para PlayStation Store (PSN) en varias denominaciones. Puedes usarlas para comprar juegos, DLCs, y contenido en PS Store. ¿De cuanto saldo necesitas?`;
-    }
-    if (msg.includes("xbox") || isXbox) {
-      const amount = extractMoneyAmount(msg);
-      if (amount) {
-        return `¡Tenemos tarjetas Xbox de $${amount}! Te permite agregar saldo a tu cuenta Microsoft para comprar juegos y contenido en la tienda Xbox. Entrega digital inmediata. ¿Quieres que te ayude con la compra?`;
-      }
-      return `Tenemos tarjetas de saldo Xbox en varias denominaciones. Sirven para comprar juegos, DLCs y contenido en la Microsoft Store. ¿Que monto necesitas?`;
-    }
-    return `Tenemos tarjetas digitales para PlayStation y Xbox:\n\n• Tarjetas de saldo PSN (PlayStation Store)\n• Tarjetas de saldo Xbox (Microsoft Store)\n• Suscripciones PS Plus (Essential/Extra/Premium)\n• Suscripciones Xbox Game Pass\n\n¿Cual te interesa?`;
-  }
-
-  if (msg.includes("1 mes") || msg.includes("un mes") || msg.includes("mensual")) {
-    if (isPlayStation) {
-      return `Tenemos suscripciones de 1 mes para PS Plus en los 3 niveles: Essential, Extra y Premium. ¿Cual nivel te interesa? Te puedo dar mas detalles de lo que incluye cada uno.`;
-    }
-    if (isXbox) {
-      return `Tenemos suscripciones de 1 mes para Xbox Game Pass: Core, Standard y Ultimate. ¿Cual plan te interesa? Puedo explicarte las diferencias.`;
-    }
-    return `Tenemos suscripciones de 1 mes tanto para PlayStation (PS Plus) como para Xbox (Game Pass). ¿Para cual plataforma necesitas?`;
-  }
-
-  if (msg.includes("3 mes") || msg.includes("tres mes") || msg.includes("trimestral")) {
-    if (isPlayStation) {
-      return `¡La suscripcion de 3 meses de PS Plus es muy popular! Disponible en Essential, Extra y Premium. Es mejor relacion precio/mes que la mensual. ¿Cual nivel te interesa?`;
-    }
-    if (isXbox) {
-      return `Tenemos Game Pass de 3 meses disponible. Ofrece mejor valor que el plan mensual. ¿Te interesa Core, Standard o Ultimate?`;
-    }
-    return `Las suscripciones de 3 meses estan disponibles para PlayStation y Xbox. Ofrecen mejor precio por mes que la opcion mensual. ¿Para que plataforma la necesitas?`;
-  }
-
-  if (msg.includes("12 mes") || msg.includes("doce mes") || msg.includes("un ano") || msg.includes("1 ano") || msg.includes("anual")) {
-    if (isPlayStation) {
-      return `El plan anual de PS Plus es el que ofrece el mejor ahorro. Disponible en Essential, Extra y Premium con 12 meses de acceso. ¿Cual nivel te gustaria?`;
-    }
-    if (isXbox) {
-      return `El plan anual de Game Pass te da el mejor precio por mes. ¿Te interesa la version Core, Standard o Ultimate?`;
-    }
-    return `Los planes anuales (12 meses) son los que ofrecen el mejor ahorro. Disponibles para PS Plus y Xbox Game Pass. ¿Para cual plataforma?`;
-  }
-
-  if (msg.includes("juego") || msg.includes("game") || msg.includes("titulo")) {
-    if (isPlayStation) {
-      return `Tenemos un amplio catalogo de juegos digitales para PS4 y PS5.${pageContext} ¿Buscas algun titulo en particular? Tambien tenemos ofertas y lanzamientos recientes.`;
-    }
-    if (isXbox) {
-      return `Contamos con juegos digitales para Xbox One y Xbox Series.${pageContext} ¿Que titulo buscas? Tenemos novedades y ofertas especiales.`;
-    }
-    return `Tenemos juegos digitales para todas las plataformas: PS4, PS5, Xbox One y Xbox Series.${pageContext} ¿Que titulo o plataforma te interesa?`;
-  }
-
-  if (msg.includes("precio") || msg.includes("costo") || msg.includes("cuanto") || msg.includes("cuánto") || msg.includes("vale") || msg.includes("cobran")) {
-    if (isPlayStation) {
-      return `Los precios de PS Plus varian segun el nivel y duracion. ¿Te gustaria saber el precio de Essential, Extra o Premium? Y por cuanto tiempo: 1, 3 o 12 meses?`;
-    }
-    if (isXbox) {
-      return `Los precios de Game Pass dependen del plan. ¿Quieres saber el precio de Core, Standard o Ultimate? Disponible en 1, 3 y 12 meses.`;
-    }
-    return `Los precios dependen del producto y plataforma. ¿Me puedes indicar que producto te interesa? Asi te doy la informacion exacta.`;
-  }
-
-  if (msg.includes("pago") || msg.includes("pagar") || msg.includes("metodo") || msg.includes("transferencia") || msg.includes("paypal") || msg.includes("cripto") || msg.includes("bitcoin") || msg.includes("efectivo")) {
-    return `Aceptamos varios metodos de pago. Para darte la informacion exacta sobre formas de pago y proceso de compra, ¿me puedes indicar que producto te interesa? Asi te guio paso a paso.`;
-  }
-
-  if (msg.includes("entrega") || msg.includes("envio") || msg.includes("recibir") || msg.includes("como llega") || msg.includes("demora") || msg.includes("tarda")) {
-    return `La entrega de todos nuestros productos es digital e inmediata. Recibiras tu codigo o producto por correo electronico al completar la compra. El proceso suele tomar unos pocos minutos. ¿Necesitas ayuda con algo mas?`;
-  }
-
-  if (msg.includes("garantia") || msg.includes("devolucion") || msg.includes("reembolso") || msg.includes("cambio") || msg.includes("problema") || msg.includes("funciona") || msg.includes("error")) {
-    return `Lamentamos si tienes algun inconveniente. Todos nuestros productos tienen garantia de funcionamiento. Si necesitas ayuda con un producto que compraste, te recomiendo contactar a un ejecutivo para asistencia personalizada usando el boton "Contactar un Ejecutivo" abajo.`;
-  }
-
-  if (msg.includes("gracias") || msg.includes("muchas gracias") || msg.includes("genial") || msg.includes("perfecto") || msg.includes("excelente") || msg.includes("buenisimo")) {
-    return `¡Con gusto! Estamos aqui para ayudarte. Si tienes mas preguntas sobre nuestros productos, no dudes en escribir. ¡Buen dia!`;
-  }
-
-  if (msg.includes("adios") || msg.includes("bye") || msg.includes("chao") || msg.includes("hasta luego") || msg.includes("nos vemos")) {
-    return `¡Hasta pronto! Fue un placer ayudarte. Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia!`;
-  }
-
-  if (msg.includes("promocion") || msg.includes("oferta") || msg.includes("descuento") || msg.includes("rebaja") || msg.includes("sale")) {
-    return `¡Siempre tenemos ofertas disponibles! Las promociones cambian frecuentemente. ¿Te interesa alguna plataforma en particular (PlayStation o Xbox)? Puedo ver que ofertas tenemos activas.`;
-  }
-
-  if (msg.includes("seguro") || msg.includes("confiable") || msg.includes("estafa") || msg.includes("real") || msg.includes("legitimo")) {
-    return `¡Somos una tienda 100% confiable y segura! Todos nuestros productos son codigos digitales oficiales. Tenemos una larga trayectoria y miles de clientes satisfechos. Si quieres, puedes contactar a un ejecutivo para resolver cualquier duda de confianza.`;
-  }
-
-  return `Gracias por tu mensaje.${pageContext} Estoy aqui para ayudarte con nuestros productos digitales: juegos, suscripciones PS Plus, Xbox Game Pass, tarjetas de saldo y mas. ¿En que puedo ayudarte?`;
-}
-
-function extractDuration(msg: string): string | null {
-  if (msg.includes("1 mes") || msg.includes("un mes") || msg.includes("mensual")) return "1 mes";
-  if (msg.includes("3 mes") || msg.includes("tres mes") || msg.includes("trimestral")) return "3 meses";
-  if (msg.includes("12 mes") || msg.includes("doce mes") || msg.includes("un ano") || msg.includes("1 ano") || msg.includes("anual")) return "12 meses";
-  return null;
-}
-
-function extractMoneyAmount(msg: string): string | null {
-  const match = msg.match(/\$?(\d+)/);
-  return match ? match[1] : null;
-}

@@ -18,7 +18,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
 8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
-9. **Auto-replies**: Intelligent keyword-based auto-reply system in Spanish with product knowledge (PS Plus, Game Pass, gift cards, specific games) and page context awareness
+9. **Smart Auto-replies**: Intelligent context-aware auto-reply engine (`server/autoReply.ts`) with conversation memory, intent detection (12 intent types), game/product name recognition (20+ titles including EA FC, GTA, COD, Spider-Man, etc.), no-repetition system, and smart escalation to human agents after unresolved exchanges
 10. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, and canned responses management
 11. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
 12. **Conversation Status Management**: Sessions can be marked as 'active' or 'closed' (soft delete). Closed chats are hidden from inbox but accessible via filter. Auto-reopens when user sends new message.
@@ -36,7 +36,8 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types
-- `server/routes.ts` - Socket.io setup, message handling, contact executive, auto-reply logic, admin API endpoints, offline detection
+- `server/autoReply.ts` - Smart auto-reply engine with conversation memory, intent detection, product/game recognition, no-repetition, and escalation
+- `server/routes.ts` - Socket.io setup, message handling, contact executive, admin API endpoints, offline detection
 - `server/storage.ts` - Database CRUD operations (session queries, search, admin queries, canned responses)
 - `server/db.ts` - Database connection pool
 - `server/email.ts` - Resend email notification service (contact notification + offline notification)
