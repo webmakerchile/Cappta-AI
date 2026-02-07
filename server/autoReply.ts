@@ -514,27 +514,33 @@ const ESCALATION_RESPONSES = [
   "Para brindarte la mejor atencion, te sugiero contactar a uno de nuestros ejecutivos. Haz clic en 'Contactar un Ejecutivo' y recibiras ayuda directa por correo.",
 ];
 
-function getGreetingResponse(state: ConversationState, sessionData?: SessionData): string {
+function getGreetingResponse(state: ConversationState, sessionData?: SessionData, catalogProduct?: CatalogProduct | null): string {
   const userName = sessionData?.userName;
   const nameGreeting = userName ? `, ${userName}` : "";
   const pageContext = sessionData?.pageTitle ? ` Veo que estas navegando en "${sessionData.pageTitle}".` : "";
   const problemType = sessionData?.problemType;
 
+  const catalogName = catalogProduct?.name || null;
+  const catalogPrice = catalogProduct?.price || null;
+
   if (problemType && problemType !== "otro") {
-    const productName = state.product ? formatGameWithVersion(state.product) : null;
-    const platSuffix = state.product ? formatPlatformSuffix(state.product) : "";
+    const productName = catalogName || (state.product ? formatGameWithVersion(state.product) : null);
+    const platSuffix = !catalogName && state.product ? formatPlatformSuffix(state.product) : "";
 
     if (problemType === "compra") {
       if (productName) {
+        const priceInfo = catalogPrice ? ` Precio: ${catalogPrice}.` : "";
         const text = pickUnused([
-          `¡Hola${nameGreeting}! ¡Que emocion que quieras comprar ${productName}${platSuffix}! Tenemos entrega digital inmediata a tu correo. ¿Te ayudo con la compra?`,
-          `¡Hola${nameGreeting}! ¡Excelente eleccion! ${productName}${platSuffix} esta disponible en nuestra tienda con entrega instantanea. ¿Quieres proceder con la compra?`,
+          `¡Hola${nameGreeting}! ¡Que emocion que quieras comprar ${productName}${platSuffix}!${priceInfo} Tenemos entrega digital inmediata a tu correo. ¿Te ayudo con la compra?`,
+          `¡Hola${nameGreeting}! ¡Excelente eleccion! ${productName}${platSuffix} esta disponible en nuestra tienda.${priceInfo} Entrega instantanea por correo. ¿Quieres proceder con la compra?`,
         ], state.usedResponses);
-        return withButtons(text, [
-          {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
-          {label: "Ver mas detalles", value: `quiero info de ${productName}`},
-          {label: "Contactar ejecutivo", value: "__qr:contact"},
-        ]);
+        const buttons: Array<{label: string, value?: string, url?: string}> = [];
+        if (catalogProduct?.productUrl) {
+          buttons.push({label: "Comprar ahora", url: catalogProduct.productUrl});
+        }
+        buttons.push({label: "Si, quiero comprarlo", value: "si quiero comprarlo"});
+        buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+        return withButtons(text, buttons);
       }
       const text = pickUnused([
         `¡Hola${nameGreeting}! ¡Bienvenido a nuestra tienda! Estamos listos para ayudarte con tu compra.${pageContext} ¿Que producto te interesa?`,
@@ -579,15 +585,19 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "info_producto") {
       if (productName) {
+        const priceInfo = catalogPrice ? ` Precio: ${catalogPrice}.` : "";
+        const availInfo = catalogProduct?.availability === "available" ? " Esta disponible para compra inmediata." : "";
         const text = pickUnused([
-          `¡Hola${nameGreeting}! Veo que quieres informacion sobre ${productName}${platSuffix}. Es un excelente titulo que manejamos en version digital con entrega inmediata. ¿Que te gustaria saber?`,
-          `¡Hola${nameGreeting}! Con gusto te doy informacion sobre ${productName}${platSuffix}. Trabajamos con codigos digitales y entrega instantanea por correo. ¿Necesitas saber precio, disponibilidad o algun detalle especifico?`,
+          `¡Hola${nameGreeting}! Veo que quieres informacion sobre ${productName}${platSuffix}.${priceInfo}${availInfo} Entrega digital inmediata por correo. ¿Te gustaria comprarlo?`,
+          `¡Hola${nameGreeting}! Con gusto te doy informacion sobre ${productName}${platSuffix}.${priceInfo} Trabajamos con codigos digitales y entrega instantanea por correo.`,
         ], state.usedResponses);
-        return withButtons(text, [
-          {label: "Ver precio", value: `precio de ${productName}`},
-          {label: "Comprar", value: "si quiero comprarlo"},
-          {label: "Contactar ejecutivo", value: "__qr:contact"},
-        ]);
+        const buttons: Array<{label: string, value?: string, url?: string}> = [];
+        if (catalogProduct?.productUrl) {
+          buttons.push({label: "Comprar ahora", url: catalogProduct.productUrl});
+        }
+        buttons.push({label: "Si, quiero comprarlo", value: "si quiero comprarlo"});
+        buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+        return withButtons(text, buttons);
       }
       const text = pickUnused([
         `¡Hola${nameGreeting}! Con gusto te brindo informacion sobre nuestros productos.${pageContext} Tenemos juegos y suscripciones digitales para PlayStation y Xbox. ¿Sobre que producto te gustaria saber mas?`,
@@ -601,10 +611,23 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
     }
 
     if (problemType === "precio") {
+      if (productName && catalogPrice) {
+        const text = pickUnused([
+          `¡Hola${nameGreeting}! El precio de ${productName}${platSuffix} es ${catalogPrice}. Entrega digital inmediata a tu correo. ¿Te gustaria comprarlo?`,
+          `¡Hola${nameGreeting}! ${productName}${platSuffix} tiene un precio de ${catalogPrice}. Entrega instantanea por email. ¿Quieres proceder con la compra?`,
+        ], state.usedResponses);
+        const buttons: Array<{label: string, value?: string, url?: string}> = [];
+        if (catalogProduct?.productUrl) {
+          buttons.push({label: "Comprar ahora", url: catalogProduct.productUrl});
+        }
+        buttons.push({label: "Si, quiero comprarlo", value: "si quiero comprarlo"});
+        buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+        return withButtons(text, buttons);
+      }
       if (productName) {
         const text = pickUnused([
-          `¡Hola${nameGreeting}! Veo que te interesa el precio de ${productName}${platSuffix}. Dejame verificar la informacion para ti. Para el precio exacto y ofertas disponibles, te recomiendo contactar a un ejecutivo.`,
-          `¡Hola${nameGreeting}! Quieres saber el precio de ${productName}${platSuffix}. Nuestros precios son competitivos y la entrega es digital e inmediata. Un ejecutivo puede darte el precio actualizado al momento.`,
+          `¡Hola${nameGreeting}! Veo que te interesa el precio de ${productName}${platSuffix}. Dejame conectarte con un ejecutivo que puede darte el precio actualizado y ayudarte con la compra.`,
+          `¡Hola${nameGreeting}! Para darte el precio exacto de ${productName}${platSuffix}, te recomiendo contactar a un ejecutivo. El te brindara la informacion actualizada.`,
         ], state.usedResponses);
         return withButtons(text, [
           {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1190,22 +1213,30 @@ async function lookupCatalogProduct(
 
   const queries: string[] = [];
 
-  if (state.product && state.product.type === "game") {
-    queries.push(state.product.name);
-    if (state.product.version) {
-      queries.push(`${state.product.name} ${state.product.version}`);
-    }
+  if (sessionData?.gameName) {
+    queries.unshift(sessionData.gameName);
   }
 
   if (sessionData?.wpProductName) {
     queries.unshift(sessionData.wpProductName);
   }
 
-  if (state.lastTopicProduct && state.lastTopicProduct.type === "game") {
+  if (state.product) {
+    queries.push(state.product.name);
+    if (state.product.type === "game" && state.product.version) {
+      queries.push(`${state.product.name} ${state.product.version}`);
+    }
+  }
+
+  if (state.lastTopicProduct) {
     queries.push(state.lastTopicProduct.name);
   }
 
+  const seen = new Set<string>();
   for (const query of queries) {
+    const key = query.toLowerCase().trim();
+    if (seen.has(key) || key.length < 2) continue;
+    seen.add(key);
     try {
       const results = await catalogLookup.searchByName(query);
       if (results.length > 0) return results[0];
@@ -1496,7 +1527,7 @@ export async function getSmartAutoReply(
 
   switch (state.intent) {
     case "greeting":
-      return getGreetingResponse(state, sessionData);
+      return getGreetingResponse(state, sessionData, catalogProduct);
 
     case "product_inquiry": {
       if (state.product) {
