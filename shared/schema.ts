@@ -10,6 +10,7 @@ export const messages = pgTable("messages", {
   userName: text("user_name").notNull(),
   sender: text("sender", { enum: ["user", "support"] }).notNull(),
   content: text("content").notNull(),
+  imageUrl: text("image_url"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 }, (table) => [
   index("idx_messages_session_id").on(table.sessionId),
