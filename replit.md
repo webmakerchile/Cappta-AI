@@ -13,7 +13,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 1. **Widget States**: Launcher button (closed) + Chat window (open), with postMessage events (`open_chat`/`close_chat`) with dimensions for iframe resizing
 2. **Auto-Authentication**: Reads `?email=` and `?name=` URL params for WordPress logged-in users
 3. **Page Context Detection**: Reads `?page_url=` and `?page_title=` params, or receives page info via postMessage from parent, to provide contextual auto-replies
-4. **Guest Form**: Welcome form (in Spanish) asking for email, problem type (dropdown), game/product name, and user name. Saves to localStorage with unique session ID
+4. **Guest Form**: Welcome form (in Spanish) asking for email, problem type (dropdown), game/product name (searchable dropdown with live product search from catalog), and user name. Saves to localStorage with unique session ID
 5. **Session-Based Privacy**: Each chat gets a unique session ID (generated client-side). Messages are stored/fetched by sessionId, not email. Email is only used for executive contact. This prevents users from seeing each other's chat history even if they enter the same email
 6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
@@ -81,6 +81,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `POST /api/contact-executive` - Request executive contact
 - `GET /api/canned-responses` - Get canned responses (for slash commands)
 - `GET /api/products/search?q=query` - Search products by name/aliases (used by auto-reply)
+- `GET /api/products/browse?q=search&category=game&platform=ps5&limit=50&offset=0` - Browse all products with optional filters (used by product selector)
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string

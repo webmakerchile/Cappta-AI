@@ -481,6 +481,46 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/products/browse", async (req, res) => {
+    try {
+      const search = (req.query.q as string || "").trim().toLowerCase();
+      const category = req.query.category as string || "";
+      const platform = req.query.platform as string || "";
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      let allProducts = await storage.getProducts();
+
+      if (category) {
+        allProducts = allProducts.filter(p => p.category === category);
+      }
+      if (platform) {
+        allProducts = allProducts.filter(p => p.platform === platform || p.platform === "all");
+      }
+      if (search && search.length >= 2) {
+        allProducts = allProducts.filter(p =>
+          p.name.toLowerCase().includes(search) ||
+          (p.searchAliases || []).some(a => a.toLowerCase().includes(search))
+        );
+      }
+
+      allProducts.sort((a, b) => a.name.localeCompare(b.name, "es"));
+
+      const total = allProducts.length;
+      const paginated = allProducts.slice(offset, offset + limit);
+
+      res.json({
+        products: paginated.map(p => ({ id: p.id, name: p.name, price: p.price, platform: p.platform, category: p.category, availability: p.availability })),
+        total,
+        offset,
+        limit,
+      });
+    } catch (error: any) {
+      log(`Error en browse de productos: ${error.message}`, "api");
+      res.status(500).json({ message: "Error en browse de productos" });
+    }
+  });
+
   app.get("/api/admin/products", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {

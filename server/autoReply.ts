@@ -534,7 +534,6 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
     return withButtons(text, [
       {label: "Juegos PS5", value: "__qr:platform:ps5"},
       {label: "PS Plus", value: "__qr:category:subscription"},
-      {label: "Tarjetas PSN", value: "__qr:category:card"},
       {label: "Ver todo", value: "__qr:platform:ps5"},
     ]);
   }
@@ -542,12 +541,11 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   if (state.platform === "xbox") {
     const text = pickUnused([
       `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Contamos con juegos y suscripciones para Xbox. ¿En que te puedo ayudar?`,
-      `¡Hola${nameGreeting}! Que bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales, Game Pass, y tarjetas de saldo.`,
+      `¡Hola${nameGreeting}! Que bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales y Game Pass.`,
     ], state.usedResponses);
     return withButtons(text, [
       {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
       {label: "Game Pass", value: "__qr:category:subscription"},
-      {label: "Tarjetas Xbox", value: "__qr:category:card"},
       {label: "Ver todo", value: "__qr:platform:xbox_series"},
     ]);
   }
@@ -560,7 +558,6 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
     {label: "Juegos PS5", value: "__qr:platform:ps5"},
     {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
     {label: "Suscripciones", value: "__qr:category:subscription"},
-    {label: "Tarjetas de saldo", value: "__qr:category:card"},
   ]);
 }
 
@@ -768,20 +765,18 @@ function getProductInquiryGeneric(state: ConversationState): string {
       {label: "Juegos PS5", value: "__qr:platform:ps5"},
       {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
       {label: "Suscripciones", value: "__qr:category:subscription"},
-      {label: "Tarjetas", value: "__qr:category:card"},
     ]);
   }
 
   const platSuffix = state.platform === "ps" ? " para PS4 y PS5" : state.platform === "xbox" ? " para Xbox One y Xbox Series" : " para PS4, PS5, Xbox One y Xbox Series";
   const text = pickUnused([
-    `Tenemos un amplio catalogo de juegos digitales${platSuffix}, ademas de suscripciones y tarjetas de saldo. ¿Que producto te interesa?`,
-    `Contamos con juegos, suscripciones y tarjetas${platSuffix}. Si me dices que buscas, te doy toda la info.`,
+    `Tenemos un amplio catalogo de juegos digitales${platSuffix}, ademas de suscripciones. ¿Que producto te interesa?`,
+    `Contamos con juegos y suscripciones${platSuffix}. Si me dices que buscas, te doy toda la info.`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Juegos PS5", value: "__qr:platform:ps5"},
     {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
     {label: "Suscripciones", value: "__qr:category:subscription"},
-    {label: "Tarjetas", value: "__qr:category:card"},
   ]);
 }
 
@@ -831,13 +826,12 @@ function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogP
 
   const text = pickUnused([
     `¡Genial que quieras comprar! ¿Me puedes indicar que producto te interesa?`,
-    `¡Claro! ¿Que producto buscas? ¿Es un juego, suscripcion o tarjeta de saldo?`,
+    `¡Claro! ¿Que producto buscas? ¿Es un juego o una suscripcion?`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Juegos PS5", value: "__qr:platform:ps5"},
     {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
     {label: "Suscripciones", value: "__qr:category:subscription"},
-    {label: "Tarjetas", value: "__qr:category:card"},
   ]);
 }
 
@@ -879,7 +873,7 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
   }
 
   if (state.platform === "xbox") {
-    const text = `Los precios de Xbox dependen del producto. ¿Buscas un juego, Game Pass, o tarjeta de saldo?`;
+    const text = `Los precios de Xbox dependen del producto. ¿Buscas un juego o Game Pass?`;
     return withButtons(text, [
       {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
       {label: "Game Pass", value: "__qr:category:subscription"},
@@ -1013,9 +1007,9 @@ function getUnknownResponse(state: ConversationState): string {
   }
 
   const text = pickUnused([
-    `Gracias por tu mensaje. Estoy aqui para ayudarte con juegos digitales, suscripciones y tarjetas de saldo. ¿Que te gustaria saber?`,
-    `No estoy seguro de entender tu consulta. ¿Puedes decirme si buscas un juego, suscripcion o tarjeta?`,
-    `Disculpa, ¿me puedes dar mas detalles? Vendemos juegos digitales, PS Plus, Game Pass y tarjetas de saldo.`,
+    `Gracias por tu mensaje. Estoy aqui para ayudarte con juegos digitales y suscripciones. ¿Que te gustaria saber?`,
+    `No estoy seguro de entender tu consulta. ¿Puedes decirme si buscas un juego o una suscripcion?`,
+    `Disculpa, ¿me puedes dar mas detalles? Vendemos juegos digitales, PS Plus y Game Pass.`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ver juegos", value: "__qr:category:game"},
@@ -1212,7 +1206,6 @@ export async function getSmartAutoReply(
         {label: "Juegos PS5", value: "__qr:platform:ps5"},
         {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
         {label: "Suscripciones", value: "__qr:category:subscription"},
-        {label: "Tarjetas de saldo", value: "__qr:category:card"},
       ]);
     }
   }

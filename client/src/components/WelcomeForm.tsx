@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProductSelector } from "@/components/ProductSelector";
 
 interface WelcomeFormProps {
   onSubmit: (email: string, name: string, problemType: string, gameName: string) => void;
@@ -143,19 +144,15 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-col gap-1">
                 <FormLabel className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
-                  Nombre del juego o producto
+                  Seleccionar juego
                 </FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Gamepad2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
-                    <Input
-                      data-testid="input-game-name"
-                      type="text"
-                      {...field}
-                      placeholder="Ej: PS Plus Essential 3 meses"
-                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
-                    />
-                  </div>
+                  <ProductSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Buscar juego o producto..."
+                    dataTestId="input-game-name"
+                  />
                 </FormControl>
                 <FormMessage className="text-xs text-red-400" data-testid="error-game-name" />
               </FormItem>

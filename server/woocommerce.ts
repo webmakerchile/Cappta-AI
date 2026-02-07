@@ -190,7 +190,7 @@ function formatPrice(product: WCProduct): string {
   const num = parseFloat(price);
   if (isNaN(num)) return price;
 
-  return `$${num.toFixed(2)} USD`;
+  return `$${Math.round(num).toLocaleString("es-CL")} CLP`;
 }
 
 async function fetchWCProducts(page: number = 1, perPage: number = 100): Promise<WCProduct[]> {
