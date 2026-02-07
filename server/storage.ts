@@ -280,8 +280,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchProductsByName(query: string): Promise<Product[]> {
-    const searchPattern = `%${query.toLowerCase()}%`;
-    return await db
+    const normalizedQuery = query.toLowerCase().trim();
+
+    const platformAliases: Record<string, string[]> = {
+      ps5: ["play 5", "play5", "playstation 5", "ps 5", "ps5"],
+      ps4: ["play 4", "play4", "playstation 4", "ps 4", "ps4"],
+      xbox_series: ["xbox series", "xbox series x", "xbox series s", "xbox sx", "xbox ss"],
+      xbox_one: ["xbox one", "xbox 1", "xone"],
+    };
+
+    let detectedPlatform: string | null = null;
+    for (const [platform, aliases] of Object.entries(platformAliases)) {
+      for (const alias of aliases) {
+        if (normalizedQuery.includes(alias)) {
+          detectedPlatform = platform;
+          break;
+        }
+      }
+      if (detectedPlatform) break;
+    }
+
+    const searchPattern = `%${normalizedQuery}%`;
+    const directResults = await db
       .select()
       .from(products)
       .where(
@@ -290,17 +310,49 @@ export class DatabaseStorage implements IStorage {
           sql`EXISTS (SELECT 1 FROM unnest(${products.searchAliases}) AS alias WHERE lower(alias) LIKE ${searchPattern})`
         )
       );
+
+    if (directResults.length > 0) return directResults;
+
+    if (detectedPlatform) {
+      return await this.getProductsByPlatform(detectedPlatform);
+    }
+
+    const words = normalizedQuery.split(/\s+/).filter(w => w.length >= 3);
+    for (const word of words) {
+      const wordPattern = `%${word}%`;
+      const wordResults = await db
+        .select()
+        .from(products)
+        .where(
+          or(
+            ilike(products.name, wordPattern),
+            sql`EXISTS (SELECT 1 FROM unnest(${products.searchAliases}) AS alias WHERE lower(alias) LIKE ${wordPattern})`
+          )
+        );
+      if (wordResults.length > 0) return wordResults;
+    }
+
+    return [];
   }
 
   async getProductsByPlatform(platform: string): Promise<Product[]> {
+    const platformMap: Record<string, string[]> = {
+      ps5: ["ps5"],
+      ps4: ["ps4"],
+      ps: ["ps5", "ps4"],
+      xbox_series: ["xbox_series"],
+      xbox_one: ["xbox_one"],
+      xbox: ["xbox_series", "xbox_one"],
+    };
+
+    const platformVariants = platformMap[platform] || [platform];
+    const allVariants = [...platformVariants, "all"];
+
     return await db
       .select()
       .from(products)
       .where(
-        or(
-          eq(products.platform, platform),
-          eq(products.platform, "all")
-        )
+        sql`${products.platform} IN (${sql.join(allVariants.map(v => sql`${v}`), sql`, `)})`
       )
       .orderBy(asc(products.name));
   }
@@ -309,7 +361,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(products)
-      .where(eq(products.category, category))
+      .where(sql`${products.category} = ${category}`)
       .orderBy(asc(products.name));
   }
 }

@@ -1125,6 +1125,38 @@ export async function getSmartAutoReply(
 ): Promise<string> {
   const msg = normalize(userMessage);
 
+  const platformBrowseMatch = msg.match(/(?:juegos?\s+(?:de\s+|para\s+)?|quiero\s+(?:un\s+)?(?:juego\s+(?:de\s+|para\s+)?)?)?(play\s*(?:station)?\s*[45]|ps\s*[45]|xbox\s*(?:one|series|360)?)\b/i);
+  if (platformBrowseMatch && catalogLookup && !msg.startsWith("__qr:")) {
+    const platformText = platformBrowseMatch[1].toLowerCase().replace(/\s+/g, "");
+    let browsePlatform = "ps5";
+    if (/play4|ps4|playstation4/.test(platformText)) browsePlatform = "ps4";
+    else if (/play5|ps5|playstation5/.test(platformText)) browsePlatform = "ps5";
+    else if (/xboxone/.test(platformText)) browsePlatform = "xbox_one";
+    else if (/xboxseries/.test(platformText)) browsePlatform = "xbox_series";
+    else if (/xbox/.test(platformText)) browsePlatform = "xbox_series";
+
+    const state = buildConversationState(msg, conversationHistory, sessionData);
+    if (!state.product || state.product.type !== "game") {
+      const platformProducts = await catalogLookup.getByPlatform(browsePlatform);
+      const platformDisplayName = browsePlatform.startsWith("ps") ? "PlayStation " + browsePlatform.replace("ps", "") : browsePlatform.includes("xbox") ? "Xbox" : browsePlatform;
+      if (platformProducts.length === 0) {
+        const text = `No tenemos productos disponibles para ${platformDisplayName} en este momento. Pero puedes contactar a un ejecutivo para consultar disponibilidad.`;
+        return withButtons(text, [
+          {label: "Contactar ejecutivo", value: "__qr:contact"},
+          {label: "Ver otras plataformas", value: "__qr:back"},
+        ]);
+      }
+      const productButtons = platformProducts.slice(0, 6).map(p => ({
+        label: `${p.name} - ${p.price || "Consultar"}`,
+        value: `__qr:product:${p.name}`
+      }));
+      return withButtons(
+        `Estos son nuestros productos disponibles para ${platformDisplayName}:`,
+        productButtons
+      );
+    }
+  }
+
   if (msg.startsWith("__qr:") && catalogLookup) {
     if (msg.startsWith("__qr:platform:")) {
       const platform = msg.replace("__qr:platform:", "");

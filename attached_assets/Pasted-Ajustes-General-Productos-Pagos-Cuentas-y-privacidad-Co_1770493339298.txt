@@ -1,0 +1,77 @@
+Ajustes
+General
+Productos
+Pagos
+Cuentas y privacidad
+Correos electrónicos
+Integración
+Visibilidad del sitio
+Punto de venta
+Stripe
+Avanzado
+Avanzado
+
+PIXELYOURSITE HACKS: Improve your ads return and website tracking with FREE Facebook, Google and Pinterest hacks
+javiera
+cjmdigitales@gmail.com
+I use WooCommerce
+SEND ME FREE HACKS
+No spam. You can unsubscribe at any time.
+
+plugin logo
+Reddit Pixel
+Learn how you can configure the Reddit Pixel with our dedicated add-on.
+
+Read More
+Fix Google Ads Conversion Tracking
+Send your data to Google Ads with Conversion Exporter.
+
+Watch video
+Improve your tracking with our video tips: Subscribe to our YouTube channel
+
+This is message 4 (the last one) of a series of 4 notifications containing tips and tricks about how to use our plugin.
+Don't show me more tips
+
+Fraud Prevention For WooCommerce and EDD Descartar
+Hey! ¿Qué te pareció Fraud Prevention For WooCommerce and EDD hasta ahora? Prueba todas nuestras funciones premium de increíble con una prueba gratuita de 14-días. Sin compromiso por 14 días - ¡cancelar en cualquier momento!
+Comenzar el período de prueba gratuito  ➜
+Tienes 2 vulnerabilidades de alto riesgo Por favor, toma la acción apropiada.
+Descartar
+Recommended: You can use YayMail to customize all email templates of:
+YITH WooCommerce Gift Cards (Addon)
+See Addons No, thanks
+
+Descartar este aviso.
+Recommended: You can use YayMail Pro to integrate with:
+Advanced Custom Fields ACF by WP Engine
+Checkout Field Editor by Themehigh
+Upgrade to Pro No, thanks
+
+Descartar este aviso.
+No se ha podido crear la carpeta /home/1303410.cloudwaysapps.com/zghaumwnfj/public_html/wp-content/ai1wm-backups. Asegúrate de que la carpeta principal tiene permisos de lectura/escritura/ejecución (0777).
+
+No se ha podido crear el archivo /home/1303410.cloudwaysapps.com/zghaumwnfj/public_html/wp-content/ai1wm-backups/.htaccess. Asegúrate de que la carpeta principal tiene permisos de lectura/escritura.
+
+No se ha podido crear el archivo /home/1303410.cloudwaysapps.com/zghaumwnfj/public_html/wp-content/ai1wm-backups/web.config. Asegúrate de que la carpeta principal tiene permisos de lectura/escritura.
+
+No se ha podido crear el archivo /home/1303410.cloudwaysapps.com/zghaumwnfj/public_html/wp-content/ai1wm-backups/index.php. Asegúrate de que la carpeta principal tiene permisos de lectura/escritura.
+
+No se ha podido crear el archivo /home/1303410.cloudwaysapps.com/zghaumwnfj/public_html/wp-content/ai1wm-backups/index.html. Asegúrate de que la carpeta principal tiene permisos de lectura/escritura.
+
+No se ha podido crear el archivo /home/1303410.cloudwaysapps.com/zghaumwnfj/public_html/wp-content/ai1wm-backups/robots.txt. Asegúrate de que la carpeta principal tiene permisos de lectura/escritura.
+
+Instalación de páginas |API REST |Webhooks |API heredada |WooCommerce.com |Modelos (beta) |Características
+Detalles de la clave
+Clave de la API generada correctamente. Asegúrate de copiar tus nuevas claves ahora ya que la clave secreta se ocultará una vez abandones esta página.
+
+Las claves API abren el acceso a información potencialmente sensible. Compártelas solo con organizaciones en las que confíes.
+Limítate a una clave por cliente: así será más fácil revocar el acceso en el futuro a un solo cliente, sin causar trastornos a los demás.
+Clave del cliente
+ck_a37f51a7ccee2cb261f45f930992c1a383f2d3e8
+ Copiar
+Clave secreta de cliente
+cs_a2975d11da90ef025c3619edd5b008a956fcaae1
+ Copiar
+Código QR
+Revocar clave
+

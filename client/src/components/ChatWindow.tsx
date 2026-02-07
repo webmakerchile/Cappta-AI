@@ -132,7 +132,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: Me
                   target="_blank"
                   rel="noopener noreferrer"
                   data-testid={`quick-reply-link-${i}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-[#6200EA]/40 bg-[#6200EA]/15 text-[#B388FF] transition-colors hover:bg-[#6200EA]/30 hover:border-[#6200EA]/60 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF] bg-[#6200EA] text-white shadow-[0_0_8px_rgba(98,0,234,0.4)] transition-opacity hover:opacity-90 cursor-pointer"
                 >
                   <ExternalLink className="w-3 h-3" />
                   {btn.label}
@@ -142,7 +142,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: Me
                   key={i}
                   data-testid={`quick-reply-btn-${i}`}
                   onClick={() => onQuickReply(btn)}
-                  className="px-3 py-1.5 text-xs font-medium rounded-md border border-white/15 bg-white/5 text-white/80 transition-colors hover:bg-[#6200EA]/20 hover:border-[#6200EA]/40 hover:text-white"
+                  className="px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF]/60 bg-[#6200EA]/20 text-[#E0B0FF] transition-opacity hover:opacity-80 cursor-pointer"
                 >
                   {btn.label}
                 </button>
