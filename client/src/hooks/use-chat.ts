@@ -315,6 +315,8 @@ export function useChat() {
               sender: "user",
               pageUrl: pageInfo.url,
               pageTitle: pageInfo.title,
+              problemType,
+              gameName,
             }),
           });
           if (res.ok) {

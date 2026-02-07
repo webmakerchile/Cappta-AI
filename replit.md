@@ -90,7 +90,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `SESSION_SECRET` - Admin panel authentication key
 - `WC_CONSUMER_KEY` - WooCommerce REST API consumer key
 - `WC_CONSUMER_SECRET` - WooCommerce REST API consumer secret
-- `WC_STORE_URL` - WordPress/WooCommerce store URL (env var, default: https://cjmdigitales.com)
+- `WC_STORE_URL` - WordPress/WooCommerce store URL (env var, default: https://cjmdigitales.cl)
 - Notification email: cjmdigitales@gmail.com (configured in server/email.ts)
 
 ## Running

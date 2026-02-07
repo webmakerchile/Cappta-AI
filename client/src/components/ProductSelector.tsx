@@ -69,8 +69,9 @@ export function ProductSelector({
       const data = await response.json();
       setProducts(data.products || []);
       setIsOpen(true);
-    } catch (err) {
-      setError("No se encontraron productos");
+    } catch (err: any) {
+      console.error("ProductSelector fetch error:", err);
+      setError("Error al buscar productos. Intenta de nuevo.");
       setProducts([]);
     } finally {
       setIsLoading(false);

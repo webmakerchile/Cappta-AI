@@ -336,7 +336,7 @@ function detectIntent(msg: string, history: ConversationEntry[], product: Detect
     return "payment_question";
   }
 
-  if (/\bentrega\b|\benvio\b|\brecibir\b|\bcomo\s*llega\b|\bdemora\b|\btarda\b|\brapido\b|\binmediato\b/.test(msg)) {
+  if (/\bentrega\b|\benvio\b|\brecibi\w*\b|\bcomo\s*llega\b|\bdemora\b|\btarda\b|\brapido\b|\binmediato\b|\bno\s*(?:me\s*)?(?:ha\s*)?llega\w*\b/.test(msg)) {
     return "delivery_question";
   }
 
