@@ -34,7 +34,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt
 - `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
 - `contact_requests` - Executive contact requests with chat summary
-- `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category
+- `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category, wcProductId (WooCommerce ID), wcLastSync (last sync timestamp)
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types
@@ -43,6 +43,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `server/storage.ts` - Database CRUD operations (session queries, search, admin queries, canned responses)
 - `server/db.ts` - Database connection pool
 - `server/email.ts` - Resend email notification service (contact notification + offline notification)
+- `server/woocommerce.ts` - WooCommerce REST API sync service (auto-sync on startup, manual sync via admin)
 - `server/seed.ts` - Demo data seeding (Spanish)
 - `client/src/App.tsx` - Main app container with routing (/ = widget, /admin = admin panel)
 - `client/src/pages/Admin.tsx` - Admin panel with session list, chat viewer, global search, status filters, tags, canned responses CRUD
@@ -71,6 +72,8 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `POST /api/admin/products` - Create product
 - `PATCH /api/admin/products/:id` - Update product
 - `DELETE /api/admin/products/:id` - Delete product
+- `GET /api/admin/wc/status` - WooCommerce sync status (configured, counts, last sync)
+- `POST /api/admin/wc/sync` - Trigger manual WooCommerce product sync
 
 ## Public API Endpoints
 - `GET /api/messages/session/:sessionId` - Get messages for a session
@@ -83,6 +86,9 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `DATABASE_URL` - PostgreSQL connection string
 - `RESEND_API_KEY` - Resend API key for email notifications
 - `SESSION_SECRET` - Admin panel authentication key
+- `WC_CONSUMER_KEY` - WooCommerce REST API consumer key
+- `WC_CONSUMER_SECRET` - WooCommerce REST API consumer secret
+- `WC_STORE_URL` - WordPress/WooCommerce store URL (env var, default: https://cjmdigitales.com)
 - Notification email: cjmdigitales@gmail.com (configured in server/email.ts)
 
 ## Running
