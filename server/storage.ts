@@ -1,4 +1,4 @@
-import { messages, contactRequests, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
 
@@ -6,9 +6,18 @@ export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null }[]>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
+  upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session>;
+  getSession(sessionId: string): Promise<Session | null>;
+  updateSessionStatus(sessionId: string, status: "active" | "closed"): Promise<Session | null>;
+  updateSessionTags(sessionId: string, tags: string[]): Promise<Session | null>;
+  touchSession(sessionId: string): Promise<void>;
+  getCannedResponses(): Promise<CannedResponse[]>;
+  createCannedResponse(data: InsertCannedResponse): Promise<CannedResponse>;
+  updateCannedResponse(id: number, data: Partial<InsertCannedResponse>): Promise<CannedResponse | null>;
+  deleteCannedResponse(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -30,8 +39,108 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getAllSessions(): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null }[]> {
-    const result = await db
+  async upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session> {
+    const existing = await this.getSession(data.sessionId);
+    if (existing) {
+      const updateData: Record<string, any> = {
+        lastMessageAt: new Date(),
+        status: "active",
+      };
+      if (data.userEmail) updateData.userEmail = data.userEmail;
+      if (data.userName) updateData.userName = data.userName;
+      if (data.problemType !== undefined) updateData.problemType = data.problemType;
+      if (data.gameName !== undefined) updateData.gameName = data.gameName;
+      const [updated] = await db
+        .update(sessions)
+        .set(updateData)
+        .where(eq(sessions.sessionId, data.sessionId))
+        .returning();
+      return updated;
+    }
+    const [created] = await db
+      .insert(sessions)
+      .values({
+        sessionId: data.sessionId,
+        userEmail: data.userEmail,
+        userName: data.userName,
+        status: "active",
+        tags: [],
+        problemType: data.problemType || null,
+        gameName: data.gameName || null,
+      })
+      .returning();
+    return created;
+  }
+
+  async getSession(sessionId: string): Promise<Session | null> {
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.sessionId, sessionId));
+    return session || null;
+  }
+
+  async updateSessionStatus(sessionId: string, status: "active" | "closed"): Promise<Session | null> {
+    const [updated] = await db
+      .update(sessions)
+      .set({ status })
+      .where(eq(sessions.sessionId, sessionId))
+      .returning();
+    return updated || null;
+  }
+
+  async updateSessionTags(sessionId: string, tags: string[]): Promise<Session | null> {
+    const [updated] = await db
+      .update(sessions)
+      .set({ tags })
+      .where(eq(sessions.sessionId, sessionId))
+      .returning();
+    return updated || null;
+  }
+
+  async touchSession(sessionId: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(sessions.sessionId, sessionId));
+  }
+
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null }[]> {
+    const allSessions = await db.select().from(sessions).orderBy(desc(sessions.lastMessageAt));
+
+    const result = [];
+    for (const s of allSessions) {
+      if (statusFilter && statusFilter !== "all" && s.status !== statusFilter) continue;
+
+      const msgCount = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(messages)
+        .where(eq(messages.sessionId, s.sessionId));
+
+      const msgTimes = await db
+        .select({
+          lastMessage: sql<Date>`MAX(${messages.timestamp})`,
+          firstMessage: sql<Date>`MIN(${messages.timestamp})`,
+        })
+        .from(messages)
+        .where(eq(messages.sessionId, s.sessionId));
+
+      result.push({
+        sessionId: s.sessionId,
+        userName: s.userName,
+        userEmail: s.userEmail,
+        messageCount: msgCount[0]?.count || 0,
+        lastMessage: msgTimes[0]?.lastMessage || null,
+        firstMessage: msgTimes[0]?.firstMessage || null,
+        status: s.status,
+        tags: s.tags || [],
+        problemType: s.problemType,
+        gameName: s.gameName,
+      });
+    }
+
+    const sessionIds = new Set(allSessions.map(s => s.sessionId));
+    const legacyResult = await db
       .select({
         sessionId: messages.sessionId,
         userName: sql<string>`MAX(CASE WHEN ${messages.sender} = 'user' THEN ${messages.userName} END)`,
@@ -44,6 +153,25 @@ export class DatabaseStorage implements IStorage {
       .where(sql`${messages.sessionId} != 'legacy'`)
       .groupBy(messages.sessionId)
       .orderBy(sql`MAX(${messages.timestamp}) DESC`);
+
+    for (const lr of legacyResult) {
+      if (!sessionIds.has(lr.sessionId)) {
+        if (statusFilter === "closed") continue;
+        result.push({
+          ...lr,
+          status: "active",
+          tags: [],
+          problemType: null,
+          gameName: null,
+        });
+      }
+    }
+
+    result.sort((a, b) => {
+      const aTime = a.lastMessage ? new Date(a.lastMessage).getTime() : 0;
+      const bTime = b.lastMessage ? new Date(b.lastMessage).getTime() : 0;
+      return bTime - aTime;
+    });
 
     return result;
   }
@@ -69,6 +197,35 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(contactRequests)
       .orderBy(desc(contactRequests.timestamp));
+  }
+
+  async getCannedResponses(): Promise<CannedResponse[]> {
+    return await db
+      .select()
+      .from(cannedResponses)
+      .orderBy(asc(cannedResponses.shortcut));
+  }
+
+  async createCannedResponse(data: InsertCannedResponse): Promise<CannedResponse> {
+    const [created] = await db.insert(cannedResponses).values(data).returning();
+    return created;
+  }
+
+  async updateCannedResponse(id: number, data: Partial<InsertCannedResponse>): Promise<CannedResponse | null> {
+    const [updated] = await db
+      .update(cannedResponses)
+      .set(data)
+      .where(eq(cannedResponses.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteCannedResponse(id: number): Promise<boolean> {
+    const result = await db
+      .delete(cannedResponses)
+      .where(eq(cannedResponses.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 

@@ -2,8 +2,8 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema } from "@shared/schema";
-import { sendContactNotification } from "./email";
+import { insertMessageSchema, insertCannedResponseSchema } from "@shared/schema";
+import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
 
@@ -30,6 +30,28 @@ interface UserSession {
   sessionId: string;
   pageUrl?: string;
   pageTitle?: string;
+}
+
+const sessionConnections = new Map<string, Set<string>>();
+
+function addSessionConnection(sessionId: string, socketId: string) {
+  if (!sessionConnections.has(sessionId)) {
+    sessionConnections.set(sessionId, new Set());
+  }
+  sessionConnections.get(sessionId)!.add(socketId);
+}
+
+function removeSessionConnection(sessionId: string, socketId: string) {
+  const conns = sessionConnections.get(sessionId);
+  if (conns) {
+    conns.delete(socketId);
+    if (conns.size === 0) sessionConnections.delete(sessionId);
+  }
+}
+
+function isSessionOnline(sessionId: string): boolean {
+  const conns = sessionConnections.get(sessionId);
+  return !!conns && conns.size > 0;
 }
 
 export async function registerRoutes(
@@ -72,6 +94,14 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Session ID requerido" });
       }
 
+      await storage.upsertSession({
+        sessionId,
+        userEmail: parsed.data.userEmail,
+        userName: parsed.data.userName,
+        problemType: req.body.problemType || null,
+        gameName: req.body.gameName || null,
+      });
+
       const message = await storage.createMessage({
         sessionId,
         userEmail: parsed.data.userEmail,
@@ -79,6 +109,8 @@ export async function registerRoutes(
         sender: parsed.data.sender,
         content: parsed.data.content,
       });
+
+      await storage.touchSession(sessionId);
 
       io.to(`session:${sessionId}`).emit("new_message", message);
 
@@ -95,10 +127,31 @@ export async function registerRoutes(
               content: getAutoReply(parsed.data.content, pageTitle, pageUrl),
             });
             io.to(`session:${sessionId}`).emit("new_message", autoReply);
+
+            if (!isSessionOnline(sessionId)) {
+              sendOfflineNotification({
+                userName: parsed.data.userName,
+                userEmail: parsed.data.userEmail,
+                messageContent: autoReply.content,
+                sessionId,
+              }).catch(() => {});
+            }
           } catch (err: any) {
             log(`Error en auto-respuesta: ${err.message}`, "api");
           }
         }, 1500);
+      }
+
+      if (parsed.data.sender === "support" && !isSessionOnline(sessionId)) {
+        const session = await storage.getSession(sessionId);
+        if (session) {
+          sendOfflineNotification({
+            userName: session.userName,
+            userEmail: session.userEmail,
+            messageContent: parsed.data.content,
+            sessionId,
+          }).catch(() => {});
+        }
       }
 
       res.json(message);
@@ -160,9 +213,23 @@ export async function registerRoutes(
     }
   });
 
-  const ADMIN_KEY = process.env.SESSION_SECRET || "admin-default-key";
+  app.get("/api/canned-responses", async (_req, res) => {
+    try {
+      const responses = await storage.getCannedResponses();
+      res.json(responses);
+    } catch (error: any) {
+      log(`Error al obtener respuestas rapidas: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener respuestas" });
+    }
+  });
+
+  const ADMIN_KEY = process.env.SESSION_SECRET;
 
   function requireAdmin(req: any, res: any): boolean {
+    if (!ADMIN_KEY) {
+      res.status(503).json({ message: "Admin no configurado" });
+      return false;
+    }
     const authHeader = req.headers["x-admin-key"] || req.query.key;
     if (authHeader !== ADMIN_KEY) {
       res.status(401).json({ message: "No autorizado" });
@@ -174,7 +241,8 @@ export async function registerRoutes(
   app.get("/api/admin/sessions", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {
-      const sessions = await storage.getAllSessions();
+      const statusFilter = (req.query.status as string) || "all";
+      const sessions = await storage.getAllSessions(statusFilter as "active" | "closed" | "all");
       res.json(sessions);
     } catch (error: any) {
       log(`Error al obtener sesiones: ${error.message}`, "api");
@@ -190,6 +258,42 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error al obtener mensajes de sesion: ${error.message}`, "api");
       res.status(500).json({ message: "Error al obtener mensajes" });
+    }
+  });
+
+  app.patch("/api/admin/sessions/:sessionId/status", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { status } = req.body;
+      if (status !== "active" && status !== "closed") {
+        return res.status(400).json({ message: "Estado invalido" });
+      }
+      const updated = await storage.updateSessionStatus(req.params.sessionId, status);
+      if (!updated) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+      res.json(updated);
+    } catch (error: any) {
+      log(`Error al actualizar estado: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar estado" });
+    }
+  });
+
+  app.patch("/api/admin/sessions/:sessionId/tags", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { tags } = req.body;
+      if (!Array.isArray(tags)) {
+        return res.status(400).json({ message: "Tags debe ser un array" });
+      }
+      const updated = await storage.updateSessionTags(req.params.sessionId, tags);
+      if (!updated) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+      res.json(updated);
+    } catch (error: any) {
+      log(`Error al actualizar tags: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar tags" });
     }
   });
 
@@ -235,6 +339,57 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/canned-responses", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const responses = await storage.getCannedResponses();
+      res.json(responses);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener respuestas" });
+    }
+  });
+
+  app.post("/api/admin/canned-responses", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const parsed = insertCannedResponseSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Datos invalidos" });
+      }
+      const created = await storage.createCannedResponse(parsed.data);
+      res.json(created);
+    } catch (error: any) {
+      log(`Error al crear respuesta rapida: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear respuesta" });
+    }
+  });
+
+  app.patch("/api/admin/canned-responses/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+      const updated = await storage.updateCannedResponse(id, req.body);
+      if (!updated) return res.status(404).json({ message: "No encontrada" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  app.delete("/api/admin/canned-responses/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+      const deleted = await storage.deleteCannedResponse(id);
+      if (!deleted) return res.status(404).json({ message: "No encontrada" });
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al eliminar" });
+    }
+  });
+
   io.on("connection", (socket) => {
     const { email, name, sessionId } = socket.handshake.auth as { email: string; name: string; sessionId: string };
 
@@ -245,8 +400,11 @@ export async function registerRoutes(
 
     log(`Usuario conectado: ${name} (${email}) session:${sessionId}`, "socket.io");
     socket.join(`session:${sessionId}`);
+    addSessionConnection(sessionId, socket.id);
 
     userSessions.set(socket.id, { email, name, sessionId });
+
+    storage.upsertSession({ sessionId, userEmail: email, userName: name }).catch(() => {});
 
     storage.getMessagesBySessionId(sessionId).then((history) => {
       socket.emit("chat_history", history);
@@ -279,6 +437,12 @@ export async function registerRoutes(
       }
 
       try {
+        await storage.upsertSession({
+          sessionId: sid,
+          userEmail: parsed.data.userEmail,
+          userName: parsed.data.userName,
+        });
+
         const message = await storage.createMessage({
           sessionId: sid,
           userEmail: parsed.data.userEmail,
@@ -286,6 +450,8 @@ export async function registerRoutes(
           sender: parsed.data.sender,
           content: parsed.data.content,
         });
+
+        await storage.touchSession(sid);
 
         io.to(`session:${sid}`).emit("new_message", message);
 
@@ -366,6 +532,10 @@ export async function registerRoutes(
     });
 
     socket.on("disconnect", () => {
+      const session = userSessions.get(socket.id);
+      if (session) {
+        removeSessionConnection(session.sessionId, socket.id);
+      }
       userSessions.delete(socket.id);
       log(`Usuario desconectado: ${name} (${email})`, "socket.io");
     });
@@ -503,105 +673,60 @@ function getAutoReply(userMessage: string, pageTitle?: string, pageUrl?: string)
       return `Tenemos un amplio catalogo de juegos digitales para PS4 y PS5.${pageContext} ¿Buscas algun titulo en particular? Tambien tenemos ofertas y lanzamientos recientes.`;
     }
     if (isXbox) {
-      return `Contamos con juegos digitales para Xbox One y Xbox Series S|X.${pageContext} ¿Tienes algun titulo en mente? Puedo verificar disponibilidad y precio.`;
+      return `Contamos con juegos digitales para Xbox One y Xbox Series.${pageContext} ¿Que titulo buscas? Tenemos novedades y ofertas especiales.`;
     }
-    return `Vendemos juegos digitales para PS4, PS5, Xbox One y Xbox Series.${pageContext} ¿Para que plataforma buscas? ¿Algun titulo especifico?`;
+    return `Tenemos juegos digitales para todas las plataformas: PS4, PS5, Xbox One y Xbox Series.${pageContext} ¿Que titulo o plataforma te interesa?`;
   }
 
-  if (msg.includes("precio") || msg.includes("costo") || msg.includes("cuanto") || msg.includes("cuanto vale") || msg.includes("cuanto cuesta") || msg.includes("valor") || msg.includes("tarifa") || msg.includes("$")) {
-    return `Los precios varian segun el producto.${pageContext} ¿Podrias indicarme que producto especifico te interesa? Por ejemplo: una suscripcion PS Plus, Game Pass, tarjeta de saldo, o un juego en particular. Asi te doy el precio exacto.`;
-  }
-
-  if (msg.includes("pago") || msg.includes("pagar") || msg.includes("transferencia") || msg.includes("webpay") || msg.includes("debito") || msg.includes("credito") || msg.includes("metodo") || msg.includes("forma de pago")) {
-    return `Aceptamos varios metodos de pago para tu comodidad. Puedes consultar las opciones disponibles en la pagina del producto. Si tienes alguna duda sobre un metodo de pago especifico, un ejecutivo puede ayudarte. ¿Necesitas asistencia adicional?`;
-  }
-
-  if (msg.includes("entrega") || msg.includes("envio") || msg.includes("llega") || msg.includes("demora") || msg.includes("tiempo") || msg.includes("cuando llega") || msg.includes("inmediato") || msg.includes("rapido")) {
-    return `¡Nuestras entregas son digitales e inmediatas! Una vez confirmado el pago, recibiras tu codigo o credenciales por correo electronico en minutos. No hay envio fisico, todo es 100% digital.`;
-  }
-
-  if (msg.includes("cuenta") || msg.includes("compartida") || msg.includes("primaria") || msg.includes("secundaria")) {
-    if (msg.includes("plus") || isPlayStation) {
-      return `Nuestras cuentas PS Plus son cuentas principales que se configuran en tu consola para que puedas disfrutar de todos los beneficios. Si necesitas ayuda con la configuracion, un ejecutivo puede guiarte paso a paso. ¿Quieres mas detalles?`;
+  if (msg.includes("precio") || msg.includes("costo") || msg.includes("cuanto") || msg.includes("cuánto") || msg.includes("vale") || msg.includes("cobran")) {
+    if (isPlayStation) {
+      return `Los precios de PS Plus varian segun el nivel y duracion. ¿Te gustaria saber el precio de Essential, Extra o Premium? Y por cuanto tiempo: 1, 3 o 12 meses?`;
     }
-    return `Trabajamos con cuentas digitales que se configuran facilmente en tu consola. Si tienes dudas sobre como funciona, un ejecutivo puede explicarte el proceso completo. ¿Necesitas ayuda con algo mas?`;
+    if (isXbox) {
+      return `Los precios de Game Pass dependen del plan. ¿Quieres saber el precio de Core, Standard o Ultimate? Disponible en 1, 3 y 12 meses.`;
+    }
+    return `Los precios dependen del producto y plataforma. ¿Me puedes indicar que producto te interesa? Asi te doy la informacion exacta.`;
   }
 
-  if (msg.includes("devolucion") || msg.includes("reembolso") || msg.includes("garantia") || msg.includes("cambio") || msg.includes("reclamo")) {
-    return `Todas nuestras ventas cuentan con garantia. Si tienes algun problema con tu compra, por favor contacta a un ejecutivo usando el boton "Contactar un Ejecutivo" y te ayudaremos a resolverlo lo antes posible.`;
+  if (msg.includes("pago") || msg.includes("pagar") || msg.includes("metodo") || msg.includes("transferencia") || msg.includes("paypal") || msg.includes("cripto") || msg.includes("bitcoin") || msg.includes("efectivo")) {
+    return `Aceptamos varios metodos de pago. Para darte la informacion exacta sobre formas de pago y proceso de compra, ¿me puedes indicar que producto te interesa? Asi te guio paso a paso.`;
   }
 
-  if (msg.includes("oferta") || msg.includes("descuento") || msg.includes("promocion") || msg.includes("promo") || msg.includes("rebaja") || msg.includes("barato")) {
-    return `¡Siempre tenemos ofertas disponibles! Te recomiendo revisar nuestra pagina web para ver las promociones actuales.${pageContext} Si buscas algo especifico, dime que producto te interesa y verifico si hay algun descuento disponible.`;
+  if (msg.includes("entrega") || msg.includes("envio") || msg.includes("recibir") || msg.includes("como llega") || msg.includes("demora") || msg.includes("tarda")) {
+    return `La entrega de todos nuestros productos es digital e inmediata. Recibiras tu codigo o producto por correo electronico al completar la compra. El proceso suele tomar unos pocos minutos. ¿Necesitas ayuda con algo mas?`;
   }
 
-  if (msg.includes("seguro") || msg.includes("confiable") || msg.includes("estafa") || msg.includes("confianza") || msg.includes("legal") || msg.includes("legitimo")) {
-    return `¡Somos una tienda 100% confiable! Trabajamos con codigos y cuentas digitales oficiales. Puedes revisar nuestras resenas y testimonios de clientes satisfechos. Si tienes cualquier duda, un ejecutivo puede atenderte personalmente.`;
+  if (msg.includes("garantia") || msg.includes("devolucion") || msg.includes("reembolso") || msg.includes("cambio") || msg.includes("problema") || msg.includes("funciona") || msg.includes("error")) {
+    return `Lamentamos si tienes algun inconveniente. Todos nuestros productos tienen garantia de funcionamiento. Si necesitas ayuda con un producto que compraste, te recomiendo contactar a un ejecutivo para asistencia personalizada usando el boton "Contactar un Ejecutivo" abajo.`;
   }
 
-  if (msg.includes("ayuda") || msg.includes("help") || msg.includes("soporte") || msg.includes("asistencia")) {
-    return `¡Estoy aqui para ayudarte!${pageContext} Puedo asistirte con:\n\n• Informacion sobre juegos y suscripciones\n• PS Plus (Essential/Extra/Premium)\n• Xbox Game Pass (Core/Standard/Ultimate)\n• Tarjetas de saldo PSN y Xbox\n• Proceso de compra y entrega\n\n¿Que necesitas?`;
+  if (msg.includes("gracias") || msg.includes("muchas gracias") || msg.includes("genial") || msg.includes("perfecto") || msg.includes("excelente") || msg.includes("buenisimo")) {
+    return `¡Con gusto! Estamos aqui para ayudarte. Si tienes mas preguntas sobre nuestros productos, no dudes en escribir. ¡Buen dia!`;
   }
 
-  if (msg.includes("gracias") || msg.includes("thank") || msg.includes("genial") || msg.includes("perfecto") || msg.includes("excelente")) {
-    return "¡De nada! Si necesitas algo mas, no dudes en escribirme. Estoy aqui para ayudarte.";
+  if (msg.includes("adios") || msg.includes("bye") || msg.includes("chao") || msg.includes("hasta luego") || msg.includes("nos vemos")) {
+    return `¡Hasta pronto! Fue un placer ayudarte. Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia!`;
   }
 
-  if (msg.includes("problema") || msg.includes("error") || msg.includes("falla") || msg.includes("bug") || msg.includes("no funciona") || msg.includes("no puedo") || msg.includes("no me deja")) {
-    return `Lamento que estes teniendo problemas.${pageContext} Para poder ayudarte mejor, ¿podrias describir que esta pasando exactamente? Si prefieres atencion personalizada, puedes contactar a un ejecutivo con el boton "Contactar un Ejecutivo".`;
+  if (msg.includes("promocion") || msg.includes("oferta") || msg.includes("descuento") || msg.includes("rebaja") || msg.includes("sale")) {
+    return `¡Siempre tenemos ofertas disponibles! Las promociones cambian frecuentemente. ¿Te interesa alguna plataforma en particular (PlayStation o Xbox)? Puedo ver que ofertas tenemos activas.`;
   }
 
-  if (msg.includes("contacto") || msg.includes("ejecutivo") || msg.includes("persona") || msg.includes("humano") || msg.includes("agente") || msg.includes("hablar con")) {
-    return `Para hablar directamente con un ejecutivo, usa el boton "Contactar un Ejecutivo" que aparece arriba del campo de mensaje. Un miembro de nuestro equipo se comunicara contigo por correo electronico.`;
+  if (msg.includes("seguro") || msg.includes("confiable") || msg.includes("estafa") || msg.includes("real") || msg.includes("legitimo")) {
+    return `¡Somos una tienda 100% confiable y segura! Todos nuestros productos son codigos digitales oficiales. Tenemos una larga trayectoria y miles de clientes satisfechos. Si quieres, puedes contactar a un ejecutivo para resolver cualquier duda de confianza.`;
   }
 
-  if (msg.includes("horario") || msg.includes("hora") || msg.includes("cuando") || msg.includes("abierto") || msg.includes("atienden")) {
-    return `Nuestra tienda online esta disponible 24/7. Las entregas digitales son inmediatas y automaticas. Para atencion personalizada con un ejecutivo, nuestro horario es de lunes a viernes de 9:00 AM a 6:00 PM (hora Chile). ¿Puedo ayudarte en algo mas?`;
-  }
-
-  if (msg.includes("chile") || msg.includes("region") || msg.includes("pais") || msg.includes("latam") || msg.includes("latinoamerica")) {
-    return `¡Somos una tienda de juegos digitales que opera en Chile! Nuestros productos funcionan con cuentas de la region. Si tienes dudas sobre compatibilidad con tu cuenta, un ejecutivo puede asesorarte.`;
-  }
-
-  if (msg.includes("ea play") || msg.includes("ea access")) {
-    return `EA Play esta incluido en Xbox Game Pass Ultimate. Te da acceso a juegos de Electronic Arts como FIFA, Battlefield, Need for Speed y mas. Si lo quieres por separado, tambien tenemos opciones. ¿Que prefieres?`;
-  }
-
-  if (msg.includes("fifa") || msg.includes("fc 24") || msg.includes("fc24") || msg.includes("ea fc") || msg.includes("fc 25") || msg.includes("fc25")) {
-    return `¡Tenemos EA FC disponible para PS4, PS5 y Xbox!${pageContext} ¿Para que plataforma lo necesitas? Te verifico el precio y disponibilidad.`;
-  }
-
-  if (msg.includes("gta") || msg.includes("grand theft") || msg.includes("rockstar")) {
-    return `¡Buena eleccion! ¿Buscas GTA V, GTA Online, o el nuevo GTA VI?${pageContext} Dime para que plataforma y te doy toda la informacion.`;
-  }
-
-  if (msg.includes("cod") || msg.includes("call of duty") || msg.includes("warzone")) {
-    return `Tenemos Call of Duty disponible para varias plataformas.${pageContext} ¿Cual edicion te interesa y para que consola? Te busco el mejor precio.`;
-  }
-
-  if (msg.includes("fortnite") || msg.includes("v-bucks") || msg.includes("vbucks")) {
-    return `¡Fortnite es gratis! Pero tenemos tarjetas de V-Bucks para que compres skins, pases de batalla y contenido. ¿Cuantos V-Bucks necesitas?`;
-  }
-
-  if (pageContext && msg.length > 3) {
-    return `Gracias por tu consulta.${pageContext} Puedo ayudarte con informacion sobre juegos, suscripciones PS Plus o Game Pass, tarjetas de saldo, precios, y proceso de compra. ¿Que te gustaria saber?`;
-  }
-
-  return `Gracias por tu mensaje.${pageContext} Puedo ayudarte con:\n\n• Juegos digitales para PS4, PS5, Xbox\n• Suscripciones PS Plus y Game Pass\n• Tarjetas de saldo PSN y Xbox\n• Precios y disponibilidad\n• Proceso de compra y entrega\n\n¿Sobre que te gustaria saber mas?`;
+  return `Gracias por tu mensaje.${pageContext} Estoy aqui para ayudarte con nuestros productos digitales: juegos, suscripciones PS Plus, Xbox Game Pass, tarjetas de saldo y mas. ¿En que puedo ayudarte?`;
 }
 
 function extractDuration(msg: string): string | null {
   if (msg.includes("1 mes") || msg.includes("un mes") || msg.includes("mensual")) return "1 mes";
   if (msg.includes("3 mes") || msg.includes("tres mes") || msg.includes("trimestral")) return "3 meses";
-  if (msg.includes("6 mes") || msg.includes("seis mes") || msg.includes("semestral")) return "6 meses";
   if (msg.includes("12 mes") || msg.includes("doce mes") || msg.includes("un ano") || msg.includes("1 ano") || msg.includes("anual")) return "12 meses";
   return null;
 }
 
 function extractMoneyAmount(msg: string): string | null {
-  const dollarMatch = msg.match(/\$\s*(\d+(?:[.,]\d+)?)/);
-  if (dollarMatch) return dollarMatch[1];
-  const currencyMatch = msg.match(/(\d+(?:[.,]\d+)?)\s*(?:dolares|pesos|clp|usd)/i);
-  if (currencyMatch) return currencyMatch[1];
-  return null;
+  const match = msg.match(/\$?(\d+)/);
+  return match ? match[1] : null;
 }

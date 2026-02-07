@@ -6,7 +6,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 ## Architecture
 - **Frontend**: React, Tailwind CSS, Lucide React icons, Socket.io-client
 - **Backend**: Express, Socket.io, Drizzle ORM, Resend (email)
-- **Database**: PostgreSQL for message and contact request persistence
+- **Database**: PostgreSQL for message, session, canned response, and contact request persistence
 - **Theme**: Dark gaming aesthetic with neon purple (#6200EA) accents
 
 ## Key Features
@@ -19,33 +19,56 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
 8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
 9. **Auto-replies**: Intelligent keyword-based auto-reply system in Spanish with product knowledge (PS Plus, Game Pass, gift cards, specific games) and page context awareness
-10. **Admin Panel** (`/admin`): Private admin page to view all chat sessions, read full conversation histories, and search across all messages
+10. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, and canned responses management
 11. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
+12. **Conversation Status Management**: Sessions can be marked as 'active' or 'closed' (soft delete). Closed chats are hidden from inbox but accessible via filter. Auto-reopens when user sends new message.
+13. **Slash Commands / Canned Responses**: Typing "/" in the message input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
+14. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
+15. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
+
+## Database Tables
+- `messages` - Chat messages with sessionId, sender, content, timestamp
+- `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, lastMessageAt
+- `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
+- `contact_requests` - Executive contact requests with chat summary
 
 ## Project Structure
-- `shared/schema.ts` - Database schema (messages + contact_requests tables) and TypeScript types
-- `server/routes.ts` - Socket.io setup, message handling, contact executive, auto-reply logic, admin API endpoints
-- `server/storage.ts` - Database CRUD operations (session queries, search, admin queries)
+- `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types
+- `server/routes.ts` - Socket.io setup, message handling, contact executive, auto-reply logic, admin API endpoints, offline detection
+- `server/storage.ts` - Database CRUD operations (session queries, search, admin queries, canned responses)
 - `server/db.ts` - Database connection pool
-- `server/email.ts` - Resend email notification service with pre-chat form data
+- `server/email.ts` - Resend email notification service (contact notification + offline notification)
 - `server/seed.ts` - Demo data seeding (Spanish)
 - `client/src/App.tsx` - Main app container with routing (/ = widget, /admin = admin panel)
-- `client/src/pages/Admin.tsx` - Admin panel with session list, chat viewer, global search
+- `client/src/pages/Admin.tsx` - Admin panel with session list, chat viewer, global search, status filters, tags, canned responses CRUD
 - `client/src/components/Launcher.tsx` - Floating chat button
-- `client/src/components/ChatWindow.tsx` - Chat messages area + input + in-chat search + contact executive button
+- `client/src/components/ChatWindow.tsx` - Chat messages area + input + in-chat search + slash commands + contact executive button
 - `client/src/components/WelcomeForm.tsx` - Guest login form (Spanish)
 - `client/src/hooks/use-chat.ts` - Chat state management hook with TanStack Query integration
 - `client/src/lib/socket.ts` - Socket.io client configuration
 
-## Admin API Endpoints
-- `GET /api/admin/sessions` - List all chat sessions with user info and message counts
-- `GET /api/admin/sessions/:sessionId/messages` - Get full message history for a session
-- `GET /api/admin/search?q=query` - Search across all messages, grouped by session
-- `GET /api/admin/contact-requests` - List all executive contact requests
+## Admin API Endpoints (all require x-admin-key header = SESSION_SECRET)
+- `GET /api/admin/sessions?status=active|closed|all` - List sessions with filters
+- `GET /api/admin/sessions/:sessionId/messages` - Get full message history
+- `PATCH /api/admin/sessions/:sessionId/status` - Update session status (active/closed)
+- `PATCH /api/admin/sessions/:sessionId/tags` - Update session tags
+- `GET /api/admin/search?q=query` - Search across all messages
+- `GET /api/admin/contact-requests` - List executive contact requests
+- `GET /api/admin/canned-responses` - List all canned responses
+- `POST /api/admin/canned-responses` - Create canned response
+- `PATCH /api/admin/canned-responses/:id` - Update canned response
+- `DELETE /api/admin/canned-responses/:id` - Delete canned response
+
+## Public API Endpoints
+- `GET /api/messages/session/:sessionId` - Get messages for a session
+- `POST /api/messages` - Send a message (auto-creates/reopens session)
+- `POST /api/contact-executive` - Request executive contact
+- `GET /api/canned-responses` - Get canned responses (for slash commands)
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
 - `RESEND_API_KEY` - Resend API key for email notifications
+- `SESSION_SECRET` - Admin panel authentication key
 - Notification email: cjmdigitales@gmail.com (configured in server/email.ts)
 
 ## Running

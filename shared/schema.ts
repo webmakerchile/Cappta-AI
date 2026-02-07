@@ -16,6 +16,24 @@ export const messages = pgTable("messages", {
   index("idx_messages_user_email").on(table.userEmail),
 ]);
 
+export const sessions = pgTable("sessions", {
+  sessionId: text("session_id").primaryKey(),
+  userEmail: text("user_email").notNull(),
+  userName: text("user_name").notNull(),
+  status: text("status", { enum: ["active", "closed"] }).notNull().default("active"),
+  tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+  problemType: text("problem_type"),
+  gameName: text("game_name"),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const cannedResponses = pgTable("canned_responses", {
+  id: serial("id").primaryKey(),
+  shortcut: text("shortcut").notNull().unique(),
+  content: text("content").notNull(),
+});
+
 export const contactRequests = pgTable("contact_requests", {
   id: serial("id").primaryKey(),
   userEmail: text("user_email").notNull(),
@@ -40,10 +58,23 @@ export const insertContactRequestSchema = createInsertSchema(contactRequests).om
   notified: true,
 });
 
+export const insertSessionSchema = createInsertSchema(sessions).omit({
+  lastMessageAt: true,
+  createdAt: true,
+});
+
+export const insertCannedResponseSchema = createInsertSchema(cannedResponses).omit({
+  id: true,
+});
+
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
 export type ContactRequest = typeof contactRequests.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type InsertSession = z.infer<typeof insertSessionSchema>;
+export type CannedResponse = typeof cannedResponses.$inferSelect;
+export type InsertCannedResponse = z.infer<typeof insertCannedResponseSchema>;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

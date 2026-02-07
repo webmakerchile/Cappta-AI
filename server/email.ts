@@ -14,6 +14,49 @@ interface ContactEmailData {
   gameName?: string | null;
 }
 
+interface OfflineNotificationData {
+  userName: string;
+  userEmail: string;
+  messageContent: string;
+  sessionId: string;
+}
+
+export async function sendOfflineNotification(data: OfflineNotificationData): Promise<boolean> {
+  try {
+    const { error } = await resend.emails.send({
+      from: "Chat Widget <onboarding@resend.dev>",
+      to: data.userEmail,
+      subject: `Tienes un nuevo mensaje en el chat`,
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <div style="background: #6200EA; padding: 24px 32px;">
+            <h1 style="margin: 0; font-size: 20px; color: #ffffff;">Nuevo Mensaje en el Chat</h1>
+          </div>
+          <div style="padding: 32px;">
+            <p style="color: #cccccc; margin-top: 0;">Hola <strong>${data.userName}</strong>, tienes un nuevo mensaje mientras estabas desconectado:</p>
+            <div style="background: #222; border-radius: 6px; padding: 16px; color: #ccc; font-size: 14px; line-height: 1.6; margin: 20px 0;">${data.messageContent}</div>
+            <p style="color: #999; font-size: 13px;">Vuelve al chat para ver el mensaje completo y continuar la conversacion.</p>
+          </div>
+          <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
+            Notificacion enviada desde Chat Widget
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      log(`Error sending offline notification: ${JSON.stringify(error)}`, "resend");
+      return false;
+    }
+
+    log(`Offline notification sent to ${data.userEmail}`, "resend");
+    return true;
+  } catch (err: any) {
+    log(`Failed to send offline notification: ${err.message}`, "resend");
+    return false;
+  }
+}
+
 function getProblemTypeLabel(problemType: string): string {
   const labels: Record<string, string> = {
     compra: "Quiero comprar un producto",

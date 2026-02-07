@@ -1,0 +1,31 @@
+### ROL: Senior Full-Stack Engineer
+### TAREA: Implementación de Features CRM y Manejo de Estados Offline en App de Chat Existente
+
+**CONTEXTO:**
+Tengo una aplicación de chat funcional (ya creada). Necesito realizar una iteración para añadir herramientas de productividad para los agentes y mejorar la retención de usuarios offline. NO sobrescribas la lógica base, extiende la funcionalidad actual.
+
+**REQUERIMIENTOS TÉCNICOS ESPECÍFICOS:**
+
+1. **GESTIÓN DE ESTADOS DE CONVERSACIÓN (Soft Delete/Archivado):**
+   - **Schema DB:** Modificar el modelo de `Conversation` para incluir un campo de estado (`status`: 'active' | 'closed').
+   - **Lógica:** Implementar un botón "Finalizar Chat". Al activarlo, el estado cambia a 'closed'.
+   - **UI:** El chat debe desaparecer de la vista principal ("Inbox"), pero **NO** debe eliminarse de la base de datos. Debe ser accesible mediante un filtro de historial.
+   - **Reapertura:** Si el cliente vuelve a escribir en un chat 'closed', este debe pasar automáticamente a 'active'.
+
+2. **SISTEMA DE RESPUESTAS RÁPIDAS (Canned Responses) & ETIQUETAS:**
+   - **Slash Commands:** Implementar lógica en el input del agente para que al escribir `/` se despliegue una lista de respuestas predefinidas (ej: `/saludo`, `/precios`).
+   - **CRUD:** Permitir crear/editar estos atajos en la DB.
+   - **Tags:** Añadir campo de `tags` al modelo de conversación para categorizar (ej: "Venta", "Soporte").
+
+3. **LÓGICA OFFLINE & NOTIFICACIONES TRANSACCIONALES:**
+   - **Modificar Controlador de Mensajes:** Interceptar el evento de envío de mensaje (`sendMessage`).
+   - **Verificación de Socket:**
+     - **IF (User Connected):** Emitir mensaje vía Socket normalmente.
+     - **IF (User Disconnected):** 1. Persistir el mensaje en la DB (para que aparezca al recargar).
+       2. Disparar servicio de Email (usando la dirección de correo registrada del usuario) notificando: "Tienes un nuevo mensaje en el chat".
+   - **Rehidratación:** Asegurar que al volver a conectarse (`onConnect/Login`), el frontend recupere el historial completo, incluyendo los mensajes enviados mientras estaba offline.
+
+**INSTRUCCIONES DE EJECUCIÓN:**
+1. Analiza el esquema actual de la base de datos y propón los cambios.
+2. Implementa los controladores de backend (API/Socket) para la lógica offline/email.
+3. Actualiza el Frontend para incluir los atajos (`/`) y el botón de cerrar chat.
