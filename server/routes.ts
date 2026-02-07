@@ -119,6 +119,9 @@ export async function registerRoutes(
         const pageTitle = req.body.pageTitle || "";
         setTimeout(async () => {
           try {
+            const currentSession = await storage.getSession(sessionId);
+            if (currentSession?.adminActive) return;
+
             const autoReply = await storage.createMessage({
               sessionId,
               userEmail: parsed.data.userEmail,
@@ -390,6 +393,81 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/admin/sessions/:sessionId/admin-active", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { adminActive } = req.body;
+      if (typeof adminActive !== "boolean") {
+        return res.status(400).json({ message: "adminActive debe ser boolean" });
+      }
+      const updated = await storage.updateSessionAdminActive(req.params.sessionId, adminActive);
+      if (!updated) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      const session = await storage.getSession(req.params.sessionId);
+      const notifyContent = adminActive
+        ? "Un agente de soporte se ha unido a la conversacion. A partir de ahora seras atendido personalmente."
+        : "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.";
+
+      const notifyMsg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session?.userEmail || "support@system",
+        userName: "Soporte",
+        sender: "support",
+        content: notifyContent,
+      });
+
+      io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
+
+      res.json(updated);
+    } catch (error: any) {
+      log(`Error al cambiar admin activo: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  app.post("/api/admin/sessions/:sessionId/reply", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { content } = req.body;
+      if (!content || typeof content !== "string" || content.trim().length === 0) {
+        return res.status(400).json({ message: "Contenido requerido" });
+      }
+
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      const message = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session.userEmail,
+        userName: "Soporte",
+        sender: "support",
+        content: content.trim(),
+      });
+
+      await storage.touchSession(req.params.sessionId);
+
+      io.to(`session:${req.params.sessionId}`).emit("new_message", message);
+
+      if (!isSessionOnline(req.params.sessionId)) {
+        sendOfflineNotification({
+          userName: session.userName,
+          userEmail: session.userEmail,
+          messageContent: content.trim(),
+          sessionId: req.params.sessionId,
+        }).catch(() => {});
+      }
+
+      res.json(message);
+    } catch (error: any) {
+      log(`Error al enviar respuesta admin: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al enviar respuesta" });
+    }
+  });
+
   io.on("connection", (socket) => {
     const { email, name, sessionId } = socket.handshake.auth as { email: string; name: string; sessionId: string };
 
@@ -458,6 +536,9 @@ export async function registerRoutes(
         if (parsed.data.sender === "user") {
           setTimeout(async () => {
             try {
+              const currentSession = await storage.getSession(sid);
+              if (currentSession?.adminActive) return;
+
               const autoReply = await storage.createMessage({
                 sessionId: sid,
                 userEmail: parsed.data.userEmail,

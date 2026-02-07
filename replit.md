@@ -25,10 +25,11 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 13. **Slash Commands / Canned Responses**: Typing "/" in the message input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
 14. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
 15. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
+16. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
 
 ## Database Tables
 - `messages` - Chat messages with sessionId, sender, content, timestamp
-- `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, lastMessageAt
+- `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt
 - `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
 - `contact_requests` - Executive contact requests with chat summary
 
@@ -58,6 +59,8 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `POST /api/admin/canned-responses` - Create canned response
 - `PATCH /api/admin/canned-responses/:id` - Update canned response
 - `DELETE /api/admin/canned-responses/:id` - Delete canned response
+- `PATCH /api/admin/sessions/:sessionId/admin-active` - Toggle admin takeover (sends notification to user)
+- `POST /api/admin/sessions/:sessionId/reply` - Send admin reply message to user
 
 ## Public API Endpoints
 - `GET /api/messages/session/:sessionId` - Get messages for a session

@@ -3,7 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
-  Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2
+  Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
+  Send, ShieldCheck, ShieldOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ interface SessionSummary {
   tags: string[];
   problemType: string | null;
   gameName: string | null;
+  adminActive: boolean;
 }
 
 interface SearchResult {
@@ -201,6 +203,12 @@ function SessionCard({ session, onClick, isSelected }: { session: SessionSummary
           <Clock className="w-3 h-3" />
           {formatDateTime(session.lastMessage)}
         </span>
+        {session.adminActive && (
+          <span className="flex items-center gap-1 text-emerald-400">
+            <ShieldCheck className="w-3 h-3" />
+            Admin
+          </span>
+        )}
       </div>
     </button>
   );
@@ -317,8 +325,11 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [showLocalSearch, setShowLocalSearch] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const replyInputRef = useRef<HTMLInputElement>(null);
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
+  const isAdminActive = currentSession?.adminActive ?? false;
 
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/admin/sessions", sessionId, "messages"],
@@ -328,6 +339,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
       return res.json();
     },
     enabled: !!sessionId,
+    refetchInterval: isAdminActive ? 3000 : false,
   });
 
   const statusMutation = useMutation({
@@ -345,9 +357,48 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     },
   });
 
+  const adminActiveMutation = useMutation({
+    mutationFn: async (adminActive: boolean) => {
+      const res = await fetch(`/api/admin/sessions/${sessionId}/admin-active`, {
+        method: "PATCH",
+        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        body: JSON.stringify({ adminActive }),
+      });
+      if (!res.ok) throw new Error("Error al cambiar modo admin");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+    },
+  });
+
+  const replyMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/admin/sessions/${sessionId}/reply`, {
+        method: "POST",
+        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error("Error al enviar respuesta");
+      return res.json();
+    },
+    onSuccess: () => {
+      setReplyText("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      setTimeout(() => replyInputRef.current?.focus(), 100);
+    },
+  });
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleReplySend = () => {
+    if (!replyText.trim() || replyMutation.isPending) return;
+    replyMutation.mutate(replyText.trim());
+  };
 
   const activeSearch = showLocalSearch ? localSearch : searchQuery;
 
@@ -386,7 +437,22 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               <p className="text-[11px] text-white/40 truncate">{userEmail}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
+            <Button
+              data-testid="button-admin-takeover"
+              variant="ghost"
+              size="sm"
+              onClick={() => adminActiveMutation.mutate(!isAdminActive)}
+              disabled={adminActiveMutation.isPending}
+              className={`text-xs ${
+                isAdminActive
+                  ? "text-orange-400"
+                  : "text-emerald-400"
+              }`}
+            >
+              {isAdminActive ? <ShieldOff className="w-3.5 h-3.5 mr-1" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1" />}
+              {adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir del Chat" : "Entrar al Chat"}
+            </Button>
             <Button
               data-testid="button-toggle-session-status"
               variant="ghost"
@@ -395,11 +461,11 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               disabled={statusMutation.isPending}
               className={`text-xs ${
                 sessionStatus === "active"
-                  ? "text-red-400 hover:text-red-300"
-                  : "text-green-400 hover:text-green-300"
+                  ? "text-red-400"
+                  : "text-green-400"
               }`}
             >
-              {statusMutation.isPending ? "..." : sessionStatus === "active" ? "Finalizar Chat" : "Reabrir Chat"}
+              {statusMutation.isPending ? "..." : sessionStatus === "active" ? "Finalizar" : "Reabrir"}
             </Button>
             <Button
               size="icon"
@@ -412,6 +478,14 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
             </Button>
           </div>
         </div>
+
+        {isAdminActive && (
+          <div className="mt-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <span className="text-[11px] text-emerald-300">Modo administrador activo — El bot esta pausado. Tus respuestas se envian directamente al usuario.</span>
+          </div>
+        )}
+
         <div className="mt-2 pl-12">
           <TagsEditor sessionId={sessionId} tags={sessionTags} />
         </div>
@@ -484,9 +558,33 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
-        {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
-      </div>
+      {isAdminActive ? (
+        <div className="px-3 py-2 border-t border-white/[0.06] flex items-center gap-2">
+          <Input
+            ref={replyInputRef}
+            data-testid="input-admin-reply"
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReplySend(); } }}
+            placeholder="Escribe tu respuesta..."
+            className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
+            autoFocus
+          />
+          <Button
+            data-testid="button-admin-send"
+            size="icon"
+            onClick={handleReplySend}
+            disabled={!replyText.trim() || replyMutation.isPending}
+            className="bg-[#6200EA] text-white flex-shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+      ) : (
+        <div className="px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
+          {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
+        </div>
+      )}
     </div>
   );
 }
@@ -775,6 +873,7 @@ export default function AdminPage() {
         tags: [],
         problemType: null,
         gameName: null,
+        adminActive: false,
       }))
     : sessions;
 

@@ -6,13 +6,14 @@ export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean }[]>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
   upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session>;
   getSession(sessionId: string): Promise<Session | null>;
   updateSessionStatus(sessionId: string, status: "active" | "closed"): Promise<Session | null>;
   updateSessionTags(sessionId: string, tags: string[]): Promise<Session | null>;
+  updateSessionAdminActive(sessionId: string, adminActive: boolean): Promise<Session | null>;
   touchSession(sessionId: string): Promise<void>;
   getCannedResponses(): Promise<CannedResponse[]>;
   createCannedResponse(data: InsertCannedResponse): Promise<CannedResponse>;
@@ -98,6 +99,15 @@ export class DatabaseStorage implements IStorage {
     return updated || null;
   }
 
+  async updateSessionAdminActive(sessionId: string, adminActive: boolean): Promise<Session | null> {
+    const [updated] = await db
+      .update(sessions)
+      .set({ adminActive })
+      .where(eq(sessions.sessionId, sessionId))
+      .returning();
+    return updated || null;
+  }
+
   async touchSession(sessionId: string): Promise<void> {
     await db
       .update(sessions)
@@ -105,7 +115,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null }[]> {
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean }[]> {
     const allSessions = await db.select().from(sessions).orderBy(desc(sessions.lastMessageAt));
 
     const result = [];
@@ -136,6 +146,7 @@ export class DatabaseStorage implements IStorage {
         tags: s.tags || [],
         problemType: s.problemType,
         gameName: s.gameName,
+        adminActive: s.adminActive ?? false,
       });
     }
 
@@ -163,6 +174,7 @@ export class DatabaseStorage implements IStorage {
           tags: [],
           problemType: null,
           gameName: null,
+          adminActive: false,
         });
       }
     }
