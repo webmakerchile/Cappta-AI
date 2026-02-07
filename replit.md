@@ -18,7 +18,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
 8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
-9. **Smart Auto-replies**: Intelligent context-aware auto-reply engine (`server/autoReply.ts`) with conversation memory, intent detection (12 intent types), game/product name recognition (20+ titles including EA FC, GTA, COD, Spider-Man, etc.), no-repetition system, and smart escalation to human agents after unresolved exchanges
+9. **Smart Auto-replies**: Intelligent context-aware auto-reply engine (`server/autoReply.ts`) with conversation memory, intent detection (12 intent types), game/product name recognition (20+ titles including EA FC, GTA, COD, Spider-Man, etc.), no-repetition system, smart escalation to human agents after unresolved exchanges, and **consultation-type-adaptive greetings** (compra→shopping focus, entrega→delivery empathy, devolucion→executive redirect, problema_cuenta→support focus, info_producto→product info, precio→price display)
 10. **Product Catalog**: Database-backed product catalog that the bot queries to include real prices, availability, and purchase URLs in responses. Managed via admin panel "Productos" tab. Purchase flow tracks stages (inquiry→confirmed→link) to avoid looping.
 11. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, canned responses management, and product catalog management
 12. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
@@ -28,6 +28,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 16. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
 17. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
 18. **Image Uploads**: Both users and admins can send images in chat. Images are uploaded to Replit Object Storage via presigned URL flow. Messages with images display inline with clickable previews. Image-only messages skip auto-reply. Max file size: 5MB.
+19. **In-Chat Product Browser**: ShoppingBag button in chat input opens a floating product catalog overlay with search. Users can browse/search products and click to send a product inquiry directly in the conversation.
 
 ## Database Tables
 - `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
