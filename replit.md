@@ -23,12 +23,13 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 11. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, canned responses management, product catalog management, **session agent badges** (Bot/Ejecutivo/Solicita Ejecutivo), **agent type filter tabs**, and **admin product search/send** (search products from catalog and send formatted product messages directly to users)
 12. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
 13. **Conversation Status Management**: Sessions can be marked as 'active' or 'closed' (soft delete). Closed chats are hidden from inbox but accessible via filter. Auto-reopens when user sends new message.
-14. **Slash Commands / Canned Responses**: Typing "/" in the message input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
+14. **Slash Commands / Canned Responses**: Admin-only feature. Typing "/" in the admin reply input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
 15. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
 16. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
 17. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
 18. **Image Uploads**: Both users and admins can send images in chat. Images are uploaded to Replit Object Storage via presigned URL flow. Messages with images display inline with clickable previews. Image-only messages skip auto-reply. Max file size: 5MB.
 19. **In-Chat Product Browser**: ShoppingBag button in chat input opens a floating product catalog overlay with search. Users can browse/search products and click to send a product inquiry directly in the conversation.
+20. **Satisfaction Survey**: When the bot detects the conversation is resolved (user says "gracias" or "adios"), it asks if the user wants to end the chat and rate their experience. Shows 1-5 star rating + optional comment. Ratings are stored in the database and visible in the admin panel with per-session ratings, average score, and comments.
 
 ## Database Tables
 - `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
@@ -36,6 +37,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
 - `contact_requests` - Executive contact requests with chat summary
 - `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category, wcProductId (WooCommerce ID), wcLastSync (last sync timestamp)
+- `ratings` - Satisfaction ratings: sessionId, userEmail, userName, rating (1-5), comment (optional), timestamp
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types

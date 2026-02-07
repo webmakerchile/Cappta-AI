@@ -1061,19 +1061,24 @@ function getTrustResponse(state: ConversationState): string {
 
 function getGratitudeResponse(state: ConversationState): string {
   const text = pickUnused([
-    `¡Con gusto! Si tienes mas preguntas, no dudes en escribir.`,
-    `¡De nada! Fue un placer ayudarte. Si necesitas algo mas, aqui estaremos.`,
+    `¡Con gusto! Me alegra haberte ayudado. ¿Te gustaria finalizar el chat y calificar tu experiencia?`,
+    `¡De nada! Fue un placer ayudarte. ¿Quieres finalizar la conversacion y dejarnos tu opinion?`,
   ], state.usedResponses);
   return withButtons(text, [
-    {label: "Ver productos", value: "__qr:back"},
+    {label: "Finalizar y calificar", value: "__qr:rate"},
+    {label: "Tengo otra consulta", value: "__qr:back"},
   ]);
 }
 
 function getFarewellResponse(state: ConversationState): string {
-  return pickUnused([
-    `¡Hasta pronto! Fue un placer ayudarte. Si necesitas algo mas, no dudes en volver a escribirnos.`,
-    `¡Chao! Esperamos verte de nuevo. Si necesitas juegos o suscripciones, ya sabes donde encontrarnos.`,
+  const text = pickUnused([
+    `¡Hasta pronto! Antes de irte, ¿te gustaria calificar tu experiencia con nosotros?`,
+    `¡Chao! Nos encantaria saber que te parecio nuestra atencion. ¿Quieres dejarnos tu calificacion?`,
   ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Calificar experiencia", value: "__qr:rate"},
+    {label: "Solo despedirme", value: "__qr:farewell_skip"},
+  ]);
 }
 
 function getFollowupResponse(state: ConversationState, msg: string): string {
@@ -1253,6 +1258,14 @@ export async function getSmartAutoReply(
   catalogLookup?: CatalogLookup
 ): Promise<string> {
   const msg = normalize(userMessage);
+
+  if (msg === "__qr:rate") {
+    return "{{SHOW_RATING}}";
+  }
+
+  if (msg === "__qr:farewell_skip") {
+    return "¡Hasta pronto! Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia!";
+  }
 
   if (msg.startsWith("__qr:") && catalogLookup) {
     if (msg.startsWith("__qr:platform:")) {

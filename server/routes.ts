@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -595,6 +595,51 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error en sincronizacion WC: ${error.message}`, "api");
       res.status(500).json({ message: "Error en sincronizacion", error: error.message });
+    }
+  });
+
+  app.post("/api/ratings", async (req, res) => {
+    try {
+      const parsed = insertRatingSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Datos invalidos", errors: parsed.error.errors });
+      }
+      const { rating } = parsed.data;
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "La calificacion debe ser entre 1 y 5" });
+      }
+      const existing = await storage.getRatingBySessionId(parsed.data.sessionId);
+      if (existing) {
+        return res.status(409).json({ message: "Ya existe una calificacion para esta sesion", rating: existing });
+      }
+      const created = await storage.createRating(parsed.data);
+      res.status(201).json(created);
+    } catch (error: any) {
+      log(`Error al crear calificacion: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear calificacion" });
+    }
+  });
+
+  app.get("/api/admin/ratings", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allRatings = await storage.getAllRatings();
+      res.json(allRatings);
+    } catch (error: any) {
+      log(`Error al obtener calificaciones: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener calificaciones" });
+    }
+  });
+
+  app.get("/api/admin/sessions/:sessionId/rating", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const rating = await storage.getRatingBySessionId(req.params.sessionId);
+      if (!rating) return res.status(404).json({ message: "No hay calificacion para esta sesion" });
+      res.json(rating);
+    } catch (error: any) {
+      log(`Error al obtener calificacion: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener calificacion" });
     }
   });
 

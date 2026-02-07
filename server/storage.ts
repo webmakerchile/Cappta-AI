@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
 
@@ -27,6 +27,9 @@ export interface IStorage {
   searchProductsByName(query: string): Promise<Product[]>;
   getProductsByPlatform(platform: string): Promise<Product[]>;
   getProductsByCategory(category: string): Promise<Product[]>;
+  createRating(data: InsertRating): Promise<Rating>;
+  getRatingBySessionId(sessionId: string): Promise<Rating | null>;
+  getAllRatings(): Promise<Rating[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -465,6 +468,26 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .where(sql`${products.category} = ${category}`)
       .orderBy(asc(products.name));
+  }
+
+  async createRating(data: InsertRating): Promise<Rating> {
+    const [created] = await db.insert(ratings).values(data).returning();
+    return created;
+  }
+
+  async getRatingBySessionId(sessionId: string): Promise<Rating | null> {
+    const [rating] = await db
+      .select()
+      .from(ratings)
+      .where(eq(ratings.sessionId, sessionId));
+    return rating || null;
+  }
+
+  async getAllRatings(): Promise<Rating[]> {
+    return await db
+      .select()
+      .from(ratings)
+      .orderBy(desc(ratings.timestamp));
   }
 }
 

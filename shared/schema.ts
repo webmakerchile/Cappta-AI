@@ -64,6 +64,16 @@ export const products = pgTable("products", {
   wcLastSync: timestamp("wc_last_sync"),
 });
 
+export const ratings = pgTable("ratings", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  userEmail: text("user_email").notNull(),
+  userName: text("user_name").notNull(),
+  rating: integer("rating").notNull(),
+  comment: text("comment"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
@@ -88,6 +98,8 @@ export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
 });
 
+export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, timestamp: true });
+
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
@@ -98,6 +110,8 @@ export type CannedResponse = typeof cannedResponses.$inferSelect;
 export type InsertCannedResponse = z.infer<typeof insertCannedResponseSchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+export type InsertRating = z.infer<typeof insertRatingSchema>;
+export type Rating = typeof ratings.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
@@ -83,6 +83,115 @@ function parseQuickReplies(content: string): { text: string; buttons: QuickReply
   return { text: content, buttons: [] };
 }
 
+function RatingCard({ sessionId, userEmail, userName }: { sessionId: string; userEmail: string; userName: string }) {
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [finalRating, setFinalRating] = useState(0);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("rated_session_" + sessionId);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setSubmitted(true);
+        setFinalRating(parsed.rating || 0);
+      }
+    } catch {}
+  }, [sessionId]);
+
+  const handleSubmit = async () => {
+    if (selectedRating < 1 || submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/ratings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          userEmail,
+          userName,
+          rating: selectedRating,
+          comment: comment.trim() || null,
+        }),
+      });
+      if (res.ok || res.status === 409) {
+        setSubmitted(true);
+        setFinalRating(selectedRating);
+        try {
+          localStorage.setItem("rated_session_" + sessionId, JSON.stringify({ rating: selectedRating }));
+        } catch {}
+      }
+    } catch {} finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div data-testid="rating-submitted" className="p-4 rounded-md bg-[#1e1e1e] border border-[#6200EA]/30">
+        <div className="flex items-center gap-2 mb-2">
+          <CheckCircle className="w-5 h-5 text-green-400" />
+          <span className="text-sm font-medium text-white">Gracias por tu calificacion</span>
+        </div>
+        <div className="flex items-center gap-0.5">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={`w-5 h-5 ${star <= finalRating ? "text-yellow-400 fill-yellow-400" : "text-white/20"}`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const displayRating = hoveredRating || selectedRating;
+
+  return (
+    <div data-testid="rating-card" className="p-4 rounded-md bg-[#1e1e1e] border border-[#6200EA]/30">
+      <p className="text-sm font-medium text-white mb-3">¿Como fue tu experiencia?</p>
+      <div className="flex items-center gap-1 mb-3">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            data-testid={`rating-star-${star}`}
+            type="button"
+            onClick={() => setSelectedRating(star)}
+            onMouseEnter={() => setHoveredRating(star)}
+            onMouseLeave={() => setHoveredRating(0)}
+            className="p-0.5 transition-transform hover:scale-110"
+          >
+            <Star
+              className={`w-7 h-7 transition-colors ${
+                star <= displayRating ? "text-yellow-400 fill-yellow-400" : "text-white/20"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+      <textarea
+        data-testid="rating-comment"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Deja un comentario (opcional)"
+        rows={2}
+        className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/25 p-2.5 mb-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]"
+      />
+      <Button
+        data-testid="button-submit-rating"
+        onClick={handleSubmit}
+        disabled={selectedRating < 1 || submitting}
+        className="w-full bg-[#6200EA] text-white text-sm"
+      >
+        {submitting ? "Enviando..." : "Enviar calificacion"}
+      </Button>
+    </div>
+  );
+}
+
 interface MessageBubbleProps {
   message: Message;
   searchQuery: string;
@@ -95,6 +204,40 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: Me
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
   const isImageOnly = hasImage && (!message.content || message.content === "Imagen enviada");
+
+  const isRatingMessage = !isUser && message.content.includes("{{SHOW_RATING}}");
+
+  if (isRatingMessage) {
+    let sessionId = message.sessionId;
+    let userEmail = message.userEmail || "";
+    let uName = message.userName || "";
+    try {
+      const stored = localStorage.getItem("chat_user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.sessionId) sessionId = parsed.sessionId;
+        if (parsed.email) userEmail = parsed.email;
+        if (parsed.name) uName = parsed.name;
+      }
+    } catch {}
+
+    return (
+      <div
+        data-testid={`message-bubble-${message.id}`}
+        className="flex items-end gap-2 animate-fade-in flex-row"
+      >
+        <div className="w-7 h-7 rounded-full bg-[#6200EA]/20 border border-[#6200EA]/30 flex items-center justify-center flex-shrink-0">
+          <Headphones className="w-3.5 h-3.5 text-[#6200EA]" />
+        </div>
+        <div className="flex flex-col gap-1.5 max-w-[80%]">
+          <RatingCard sessionId={sessionId} userEmail={userEmail} userName={uName} />
+          <span className="text-[10px] text-white/30 text-left">
+            {formatTime(message.timestamp)}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const { text: displayText, buttons } = isUser
     ? { text: message.content, buttons: [] }

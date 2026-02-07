@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
-  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package
+  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star
 } from "lucide-react";
 import {
   Select,
@@ -57,6 +57,16 @@ interface CannedResponse {
   id: number;
   shortcut: string;
   content: string;
+}
+
+interface RatingData {
+  id: number;
+  sessionId: string;
+  userEmail: string;
+  userName: string;
+  rating: number;
+  comment: string | null;
+  timestamp: string;
 }
 
 const PREDEFINED_TAGS = ["Venta", "Soporte", "Urgente", "Resuelto", "Pendiente"];
@@ -169,7 +179,7 @@ function AdminLogin({ onLogin }: { onLogin: (key: string) => void }) {
   );
 }
 
-function SessionCard({ session, onClick, isSelected }: { session: SessionSummary; onClick: () => void; isSelected: boolean }) {
+function SessionCard({ session, onClick, isSelected, rating }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData }) {
   return (
     <button
       data-testid={`session-card-${session.sessionId}`}
@@ -235,6 +245,13 @@ function SessionCard({ session, onClick, isSelected }: { session: SessionSummary
         ) : (
           <span data-testid={`badge-bot-${session.sessionId}`} className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30">
             Bot
+          </span>
+        )}
+        {rating && (
+          <span data-testid={`session-rating-${session.sessionId}`} className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star key={s} className={`w-2.5 h-2.5 ${s <= rating.rating ? "text-yellow-400 fill-yellow-400" : "text-white/15"}`} />
+            ))}
           </span>
         )}
       </div>
@@ -372,6 +389,16 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     },
     enabled: !!sessionId,
     refetchInterval: isAdminActive ? 3000 : false,
+  });
+
+  const { data: sessionRating } = useQuery<RatingData>({
+    queryKey: ["/api/admin/sessions", sessionId, "rating"],
+    queryFn: async () => {
+      const res = await adminFetch(`/api/admin/sessions/${sessionId}/rating`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!sessionId,
   });
 
   const statusMutation = useMutation({
@@ -564,6 +591,19 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
         <div className="mt-2 pl-12">
           <TagsEditor sessionId={sessionId} tags={sessionTags} />
         </div>
+        {sessionRating && (
+          <div data-testid="session-rating-display" className="mt-2 px-4 py-2 bg-yellow-500/5 border-t border-yellow-500/10 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-white/40">Calificacion:</span>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} className={`w-3.5 h-3.5 ${s <= sessionRating.rating ? "text-yellow-400 fill-yellow-400" : "text-white/15"}`} />
+              ))}
+            </div>
+            {sessionRating.comment && (
+              <span className="text-[11px] text-white/50 italic truncate max-w-[200px]">"{sessionRating.comment}"</span>
+            )}
+          </div>
+        )}
       </div>
 
       {showLocalSearch && (
@@ -1571,6 +1611,20 @@ export default function AdminPage() {
     enabled: authenticated && debouncedSearch.length >= 2,
   });
 
+  const { data: allRatings = [] } = useQuery<RatingData[]>({
+    queryKey: ["/api/admin/ratings"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/ratings");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authenticated,
+    refetchInterval: 30000,
+  });
+
+  const ratingsMap = new Map(allRatings.map(r => [r.sessionId, r]));
+  const avgRating = allRatings.length > 0 ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length : 0;
+
   const isSearching = debouncedSearch.length >= 2;
   const baseSessions = isSearching
     ? searchResults.map((r) => ({
@@ -1636,6 +1690,13 @@ export default function AdminPage() {
           <h1 data-testid="text-admin-title" className="text-base font-bold text-white">Panel de Administracion</h1>
         </div>
         <div className="flex items-center gap-3">
+          {allRatings.length > 0 && (
+            <span data-testid="text-avg-rating" className="text-sm text-white/70 flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+              <span>{avgRating.toFixed(1)}</span>
+              <span className="text-white/40">({allRatings.length})</span>
+            </span>
+          )}
           <span className="text-sm text-white/70 flex items-center gap-1.5">
             <MessageSquare className="w-4 h-4" />
             <span data-testid="text-session-count">{sessions.length}</span>
@@ -1788,6 +1849,7 @@ export default function AdminPage() {
                     session={session}
                     onClick={() => selectSession(session.sessionId)}
                     isSelected={selectedSession === session.sessionId}
+                    rating={ratingsMap.get(session.sessionId)}
                   />
                 ))
               )}
