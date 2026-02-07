@@ -4,8 +4,15 @@ import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
-  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2
+  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -646,6 +653,404 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   );
 }
 
+interface AdminProduct {
+  id: number;
+  name: string;
+  searchAliases: string[];
+  platform: string;
+  price: string | null;
+  productUrl: string | null;
+  imageUrl: string | null;
+  availability: string;
+  description: string | null;
+  category: string;
+}
+
+const PLATFORM_OPTIONS = [
+  { value: "all", label: "Todas" },
+  { value: "ps4", label: "PS4" },
+  { value: "ps5", label: "PS5" },
+  { value: "xbox_one", label: "Xbox One" },
+  { value: "xbox_series", label: "Xbox Series" },
+  { value: "pc", label: "PC" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "game", label: "Juego" },
+  { value: "subscription", label: "Suscripcion" },
+  { value: "card", label: "Tarjeta" },
+  { value: "bundle", label: "Bundle" },
+];
+
+const AVAILABILITY_OPTIONS = [
+  { value: "available", label: "Disponible" },
+  { value: "out_of_stock", label: "Agotado" },
+  { value: "preorder", label: "Pre-orden" },
+];
+
+function getAvailabilityColor(avail: string) {
+  if (avail === "available") return "bg-green-500/15 text-green-400 border-green-500/30";
+  if (avail === "out_of_stock") return "bg-red-500/15 text-red-400 border-red-500/30";
+  return "bg-yellow-500/15 text-yellow-400 border-yellow-500/30";
+}
+
+function getAvailabilityLabel(avail: string) {
+  const opt = AVAILABILITY_OPTIONS.find(o => o.value === avail);
+  return opt?.label || avail;
+}
+
+function getPlatformLabel(platform: string) {
+  const opt = PLATFORM_OPTIONS.find(o => o.value === platform);
+  return opt?.label || platform;
+}
+
+function getCategoryLabel(category: string) {
+  const opt = CATEGORY_OPTIONS.find(o => o.value === category);
+  return opt?.label || category;
+}
+
+function ProductsPanel() {
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    searchAliases: "",
+    platform: "all",
+    price: "",
+    productUrl: "",
+    imageUrl: "",
+    description: "",
+    category: "game",
+    availability: "available",
+  });
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      searchAliases: "",
+      platform: "all",
+      price: "",
+      productUrl: "",
+      imageUrl: "",
+      description: "",
+      category: "game",
+      availability: "available",
+    });
+  };
+
+  const { data: productsList = [], isLoading } = useQuery<AdminProduct[]>({
+    queryKey: ["/api/admin/products"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/products");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Error al crear producto");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+      setIsAdding(false);
+      resetForm();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Record<string, unknown> }) => {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "PATCH",
+        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Error al actualizar");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+      setEditingId(null);
+      resetForm();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "DELETE",
+        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Error al eliminar");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+    },
+  });
+
+  const startEdit = (p: AdminProduct) => {
+    setEditingId(p.id);
+    setFormData({
+      name: p.name,
+      searchAliases: (p.searchAliases || []).join(", "),
+      platform: p.platform,
+      price: p.price || "",
+      productUrl: p.productUrl || "",
+      imageUrl: p.imageUrl || "",
+      description: p.description || "",
+      category: p.category,
+      availability: p.availability,
+    });
+  };
+
+  const buildPayload = () => ({
+    name: formData.name.trim(),
+    searchAliases: formData.searchAliases.split(",").map(s => s.trim()).filter(Boolean),
+    platform: formData.platform,
+    price: formData.price.trim() || null,
+    productUrl: formData.productUrl.trim() || null,
+    imageUrl: formData.imageUrl.trim() || null,
+    description: formData.description.trim() || null,
+    category: formData.category,
+    availability: formData.availability,
+  });
+
+  const handleSubmitNew = () => {
+    if (!formData.name.trim()) return;
+    createMutation.mutate(buildPayload());
+  };
+
+  const handleSubmitEdit = (id: number) => {
+    if (!formData.name.trim()) return;
+    updateMutation.mutate({ id, data: buildPayload() });
+  };
+
+  const renderForm = (onSubmit: () => void, isPending: boolean, submitLabel: string) => (
+    <div className="flex flex-col gap-2">
+      <Input
+        data-testid="input-product-name"
+        value={formData.name}
+        onChange={(e) => setFormData(f => ({ ...f, name: e.target.value }))}
+        placeholder="Nombre del producto"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        autoFocus
+      />
+      <Input
+        data-testid="input-product-aliases"
+        value={formData.searchAliases}
+        onChange={(e) => setFormData(f => ({ ...f, searchAliases: e.target.value }))}
+        placeholder="Aliases de busqueda (separados por coma)"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <Select value={formData.platform} onValueChange={(v) => setFormData(f => ({ ...f, platform: v }))}>
+          <SelectTrigger data-testid="select-product-platform" className="bg-white/5 border-white/10 text-white text-sm">
+            <SelectValue placeholder="Plataforma" />
+          </SelectTrigger>
+          <SelectContent>
+            {PLATFORM_OPTIONS.map(o => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={formData.category} onValueChange={(v) => setFormData(f => ({ ...f, category: v }))}>
+          <SelectTrigger data-testid="select-product-category" className="bg-white/5 border-white/10 text-white text-sm">
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORY_OPTIONS.map(o => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Input
+          data-testid="input-product-price"
+          value={formData.price}
+          onChange={(e) => setFormData(f => ({ ...f, price: e.target.value }))}
+          placeholder="Precio (ej: $29.99 USD)"
+          className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        />
+        <Select value={formData.availability} onValueChange={(v) => setFormData(f => ({ ...f, availability: v }))}>
+          <SelectTrigger data-testid="select-product-availability" className="bg-white/5 border-white/10 text-white text-sm">
+            <SelectValue placeholder="Disponibilidad" />
+          </SelectTrigger>
+          <SelectContent>
+            {AVAILABILITY_OPTIONS.map(o => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Input
+        data-testid="input-product-url"
+        value={formData.productUrl}
+        onChange={(e) => setFormData(f => ({ ...f, productUrl: e.target.value }))}
+        placeholder="URL del producto"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+      />
+      <Input
+        data-testid="input-product-description"
+        value={formData.description}
+        onChange={(e) => setFormData(f => ({ ...f, description: e.target.value }))}
+        placeholder="Descripcion corta"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+      />
+      <div className="flex items-center gap-1 justify-end flex-wrap">
+        <Button
+          data-testid="button-cancel-product"
+          variant="ghost"
+          size="sm"
+          onClick={() => { setIsAdding(false); setEditingId(null); resetForm(); }}
+          className="text-white/40 text-xs"
+        >
+          Cancelar
+        </Button>
+        <Button
+          data-testid="button-save-product"
+          size="sm"
+          onClick={onSubmit}
+          disabled={!formData.name.trim() || isPending}
+          className="bg-[#6200EA] text-white text-xs"
+        >
+          {isPending ? "Guardando..." : submitLabel}
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="p-3 border-b border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
+        <h2 className="text-sm font-semibold text-white">Catalogo de Productos</h2>
+        <Button
+          data-testid="button-add-product"
+          size="sm"
+          onClick={() => { setIsAdding(true); setEditingId(null); resetForm(); }}
+          className="bg-[#6200EA] text-white text-xs"
+          disabled={isAdding}
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          Agregar Producto
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+        {isAdding && (
+          <div className="p-3 rounded-md border border-[#6200EA]/30 bg-[#6200EA]/5">
+            {renderForm(handleSubmitNew, createMutation.isPending, "Crear Producto")}
+          </div>
+        )}
+
+        {productsList.length === 0 && !isAdding ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+            <Package className="w-10 h-10 text-white/10 mb-3" />
+            <p className="text-sm text-white/30">No hay productos en el catalogo</p>
+            <p className="text-xs text-white/20 mt-1">Agrega productos para que el bot responda con precios y links</p>
+          </div>
+        ) : (
+          productsList.map((p) => (
+            <div
+              key={p.id}
+              data-testid={`product-card-${p.id}`}
+              className="p-3 rounded-md border border-white/[0.06] bg-white/[0.03]"
+            >
+              {editingId === p.id ? (
+                renderForm(() => handleSubmitEdit(p.id), updateMutation.isPending, "Guardar")
+              ) : (
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span data-testid={`text-product-name-${p.id}`} className="text-sm font-medium text-white">{p.name}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getAvailabilityColor(p.availability)}`}>
+                        {getAvailabilityLabel(p.availability)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-[10px] bg-[#6200EA]/15 text-[#6200EA] px-1.5 py-0.5 rounded">
+                        {getPlatformLabel(p.platform)}
+                      </span>
+                      <span className="text-[10px] bg-white/[0.06] text-white/50 px-1.5 py-0.5 rounded">
+                        {getCategoryLabel(p.category)}
+                      </span>
+                      {p.price && (
+                        <span data-testid={`text-product-price-${p.id}`} className="text-xs text-green-400 font-medium">{p.price}</span>
+                      )}
+                    </div>
+                    {p.description && (
+                      <p className="text-xs text-white/40 mb-1 truncate">{p.description}</p>
+                    )}
+                    {p.productUrl && (
+                      <a
+                        data-testid={`link-product-url-${p.id}`}
+                        href={p.productUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-[#6200EA] hover:underline truncate block"
+                      >
+                        {p.productUrl}
+                      </a>
+                    )}
+                    {p.searchAliases && p.searchAliases.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1 flex-wrap">
+                        <span className="text-[10px] text-white/25">Aliases:</span>
+                        {p.searchAliases.map((alias, i) => (
+                          <span key={i} className="text-[10px] text-white/30 bg-white/[0.04] px-1 py-0.5 rounded">{alias}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <Button
+                      data-testid={`button-edit-product-${p.id}`}
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => startEdit(p)}
+                      className="text-white/30"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      data-testid={`button-delete-product-${p.id}`}
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        if (confirm(`¿Eliminar "${p.name}"?`)) {
+                          deleteMutation.mutate(p.id);
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
+                      className="text-white/30 hover:text-red-400"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CannedResponsesPanel() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editShortcut, setEditShortcut] = useState("");
@@ -878,7 +1283,7 @@ export default function AdminPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
-  const [adminTab, setAdminTab] = useState<"conversations" | "canned">("conversations");
+  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products">("conversations");
 
   useEffect(() => {
     const stored = getAdminKey();
@@ -1012,9 +1417,24 @@ export default function AdminPage() {
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
           )}
         </button>
+        <button
+          data-testid="tab-products"
+          onClick={() => setAdminTab("products")}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-1.5 ${
+            adminTab === "products" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
+          }`}
+        >
+          <Package className="w-3.5 h-3.5" />
+          Productos
+          {adminTab === "products" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
+          )}
+        </button>
       </div>
 
-      {adminTab === "canned" ? (
+      {adminTab === "products" ? (
+        <ProductsPanel />
+      ) : adminTab === "canned" ? (
         <CannedResponsesPanel />
       ) : (
         <div className="flex-1 flex min-h-0">

@@ -19,20 +19,22 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
 8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
 9. **Smart Auto-replies**: Intelligent context-aware auto-reply engine (`server/autoReply.ts`) with conversation memory, intent detection (12 intent types), game/product name recognition (20+ titles including EA FC, GTA, COD, Spider-Man, etc.), no-repetition system, and smart escalation to human agents after unresolved exchanges
-10. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, and canned responses management
-11. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
-12. **Conversation Status Management**: Sessions can be marked as 'active' or 'closed' (soft delete). Closed chats are hidden from inbox but accessible via filter. Auto-reopens when user sends new message.
-13. **Slash Commands / Canned Responses**: Typing "/" in the message input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
-14. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
-15. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
-16. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
-17. **Image Uploads**: Both users and admins can send images in chat. Images are uploaded to Replit Object Storage via presigned URL flow. Messages with images display inline with clickable previews. Image-only messages skip auto-reply. Max file size: 5MB.
+10. **Product Catalog**: Database-backed product catalog that the bot queries to include real prices, availability, and purchase URLs in responses. Managed via admin panel "Productos" tab. Purchase flow tracks stages (inquiry→confirmed→link) to avoid looping.
+11. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, canned responses management, and product catalog management
+12. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
+13. **Conversation Status Management**: Sessions can be marked as 'active' or 'closed' (soft delete). Closed chats are hidden from inbox but accessible via filter. Auto-reopens when user sends new message.
+14. **Slash Commands / Canned Responses**: Typing "/" in the message input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
+15. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
+16. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
+17. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
+18. **Image Uploads**: Both users and admins can send images in chat. Images are uploaded to Replit Object Storage via presigned URL flow. Messages with images display inline with clickable previews. Image-only messages skip auto-reply. Max file size: 5MB.
 
 ## Database Tables
 - `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
 - `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt
 - `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
 - `contact_requests` - Executive contact requests with chat summary
+- `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category
 
 ## Project Structure
 - `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types
@@ -65,12 +67,17 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `DELETE /api/admin/canned-responses/:id` - Delete canned response
 - `PATCH /api/admin/sessions/:sessionId/admin-active` - Toggle admin takeover (sends notification to user)
 - `POST /api/admin/sessions/:sessionId/reply` - Send admin reply message to user
+- `GET /api/admin/products` - List all products in catalog
+- `POST /api/admin/products` - Create product
+- `PATCH /api/admin/products/:id` - Update product
+- `DELETE /api/admin/products/:id` - Delete product
 
 ## Public API Endpoints
 - `GET /api/messages/session/:sessionId` - Get messages for a session
 - `POST /api/messages` - Send a message (auto-creates/reopens session)
 - `POST /api/contact-executive` - Request executive contact
 - `GET /api/canned-responses` - Get canned responses (for slash commands)
+- `GET /api/products/search?q=query` - Search products by name/aliases (used by auto-reply)
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
@@ -86,8 +93,13 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 ## WordPress Iframe Integration
 Embed the widget with URL params:
 ```html
-<iframe src="https://your-app.replit.app/?email=user@email.com&name=UserName&page_url=https://yoursite.com/page&page_title=Page Title" />
+<iframe src="https://your-app.replit.app/?email=user@email.com&name=UserName&page_url=https://yoursite.com/page&page_title=Page Title&product_name=EA Sports FC 26&product_price=$29.99 USD&product_url=https://yoursite.com/product/fc-26&product_image=https://yoursite.com/img/fc26.jpg" />
 ```
+Product-specific params (optional, for product pages):
+- `product_name` - Name of the product on the current page
+- `product_price` - Price of the product
+- `product_url` - Direct link to buy the product
+- `product_image` - Product image URL
 The widget sends postMessage events to the parent for resize:
 ```js
 { type: "open_chat", width: 390, height: 600 }

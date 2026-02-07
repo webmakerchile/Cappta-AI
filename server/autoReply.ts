@@ -20,6 +20,19 @@ interface SessionData {
   pageTitle?: string | null;
   pageUrl?: string | null;
   userName?: string | null;
+  wpProductName?: string | null;
+  wpProductPrice?: string | null;
+  wpProductUrl?: string | null;
+}
+
+interface CatalogProduct {
+  name: string;
+  price: string | null;
+  productUrl: string | null;
+  availability: string;
+  platform: string;
+  description: string | null;
+  category: string;
 }
 
 interface ConversationEntry {
@@ -516,7 +529,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   return pickUnused(options, state.usedResponses);
 }
 
-function getGameInquiryResponse(state: ConversationState): string {
+function getGameInquiryResponse(state: ConversationState, catalogProduct?: CatalogProduct | null): string {
   if (!state.product || state.product.type !== "game") {
     const platSuffix = state.platform === "ps" ? " para PS4 y PS5" : state.platform === "xbox" ? " para Xbox One y Xbox Series" : " para PS4, PS5, Xbox One y Xbox Series";
     const options = [
@@ -528,6 +541,23 @@ function getGameInquiryResponse(state: ConversationState): string {
 
   const gameName = formatGameWithVersion(state.product);
   const platSuffix = formatPlatformSuffix(state.product);
+
+  if (catalogProduct) {
+    const displayName = catalogProduct.name;
+    const priceInfo = catalogProduct.price ? ` Precio: ${catalogProduct.price}.` : "";
+    const urlInfo = catalogProduct.productUrl ? ` Puedes verlo aqui: ${catalogProduct.productUrl}` : "";
+    const availInfo = catalogProduct.availability === "available"
+      ? " Disponible para entrega digital inmediata."
+      : catalogProduct.availability === "preorder"
+      ? " Disponible para pre-orden."
+      : " Actualmente agotado.";
+
+    const options = [
+      `¡${displayName}${platSuffix}!${priceInfo}${availInfo}${urlInfo} ¿Te gustaria comprarlo?`,
+      `¡Tenemos ${displayName}${platSuffix}!${priceInfo}${availInfo}${urlInfo} ¿Quieres que te ayude con la compra?`,
+    ];
+    return pickUnused(options, state.usedResponses);
+  }
 
   const options = [
     `¡${gameName}${platSuffix}! Es un excelente titulo. Tenemos juegos digitales disponibles con entrega inmediata por correo electronico. ¿Te gustaria comprarlo o necesitas mas informacion?`,
@@ -692,12 +722,31 @@ function getProductInquiryGeneric(state: ConversationState): string {
   return pickUnused(options, state.usedResponses);
 }
 
-function getPurchaseResponse(state: ConversationState): string {
+function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogProduct | null, purchaseStage?: number): string {
   const product = state.product || state.lastTopicProduct;
 
   if (product) {
     const productName = product.type === "game" ? formatGameWithVersion(product) : product.name;
     const platSuffix = formatPlatformSuffix(product);
+
+    if (catalogProduct) {
+      const displayName = catalogProduct.name;
+      const priceInfo = catalogProduct.price ? ` tiene un precio de ${catalogProduct.price}` : "";
+      const urlInfo = catalogProduct.productUrl ? ` Puedes comprarlo directamente aqui: ${catalogProduct.productUrl}` : "";
+
+      if ((purchaseStage || 0) >= 2) {
+        if (catalogProduct.productUrl) {
+          return `¡Aqui tienes el link directo para comprar ${displayName}:${urlInfo}. La entrega es digital e inmediata a tu correo electronico. ¿Necesitas ayuda con algo mas?`;
+        }
+        return `Para completar la compra de ${displayName}, haz clic en 'Contactar un Ejecutivo' y un agente te guiara con el proceso de pago. La entrega es digital e inmediata.`;
+      }
+
+      const options = [
+        `¡Perfecto! ${displayName}${platSuffix}${priceInfo}.${urlInfo} La entrega es digital e inmediata a tu correo electronico.`,
+        `¡Genial! ${displayName}${platSuffix}${priceInfo}. Entrega digital inmediata por email.${urlInfo}`,
+      ];
+      return pickUnused(options, state.usedResponses);
+    }
 
     const options = [
       `¡Perfecto! Para comprar ${productName}${platSuffix}, el proceso es sencillo: realizas el pago y recibiras tu codigo digital por correo electronico de forma inmediata. ¿Te gustaria saber los metodos de pago disponibles?`,
@@ -714,12 +763,22 @@ function getPurchaseResponse(state: ConversationState): string {
   return pickUnused(options, state.usedResponses);
 }
 
-function getPriceResponse(state: ConversationState): string {
+function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProduct | null): string {
   const product = state.product || state.lastTopicProduct;
 
   if (product) {
     const productName = product.type === "game" ? formatGameWithVersion(product) : product.name;
     const platSuffix = formatPlatformSuffix(product);
+
+    if (catalogProduct && catalogProduct.price) {
+      const displayName = catalogProduct.name;
+      const urlInfo = catalogProduct.productUrl ? ` Puedes verlo aqui: ${catalogProduct.productUrl}` : "";
+      const options = [
+        `El precio de ${displayName}${platSuffix} es ${catalogProduct.price}. Entrega digital inmediata.${urlInfo} ¿Te gustaria comprarlo?`,
+        `${displayName}${platSuffix} tiene un precio de ${catalogProduct.price}.${urlInfo} ¿Quieres proceder con la compra?`,
+      ];
+      return pickUnused(options, state.usedResponses);
+    }
 
     const options = [
       `Para saber el precio exacto de ${productName}${platSuffix}, te recomiendo contactar a un ejecutivo haciendo clic en 'Contactar un Ejecutivo'. Los precios pueden variar y un agente te dara la informacion actualizada al momento.`,
@@ -886,10 +945,66 @@ function getDurationResponse(state: ConversationState, msg: string): string | nu
   ], state.usedResponses);
 }
 
+function detectPurchaseStage(conversationHistory: ConversationEntry[]): number {
+  let hasShownProductInfo = false;
+  let hasShownPurchaseLink = false;
+
+  for (const entry of conversationHistory) {
+    if (entry.sender === "support") {
+      const content = entry.content.toLowerCase();
+      if (content.includes("precio:") || content.includes("precio de") || content.includes("tiene un precio") || content.includes("puedes verlo aqui")) {
+        hasShownProductInfo = true;
+      }
+      if (content.includes("puedes comprarlo directamente") || content.includes("comprarlo aqui") || content.includes("link de compra")) {
+        hasShownPurchaseLink = true;
+      }
+    }
+  }
+
+  if (hasShownPurchaseLink) return 3;
+  if (hasShownProductInfo) return 2;
+  return 0;
+}
+
+async function lookupCatalogProduct(
+  state: ConversationState,
+  sessionData: SessionData | undefined,
+  catalogLookup?: (query: string) => Promise<CatalogProduct[]>
+): Promise<CatalogProduct | null> {
+  if (!catalogLookup) return null;
+
+  const queries: string[] = [];
+
+  if (state.product && state.product.type === "game") {
+    queries.push(state.product.name);
+    if (state.product.version) {
+      queries.push(`${state.product.name} ${state.product.version}`);
+    }
+  }
+
+  if (sessionData?.wpProductName) {
+    queries.unshift(sessionData.wpProductName);
+  }
+
+  if (state.lastTopicProduct && state.lastTopicProduct.type === "game") {
+    queries.push(state.lastTopicProduct.name);
+  }
+
+  for (const query of queries) {
+    try {
+      const results = await catalogLookup(query);
+      if (results.length > 0) return results[0];
+    } catch {}
+  }
+
+  return null;
+}
+
 export async function getSmartAutoReply(
   userMessage: string,
   conversationHistory: Array<{ sender: string; content: string }>,
-  sessionData?: SessionData
+  sessionData?: SessionData,
+  catalogLookup?: (query: string) => Promise<CatalogProduct[]>
 ): Promise<string> {
   const msg = normalize(userMessage);
   const state = buildConversationState(msg, conversationHistory, sessionData);
@@ -905,6 +1020,18 @@ export async function getSmartAutoReply(
     }
   }
 
+  const catalogProduct = await lookupCatalogProduct(state, sessionData, catalogLookup);
+
+  if (sessionData?.wpProductName && !state.product && !state.lastTopicProduct) {
+    const wpProduct: DetectedProduct = {
+      name: sessionData.wpProductName,
+      type: "game",
+      platform: "unknown",
+    };
+    state.product = wpProduct;
+    state.lastTopicProduct = wpProduct;
+  }
+
   switch (state.intent) {
     case "greeting":
       return getGreetingResponse(state, sessionData);
@@ -912,7 +1039,7 @@ export async function getSmartAutoReply(
     case "product_inquiry": {
       if (state.product) {
         if (state.product.type === "game") {
-          return getGameInquiryResponse(state);
+          return getGameInquiryResponse(state, catalogProduct);
         }
         if (state.product.type === "subscription") {
           return getSubscriptionResponse(state);
@@ -928,11 +1055,13 @@ export async function getSmartAutoReply(
       return getProductInquiryGeneric(state);
     }
 
-    case "purchase_intent":
-      return getPurchaseResponse(state);
+    case "purchase_intent": {
+      const purchaseStage = detectPurchaseStage(conversationHistory);
+      return getPurchaseResponse(state, catalogProduct, purchaseStage);
+    }
 
     case "price_inquiry":
-      return getPriceResponse(state);
+      return getPriceResponse(state, catalogProduct);
 
     case "payment_question":
       return getPaymentResponse(state);

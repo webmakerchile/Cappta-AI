@@ -26,6 +26,13 @@ interface PageInfo {
   title: string;
 }
 
+interface ProductContext {
+  name: string;
+  price?: string;
+  url?: string;
+  image?: string;
+}
+
 function isValidParam(value: string | null): boolean {
   if (!value) return false;
   if (value.includes("<?php") || value.includes("<%") || value.trim() === "") return false;
@@ -38,6 +45,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(true);
   const [contactRequested, setContactRequested] = useState(false);
   const [pageInfo, setPageInfo] = useState<PageInfo>({ url: "", title: "" });
+  const [productContext, setProductContext] = useState<ProductContext | null>(null);
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -49,6 +57,20 @@ export function useChat() {
     const name = params.get("name");
     const pageUrl = params.get("page_url") || document.referrer || "";
     const pageTitle = params.get("page_title") || "";
+
+    const productName = params.get("product_name");
+    const productPrice = params.get("product_price");
+    const productUrl = params.get("product_url");
+    const productImage = params.get("product_image");
+
+    if (isValidParam(productName)) {
+      setProductContext({
+        name: productName!,
+        price: isValidParam(productPrice) ? productPrice! : undefined,
+        url: isValidParam(productUrl) ? productUrl! : undefined,
+        image: isValidParam(productImage) ? productImage! : undefined,
+      });
+    }
 
     setPageInfo({
       url: isValidParam(pageUrl) ? pageUrl : "",
@@ -179,6 +201,9 @@ export function useChat() {
             pageUrl: pageInfo.url,
             pageTitle: pageInfo.title,
             imageUrl: imageUrl || undefined,
+            productName: productContext?.name || undefined,
+            productPrice: productContext?.price || undefined,
+            productUrl: productContext?.url || undefined,
           }),
         });
 
@@ -212,7 +237,7 @@ export function useChat() {
         } catch {}
       }
     },
-    [user, pageInfo],
+    [user, pageInfo, productContext],
   );
 
   const requestContact = useCallback(async () => {

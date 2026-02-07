@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -139,6 +139,19 @@ export async function registerRoutes(
               content: m.content,
             }));
 
+            const catalogLookup = async (query: string) => {
+              const results = await storage.searchProductsByName(query);
+              return results.map(p => ({
+                name: p.name,
+                price: p.price,
+                productUrl: p.productUrl,
+                availability: p.availability,
+                platform: p.platform,
+                description: p.description,
+                category: p.category,
+              }));
+            };
+
             const replyContent = await getSmartAutoReply(
               parsed.data.content,
               conversationHistory,
@@ -148,7 +161,11 @@ export async function registerRoutes(
                 pageTitle: pageTitle || null,
                 pageUrl: pageUrl || null,
                 userName: parsed.data.userName || null,
-              }
+                wpProductName: req.body.productName || null,
+                wpProductPrice: req.body.productPrice || null,
+                wpProductUrl: req.body.productUrl || null,
+              },
+              catalogLookup
             );
 
             const autoReply = await storage.createMessage({
@@ -422,6 +439,74 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/products/search", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.length < 1) {
+        return res.json([]);
+      }
+      const results = await storage.searchProductsByName(query);
+      res.json(results);
+    } catch (error: any) {
+      log(`Error en busqueda de productos: ${error.message}`, "api");
+      res.status(500).json({ message: "Error en busqueda de productos" });
+    }
+  });
+
+  app.get("/api/admin/products", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allProducts = await storage.getProducts();
+      res.json(allProducts);
+    } catch (error: any) {
+      log(`Error al obtener productos: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener productos" });
+    }
+  });
+
+  app.post("/api/admin/products", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const parsed = insertProductSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Datos invalidos", errors: parsed.error.flatten() });
+      }
+      const created = await storage.createProduct(parsed.data);
+      res.json(created);
+    } catch (error: any) {
+      log(`Error al crear producto: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear producto" });
+    }
+  });
+
+  app.patch("/api/admin/products/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+      const updated = await storage.updateProduct(id, req.body);
+      if (!updated) return res.status(404).json({ message: "Producto no encontrado" });
+      res.json(updated);
+    } catch (error: any) {
+      log(`Error al actualizar producto: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar producto" });
+    }
+  });
+
+  app.delete("/api/admin/products/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+      const deleted = await storage.deleteProduct(id);
+      if (!deleted) return res.status(404).json({ message: "Producto no encontrado" });
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error al eliminar producto: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al eliminar producto" });
+    }
+  });
+
   app.patch("/api/admin/sessions/:sessionId/admin-active", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {
@@ -575,6 +660,19 @@ export async function registerRoutes(
                 content: m.content,
               }));
 
+              const socketCatalogLookup = async (query: string) => {
+                const results = await storage.searchProductsByName(query);
+                return results.map(p => ({
+                  name: p.name,
+                  price: p.price,
+                  productUrl: p.productUrl,
+                  availability: p.availability,
+                  platform: p.platform,
+                  description: p.description,
+                  category: p.category,
+                }));
+              };
+
               const replyContent = await getSmartAutoReply(
                 parsed.data.content,
                 conversationHistory,
@@ -584,7 +682,8 @@ export async function registerRoutes(
                   pageTitle: session?.pageTitle || null,
                   pageUrl: session?.pageUrl || null,
                   userName: parsed.data.userName || null,
-                }
+                },
+                socketCatalogLookup
               );
 
               const autoReply = await storage.createMessage({

@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
 
@@ -19,6 +19,12 @@ export interface IStorage {
   createCannedResponse(data: InsertCannedResponse): Promise<CannedResponse>;
   updateCannedResponse(id: number, data: Partial<InsertCannedResponse>): Promise<CannedResponse | null>;
   deleteCannedResponse(id: number): Promise<boolean>;
+  getProducts(): Promise<Product[]>;
+  getProductById(id: number): Promise<Product | null>;
+  createProduct(data: InsertProduct): Promise<Product>;
+  updateProduct(id: number, data: Partial<InsertProduct>): Promise<Product | null>;
+  deleteProduct(id: number): Promise<boolean>;
+  searchProductsByName(query: string): Promise<Product[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -238,6 +244,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(cannedResponses.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async getProducts(): Promise<Product[]> {
+    return await db.select().from(products).orderBy(asc(products.name));
+  }
+
+  async getProductById(id: number): Promise<Product | null> {
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product || null;
+  }
+
+  async createProduct(data: InsertProduct): Promise<Product> {
+    const [created] = await db.insert(products).values(data).returning();
+    return created;
+  }
+
+  async updateProduct(id: number, data: Partial<InsertProduct>): Promise<Product | null> {
+    const [updated] = await db
+      .update(products)
+      .set(data)
+      .where(eq(products.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db
+      .delete(products)
+      .where(eq(products.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async searchProductsByName(query: string): Promise<Product[]> {
+    const searchPattern = `%${query.toLowerCase()}%`;
+    return await db
+      .select()
+      .from(products)
+      .where(
+        or(
+          ilike(products.name, searchPattern),
+          sql`EXISTS (SELECT 1 FROM unnest(${products.searchAliases}) AS alias WHERE lower(alias) LIKE ${searchPattern})`
+        )
+      );
   }
 }
 

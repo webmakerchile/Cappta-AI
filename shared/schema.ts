@@ -49,6 +49,19 @@ export const contactRequests = pgTable("contact_requests", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  searchAliases: text("search_aliases").array().notNull().default(sql`'{}'::text[]`),
+  platform: text("platform", { enum: ["ps4", "ps5", "xbox_one", "xbox_series", "pc", "all"] }).notNull().default("all"),
+  price: text("price"),
+  productUrl: text("product_url"),
+  imageUrl: text("image_url"),
+  availability: text("availability", { enum: ["available", "out_of_stock", "preorder"] }).notNull().default("available"),
+  description: text("description"),
+  category: text("category", { enum: ["game", "subscription", "card", "bundle"] }).notNull().default("game"),
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
@@ -69,6 +82,10 @@ export const insertCannedResponseSchema = createInsertSchema(cannedResponses).om
   id: true,
 });
 
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+});
+
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
@@ -77,6 +94,8 @@ export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type CannedResponse = typeof cannedResponses.$inferSelect;
 export type InsertCannedResponse = z.infer<typeof insertCannedResponseSchema>;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = typeof products.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
