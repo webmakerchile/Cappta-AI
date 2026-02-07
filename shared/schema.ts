@@ -74,6 +74,24 @@ export const ratings = pgTable("ratings", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name").notNull(),
+  role: text("role", { enum: ["superadmin", "admin"] }).notNull().default("admin"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  adminUserId: integer("admin_user_id").notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
@@ -100,6 +118,9 @@ export const insertProductSchema = createInsertSchema(products).omit({
 
 export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, timestamp: true });
 
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true });
+export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({ id: true, createdAt: true });
+
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
@@ -112,6 +133,10 @@ export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertRating = z.infer<typeof insertRatingSchema>;
 export type Rating = typeof ratings.$inferSelect;
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
 
@@ -30,6 +30,18 @@ export interface IStorage {
   createRating(data: InsertRating): Promise<Rating>;
   getRatingBySessionId(sessionId: string): Promise<Rating | null>;
   getAllRatings(): Promise<Rating[]>;
+  // Admin users
+  getAdminUserByEmail(email: string): Promise<AdminUser | null>;
+  getAdminUserById(id: number): Promise<AdminUser | null>;
+  getAllAdminUsers(): Promise<AdminUser[]>;
+  createAdminUser(data: InsertAdminUser): Promise<AdminUser>;
+  updateAdminUserPassword(id: number, passwordHash: string): Promise<AdminUser | null>;
+  deleteAdminUser(id: number): Promise<boolean>;
+  // Push subscriptions
+  getPushSubscriptionsByUserId(adminUserId: number): Promise<PushSubscription[]>;
+  getAllPushSubscriptions(): Promise<PushSubscription[]>;
+  createPushSubscription(data: InsertPushSubscription): Promise<PushSubscription>;
+  deletePushSubscription(endpoint: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -488,6 +500,77 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(ratings)
       .orderBy(desc(ratings.timestamp));
+  }
+
+  async getAdminUserByEmail(email: string): Promise<AdminUser | null> {
+    const [user] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, email));
+    return user || null;
+  }
+
+  async getAdminUserById(id: number): Promise<AdminUser | null> {
+    const [user] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.id, id));
+    return user || null;
+  }
+
+  async getAllAdminUsers(): Promise<AdminUser[]> {
+    return await db
+      .select()
+      .from(adminUsers)
+      .orderBy(asc(adminUsers.email));
+  }
+
+  async createAdminUser(data: InsertAdminUser): Promise<AdminUser> {
+    const [created] = await db.insert(adminUsers).values(data).returning();
+    return created;
+  }
+
+  async updateAdminUserPassword(id: number, passwordHash: string): Promise<AdminUser | null> {
+    const [updated] = await db
+      .update(adminUsers)
+      .set({ passwordHash })
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteAdminUser(id: number): Promise<boolean> {
+    const result = await db
+      .delete(adminUsers)
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getPushSubscriptionsByUserId(adminUserId: number): Promise<PushSubscription[]> {
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.adminUserId, adminUserId));
+  }
+
+  async getAllPushSubscriptions(): Promise<PushSubscription[]> {
+    return await db
+      .select()
+      .from(pushSubscriptions);
+  }
+
+  async createPushSubscription(data: InsertPushSubscription): Promise<PushSubscription> {
+    const [created] = await db.insert(pushSubscriptions).values(data).returning();
+    return created;
+  }
+
+  async deletePushSubscription(endpoint: string): Promise<boolean> {
+    const result = await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, endpoint))
+      .returning();
+    return result.length > 0;
   }
 }
 
