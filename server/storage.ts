@@ -6,7 +6,7 @@ export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean }[]>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
   upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session>;
@@ -123,8 +123,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean }[]> {
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean }[]> {
     const allSessions = await db.select().from(sessions).orderBy(desc(sessions.lastMessageAt));
+
+    const allContactRequests = await db.select({ userEmail: contactRequests.userEmail }).from(contactRequests);
+    const contactRequestEmails = new Set(allContactRequests.map(cr => cr.userEmail.toLowerCase()));
 
     const result = [];
     for (const s of allSessions) {
@@ -155,6 +158,7 @@ export class DatabaseStorage implements IStorage {
         problemType: s.problemType,
         gameName: s.gameName,
         adminActive: s.adminActive ?? false,
+        contactRequested: contactRequestEmails.has(s.userEmail.toLowerCase()),
       });
     }
 
@@ -176,6 +180,7 @@ export class DatabaseStorage implements IStorage {
     for (const lr of legacyResult) {
       if (!sessionIds.has(lr.sessionId)) {
         if (statusFilter === "closed") continue;
+        const lrEmail = lr.userEmail ? lr.userEmail.toLowerCase() : "";
         result.push({
           ...lr,
           status: "active",
@@ -183,6 +188,7 @@ export class DatabaseStorage implements IStorage {
           problemType: null,
           gameName: null,
           adminActive: false,
+          contactRequested: contactRequestEmails.has(lrEmail),
         });
       }
     }

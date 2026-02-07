@@ -510,7 +510,7 @@ export async function registerRoutes(
       const paginated = allProducts.slice(offset, offset + limit);
 
       res.json({
-        products: paginated.map(p => ({ id: p.id, name: p.name, price: p.price, platform: p.platform, category: p.category, availability: p.availability })),
+        products: paginated.map(p => ({ id: p.id, name: p.name, price: p.price, platform: p.platform, category: p.category, availability: p.availability, productUrl: p.productUrl, imageUrl: p.imageUrl, description: p.description })),
         total,
         offset,
         limit,

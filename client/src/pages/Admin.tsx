@@ -31,6 +31,19 @@ interface SessionSummary {
   problemType: string | null;
   gameName: string | null;
   adminActive: boolean;
+  contactRequested?: boolean;
+}
+
+interface BrowseProduct {
+  id: number;
+  name: string;
+  platform: string;
+  price: string | null;
+  productUrl: string | null;
+  imageUrl: string | null;
+  availability: string;
+  description: string | null;
+  category: string;
 }
 
 interface SearchResult {
@@ -202,7 +215,7 @@ function SessionCard({ session, onClick, isSelected }: { session: SessionSummary
           ))}
         </div>
       )}
-      <div className="flex items-center gap-3 text-[11px] text-white/30 pl-9">
+      <div className="flex items-center gap-2 text-[11px] text-white/30 pl-9 flex-wrap">
         <span className="flex items-center gap-1">
           <MessageSquare className="w-3 h-3" />
           {session.messageCount}
@@ -211,10 +224,17 @@ function SessionCard({ session, onClick, isSelected }: { session: SessionSummary
           <Clock className="w-3 h-3" />
           {formatDateTime(session.lastMessage)}
         </span>
-        {session.adminActive && (
-          <span className="flex items-center gap-1 text-emerald-400">
-            <ShieldCheck className="w-3 h-3" />
-            Admin
+        {session.adminActive ? (
+          <span data-testid={`badge-ejecutivo-${session.sessionId}`} className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            Ejecutivo
+          </span>
+        ) : session.contactRequested ? (
+          <span data-testid={`badge-solicita-${session.sessionId}`} className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+            Solicita Ejecutivo
+          </span>
+        ) : (
+          <span data-testid={`badge-bot-${session.sessionId}`} className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30">
+            Bot
           </span>
         )}
       </div>
@@ -336,6 +356,9 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   const [replyText, setReplyText] = useState("");
   const replyInputRef = useRef<HTMLInputElement>(null);
   const adminFileInputRef = useRef<HTMLInputElement>(null);
+  const [showProductSearch, setShowProductSearch] = useState(false);
+  const [productQuery, setProductQuery] = useState("");
+  const [debouncedProductQuery, setDebouncedProductQuery] = useState("");
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
   const isAdminActive = currentSession?.adminActive ?? false;
@@ -418,6 +441,34 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedProductQuery(productQuery), 300);
+    return () => clearTimeout(timer);
+  }, [productQuery]);
+
+  const { data: browseProducts = [] } = useQuery<BrowseProduct[]>({
+    queryKey: ["/api/products/browse", debouncedProductQuery],
+    queryFn: async () => {
+      if (!debouncedProductQuery || debouncedProductQuery.length < 2) return [];
+      const res = await fetch(`/api/products/browse?q=${encodeURIComponent(debouncedProductQuery)}&limit=20`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.products || data;
+    },
+    enabled: showProductSearch && debouncedProductQuery.length >= 2,
+  });
+
+  const handleProductSend = (product: BrowseProduct) => {
+    const content = `Te recomiendo este producto: ${product.name}. Precio: ${product.price || "Consultar"}. Entrega digital inmediata a tu correo.${product.productUrl ? ` [BTN:Ir a comprar|URL:${product.productUrl}]` : ""}`;
+    replyMutation.mutate({ content }, {
+      onSuccess: () => {
+        setShowProductSearch(false);
+        setProductQuery("");
+        setDebouncedProductQuery("");
+      },
+    });
+  };
 
   const handleReplySend = () => {
     if (!replyText.trim() || replyMutation.isPending) return;
@@ -601,48 +652,109 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
       </div>
 
       {isAdminActive ? (
-        <div className="px-3 py-2 border-t border-white/[0.06] flex items-center gap-2">
-          <input
-            ref={adminFileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAdminImageSelect}
-            className="hidden"
-            data-testid="input-admin-image-file"
-          />
-          <Button
-            data-testid="button-admin-attach-image"
-            size="icon"
-            variant="ghost"
-            onClick={() => adminFileInputRef.current?.click()}
-            disabled={adminIsUploading}
-            className="text-white/40 flex-shrink-0"
-          >
-            {adminIsUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#6200EA]" />
-            ) : (
-              <ImagePlus className="w-4 h-4" />
-            )}
-          </Button>
-          <Input
-            ref={replyInputRef}
-            data-testid="input-admin-reply"
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReplySend(); } }}
-            placeholder="Escribe tu respuesta..."
-            className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
-            autoFocus
-          />
-          <Button
-            data-testid="button-admin-send"
-            size="icon"
-            onClick={handleReplySend}
-            disabled={!replyText.trim() || replyMutation.isPending}
-            className="bg-[#6200EA] text-white flex-shrink-0"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
+        <div className="relative">
+          {showProductSearch && (
+            <div data-testid="product-search-panel" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-72 flex flex-col z-10">
+              <div className="p-2 border-b border-white/[0.06] flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+                <input
+                  data-testid="input-product-search-chat"
+                  value={productQuery}
+                  onChange={(e) => setProductQuery(e.target.value)}
+                  placeholder="Buscar producto..."
+                  className="flex-1 bg-transparent text-white text-sm placeholder:text-white/30 outline-none"
+                  autoFocus
+                />
+                <button
+                  data-testid="button-close-product-search"
+                  onClick={() => { setShowProductSearch(false); setProductQuery(""); setDebouncedProductQuery(""); }}
+                  className="text-white/30 hover:text-white/60"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {debouncedProductQuery.length < 2 ? (
+                  <div className="p-4 text-center text-xs text-white/30">Escribe al menos 2 caracteres para buscar</div>
+                ) : browseProducts.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-white/30">No se encontraron productos</div>
+                ) : (
+                  browseProducts.map((p) => (
+                    <button
+                      key={p.id}
+                      data-testid={`product-send-${p.id}`}
+                      onClick={() => handleProductSend(p)}
+                      disabled={replyMutation.isPending}
+                      className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors border-b border-white/[0.04] last:border-0"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-white truncate">{p.name}</span>
+                        <span className="text-[10px] bg-[#6200EA]/15 text-[#6200EA] px-1.5 py-0.5 rounded flex-shrink-0">{getPlatformLabel(p.platform)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {p.price && <span className="text-xs text-green-400">{p.price}</span>}
+                        <span className={`text-[10px] ${p.availability === "available" ? "text-green-400/60" : "text-red-400/60"}`}>
+                          {getAvailabilityLabel(p.availability)}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+          <div className="px-3 py-2 border-t border-white/[0.06] flex items-center gap-2">
+            <input
+              ref={adminFileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAdminImageSelect}
+              className="hidden"
+              data-testid="input-admin-image-file"
+            />
+            <Button
+              data-testid="button-admin-attach-image"
+              size="icon"
+              variant="ghost"
+              onClick={() => adminFileInputRef.current?.click()}
+              disabled={adminIsUploading}
+              className="text-white/40 flex-shrink-0"
+            >
+              {adminIsUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#6200EA]" />
+              ) : (
+                <ImagePlus className="w-4 h-4" />
+              )}
+            </Button>
+            <Button
+              data-testid="button-admin-product-search"
+              size="icon"
+              variant="ghost"
+              onClick={() => setShowProductSearch(!showProductSearch)}
+              className={`flex-shrink-0 ${showProductSearch ? "text-[#6200EA]" : "text-white/40"}`}
+            >
+              <Package className="w-4 h-4" />
+            </Button>
+            <Input
+              ref={replyInputRef}
+              data-testid="input-admin-reply"
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReplySend(); } }}
+              placeholder="Escribe tu respuesta..."
+              className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
+              autoFocus
+            />
+            <Button
+              data-testid="button-admin-send"
+              size="icon"
+              onClick={handleReplySend}
+              disabled={!replyText.trim() || replyMutation.isPending}
+              className="bg-[#6200EA] text-white flex-shrink-0"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
@@ -1419,6 +1531,7 @@ export default function AdminPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
+  const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
   const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products">("conversations");
 
   useEffect(() => {
@@ -1459,7 +1572,7 @@ export default function AdminPage() {
   });
 
   const isSearching = debouncedSearch.length >= 2;
-  const displaySessions = isSearching
+  const baseSessions = isSearching
     ? searchResults.map((r) => ({
         sessionId: r.sessionId,
         userName: r.userName,
@@ -1472,8 +1585,18 @@ export default function AdminPage() {
         problemType: null,
         gameName: null,
         adminActive: false,
+        contactRequested: false,
       }))
     : sessions;
+
+  const displaySessions = agentFilter === "all"
+    ? baseSessions
+    : baseSessions.filter((s) => {
+        if (agentFilter === "ejecutivo") return s.adminActive;
+        if (agentFilter === "solicita") return !s.adminActive && s.contactRequested;
+        if (agentFilter === "bot") return !s.adminActive && !s.contactRequested;
+        return true;
+      });
 
   const selectSession = useCallback((sid: string) => {
     setSelectedSession(sid);
@@ -1602,21 +1725,47 @@ export default function AdminPage() {
             </div>
 
             {!isSearching && (
-              <div className="flex items-center gap-1 px-3 py-2 border-b border-white/[0.06]">
-                {statusTabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    data-testid={`tab-filter-${tab.key}`}
-                    onClick={() => setStatusFilter(tab.key)}
-                    className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                      statusFilter === tab.key
-                        ? "bg-[#6200EA] text-white"
-                        : "text-white/40 hover:text-white/60 bg-white/[0.03]"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+              <div className="border-b border-white/[0.06] px-3 py-2 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1">
+                  {statusTabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      data-testid={`tab-filter-${tab.key}`}
+                      onClick={() => setStatusFilter(tab.key)}
+                      className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                        statusFilter === tab.key
+                          ? "bg-[#6200EA] text-white"
+                          : "text-white/40 hover:text-white/60 bg-white/[0.03]"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1">
+                  {([
+                    { key: "all" as const, label: "Todos" },
+                    { key: "bot" as const, label: "Bot" },
+                    { key: "ejecutivo" as const, label: "Ejecutivo" },
+                    { key: "solicita" as const, label: "Solicita Ejecutivo" },
+                  ]).map((tab) => (
+                    <button
+                      key={tab.key}
+                      data-testid={`tab-agent-${tab.key}`}
+                      onClick={() => setAgentFilter(tab.key)}
+                      className={`px-2 py-0.5 text-[10px] rounded-md transition-colors ${
+                        agentFilter === tab.key
+                          ? tab.key === "bot" ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                            : tab.key === "ejecutivo" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            : tab.key === "solicita" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                            : "bg-[#6200EA] text-white border border-transparent"
+                          : "text-white/30 hover:text-white/50 bg-white/[0.03] border border-transparent"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
