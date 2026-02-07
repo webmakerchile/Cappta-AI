@@ -316,8 +316,16 @@ function detectIntent(msg: string, history: ConversationEntry[], product: Detect
     return "greeting";
   }
 
-  if (/\bcomprar\b|\bquiero\b.*\b(comprar|adquirir|obtener)\b|\bme\s*interesa\b|\blo\s*quiero\b|\bme\s*lo\s*llevo\b|\bproceder\b/.test(msg)) {
+  if (/\bcomprar\w*\b|\bquiero\b.*\b(comprar\w*|adquirir\w*|obtener\w*)\b|\bme\s*interesa\b|\blo\s*quiero\b|\bme\s*lo\s*llevo\b|\bproceder\b/.test(msg)) {
     return "purchase_intent";
+  }
+
+  const lastBotMsg = [...history].reverse().find(h => h.sender === "support");
+  if (lastBotMsg && /te\s*gustaria\s*comprar|quieres\s*(que\s*te\s*ayude|proceder)|quieres\s*comprar|gustaria\s*proceder/i.test(lastBotMsg.content)) {
+    if (/^\s*(si|sí|dale|ok|claro|bueno|va|vale|por\s*favor|porfa|afirmativo|obvio|de\s*una|hagale|listo)\s*$/i.test(msg) ||
+        /\b(si|sí)\b.*\b(quiero|porfa|favor|dale)\b/i.test(msg)) {
+      return "purchase_intent";
+    }
   }
 
   if (/\bprecio\b|\bcosto\b|\bcuanto\b|\bcuánto\b|\bvale\b|\bcobran\b|\bbarato\b|\bcaro\b/.test(msg)) {
@@ -434,9 +442,11 @@ function buildConversationState(
       previousIntents.push(entryIntent);
       if (entryIntent === "unknown") unknownCount++;
     } else {
+      const cleanContent = entry.content.replace(/\{\{QUICK_REPLIES:.*\}\}$/, "").trim();
+      usedResponses.add(cleanContent);
       usedResponses.add(entry.content);
-      if (entry.content.includes("Estoy aqui para ayudarte con nuestros productos") ||
-          entry.content.includes("puedo ayudarte") && entry.content.length < 100) {
+      if (cleanContent.includes("Estoy aqui para ayudarte con nuestros productos") ||
+          cleanContent.includes("puedo ayudarte") && cleanContent.length < 100) {
         genericCount++;
       }
     }
@@ -1059,10 +1069,10 @@ function detectPurchaseStage(conversationHistory: ConversationEntry[]): number {
   for (const entry of conversationHistory) {
     if (entry.sender === "support") {
       const content = entry.content.toLowerCase();
-      if (content.includes("precio:") || content.includes("precio de") || content.includes("tiene un precio") || content.includes("puedes verlo aqui")) {
+      if (content.includes("precio:") || content.includes("precio de") || content.includes("tiene un precio") || content.includes("puedes verlo aqui") || content.includes("entrega digital inmediata")) {
         hasShownProductInfo = true;
       }
-      if (content.includes("puedes comprarlo directamente") || content.includes("comprarlo aqui") || content.includes("link de compra")) {
+      if (content.includes("puedes comprarlo directamente") || content.includes("comprarlo aqui") || content.includes("link de compra") || content.includes("comprar ahora") || content.includes("ir a comprar")) {
         hasShownPurchaseLink = true;
       }
     }
