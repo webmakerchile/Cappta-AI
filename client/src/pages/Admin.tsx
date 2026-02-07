@@ -4,12 +4,13 @@ import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
-  Send, ShieldCheck, ShieldOff
+  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Message } from "@shared/schema";
+import { useUpload } from "@/hooks/use-upload";
 
 interface SessionSummary {
   sessionId: string;
@@ -327,6 +328,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   const [showLocalSearch, setShowLocalSearch] = useState(false);
   const [replyText, setReplyText] = useState("");
   const replyInputRef = useRef<HTMLInputElement>(null);
+  const adminFileInputRef = useRef<HTMLInputElement>(null);
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
   const isAdminActive = currentSession?.adminActive ?? false;
@@ -374,11 +376,11 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   });
 
   const replyMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (data: { content?: string; imageUrl?: string }) => {
       const res = await fetch(`/api/admin/sessions/${sessionId}/reply`, {
         method: "POST",
         headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Error al enviar respuesta");
       return res.json();
@@ -391,13 +393,28 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     },
   });
 
+  const { uploadFile: adminUploadFile, isUploading: adminIsUploading } = useUpload({
+    onSuccess: (response) => {
+      replyMutation.mutate({ imageUrl: response.objectPath });
+    },
+  });
+
+  const handleAdminImageSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    await adminUploadFile(file);
+    if (adminFileInputRef.current) adminFileInputRef.current.value = "";
+  }, [adminUploadFile]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleReplySend = () => {
     if (!replyText.trim() || replyMutation.isPending) return;
-    replyMutation.mutate(replyText.trim());
+    replyMutation.mutate({ content: replyText.trim() });
   };
 
   const activeSearch = showLocalSearch ? localSearch : searchQuery;
@@ -521,6 +538,9 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
         ) : (
           filteredMessages.map((msg) => {
             const isUser = msg.sender === "user";
+            const hasImage = !!(msg as any).imageUrl;
+            const imageUrl = (msg as any).imageUrl;
+            const isImageOnly = hasImage && (!msg.content || msg.content === "Imagen enviada");
             return (
               <div
                 key={msg.id}
@@ -539,13 +559,28 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
                 )}
                 <div className="flex flex-col gap-0.5 max-w-[75%]">
                   <div
-                    className={`px-3 py-2 rounded-md text-sm leading-relaxed break-words ${
+                    className={`rounded-md overflow-hidden ${
                       isUser
                         ? "bg-[#6200EA] text-white rounded-br-none"
                         : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
                     }`}
                   >
-                    {activeSearch ? highlightText(msg.content, activeSearch) : msg.content}
+                    {hasImage && (
+                      <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                        <img
+                          src={imageUrl}
+                          alt="Imagen compartida"
+                          data-testid={`admin-message-image-${msg.id}`}
+                          className="max-w-full max-h-48 object-contain cursor-pointer rounded-md"
+                          loading="lazy"
+                        />
+                      </a>
+                    )}
+                    {!isImageOnly && (
+                      <div className="px-3 py-2 text-sm leading-relaxed break-words">
+                        {activeSearch ? highlightText(msg.content, activeSearch) : msg.content}
+                      </div>
+                    )}
                   </div>
                   <span className={`text-[10px] text-white/25 ${isUser ? "text-right" : "text-left"}`}>
                     {formatDateTime(msg.timestamp)}
@@ -560,6 +595,28 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
 
       {isAdminActive ? (
         <div className="px-3 py-2 border-t border-white/[0.06] flex items-center gap-2">
+          <input
+            ref={adminFileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAdminImageSelect}
+            className="hidden"
+            data-testid="input-admin-image-file"
+          />
+          <Button
+            data-testid="button-admin-attach-image"
+            size="icon"
+            variant="ghost"
+            onClick={() => adminFileInputRef.current?.click()}
+            disabled={adminIsUploading}
+            className="text-white/40 flex-shrink-0"
+          >
+            {adminIsUploading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-[#6200EA]" />
+            ) : (
+              <ImagePlus className="w-4 h-4" />
+            )}
+          </Button>
           <Input
             ref={replyInputRef}
             data-testid="input-admin-reply"

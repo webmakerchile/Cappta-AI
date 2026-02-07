@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
+import { useUpload } from "@/hooks/use-upload";
 
 interface CannedResponse {
   id: number;
@@ -12,7 +13,7 @@ interface CannedResponse {
 
 interface ChatWindowProps {
   messages: Message[];
-  onSend: (content: string) => void;
+  onSend: (content: string, imageUrl?: string) => void;
   onContactExecutive: () => void;
   isConnected: boolean;
   userName: string;
@@ -44,6 +45,9 @@ function highlightText(text: string, query: string) {
 
 function MessageBubble({ message, searchQuery }: { message: Message; searchQuery: string }) {
   const isUser = message.sender === "user";
+  const hasImage = !!(message as any).imageUrl;
+  const imageUrl = (message as any).imageUrl;
+  const isImageOnly = hasImage && (!message.content || message.content === "Imagen enviada");
 
   return (
     <div
@@ -58,14 +62,29 @@ function MessageBubble({ message, searchQuery }: { message: Message; searchQuery
       <div className="flex flex-col gap-1 max-w-[75%]">
         <div
           className={`
-            px-3.5 py-2.5 rounded-md text-sm leading-relaxed break-words
+            rounded-md overflow-hidden
             ${isUser
               ? "bg-[#6200EA] text-white rounded-br-none"
               : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
             }
           `}
         >
-          {searchQuery ? highlightText(message.content, searchQuery) : message.content}
+          {hasImage && (
+            <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+              <img
+                src={imageUrl}
+                alt="Imagen compartida"
+                data-testid={`message-image-${message.id}`}
+                className="max-w-full max-h-52 object-contain cursor-pointer rounded-md"
+                loading="lazy"
+              />
+            </a>
+          )}
+          {!isImageOnly && (
+            <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words">
+              {searchQuery ? highlightText(message.content, searchQuery) : message.content}
+            </div>
+          )}
         </div>
         <span
           className={`text-[10px] text-white/30 ${isUser ? "text-right" : "text-left"}`}
@@ -88,6 +107,22 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
   const inputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const slashMenuRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { uploadFile, isUploading } = useUpload({
+    onSuccess: (response) => {
+      onSend("", response.objectPath);
+    },
+  });
+
+  const handleImageSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    await uploadFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, [uploadFile]);
 
   const { data: cannedResponses = [] } = useQuery<CannedResponse[]>({
     queryKey: ["/api/canned-responses"],
@@ -322,10 +357,33 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           </div>
         )}
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageSelect}
+          className="hidden"
+          data-testid="input-image-file"
+        />
         <form
           onSubmit={handleSubmit}
           className="flex items-center gap-2"
         >
+          <Button
+            data-testid="button-attach-image"
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="text-white/40 flex-shrink-0"
+          >
+            {isUploading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-[#6200EA]" />
+            ) : (
+              <ImagePlus className="w-4 h-4" />
+            )}
+          </Button>
           <input
             ref={inputRef}
             data-testid="input-message"
@@ -342,22 +400,15 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
               transition-colors
             "
           />
-          <button
+          <Button
             data-testid="button-send"
             type="submit"
+            size="icon"
             disabled={!input.trim() || showSlashMenu}
-            className="
-              w-10 h-10 rounded-md flex items-center justify-center
-              bg-[#6200EA] text-white
-              disabled:opacity-30 disabled:cursor-not-allowed
-              transition-all duration-200
-              hover:bg-[#7c2fff]
-              active:scale-95
-              focus:outline-none
-            "
+            className="bg-[#6200EA] text-white flex-shrink-0"
           >
             <Send className="w-4 h-4" />
-          </button>
+          </Button>
         </form>
       </div>
     </div>

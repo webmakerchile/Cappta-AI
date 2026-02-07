@@ -162,21 +162,23 @@ export function useChat() {
   }, [user]);
 
   const sendMessage = useCallback(
-    async (content: string) => {
-      if (!user || !content.trim()) return;
+    async (content: string, imageUrl?: string) => {
+      if (!user) return;
+      if (!content.trim() && !imageUrl) return;
 
       try {
         const res = await fetch("/api/messages", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            content: content.trim(),
+            content: content.trim() || (imageUrl ? "Imagen enviada" : ""),
             sessionId: user.sessionId,
             userEmail: user.email,
             userName: user.name,
             sender: "user",
             pageUrl: pageInfo.url,
             pageTitle: pageInfo.title,
+            imageUrl: imageUrl || undefined,
           }),
         });
 

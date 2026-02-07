@@ -6,12 +6,14 @@ import { insertMessageSchema, insertCannedResponseSchema } from "@shared/schema"
 import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
 const socketMessageSchema = insertMessageSchema.extend({
-  content: z.string().min(1).max(2000),
+  content: z.string().max(2000),
   userEmail: z.string().email().max(200),
   userName: z.string().min(1).max(100),
   sender: z.enum(["user", "support"]),
+  imageUrl: z.string().optional().nullable(),
 });
 
 const contactSchema = z.object({
@@ -69,6 +71,8 @@ export async function registerRoutes(
 
   const userSessions = new Map<string, UserSession>();
 
+  registerObjectStorageRoutes(app);
+
   app.get("/api/messages/session/:sessionId", async (req, res) => {
     try {
       const sessionId = req.params.sessionId;
@@ -84,7 +88,12 @@ export async function registerRoutes(
 
   app.post("/api/messages", async (req, res) => {
     try {
-      const parsed = socketMessageSchema.safeParse(req.body);
+      const hasImage = !!req.body.imageUrl;
+      const bodyForValidation = { ...req.body };
+      if (hasImage && (!bodyForValidation.content || bodyForValidation.content.trim() === "")) {
+        bodyForValidation.content = "Imagen enviada";
+      }
+      const parsed = socketMessageSchema.safeParse(bodyForValidation);
       if (!parsed.success) {
         return res.status(400).json({ message: "Datos de mensaje invalidos" });
       }
@@ -108,13 +117,14 @@ export async function registerRoutes(
         userName: parsed.data.userName,
         sender: parsed.data.sender,
         content: parsed.data.content,
+        imageUrl: req.body.imageUrl || null,
       });
 
       await storage.touchSession(sessionId);
 
       io.to(`session:${sessionId}`).emit("new_message", message);
 
-      if (parsed.data.sender === "user") {
+      if (parsed.data.sender === "user" && !req.body.imageUrl) {
         const pageUrl = req.body.pageUrl || "";
         const pageTitle = req.body.pageTitle || "";
         setTimeout(async () => {
@@ -430,8 +440,8 @@ export async function registerRoutes(
   app.post("/api/admin/sessions/:sessionId/reply", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {
-      const { content } = req.body;
-      if (!content || typeof content !== "string" || content.trim().length === 0) {
+      const { content, imageUrl } = req.body;
+      if ((!content || typeof content !== "string" || content.trim().length === 0) && !imageUrl) {
         return res.status(400).json({ message: "Contenido requerido" });
       }
 
@@ -445,7 +455,8 @@ export async function registerRoutes(
         userEmail: session.userEmail,
         userName: "Soporte",
         sender: "support",
-        content: content.trim(),
+        content: (content || "").trim() || (imageUrl ? "Imagen enviada" : ""),
+        imageUrl: imageUrl || null,
       });
 
       await storage.touchSession(req.params.sessionId);

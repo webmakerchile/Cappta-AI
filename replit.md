@@ -26,9 +26,10 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 14. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
 15. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
 16. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
+17. **Image Uploads**: Both users and admins can send images in chat. Images are uploaded to Replit Object Storage via presigned URL flow. Messages with images display inline with clickable previews. Image-only messages skip auto-reply. Max file size: 5MB.
 
 ## Database Tables
-- `messages` - Chat messages with sessionId, sender, content, timestamp
+- `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
 - `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt
 - `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
 - `contact_requests` - Executive contact requests with chat summary
@@ -43,10 +44,12 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `client/src/App.tsx` - Main app container with routing (/ = widget, /admin = admin panel)
 - `client/src/pages/Admin.tsx` - Admin panel with session list, chat viewer, global search, status filters, tags, canned responses CRUD
 - `client/src/components/Launcher.tsx` - Floating chat button
-- `client/src/components/ChatWindow.tsx` - Chat messages area + input + in-chat search + slash commands + contact executive button
+- `client/src/components/ChatWindow.tsx` - Chat messages area + input + in-chat search + slash commands + contact executive button + image upload
 - `client/src/components/WelcomeForm.tsx` - Guest login form (Spanish)
 - `client/src/hooks/use-chat.ts` - Chat state management hook with TanStack Query integration
+- `client/src/hooks/use-upload.ts` - Presigned URL upload hook for object storage
 - `client/src/lib/socket.ts` - Socket.io client configuration
+- `server/replit_integrations/object_storage/` - Object storage service, routes (presigned URLs), ACL
 
 ## Admin API Endpoints (all require x-admin-key header = SESSION_SECRET)
 - `GET /api/admin/sessions?status=active|closed|all` - List sessions with filters
