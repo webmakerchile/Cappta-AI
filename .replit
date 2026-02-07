@@ -44,4 +44,4 @@ integrations = ["javascript_object_storage:2.0.0"]
 [userenv]
 
 [userenv.shared]
-WC_STORE_URL = "https://cjmdigitales.com"
+WC_STORE_URL = "https://cjmdigitales.cl"

@@ -133,9 +133,13 @@ async function fetchWCProducts(page: number = 1, perPage: number = 100): Promise
 
   for (const url of urls) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
       const response = await fetch(url, {
         headers: { "Accept": "application/json" },
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (!response.ok) {
         const text = await response.text();
