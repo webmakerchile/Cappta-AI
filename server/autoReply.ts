@@ -518,6 +518,110 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   const userName = sessionData?.userName;
   const nameGreeting = userName ? `, ${userName}` : "";
   const pageContext = sessionData?.pageTitle ? ` Veo que estas navegando en "${sessionData.pageTitle}".` : "";
+  const problemType = sessionData?.problemType;
+
+  if (problemType && problemType !== "otro") {
+    const productName = state.product ? formatGameWithVersion(state.product) : null;
+    const platSuffix = state.product ? formatPlatformSuffix(state.product) : "";
+
+    if (problemType === "compra") {
+      if (productName) {
+        const text = pickUnused([
+          `¡Hola${nameGreeting}! ¡Que emocion que quieras comprar ${productName}${platSuffix}! Tenemos entrega digital inmediata a tu correo. ¿Te ayudo con la compra?`,
+          `¡Hola${nameGreeting}! ¡Excelente eleccion! ${productName}${platSuffix} esta disponible en nuestra tienda con entrega instantanea. ¿Quieres proceder con la compra?`,
+        ], state.usedResponses);
+        return withButtons(text, [
+          {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+          {label: "Ver mas detalles", value: `quiero info de ${productName}`},
+          {label: "Contactar ejecutivo", value: "__qr:contact"},
+        ]);
+      }
+      const text = pickUnused([
+        `¡Hola${nameGreeting}! ¡Bienvenido a nuestra tienda! Estamos listos para ayudarte con tu compra.${pageContext} ¿Que producto te interesa?`,
+        `¡Hola${nameGreeting}! ¡Que bueno que nos visitas! Tenemos juegos y suscripciones digitales con entrega inmediata.${pageContext} ¿Que te gustaria comprar?`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Juegos PS5", value: "__qr:platform:ps5"},
+        {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+        {label: "Suscripciones", value: "__qr:category:subscription"},
+      ]);
+    }
+
+    if (problemType === "problema_cuenta") {
+      const text = pickUnused([
+        `¡Hola${nameGreeting}! Lamento que estes teniendo problemas con tu cuenta. No te preocupes, vamos a resolverlo. Te recomiendo contactar a uno de nuestros ejecutivos para brindarte atencion personalizada.`,
+        `¡Hola${nameGreeting}! Entiendo que tienes un inconveniente con tu cuenta. Nuestro equipo esta listo para ayudarte. Lo mejor es que hables directamente con un ejecutivo para resolver tu caso lo antes posible.`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
+    }
+
+    if (problemType === "entrega") {
+      const text = pickUnused([
+        `¡Hola${nameGreeting}! Entiendo tu preocupacion sobre la entrega. Recuerda que todos nuestros productos son digitales y la entrega es instantanea a tu correo electronico. Si no has recibido tu producto, un ejecutivo puede verificar tu pedido de inmediato.`,
+        `¡Hola${nameGreeting}! Lamento el inconveniente con tu entrega. Nuestros productos digitales se entregan al instante por email. Si hay algun problema, un ejecutivo puede revisar el estado de tu pedido rapidamente.`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
+    }
+
+    if (problemType === "devolucion") {
+      const text = pickUnused([
+        `¡Hola${nameGreeting}! Entiendo que necesitas gestionar una devolucion o cambio. Para agilizar tu solicitud, te conecto directamente con un ejecutivo que revisara tu caso segun nuestra politica de devoluciones.`,
+        `¡Hola${nameGreeting}! Lamento que necesites una devolucion. Nuestro equipo revisara tu caso de acuerdo a nuestra politica de devoluciones. Te recomiendo contactar a un ejecutivo para una respuesta rapida.`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
+    }
+
+    if (problemType === "info_producto") {
+      if (productName) {
+        const text = pickUnused([
+          `¡Hola${nameGreeting}! Veo que quieres informacion sobre ${productName}${platSuffix}. Es un excelente titulo que manejamos en version digital con entrega inmediata. ¿Que te gustaria saber?`,
+          `¡Hola${nameGreeting}! Con gusto te doy informacion sobre ${productName}${platSuffix}. Trabajamos con codigos digitales y entrega instantanea por correo. ¿Necesitas saber precio, disponibilidad o algun detalle especifico?`,
+        ], state.usedResponses);
+        return withButtons(text, [
+          {label: "Ver precio", value: `precio de ${productName}`},
+          {label: "Comprar", value: "si quiero comprarlo"},
+          {label: "Contactar ejecutivo", value: "__qr:contact"},
+        ]);
+      }
+      const text = pickUnused([
+        `¡Hola${nameGreeting}! Con gusto te brindo informacion sobre nuestros productos.${pageContext} Tenemos juegos y suscripciones digitales para PlayStation y Xbox. ¿Sobre que producto te gustaria saber mas?`,
+        `¡Hola${nameGreeting}! Estoy aqui para darte toda la informacion que necesites.${pageContext} Contamos con un amplio catalogo de juegos y suscripciones digitales. ¿Que producto te interesa?`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Juegos PS5", value: "__qr:platform:ps5"},
+        {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+        {label: "Suscripciones", value: "__qr:category:subscription"},
+      ]);
+    }
+
+    if (problemType === "precio") {
+      if (productName) {
+        const text = pickUnused([
+          `¡Hola${nameGreeting}! Veo que te interesa el precio de ${productName}${platSuffix}. Dejame verificar la informacion para ti. Para el precio exacto y ofertas disponibles, te recomiendo contactar a un ejecutivo.`,
+          `¡Hola${nameGreeting}! Quieres saber el precio de ${productName}${platSuffix}. Nuestros precios son competitivos y la entrega es digital e inmediata. Un ejecutivo puede darte el precio actualizado al momento.`,
+        ], state.usedResponses);
+        return withButtons(text, [
+          {label: "Contactar ejecutivo", value: "__qr:contact"},
+          {label: "Comprar", value: "si quiero comprarlo"},
+        ]);
+      }
+      const text = pickUnused([
+        `¡Hola${nameGreeting}! Con gusto te ayudo con informacion de precios.${pageContext} ¿Sobre que producto te gustaria consultar el precio?`,
+        `¡Hola${nameGreeting}! Estoy aqui para darte informacion de precios.${pageContext} Dime que producto te interesa y te brindo los detalles.`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Juegos PS5", value: "__qr:platform:ps5"},
+        {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+        {label: "Suscripciones", value: "__qr:category:subscription"},
+      ]);
+    }
+  }
 
   if (state.product) {
     const productName = formatGameWithVersion(state.product);

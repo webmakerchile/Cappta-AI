@@ -1,9 +1,31 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2, ExternalLink, LogOut } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
+
+interface BrowseProduct {
+  id: number;
+  name: string;
+  price: string | null;
+  platform: string;
+  category: string;
+  availability: string;
+}
+
+const getPlatformBadge = (platform: string): string => {
+  const platformMap: Record<string, string> = {
+    ps5: "PS5",
+    ps4: "PS4",
+    xbox_series: "Xbox Series",
+    xbox_one: "Xbox One",
+    nintendo: "Nintendo",
+    pc: "PC",
+    all: "",
+  };
+  return platformMap[platform] || platform;
+};
 
 interface CannedResponse {
   id: number;
@@ -168,11 +190,18 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashFilter, setSlashFilter] = useState("");
   const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
+  const [showProductBrowser, setShowProductBrowser] = useState(false);
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [browseProducts, setBrowseProducts] = useState<BrowseProduct[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const slashMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const productBrowserRef = useRef<HTMLDivElement>(null);
+  const productSearchInputRef = useRef<HTMLInputElement>(null);
+  const productDebounceRef = useRef<NodeJS.Timeout>();
 
   const { uploadFile, isUploading } = useUpload({
     onSuccess: (response) => {
@@ -188,6 +217,78 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
     await uploadFile(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, [uploadFile]);
+
+  const fetchBrowseProducts = useCallback(async (query: string) => {
+    try {
+      setIsLoadingProducts(true);
+      const url = query.length >= 2
+        ? `/api/products/browse?q=${encodeURIComponent(query)}&limit=20`
+        : `/api/products/browse?limit=20`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Error fetching products");
+      const data = await response.json();
+      setBrowseProducts(data.products || []);
+    } catch {
+      setBrowseProducts([]);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, []);
+
+  const handleProductSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setProductSearchQuery(val);
+    if (productDebounceRef.current) clearTimeout(productDebounceRef.current);
+    productDebounceRef.current = setTimeout(() => {
+      fetchBrowseProducts(val);
+    }, 300);
+  }, [fetchBrowseProducts]);
+
+  const handleProductSelect = useCallback((product: BrowseProduct) => {
+    onSend(product.name);
+    setShowProductBrowser(false);
+    setProductSearchQuery("");
+    setBrowseProducts([]);
+    inputRef.current?.focus();
+  }, [onSend]);
+
+  const toggleProductBrowser = useCallback(() => {
+    const nextState = !showProductBrowser;
+    setShowProductBrowser(nextState);
+    if (nextState) {
+      setShowSlashMenu(false);
+      fetchBrowseProducts("");
+      setTimeout(() => productSearchInputRef.current?.focus(), 50);
+    } else {
+      setProductSearchQuery("");
+      setBrowseProducts([]);
+    }
+  }, [showProductBrowser, fetchBrowseProducts]);
+
+  useEffect(() => {
+    if (!showProductBrowser) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (productBrowserRef.current && !productBrowserRef.current.contains(e.target as Node)) {
+        setShowProductBrowser(false);
+        setProductSearchQuery("");
+        setBrowseProducts([]);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowProductBrowser(false);
+        setProductSearchQuery("");
+        setBrowseProducts([]);
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showProductBrowser]);
 
   const { data: cannedResponses = [] } = useQuery<CannedResponse[]>({
     queryKey: ["/api/canned-responses"],
@@ -461,6 +562,83 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           </div>
         )}
 
+        {showProductBrowser && (
+          <div
+            ref={productBrowserRef}
+            data-testid="product-browser-overlay"
+            className="absolute bottom-full left-3 right-3 mb-1 bg-[#1e1e1e] border border-white/10 rounded-md shadow-lg z-50 flex flex-col max-h-72"
+          >
+            <div className="px-3 py-2 border-b border-white/[0.06] flex items-center gap-2">
+              <ShoppingBag className="w-3.5 h-3.5 text-[#6200EA] flex-shrink-0" />
+              <span className="text-[11px] text-white/30">Catalogo de productos</span>
+              <Button
+                data-testid="button-close-product-browser"
+                size="icon"
+                variant="ghost"
+                onClick={() => { setShowProductBrowser(false); setProductSearchQuery(""); setBrowseProducts([]); }}
+                className="ml-auto text-white/30 w-6 h-6 min-h-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <div className="px-3 py-2 border-b border-white/[0.06]">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+                <input
+                  ref={productSearchInputRef}
+                  data-testid="input-product-browser-search"
+                  type="text"
+                  value={productSearchQuery}
+                  onChange={handleProductSearchChange}
+                  placeholder="Buscar producto..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]"
+                  autoComplete="off"
+                />
+                {isLoadingProducts && (
+                  <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/50 animate-spin" />
+                )}
+              </div>
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {isLoadingProducts && browseProducts.length === 0 ? (
+                <div className="p-3 text-center text-white/40 text-sm">Cargando...</div>
+              ) : browseProducts.length === 0 ? (
+                <div className="p-3 text-center text-white/40 text-sm">No se encontraron productos</div>
+              ) : (
+                <ul className="divide-y divide-white/5">
+                  {browseProducts.map((product) => {
+                    const badge = getPlatformBadge(product.platform);
+                    return (
+                      <li key={product.id} data-testid={`browse-product-item-${product.id}`}>
+                        <button
+                          type="button"
+                          data-testid={`browse-product-select-${product.id}`}
+                          onClick={() => handleProductSelect(product)}
+                          className="w-full px-3 py-2 text-left hover:bg-[#6200EA]/20 transition-colors text-sm"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-white truncate">{product.name}</div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {product.price && (
+                                  <span className="text-xs text-white/60">{product.price}</span>
+                                )}
+                                {badge && (
+                                  <span className="inline-block px-2 py-0.5 bg-[#6200EA]/30 text-white/80 text-xs rounded">{badge}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -487,6 +665,16 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             ) : (
               <ImagePlus className="w-4 h-4" />
             )}
+          </Button>
+          <Button
+            data-testid="button-browse-catalog"
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={toggleProductBrowser}
+            className={`flex-shrink-0 ${showProductBrowser ? "text-[#6200EA]" : "text-white/40"}`}
+          >
+            <ShoppingBag className="w-4 h-4" />
           </Button>
           <input
             ref={inputRef}
