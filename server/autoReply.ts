@@ -35,6 +35,12 @@ interface CatalogProduct {
   category: string;
 }
 
+interface CatalogLookup {
+  searchByName: (query: string) => Promise<CatalogProduct[]>;
+  getByPlatform: (platform: string) => Promise<CatalogProduct[]>;
+  getByCategory: (category: string) => Promise<CatalogProduct[]>;
+}
+
 interface ConversationEntry {
   sender: string;
   content: string;
@@ -60,6 +66,10 @@ interface ConversationState {
   genericCount: number;
   userMessageCount: number;
   lastTopicProduct: DetectedProduct | null;
+}
+
+function withButtons(text: string, buttons: Array<{label: string, value?: string, url?: string}>): string {
+  return `${text}{{QUICK_REPLIES:${JSON.stringify(buttons)}}}`;
 }
 
 const GAME_PATTERNS: Array<{ patterns: RegExp[]; name: string; aliases: string[] }> = [
@@ -507,36 +517,54 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   }
 
   if (state.platform === "ps") {
-    const options = [
-      `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Tenemos un amplio catalogo de juegos y suscripciones para PS4 y PS5. ¿Que estas buscando? Puedo ayudarte con juegos, tarjetas PlayStation, o suscripciones PS Plus.`,
-      `¡Hola${nameGreeting}! Que gusto tenerte aqui.${pageContext} Somos tu tienda de juegos digitales para PlayStation. ¿Buscas algun juego en particular, suscripciones PS Plus, o tarjetas de saldo PSN?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = pickUnused([
+      `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Tenemos un amplio catalogo para PlayStation. ¿Que estas buscando?`,
+      `¡Hola${nameGreeting}! Que gusto tenerte aqui.${pageContext} Somos tu tienda de juegos digitales para PlayStation. ¿En que te puedo ayudar?`,
+    ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Juegos PS5", value: "__qr:platform:ps5"},
+      {label: "PS Plus", value: "__qr:category:subscription"},
+      {label: "Tarjetas PSN", value: "__qr:category:card"},
+      {label: "Ver todo", value: "__qr:platform:ps5"},
+    ]);
   }
 
   if (state.platform === "xbox") {
-    const options = [
-      `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Contamos con juegos y suscripciones para Xbox One y Xbox Series S|X. ¿Te interesa algun juego, tarjeta Xbox, o suscripcion Game Pass?`,
-      `¡Hola${nameGreeting}! Que bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales, Game Pass, y tarjetas de saldo. ¿En que te puedo ayudar?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = pickUnused([
+      `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Contamos con juegos y suscripciones para Xbox. ¿En que te puedo ayudar?`,
+      `¡Hola${nameGreeting}! Que bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales, Game Pass, y tarjetas de saldo.`,
+    ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+      {label: "Game Pass", value: "__qr:category:subscription"},
+      {label: "Tarjetas Xbox", value: "__qr:category:card"},
+      {label: "Ver todo", value: "__qr:platform:xbox_series"},
+    ]);
   }
 
-  const options = [
-    `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Tenemos juegos y suscripciones para PS4, PS5, Xbox One y Xbox Series. ¿En que puedo ayudarte hoy?`,
+  const text = pickUnused([
+    `¡Hola${nameGreeting}! Bienvenido a nuestra tienda de juegos digitales.${pageContext} Tenemos juegos y suscripciones para PlayStation y Xbox. ¿En que puedo ayudarte hoy?`,
     `¡Hola${nameGreeting}! Gracias por visitarnos.${pageContext} Somos una tienda de juegos digitales con catalogo para PlayStation y Xbox. ¿Que te gustaria saber?`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Juegos PS5", value: "__qr:platform:ps5"},
+    {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+    {label: "Suscripciones", value: "__qr:category:subscription"},
+    {label: "Tarjetas de saldo", value: "__qr:category:card"},
+  ]);
 }
 
 function getGameInquiryResponse(state: ConversationState, catalogProduct?: CatalogProduct | null): string {
   if (!state.product || state.product.type !== "game") {
     const platSuffix = state.platform === "ps" ? " para PS4 y PS5" : state.platform === "xbox" ? " para Xbox One y Xbox Series" : " para PS4, PS5, Xbox One y Xbox Series";
-    const options = [
-      `Tenemos un amplio catalogo de juegos digitales${platSuffix}. ¿Buscas algun titulo en particular? Dime el nombre del juego y la plataforma y te doy toda la info.`,
-      `¡Claro! Contamos con muchos titulos${platSuffix}. ¿Cual juego te interesa? Si me dices el nombre exacto, puedo verificar disponibilidad.`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = pickUnused([
+      `Tenemos un amplio catalogo de juegos digitales${platSuffix}. ¿Buscas algun titulo en particular? Dime el nombre del juego y te doy toda la info.`,
+      `¡Claro! Contamos con muchos titulos${platSuffix}. ¿Cual juego te interesa?`,
+    ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Juegos PS5", value: "__qr:platform:ps5"},
+      {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+    ]);
   }
 
   const gameName = formatGameWithVersion(state.product);
@@ -545,26 +573,35 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
   if (catalogProduct) {
     const displayName = catalogProduct.name;
     const priceInfo = catalogProduct.price ? ` Precio: ${catalogProduct.price}.` : "";
-    const urlInfo = catalogProduct.productUrl ? ` Puedes verlo aqui: ${catalogProduct.productUrl}` : "";
     const availInfo = catalogProduct.availability === "available"
       ? " Disponible para entrega digital inmediata."
       : catalogProduct.availability === "preorder"
       ? " Disponible para pre-orden."
       : " Actualmente agotado.";
 
-    const options = [
-      `¡${displayName}${platSuffix}!${priceInfo}${availInfo}${urlInfo} ¿Te gustaria comprarlo?`,
-      `¡Tenemos ${displayName}${platSuffix}!${priceInfo}${availInfo}${urlInfo} ¿Quieres que te ayude con la compra?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const responseText = pickUnused([
+      `¡${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Te gustaria comprarlo?`,
+      `¡Tenemos ${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Quieres que te ayude con la compra?`,
+    ], state.usedResponses);
+
+    if (catalogProduct.productUrl && catalogProduct.availability === "available") {
+      return withButtons(responseText, [
+        {label: "Comprar ahora", url: catalogProduct.productUrl},
+        {label: "Mas informacion", value: "__qr:contact"},
+      ]);
+    }
+    return responseText;
   }
 
-  const options = [
-    `¡${gameName}${platSuffix}! Es un excelente titulo. Tenemos juegos digitales disponibles con entrega inmediata por correo electronico. ¿Te gustaria comprarlo o necesitas mas informacion?`,
+  const text = pickUnused([
+    `¡${gameName}${platSuffix}! Es un excelente titulo. Tenemos juegos digitales con entrega inmediata por correo. ¿Te gustaria comprarlo o necesitas mas informacion?`,
     `¡Buena eleccion! ${gameName} es un juegazo. Lo manejamos en version digital${platSuffix} con entrega instantanea. ¿Quieres que te ayude con la compra?`,
-    `${gameName}${platSuffix}, entendido. Trabajamos con codigos digitales que se entregan al instante por email. ¿Te gustaria proceder con la compra o tienes alguna duda?`,
-  ];
-  return pickUnused(options, state.usedResponses);
+    `${gameName}${platSuffix}, entendido. Trabajamos con codigos digitales que se entregan al instante por email. ¿Te gustaria proceder con la compra?`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getSubscriptionResponse(state: ConversationState): string {
@@ -576,86 +613,92 @@ function getSubscriptionResponse(state: ConversationState): string {
 
   if (sub.name === "PS Plus Essential") {
     if (sub.duration) {
-      const options = [
-        `¡Excelente eleccion! La suscripcion PS Plus Essential de ${sub.duration} te da acceso a juego online multijugador, 2-3 juegos gratis cada mes, descuentos exclusivos en PlayStation Store y almacenamiento en la nube. ¿Quieres que te ayude con el proceso de compra?`,
-        `PS Plus Essential de ${sub.duration} es perfecta para jugar online. Incluye juegos mensuales gratis y descuentos en PS Store. La entrega es digital e inmediata. ¿Procedemos?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = `PS Plus Essential de ${sub.duration}: juego online, juegos mensuales gratis, descuentos en PS Store y almacenamiento en la nube. Entrega digital inmediata.`;
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
-    const options = [
-      `PS Plus Essential es el plan base de PlayStation. Incluye juego online multijugador, juegos mensuales gratis, y descuentos en PS Store. Tenemos disponible en planes de 1 mes, 3 meses y 12 meses. ¿Cual te interesa?`,
-      `Con PS Plus Essential puedes jugar online, recibir juegos gratis cada mes y obtener descuentos exclusivos. ¿De que duracion lo necesitas: 1, 3 o 12 meses?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `PS Plus Essential es el plan base de PlayStation: juego online, juegos mensuales gratis y descuentos en PS Store. ¿De que duracion lo necesitas?`;
+    return withButtons(text, [
+      {label: "1 mes", value: "1 mes"},
+      {label: "3 meses", value: "3 meses"},
+      {label: "12 meses", value: "12 meses"},
+    ]);
   }
 
   if (sub.name === "PS Plus Extra") {
     if (sub.duration) {
-      const options = [
-        `¡Buena eleccion! PS Plus Extra de ${sub.duration} incluye todo lo de Essential MAS un catalogo de hasta 400 juegos de PS4 y PS5 para descargar y jugar. Es como tener Netflix de juegos. ¿Te gustaria proceder con la compra?`,
-        `PS Plus Extra de ${sub.duration} te da acceso a cientos de juegos ademas de todo lo de Essential. Entrega digital inmediata. ¿Quieres comprarlo?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = `PS Plus Extra de ${sub.duration}: todo lo de Essential mas un catalogo de ~400 juegos de PS4 y PS5 para descargar. Entrega digital inmediata.`;
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
-    const options = [
-      `PS Plus Extra incluye todo lo de Essential mas acceso a un catalogo de ~400 juegos descargables de PS4 y PS5. Disponible en 1, 3 y 12 meses. ¿De cual duracion te gustaria saber mas?`,
-      `Con PS Plus Extra tienes juego online + un catalogo enorme de juegos para descargar. ¿Que duracion prefieres: 1, 3 o 12 meses?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `PS Plus Extra incluye todo lo de Essential mas acceso a un catalogo de ~400 juegos descargables. ¿Que duracion prefieres?`;
+    return withButtons(text, [
+      {label: "1 mes", value: "1 mes"},
+      {label: "3 meses", value: "3 meses"},
+      {label: "12 meses", value: "12 meses"},
+    ]);
   }
 
   if (sub.name === "PS Plus Premium") {
     if (sub.duration) {
-      const options = [
-        `PS Plus Premium de ${sub.duration} es el plan mas completo. Incluye todo lo de Extra mas streaming de juegos en la nube, juegos clasicos de PS1/PS2/PS3/PSP, y pruebas de juegos por tiempo limitado. ¿Quieres mas detalles sobre la compra?`,
-        `¡El plan Premium de ${sub.duration}! Es lo maximo de PlayStation: catalogo completo + clasicos + streaming en la nube. Entrega digital inmediata. ¿Lo quieres?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = `PS Plus Premium de ${sub.duration}: todo lo de Extra mas streaming en la nube, juegos clasicos de PS1/PS2/PS3/PSP y pruebas de juegos. Entrega digital inmediata.`;
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
-    const options = [
-      `PS Plus Premium es el plan mas completo de PlayStation. Incluye todo de Extra mas juegos clasicos, streaming en la nube y pruebas de juegos. Disponible en 1, 3 y 12 meses. ¿Cual duracion te interesa?`,
-      `Premium es la experiencia completa de PlayStation: todos los juegos de Extra + clasicos retro + streaming + demos anticipadas. ¿Lo necesitas de 1, 3 o 12 meses?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `PS Plus Premium es el plan mas completo: todo de Extra mas clasicos retro, streaming y demos anticipadas. ¿De cuantos meses lo necesitas?`;
+    return withButtons(text, [
+      {label: "1 mes", value: "1 mes"},
+      {label: "3 meses", value: "3 meses"},
+      {label: "12 meses", value: "12 meses"},
+    ]);
   }
 
   if (sub.name === "PS Plus") {
-    const options = [
-      `Tenemos los 3 niveles de PS Plus disponibles:\n\n- Essential: Juego online + juegos mensuales gratis\n- Extra: Todo de Essential + catalogo de ~400 juegos\n- Premium: Todo de Extra + clasicos + streaming\n\nCada uno disponible en 1, 3 y 12 meses. ¿Cual nivel te interesa?`,
-      `PS Plus viene en 3 niveles. Essential es para jugar online y recibir juegos gratis. Extra agrega un catalogo enorme de juegos. Premium le suma clasicos y streaming. ¿Cual se ajusta mas a lo que buscas?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `PS Plus viene en 3 niveles: Essential (juego online + juegos gratis), Extra (+ catalogo de ~400 juegos), y Premium (+ clasicos + streaming). Cada uno en 1, 3 y 12 meses. ¿Cual nivel te interesa?`;
+    return withButtons(text, [
+      {label: "Essential", value: "PS Plus Essential"},
+      {label: "Extra", value: "PS Plus Extra"},
+      {label: "Premium", value: "PS Plus Premium"},
+    ]);
   }
 
   if (sub.name === "Game Pass Ultimate") {
     if (sub.duration) {
-      const options = [
-        `¡Game Pass Ultimate de ${sub.duration} es la mejor opcion! Incluye acceso a cientos de juegos en consola, PC y nube, juego online, EA Play, y juegos de Xbox Studios desde el dia de lanzamiento. ¿Te ayudo con la compra?`,
-        `Ultimate de ${sub.duration} lo tiene todo: juegos en consola + PC + nube + EA Play + online. Es el plan mas completo de Xbox. ¿Procedemos con la compra?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = `Game Pass Ultimate de ${sub.duration}: cientos de juegos en consola, PC y nube, juego online, EA Play y juegos de Xbox Studios day-one. Entrega digital inmediata.`;
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
-    const options = [
-      `Xbox Game Pass Ultimate incluye juegos en consola + PC + nube, juego online, EA Play y juegos day-one de Microsoft. Tenemos planes de 1, 3 y 12 meses. ¿Cual te interesa?`,
-      `Game Pass Ultimate es el todo-en-uno de Xbox. Juegos en todas las plataformas, EA Play incluido, y los titulos de Microsoft desde el dia 1. ¿De cuantos meses lo necesitas?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `Xbox Game Pass Ultimate incluye juegos en consola + PC + nube, juego online, EA Play y juegos day-one de Microsoft. ¿De cuantos meses lo necesitas?`;
+    return withButtons(text, [
+      {label: "1 mes", value: "1 mes"},
+      {label: "3 meses", value: "3 meses"},
+      {label: "12 meses", value: "12 meses"},
+    ]);
   }
 
   if (sub.name === "Game Pass Core") {
-    const options = [
-      `Xbox Game Pass Core reemplaza a Xbox Live Gold. Incluye juego online multijugador y acceso a un catalogo selecto de juegos. Es el plan base para jugar online en Xbox. ¿Quieres saber los precios disponibles?`,
-      `Game Pass Core te da acceso al multijugador online de Xbox y un grupo selecto de juegos. Es lo minimo que necesitas para jugar online. ¿Te interesa?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `Game Pass Core reemplaza a Xbox Live Gold: juego online y acceso a un catalogo selecto de juegos. Es lo minimo para jugar online en Xbox.`;
+    return withButtons(text, [
+      {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+    ]);
   }
 
   if (sub.name === "Game Pass") {
-    const options = [
-      `Tenemos suscripciones Xbox Game Pass disponibles:\n\n- Game Pass Core: Juego online + catalogo selecto\n- Game Pass Standard: Catalogo de cientos de juegos\n- Game Pass Ultimate: Todo incluido + PC + nube + EA Play\n\n¿Cual plan te interesa?`,
-      `Game Pass viene en 3 planes: Core para jugar online, Standard para acceder a cientos de juegos, y Ultimate que lo incluye todo (consola + PC + nube + EA Play). ¿Cual te conviene mas?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `Game Pass viene en 3 planes: Core (juego online), Standard (catalogo de juegos), y Ultimate (todo incluido + PC + nube + EA Play). ¿Cual plan te interesa?`;
+    return withButtons(text, [
+      {label: "Core", value: "Game Pass Core"},
+      {label: "Standard", value: "Game Pass Standard"},
+      {label: "Ultimate", value: "Game Pass Ultimate"},
+    ]);
   }
 
   return getProductInquiryGeneric(state);
@@ -670,56 +713,66 @@ function getCardResponse(state: ConversationState): string {
 
   if (card.platform === "ps") {
     if (card.amount) {
-      const options = [
-        `¡Tenemos tarjetas PSN de $${card.amount}! Las tarjetas de PlayStation Store te permiten agregar saldo a tu cuenta para comprar juegos, DLCs, y contenido digital. La entrega es digital e inmediata por correo. ¿Quieres proceder con la compra?`,
-        `Tarjeta PSN de $${card.amount}, perfecto. Con ella puedes comprar lo que quieras en la PS Store. Entrega instantanea por email. ¿La quieres?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = `Tarjeta PSN de $${card.amount}: agrega saldo a tu cuenta PlayStation para comprar juegos, DLCs y contenido digital. Entrega digital inmediata por correo.`;
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
-    const options = [
-      `Contamos con tarjetas de saldo para PlayStation Store (PSN) en varias denominaciones. Puedes usarlas para comprar juegos, DLCs, y contenido en PS Store. ¿De cuanto saldo necesitas?`,
-      `Tenemos tarjetas PSN de diferentes montos. ¿Cuanto saldo necesitas agregar a tu cuenta PlayStation?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `Tenemos tarjetas de saldo PSN en varias denominaciones para comprar en PS Store. ¿De cuanto saldo necesitas?`;
+    return withButtons(text, [
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+      {label: "Ver otros productos", value: "__qr:back"},
+    ]);
   }
 
   if (card.platform === "xbox") {
     if (card.amount) {
-      const options = [
-        `¡Tenemos tarjetas Xbox de $${card.amount}! Te permite agregar saldo a tu cuenta Microsoft para comprar juegos y contenido en la tienda Xbox. Entrega digital inmediata. ¿Quieres que te ayude con la compra?`,
-        `Tarjeta Xbox de $${card.amount}, anotado. Sirve para comprar lo que necesites en la Microsoft Store. Entrega por email al instante. ¿Procedemos?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = `Tarjeta Xbox de $${card.amount}: agrega saldo a tu cuenta Microsoft para comprar juegos y contenido. Entrega digital inmediata.`;
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
-    const options = [
-      `Tenemos tarjetas de saldo Xbox en varias denominaciones. Sirven para comprar juegos, DLCs y contenido en la Microsoft Store. ¿Que monto necesitas?`,
-      `Contamos con tarjetas Xbox de diferentes montos. ¿De cuanto necesitas la tarjeta?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = `Tenemos tarjetas de saldo Xbox en varias denominaciones. ¿Que monto necesitas?`;
+    return withButtons(text, [
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+      {label: "Ver otros productos", value: "__qr:back"},
+    ]);
   }
 
-  const options = [
-    `Tenemos tarjetas digitales para PlayStation y Xbox:\n\n- Tarjetas de saldo PSN (PlayStation Store)\n- Tarjetas de saldo Xbox (Microsoft Store)\n- Suscripciones PS Plus (Essential/Extra/Premium)\n- Suscripciones Xbox Game Pass\n\n¿Cual te interesa?`,
-    `Manejamos tarjetas de saldo y suscripciones para ambas plataformas. ¿Necesitas una tarjeta PSN, Xbox, o una suscripcion como PS Plus o Game Pass?`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = `Manejamos tarjetas de saldo para PlayStation (PSN) y Xbox (Microsoft Store). ¿Cual plataforma necesitas?`;
+  return withButtons(text, [
+    {label: "Tarjeta PSN", value: "quiero tarjeta PSN"},
+    {label: "Tarjeta Xbox", value: "quiero tarjeta Xbox"},
+  ]);
 }
 
 function getProductInquiryGeneric(state: ConversationState): string {
   if (/\bpromocion\b|\boferta\b|\bdescuento\b|\brebaja\b|\bsale\b/.test(state.intent)) {
-    const options = [
-      `¡Siempre tenemos ofertas disponibles! Las promociones cambian frecuentemente. ¿Te interesa alguna plataforma en particular (PlayStation o Xbox)? Puedo ver que ofertas tenemos activas.`,
-      `Tenemos descuentos y ofertas en varios titulos. ¿Para que plataforma buscas ofertas?`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = pickUnused([
+      `¡Siempre tenemos ofertas disponibles! ¿Te interesa alguna plataforma en particular?`,
+      `Tenemos descuentos en varios titulos. ¿Para que plataforma buscas ofertas?`,
+    ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Juegos PS5", value: "__qr:platform:ps5"},
+      {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+      {label: "Suscripciones", value: "__qr:category:subscription"},
+      {label: "Tarjetas", value: "__qr:category:card"},
+    ]);
   }
 
   const platSuffix = state.platform === "ps" ? " para PS4 y PS5" : state.platform === "xbox" ? " para Xbox One y Xbox Series" : " para PS4, PS5, Xbox One y Xbox Series";
-  const options = [
+  const text = pickUnused([
     `Tenemos un amplio catalogo de juegos digitales${platSuffix}, ademas de suscripciones y tarjetas de saldo. ¿Que producto te interesa?`,
-    `Contamos con juegos, suscripciones y tarjetas${platSuffix}. Si me dices que buscas especificamente, te doy toda la info.`,
-  ];
-  return pickUnused(options, state.usedResponses);
+    `Contamos con juegos, suscripciones y tarjetas${platSuffix}. Si me dices que buscas, te doy toda la info.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Juegos PS5", value: "__qr:platform:ps5"},
+    {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+    {label: "Suscripciones", value: "__qr:category:subscription"},
+    {label: "Tarjetas", value: "__qr:category:card"},
+  ]);
 }
 
 function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogProduct | null, purchaseStage?: number): string {
@@ -732,35 +785,50 @@ function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogP
     if (catalogProduct) {
       const displayName = catalogProduct.name;
       const priceInfo = catalogProduct.price ? ` tiene un precio de ${catalogProduct.price}` : "";
-      const urlInfo = catalogProduct.productUrl ? ` Puedes comprarlo directamente aqui: ${catalogProduct.productUrl}` : "";
 
       if ((purchaseStage || 0) >= 2) {
         if (catalogProduct.productUrl) {
-          return `¡Aqui tienes el link directo para comprar ${displayName}:${urlInfo}. La entrega es digital e inmediata a tu correo electronico. ¿Necesitas ayuda con algo mas?`;
+          const text = `¡Aqui tienes el link directo para comprar ${displayName}! La entrega es digital e inmediata a tu correo.`;
+          return withButtons(text, [
+            {label: "Ir a comprar", url: catalogProduct.productUrl},
+          ]);
         }
-        return `Para completar la compra de ${displayName}, haz clic en 'Contactar un Ejecutivo' y un agente te guiara con el proceso de pago. La entrega es digital e inmediata.`;
+        return `Para completar la compra de ${displayName}, haz clic en 'Contactar un Ejecutivo' y un agente te guiara con el pago. Entrega digital inmediata.`;
       }
 
-      const options = [
-        `¡Perfecto! ${displayName}${platSuffix}${priceInfo}.${urlInfo} La entrega es digital e inmediata a tu correo electronico.`,
-        `¡Genial! ${displayName}${platSuffix}${priceInfo}. Entrega digital inmediata por email.${urlInfo}`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const responseText = pickUnused([
+        `¡Perfecto! ${displayName}${platSuffix}${priceInfo}. Entrega digital inmediata a tu correo.`,
+        `¡Genial! ${displayName}${platSuffix}${priceInfo}. Entrega digital inmediata por email.`,
+      ], state.usedResponses);
+
+      if (catalogProduct.productUrl) {
+        return withButtons(responseText, [
+          {label: "Ir a comprar", url: catalogProduct.productUrl},
+        ]);
+      }
+      return responseText;
     }
 
-    const options = [
-      `¡Perfecto! Para comprar ${productName}${platSuffix}, el proceso es sencillo: realizas el pago y recibiras tu codigo digital por correo electronico de forma inmediata. ¿Te gustaria saber los metodos de pago disponibles?`,
-      `¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantanea a tu email. Para continuar con la compra, puedes contactar a un ejecutivo haciendo clic en 'Contactar un Ejecutivo' y te guiara paso a paso.`,
-      `${productName}${platSuffix}, excelente eleccion. Para completar tu compra, te recomiendo hacer clic en 'Contactar un Ejecutivo' para que un agente te guie con el pago y la entrega inmediata del codigo. Tambien puedes escribirnos a cjmdigitales@gmail.com.`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = pickUnused([
+      `¡Perfecto! Para comprar ${productName}${platSuffix}, realizas el pago y recibiras tu codigo digital por correo de forma inmediata. ¿Te gustaria saber los metodos de pago?`,
+      `¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantanea a tu email. Contacta a un ejecutivo para completar la compra.`,
+    ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+      {label: "Ver otros productos", value: "__qr:back"},
+    ]);
   }
 
-  const options = [
-    `¡Genial que quieras comprar! ¿Me puedes indicar que producto te interesa? Asi te doy el precio y te guio en el proceso de compra.`,
-    `¡Claro! Para ayudarte con la compra necesito saber que producto buscas. ¿Es un juego, suscripcion o tarjeta de saldo?`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `¡Genial que quieras comprar! ¿Me puedes indicar que producto te interesa?`,
+    `¡Claro! ¿Que producto buscas? ¿Es un juego, suscripcion o tarjeta de saldo?`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Juegos PS5", value: "__qr:platform:ps5"},
+    {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+    {label: "Suscripciones", value: "__qr:category:subscription"},
+    {label: "Tarjetas", value: "__qr:category:card"},
+  ]);
 }
 
 function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProduct | null): string {
@@ -772,96 +840,109 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
 
     if (catalogProduct && catalogProduct.price) {
       const displayName = catalogProduct.name;
-      const urlInfo = catalogProduct.productUrl ? ` Puedes verlo aqui: ${catalogProduct.productUrl}` : "";
-      const options = [
-        `El precio de ${displayName}${platSuffix} es ${catalogProduct.price}. Entrega digital inmediata.${urlInfo} ¿Te gustaria comprarlo?`,
-        `${displayName}${platSuffix} tiene un precio de ${catalogProduct.price}.${urlInfo} ¿Quieres proceder con la compra?`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const responseText = pickUnused([
+        `El precio de ${displayName}${platSuffix} es ${catalogProduct.price}. Entrega digital inmediata. ¿Te gustaria comprarlo?`,
+        `${displayName}${platSuffix} tiene un precio de ${catalogProduct.price}. ¿Quieres proceder con la compra?`,
+      ], state.usedResponses);
+
+      const buttons: Array<{label: string, value?: string, url?: string}> = [];
+      if (catalogProduct.productUrl) buttons.push({label: "Comprar", url: catalogProduct.productUrl});
+      buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+      return withButtons(responseText, buttons);
     }
 
-    const options = [
-      `Para saber el precio exacto de ${productName}${platSuffix}, te recomiendo contactar a un ejecutivo haciendo clic en 'Contactar un Ejecutivo'. Los precios pueden variar y un agente te dara la informacion actualizada al momento.`,
-      `El precio de ${productName}${platSuffix} puede variar. Para darte el precio exacto y actualizado, haz clic en 'Contactar un Ejecutivo' o escribenos a cjmdigitales@gmail.com. Te responderemos rapido.`,
-      `Los precios de ${productName}${platSuffix} los maneja directamente nuestro equipo. Contacta a un ejecutivo para obtener el precio actual y cualquier oferta disponible.`,
-    ];
-    return pickUnused(options, state.usedResponses);
+    const text = pickUnused([
+      `Para el precio exacto de ${productName}${platSuffix}, te recomiendo contactar a un ejecutivo. Los precios pueden variar y un agente te dara la info actualizada.`,
+      `El precio de ${productName}${platSuffix} puede variar. Contacta a un ejecutivo para el precio actual y ofertas disponibles.`,
+    ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+    ]);
   }
 
   if (state.platform === "ps") {
-    return pickUnused([
-      `Los precios de nuestros productos PlayStation varian segun el titulo y tipo. ¿Me dices que producto te interesa para darte la info exacta?`,
-      `Para darte precios exactos de PlayStation, necesito saber si buscas un juego especifico, PS Plus, o tarjeta PSN. ¿Cual es?`,
-    ], state.usedResponses);
+    const text = `Los precios de PlayStation varian segun el titulo. ¿Me dices que producto te interesa para darte la info exacta?`;
+    return withButtons(text, [
+      {label: "Juegos PS5", value: "__qr:platform:ps5"},
+      {label: "PS Plus", value: "__qr:category:subscription"},
+    ]);
   }
 
   if (state.platform === "xbox") {
-    return pickUnused([
-      `Los precios de Xbox dependen del producto. ¿Buscas un juego, Game Pass, o tarjeta de saldo Xbox?`,
-      `Para precios exactos de Xbox, dime que producto te interesa: juego, suscripcion Game Pass, o tarjeta de saldo.`,
-    ], state.usedResponses);
+    const text = `Los precios de Xbox dependen del producto. ¿Buscas un juego, Game Pass, o tarjeta de saldo?`;
+    return withButtons(text, [
+      {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+      {label: "Game Pass", value: "__qr:category:subscription"},
+    ]);
   }
 
-  return pickUnused([
-    `Los precios dependen del producto y plataforma. ¿Me puedes indicar que producto te interesa? Asi te doy la informacion exacta.`,
-    `Para darte el precio correcto necesito saber que estas buscando. ¿Es un juego, suscripcion o tarjeta? ¿Para PlayStation o Xbox?`,
-  ], state.usedResponses);
+  const text = `Los precios dependen del producto y plataforma. ¿Que estas buscando?`;
+  return withButtons(text, [
+    {label: "Juegos PS5", value: "__qr:platform:ps5"},
+    {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+    {label: "Suscripciones", value: "__qr:category:subscription"},
+  ]);
 }
 
 function getPaymentResponse(state: ConversationState): string {
-  const options = [
-    `Aceptamos varios metodos de pago para que elijas el que te sea mas comodo. Para conocer los metodos disponibles y proceder con tu compra, te recomiendo hacer clic en 'Contactar un Ejecutivo' y un agente te guiara con todo el proceso.`,
-    `Los metodos de pago los gestiona directamente nuestro equipo. Haz clic en 'Contactar un Ejecutivo' o escribenos a cjmdigitales@gmail.com para que te den todas las opciones de pago disponibles.`,
-    `Tenemos varias formas de pago disponibles. Un ejecutivo puede explicarte todas las opciones. Haz clic en 'Contactar un Ejecutivo' para recibir atencion directa.`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `Aceptamos varios metodos de pago. Para conocer las opciones disponibles y proceder con tu compra, te recomiendo contactar a un ejecutivo.`,
+    `Los metodos de pago los gestiona nuestro equipo. Contacta a un ejecutivo para que te den todas las opciones disponibles.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getDeliveryResponse(state: ConversationState): string {
-  const options = [
-    `La entrega de todos nuestros productos es digital e inmediata. Recibiras tu codigo o producto por correo electronico al completar la compra. El proceso suele tomar unos pocos minutos. ¿Necesitas ayuda con algo mas?`,
-    `¡Todo es digital! Una vez que completas la compra, recibiras tu codigo por email en cuestion de minutos. No hay envio fisico, todo es instantaneo. ¿Alguna otra duda?`,
-    `Nuestra entrega es 100% digital e inmediata. Al pagar, recibes tu codigo en tu correo electronico automaticamente. Sin esperas. ¿Te puedo ayudar con otra cosa?`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `La entrega de todos nuestros productos es digital e inmediata. Recibiras tu codigo por correo electronico al completar la compra, en cuestion de minutos.`,
+    `¡Todo es digital! Al completar la compra, recibiras tu codigo por email en minutos. Sin envio fisico, todo es instantaneo.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Ver productos", value: "__qr:back"},
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getSupportResponse(state: ConversationState, sessionData?: SessionData): string {
   const problemContext = sessionData?.problemType ? ` Veo que tu consulta es sobre: ${sessionData.problemType}.` : "";
 
-  const options = [
-    `Lamentamos si tienes algun inconveniente.${problemContext} Todos nuestros productos tienen garantia de funcionamiento. Para ayudarte mejor, te recomiendo hacer clic en 'Contactar un Ejecutivo' para recibir asistencia personalizada.`,
-    `Sentimos los problemas.${problemContext} Queremos resolverlo lo antes posible. Haz clic en 'Contactar un Ejecutivo' para que un agente revise tu caso personalmente. Tambien puedes escribir a cjmdigitales@gmail.com con los detalles.`,
-    `Entendemos tu frustracion.${problemContext} Para resolver tu problema de la manera mas rapida, contacta a un ejecutivo directamente. Ellos tienen acceso a tu historial de compras y pueden ayudarte.`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `Lamentamos si tienes algun inconveniente.${problemContext} Todos nuestros productos tienen garantia. Te recomiendo contactar a un ejecutivo para asistencia personalizada.`,
+    `Sentimos los problemas.${problemContext} Queremos resolverlo lo antes posible. Contacta a un ejecutivo para que revise tu caso.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getTrustResponse(state: ConversationState): string {
-  const options = [
-    `¡Somos una tienda 100% confiable y segura! Todos nuestros productos son codigos digitales oficiales. Tenemos una larga trayectoria y miles de clientes satisfechos. Si quieres, puedes contactar a un ejecutivo para resolver cualquier duda.`,
-    `Entendemos tu preocupacion. Somos una tienda establecida con muchos clientes satisfechos. Todos nuestros codigos son oficiales y la entrega es inmediata. Puedes verificar nuestra reputacion y contactar a un ejecutivo si necesitas mas confianza.`,
-    `Tu seguridad es nuestra prioridad. Vendemos codigos digitales oficiales y garantizamos cada producto. Si tienes dudas, escribenos a cjmdigitales@gmail.com o contacta a un ejecutivo para una charla mas personal.`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `¡Somos una tienda 100% confiable! Todos nuestros productos son codigos digitales oficiales. Tenemos una larga trayectoria y miles de clientes satisfechos.`,
+    `Tu seguridad es nuestra prioridad. Vendemos codigos digitales oficiales y garantizamos cada producto. Puedes verificar nuestra reputacion.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Ver productos", value: "__qr:back"},
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getGratitudeResponse(state: ConversationState): string {
-  const options = [
-    `¡Con gusto! Estamos aqui para ayudarte. Si tienes mas preguntas sobre nuestros productos, no dudes en escribir. ¡Buen dia!`,
-    `¡De nada! Fue un placer ayudarte. Si necesitas algo mas en el futuro, aqui estaremos. ¡Que disfrutes tus juegos!`,
-    `¡Para eso estamos! No dudes en volver cuando necesites algo. ¡Pasa un excelente dia!`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `¡Con gusto! Si tienes mas preguntas, no dudes en escribir.`,
+    `¡De nada! Fue un placer ayudarte. Si necesitas algo mas, aqui estaremos.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Ver productos", value: "__qr:back"},
+  ]);
 }
 
 function getFarewellResponse(state: ConversationState): string {
-  const options = [
-    `¡Hasta pronto! Fue un placer ayudarte. Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia!`,
-    `¡Chao! Esperamos verte de nuevo. Si necesitas juegos o suscripciones, ya sabes donde encontrarnos. ¡Buen dia!`,
-    `¡Hasta luego! Fue un gusto atenderte. Vuelve cuando quieras, siempre tendremos las mejores ofertas en juegos digitales.`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  return pickUnused([
+    `¡Hasta pronto! Fue un placer ayudarte. Si necesitas algo mas, no dudes en volver a escribirnos.`,
+    `¡Chao! Esperamos verte de nuevo. Si necesitas juegos o suscripciones, ya sabes donde encontrarnos.`,
+  ], state.usedResponses);
 }
 
 function getFollowupResponse(state: ConversationState, msg: string): string {
@@ -872,30 +953,48 @@ function getFollowupResponse(state: ConversationState, msg: string): string {
     const platSuffix = formatPlatformSuffix(state.lastTopicProduct);
 
     if (/\bsi\b|\bdale\b|\bok\b|\bclaro\b|\bbueno\b|\bva\b|\bvale\b/.test(msg)) {
-      const options = [
-        `¡Perfecto! Para continuar con ${productName}${platSuffix}, te recomiendo hacer clic en 'Contactar un Ejecutivo' para que un agente te guie con el proceso de compra y pago.`,
-        `¡Genial! Para completar la compra de ${productName}${platSuffix}, contacta a un ejecutivo haciendo clic en el boton de abajo. Te atenderan rapidamente.`,
-      ];
-      return pickUnused(options, state.usedResponses);
+      const text = pickUnused([
+        `¡Perfecto! Para continuar con ${productName}${platSuffix}, contacta a un ejecutivo para que te guie con el proceso de compra.`,
+        `¡Genial! Para completar la compra de ${productName}${platSuffix}, contacta a un ejecutivo.`,
+      ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+        {label: "Ver otros productos", value: "__qr:back"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
 
     if (/\bno\b|\bgracias\b.*\bno\b|\bno\s*gracias\b|\bnah\b/.test(msg)) {
-      return pickUnused([
-        `Entendido. ¿Hay algo mas en lo que pueda ayudarte? Tenemos juegos, suscripciones y tarjetas para PlayStation y Xbox.`,
-        `Sin problema. ¿Te gustaria ver otro producto o tienes alguna otra pregunta?`,
+      const text = pickUnused([
+        `Entendido. ¿Hay algo mas en lo que pueda ayudarte?`,
+        `Sin problema. ¿Te gustaria ver otro producto?`,
       ], state.usedResponses);
+      return withButtons(text, [
+        {label: "Ver otros productos", value: "__qr:back"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+      ]);
     }
 
-    return pickUnused([
-      `Siguiendo con lo de ${productName}${platSuffix}, ¿en que mas puedo ayudarte? Si quieres proceder con la compra, puedes hacer clic en 'Contactar un Ejecutivo'.`,
-      `Sobre ${productName}${platSuffix}, ¿tienes alguna otra duda? Estoy aqui para ayudarte.`,
+    const text = pickUnused([
+      `Sobre ${productName}${platSuffix}, ¿en que mas puedo ayudarte?`,
+      `Siguiendo con ${productName}${platSuffix}, ¿tienes alguna otra duda?`,
     ], state.usedResponses);
+    return withButtons(text, [
+      {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
+      {label: "Ver otros productos", value: "__qr:back"},
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+    ]);
   }
 
-  return pickUnused([
-    `¿Hay algo especifico en lo que pueda ayudarte? Tenemos juegos digitales, suscripciones PS Plus y Game Pass, y tarjetas de saldo.`,
-    `¿En que mas te puedo ayudar? Dime que producto o servicio te interesa y te doy toda la informacion.`,
+  const text = pickUnused([
+    `¿Hay algo especifico en lo que pueda ayudarte?`,
+    `¿En que mas te puedo ayudar? Dime que producto te interesa.`,
   ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Ver juegos", value: "__qr:category:game"},
+    {label: "Suscripciones", value: "__qr:category:subscription"},
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getUnknownResponse(state: ConversationState): string {
@@ -903,13 +1002,16 @@ function getUnknownResponse(state: ConversationState): string {
     return pickUnused(ESCALATION_RESPONSES, state.usedResponses);
   }
 
-  const pageContext = "";
-  const options = [
-    `Gracias por tu mensaje. Estoy aqui para ayudarte con nuestros productos digitales: juegos, suscripciones PS Plus, Xbox Game Pass, tarjetas de saldo y mas. ¿Que te gustaria saber?`,
-    `No estoy seguro de entender completamente tu consulta. ¿Puedes decirme si buscas un juego especifico, una suscripcion, o una tarjeta de saldo? Asi te puedo ayudar mejor.`,
-    `Disculpa, ¿me puedes dar mas detalles sobre lo que necesitas? Vendemos juegos digitales, PS Plus, Game Pass y tarjetas de saldo para PlayStation y Xbox.`,
-  ];
-  return pickUnused(options, state.usedResponses);
+  const text = pickUnused([
+    `Gracias por tu mensaje. Estoy aqui para ayudarte con juegos digitales, suscripciones y tarjetas de saldo. ¿Que te gustaria saber?`,
+    `No estoy seguro de entender tu consulta. ¿Puedes decirme si buscas un juego, suscripcion o tarjeta?`,
+    `Disculpa, ¿me puedes dar mas detalles? Vendemos juegos digitales, PS Plus, Game Pass y tarjetas de saldo.`,
+  ], state.usedResponses);
+  return withButtons(text, [
+    {label: "Ver juegos", value: "__qr:category:game"},
+    {label: "Suscripciones", value: "__qr:category:subscription"},
+    {label: "Contactar ejecutivo", value: "__qr:contact"},
+  ]);
 }
 
 function getDurationResponse(state: ConversationState, msg: string): string | null {
@@ -926,23 +1028,28 @@ function getDurationResponse(state: ConversationState, msg: string): string | nu
   }
 
   if (state.platform === "ps") {
-    return pickUnused([
-      `Tenemos suscripciones de ${duration} para PS Plus en los 3 niveles: Essential, Extra y Premium. ¿Cual nivel te interesa?`,
-      `PS Plus de ${duration} esta disponible en Essential, Extra y Premium. Cada nivel incluye diferentes beneficios. ¿Cual quieres?`,
-    ], state.usedResponses);
+    const text = `Tenemos suscripciones de ${duration} para PS Plus. ¿Cual nivel te interesa?`;
+    return withButtons(text, [
+      {label: "Essential", value: "PS Plus Essential"},
+      {label: "Extra", value: "PS Plus Extra"},
+      {label: "Premium", value: "PS Plus Premium"},
+    ]);
   }
 
   if (state.platform === "xbox") {
-    return pickUnused([
-      `Tenemos suscripciones de ${duration} para Xbox Game Pass: Core, Standard y Ultimate. ¿Cual plan te interesa?`,
-      `Game Pass de ${duration} esta disponible. ¿Te interesa Core, Standard o Ultimate? Puedo explicarte las diferencias.`,
-    ], state.usedResponses);
+    const text = `Tenemos suscripciones de ${duration} para Xbox Game Pass. ¿Cual plan te interesa?`;
+    return withButtons(text, [
+      {label: "Core", value: "Game Pass Core"},
+      {label: "Standard", value: "Game Pass Standard"},
+      {label: "Ultimate", value: "Game Pass Ultimate"},
+    ]);
   }
 
-  return pickUnused([
-    `Tenemos suscripciones de ${duration} tanto para PlayStation (PS Plus) como para Xbox (Game Pass). ¿Para cual plataforma necesitas?`,
-    `Suscripciones de ${duration} disponibles para PS Plus y Game Pass. ¿Cual plataforma prefieres?`,
-  ], state.usedResponses);
+  const text = `Tenemos suscripciones de ${duration} para PS Plus y Game Pass. ¿Cual plataforma prefieres?`;
+  return withButtons(text, [
+    {label: "PS Plus", value: "PS Plus"},
+    {label: "Game Pass", value: "Game Pass"},
+  ]);
 }
 
 function detectPurchaseStage(conversationHistory: ConversationEntry[]): number {
@@ -969,7 +1076,7 @@ function detectPurchaseStage(conversationHistory: ConversationEntry[]): number {
 async function lookupCatalogProduct(
   state: ConversationState,
   sessionData: SessionData | undefined,
-  catalogLookup?: (query: string) => Promise<CatalogProduct[]>
+  catalogLookup?: CatalogLookup
 ): Promise<CatalogProduct | null> {
   if (!catalogLookup) return null;
 
@@ -992,7 +1099,7 @@ async function lookupCatalogProduct(
 
   for (const query of queries) {
     try {
-      const results = await catalogLookup(query);
+      const results = await catalogLookup.searchByName(query);
       if (results.length > 0) return results[0];
     } catch {}
   }
@@ -1004,9 +1111,102 @@ export async function getSmartAutoReply(
   userMessage: string,
   conversationHistory: Array<{ sender: string; content: string }>,
   sessionData?: SessionData,
-  catalogLookup?: (query: string) => Promise<CatalogProduct[]>
+  catalogLookup?: CatalogLookup
 ): Promise<string> {
   const msg = normalize(userMessage);
+
+  if (msg.startsWith("__qr:") && catalogLookup) {
+    if (msg.startsWith("__qr:platform:")) {
+      const platform = msg.replace("__qr:platform:", "");
+      const products = await catalogLookup.getByPlatform(platform);
+      if (products.length === 0) {
+        const text = "No tenemos productos disponibles para esa plataforma en este momento.";
+        return withButtons(text, [
+          {label: "Juegos PS5", value: "__qr:platform:ps5"},
+          {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+          {label: "Suscripciones", value: "__qr:category:subscription"},
+        ]);
+      }
+      const productButtons = products.slice(0, 6).map(p => ({
+        label: `${p.name} - ${p.price || "Consultar precio"}`,
+        value: `__qr:product:${p.name}`
+      }));
+      const platformName = platform.includes("ps") ? "PlayStation" : "Xbox";
+      return withButtons(
+        `Estos son nuestros productos disponibles para ${platformName}:`,
+        productButtons
+      );
+    }
+
+    if (msg.startsWith("__qr:category:")) {
+      const category = msg.replace("__qr:category:", "");
+      const products = await catalogLookup.getByCategory(category);
+      if (products.length === 0) {
+        const text = "No tenemos productos disponibles en esa categoria en este momento.";
+        return withButtons(text, [
+          {label: "Juegos PS5", value: "__qr:platform:ps5"},
+          {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+          {label: "Contactar ejecutivo", value: "__qr:contact"},
+        ]);
+      }
+      const productButtons = products.slice(0, 6).map(p => ({
+        label: `${p.name} - ${p.price || "Consultar precio"}`,
+        value: `__qr:product:${p.name}`
+      }));
+      const categoryNames: Record<string, string> = {
+        game: "Juegos",
+        subscription: "Suscripciones",
+        card: "Tarjetas de saldo",
+        bundle: "Bundles",
+      };
+      const categoryName = categoryNames[category] || category;
+      return withButtons(
+        `Estos son nuestros productos de ${categoryName}:`,
+        productButtons
+      );
+    }
+
+    if (msg.startsWith("__qr:product:")) {
+      const productName = msg.replace("__qr:product:", "");
+      const results = await catalogLookup.searchByName(productName);
+      if (results.length > 0) {
+        const p = results[0];
+        const priceText = p.price ? `Precio: ${p.price}` : "Precio: Consultar";
+        const availText = p.availability === "available" ? "Disponible" : p.availability === "preorder" ? "Pre-orden" : "Agotado";
+        const text = `${p.name} | ${priceText} | ${availText}. ${p.description || "Entrega digital inmediata."}`;
+
+        const buttons: Array<{label: string, value?: string, url?: string}> = [];
+        if (p.productUrl && p.availability === "available") {
+          buttons.push({label: "Comprar ahora", url: p.productUrl});
+        }
+        buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+        buttons.push({label: "Ver mas productos", value: "__qr:back"});
+
+        return withButtons(text, buttons);
+      }
+      return "No encontre ese producto en nuestro catalogo. ¿Puedes darme mas detalles?";
+    }
+
+    if (msg === "__qr:contact") {
+      return withButtons(
+        "Para hablar con un agente, haz clic en el boton 'Contactar un Ejecutivo' que aparece abajo del chat. Un ejecutivo se pondra en contacto contigo por correo.",
+        [
+          {label: "Ver productos", value: "__qr:back"},
+        ]
+      );
+    }
+
+    if (msg === "__qr:back") {
+      const text = `¿Que te gustaria ver? Tenemos juegos y suscripciones para PlayStation y Xbox.`;
+      return withButtons(text, [
+        {label: "Juegos PS5", value: "__qr:platform:ps5"},
+        {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+        {label: "Suscripciones", value: "__qr:category:subscription"},
+        {label: "Tarjetas de saldo", value: "__qr:category:card"},
+      ]);
+    }
+  }
+
   const state = buildConversationState(msg, conversationHistory, sessionData);
 
   if (shouldEscalate(state) && state.intent === "unknown") {

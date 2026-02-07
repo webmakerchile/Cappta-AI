@@ -25,6 +25,8 @@ export interface IStorage {
   updateProduct(id: number, data: Partial<InsertProduct>): Promise<Product | null>;
   deleteProduct(id: number): Promise<boolean>;
   searchProductsByName(query: string): Promise<Product[]>;
+  getProductsByPlatform(platform: string): Promise<Product[]>;
+  getProductsByCategory(category: string): Promise<Product[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -288,6 +290,27 @@ export class DatabaseStorage implements IStorage {
           sql`EXISTS (SELECT 1 FROM unnest(${products.searchAliases}) AS alias WHERE lower(alias) LIKE ${searchPattern})`
         )
       );
+  }
+
+  async getProductsByPlatform(platform: string): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(
+        or(
+          eq(products.platform, platform),
+          eq(products.platform, "all")
+        )
+      )
+      .orderBy(asc(products.name));
+  }
+
+  async getProductsByCategory(category: string): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.category, category))
+      .orderBy(asc(products.name));
   }
 }
 

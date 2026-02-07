@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2 } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, Zap, ImagePlus, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
@@ -11,9 +11,15 @@ interface CannedResponse {
   content: string;
 }
 
+interface QuickReplyButton {
+  label: string;
+  value?: string;
+  url?: string;
+}
+
 interface ChatWindowProps {
   messages: Message[];
-  onSend: (content: string, imageUrl?: string) => void;
+  onSend: (content: string, imageUrl?: string, quickReplyValue?: string) => void;
   onContactExecutive: () => void;
   isConnected: boolean;
   userName: string;
@@ -43,11 +49,41 @@ function highlightText(text: string, query: string) {
   );
 }
 
-function MessageBubble({ message, searchQuery }: { message: Message; searchQuery: string }) {
+function parseQuickReplies(content: string): { text: string; buttons: QuickReplyButton[] } {
+  const marker = "{{QUICK_REPLIES:";
+  const idx = content.indexOf(marker);
+  if (idx === -1) return { text: content, buttons: [] };
+
+  const text = content.substring(0, idx).trim();
+  const jsonStart = idx + marker.length;
+  const jsonEnd = content.indexOf("}}", jsonStart);
+  if (jsonEnd === -1) return { text: content, buttons: [] };
+
+  try {
+    const buttons = JSON.parse(content.substring(jsonStart, jsonEnd));
+    if (Array.isArray(buttons)) return { text, buttons };
+  } catch {}
+  return { text: content, buttons: [] };
+}
+
+interface MessageBubbleProps {
+  message: Message;
+  searchQuery: string;
+  isLastSupport: boolean;
+  onQuickReply: (btn: QuickReplyButton) => void;
+}
+
+function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
   const isImageOnly = hasImage && (!message.content || message.content === "Imagen enviada");
+
+  const { text: displayText, buttons } = isUser
+    ? { text: message.content, buttons: [] }
+    : parseQuickReplies(message.content);
+
+  const showButtons = !isUser && isLastSupport && buttons.length > 0;
 
   return (
     <div
@@ -59,7 +95,7 @@ function MessageBubble({ message, searchQuery }: { message: Message; searchQuery
           <Headphones className="w-3.5 h-3.5 text-[#6200EA]" />
         </div>
       )}
-      <div className="flex flex-col gap-1 max-w-[75%]">
+      <div className="flex flex-col gap-1.5 max-w-[80%]">
         <div
           className={`
             rounded-md overflow-hidden
@@ -82,10 +118,38 @@ function MessageBubble({ message, searchQuery }: { message: Message; searchQuery
           )}
           {!isImageOnly && (
             <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words">
-              {searchQuery ? highlightText(message.content, searchQuery) : message.content}
+              {searchQuery ? highlightText(displayText, searchQuery) : displayText}
             </div>
           )}
         </div>
+        {showButtons && (
+          <div data-testid="quick-reply-buttons" className="flex flex-wrap gap-1.5 pl-0.5">
+            {buttons.map((btn, i) => (
+              btn.url ? (
+                <a
+                  key={i}
+                  href={btn.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid={`quick-reply-link-${i}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-[#6200EA]/40 bg-[#6200EA]/15 text-[#B388FF] transition-colors hover:bg-[#6200EA]/30 hover:border-[#6200EA]/60 cursor-pointer"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  {btn.label}
+                </a>
+              ) : (
+                <button
+                  key={i}
+                  data-testid={`quick-reply-btn-${i}`}
+                  onClick={() => onQuickReply(btn)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-md border border-white/15 bg-white/5 text-white/80 transition-colors hover:bg-[#6200EA]/20 hover:border-[#6200EA]/40 hover:text-white"
+                >
+                  {btn.label}
+                </button>
+              )
+            ))}
+          </div>
+        )}
         <span
           className={`text-[10px] text-white/30 ${isUser ? "text-right" : "text-left"}`}
         >
@@ -210,11 +274,34 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
     }
   };
 
+  const handleQuickReply = useCallback((btn: QuickReplyButton) => {
+    if (btn.url) {
+      window.open(btn.url, "_blank");
+      return;
+    }
+    const value = btn.value || btn.label;
+    if (value.startsWith("__qr:")) {
+      onSend(btn.label, undefined, value);
+    } else {
+      onSend(value);
+    }
+  }, [onSend]);
+
   const filteredMessages = searchQuery.length >= 2
-    ? messages.filter(m => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? messages.filter(m => {
+        const { text } = parseQuickReplies(m.content);
+        return text.toLowerCase().includes(searchQuery.toLowerCase());
+      })
     : messages;
 
   const matchCount = searchQuery.length >= 2 ? filteredMessages.length : 0;
+
+  const lastSupportIdx = (() => {
+    for (let i = filteredMessages.length - 1; i >= 0; i--) {
+      if (filteredMessages[i].sender === "support") return i;
+    }
+    return -1;
+  })();
 
   return (
     <div className="flex flex-col h-full">
@@ -293,8 +380,14 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             </p>
           </div>
         ) : (
-          filteredMessages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} searchQuery={searchQuery} />
+          filteredMessages.map((msg, idx) => (
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              searchQuery={searchQuery}
+              isLastSupport={idx === lastSupportIdx}
+              onQuickReply={handleQuickReply}
+            />
           ))
         )}
         <div ref={messagesEndRef} />

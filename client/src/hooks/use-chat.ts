@@ -184,7 +184,7 @@ export function useChat() {
   }, [user]);
 
   const sendMessage = useCallback(
-    async (content: string, imageUrl?: string) => {
+    async (content: string, imageUrl?: string, quickReplyValue?: string) => {
       if (!user) return;
       if (!content.trim() && !imageUrl) return;
 
@@ -204,6 +204,7 @@ export function useChat() {
             productName: productContext?.name || undefined,
             productPrice: productContext?.price || undefined,
             productUrl: productContext?.url || undefined,
+            quickReplyValue: quickReplyValue || undefined,
           }),
         });
 

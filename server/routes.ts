@@ -139,21 +139,48 @@ export async function registerRoutes(
               content: m.content,
             }));
 
-            const catalogLookup = async (query: string) => {
-              const results = await storage.searchProductsByName(query);
-              return results.map(p => ({
-                name: p.name,
-                price: p.price,
-                productUrl: p.productUrl,
-                availability: p.availability,
-                platform: p.platform,
-                description: p.description,
-                category: p.category,
-              }));
+            const catalogLookup = {
+              searchByName: async (query: string) => {
+                const results = await storage.searchProductsByName(query);
+                return results.map(p => ({
+                  name: p.name,
+                  price: p.price,
+                  productUrl: p.productUrl,
+                  availability: p.availability,
+                  platform: p.platform,
+                  description: p.description,
+                  category: p.category,
+                }));
+              },
+              getByPlatform: async (platform: string) => {
+                const results = await storage.getProductsByPlatform(platform);
+                return results.map(p => ({
+                  name: p.name,
+                  price: p.price,
+                  productUrl: p.productUrl,
+                  availability: p.availability,
+                  platform: p.platform,
+                  description: p.description,
+                  category: p.category,
+                }));
+              },
+              getByCategory: async (category: string) => {
+                const results = await storage.getProductsByCategory(category);
+                return results.map(p => ({
+                  name: p.name,
+                  price: p.price,
+                  productUrl: p.productUrl,
+                  availability: p.availability,
+                  platform: p.platform,
+                  description: p.description,
+                  category: p.category,
+                }));
+              },
             };
 
+            const autoReplyInput = req.body.quickReplyValue || parsed.data.content;
             const replyContent = await getSmartAutoReply(
-              parsed.data.content,
+              autoReplyInput,
               conversationHistory,
               {
                 problemType: req.body.problemType || currentSession?.problemType || null,
@@ -660,21 +687,48 @@ export async function registerRoutes(
                 content: m.content,
               }));
 
-              const socketCatalogLookup = async (query: string) => {
-                const results = await storage.searchProductsByName(query);
-                return results.map(p => ({
-                  name: p.name,
-                  price: p.price,
-                  productUrl: p.productUrl,
-                  availability: p.availability,
-                  platform: p.platform,
-                  description: p.description,
-                  category: p.category,
-                }));
+              const socketCatalogLookup = {
+                searchByName: async (query: string) => {
+                  const results = await storage.searchProductsByName(query);
+                  return results.map(p => ({
+                    name: p.name,
+                    price: p.price,
+                    productUrl: p.productUrl,
+                    availability: p.availability,
+                    platform: p.platform,
+                    description: p.description,
+                    category: p.category,
+                  }));
+                },
+                getByPlatform: async (platform: string) => {
+                  const results = await storage.getProductsByPlatform(platform);
+                  return results.map(p => ({
+                    name: p.name,
+                    price: p.price,
+                    productUrl: p.productUrl,
+                    availability: p.availability,
+                    platform: p.platform,
+                    description: p.description,
+                    category: p.category,
+                  }));
+                },
+                getByCategory: async (category: string) => {
+                  const results = await storage.getProductsByCategory(category);
+                  return results.map(p => ({
+                    name: p.name,
+                    price: p.price,
+                    productUrl: p.productUrl,
+                    availability: p.availability,
+                    platform: p.platform,
+                    description: p.description,
+                    category: p.category,
+                  }));
+                },
               };
 
+              const socketAutoReplyInput = (data as any)?.quickReplyValue || parsed.data.content;
               const replyContent = await getSmartAutoReply(
-                parsed.data.content,
+                socketAutoReplyInput,
                 conversationHistory,
                 {
                   problemType: currentSession?.problemType || null,
