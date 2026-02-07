@@ -343,6 +343,8 @@ export class DatabaseStorage implements IStorage {
       xbox_series: ["xbox_series"],
       xbox_one: ["xbox_one"],
       xbox: ["xbox_series", "xbox_one"],
+      nintendo: ["nintendo"],
+      pc: ["pc"],
     };
 
     const platformVariants = platformMap[platform] || [platform];

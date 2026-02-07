@@ -64,6 +64,17 @@ app.use((req, res, next) => {
   await seedDatabase();
   await registerRoutes(httpServer, app);
 
+  setTimeout(async () => {
+    try {
+      const { syncWooCommerceProducts } = await import("./woocommerce");
+      log("Iniciando sincronizacion automatica WooCommerce...", "woocommerce");
+      const result = await syncWooCommerceProducts();
+      log(`Sync WC completada: ${result.created} nuevos, ${result.updated} actualizados, ${result.errors} errores de ${result.total} productos`, "woocommerce");
+    } catch (err: any) {
+      log(`WooCommerce auto-sync error: ${err.message}`, "woocommerce");
+    }
+  }, 5000);
+
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";

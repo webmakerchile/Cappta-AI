@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, serial, index, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, serial, index, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -51,15 +51,17 @@ export const contactRequests = pgTable("contact_requests", {
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
+  wcProductId: integer("wc_product_id"),
   name: text("name").notNull(),
   searchAliases: text("search_aliases").array().notNull().default(sql`'{}'::text[]`),
-  platform: text("platform", { enum: ["ps4", "ps5", "xbox_one", "xbox_series", "pc", "all"] }).notNull().default("all"),
+  platform: text("platform", { enum: ["ps4", "ps5", "xbox_one", "xbox_series", "pc", "nintendo", "all"] }).notNull().default("all"),
   price: text("price"),
   productUrl: text("product_url"),
   imageUrl: text("image_url"),
   availability: text("availability", { enum: ["available", "out_of_stock", "preorder"] }).notNull().default("available"),
   description: text("description"),
-  category: text("category", { enum: ["game", "subscription", "card", "bundle"] }).notNull().default("game"),
+  category: text("category", { enum: ["game", "subscription", "card", "bundle", "console", "accessory", "other"] }).notNull().default("game"),
+  wcLastSync: timestamp("wc_last_sync"),
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({

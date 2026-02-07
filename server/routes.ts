@@ -8,6 +8,7 @@ import { log } from "./index";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getSmartAutoReply } from "./autoReply";
+import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
 
 const socketMessageSchema = insertMessageSchema.extend({
   content: z.string().max(2000),
@@ -531,6 +532,29 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error al eliminar producto: ${error.message}`, "api");
       res.status(500).json({ message: "Error al eliminar producto" });
+    }
+  });
+
+  app.get("/api/admin/wc/status", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const status = await getWCSyncStatus();
+      res.json(status);
+    } catch (error: any) {
+      log(`Error al obtener estado WC: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener estado" });
+    }
+  });
+
+  app.post("/api/admin/wc/sync", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      log("Iniciando sincronizacion WooCommerce manual", "woocommerce");
+      const result = await syncWooCommerceProducts();
+      res.json(result);
+    } catch (error: any) {
+      log(`Error en sincronizacion WC: ${error.message}`, "api");
+      res.status(500).json({ message: "Error en sincronizacion", error: error.message });
     }
   });
 

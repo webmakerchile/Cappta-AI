@@ -655,6 +655,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
 
 interface AdminProduct {
   id: number;
+  wcProductId: number | null;
   name: string;
   searchAliases: string[];
   platform: string;
@@ -664,6 +665,24 @@ interface AdminProduct {
   availability: string;
   description: string | null;
   category: string;
+  wcLastSync: string | null;
+}
+
+interface WCSyncStatus {
+  lastSync: string | null;
+  productCount: number;
+  wcProductCount: number;
+  storeUrl: string;
+  configured: boolean;
+}
+
+interface WCSyncResult {
+  total: number;
+  created: number;
+  updated: number;
+  errors: number;
+  skipped: number;
+  details: string[];
 }
 
 const PLATFORM_OPTIONS = [
@@ -673,6 +692,7 @@ const PLATFORM_OPTIONS = [
   { value: "xbox_one", label: "Xbox One" },
   { value: "xbox_series", label: "Xbox Series" },
   { value: "pc", label: "PC" },
+  { value: "nintendo", label: "Nintendo" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -680,6 +700,9 @@ const CATEGORY_OPTIONS = [
   { value: "subscription", label: "Suscripcion" },
   { value: "card", label: "Tarjeta" },
   { value: "bundle", label: "Bundle" },
+  { value: "console", label: "Consola" },
+  { value: "accessory", label: "Accesorio" },
+  { value: "other", label: "Otro" },
 ];
 
 const AVAILABILITY_OPTIONS = [
@@ -707,6 +730,113 @@ function getPlatformLabel(platform: string) {
 function getCategoryLabel(category: string) {
   const opt = CATEGORY_OPTIONS.find(o => o.value === category);
   return opt?.label || category;
+}
+
+function WCSyncSection() {
+  const [syncResult, setSyncResult] = useState<WCSyncResult | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const { data: wcStatus } = useQuery<WCSyncStatus>({
+    queryKey: ["/api/admin/wc/status"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/wc/status");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/admin/wc/sync", {
+        method: "POST",
+        headers: { "x-admin-key": getAdminKey(), "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Error en sincronizacion");
+      }
+      return res.json() as Promise<WCSyncResult>;
+    },
+    onSuccess: (data) => {
+      setSyncResult(data);
+      setShowDetails(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/wc/status"] });
+    },
+    onError: (err: Error) => {
+      setSyncResult({ total: 0, created: 0, updated: 0, errors: 1, skipped: 0, details: [err.message] });
+      setShowDetails(true);
+    },
+  });
+
+  if (!wcStatus?.configured) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      {syncResult && showDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowDetails(false)}>
+          <div
+            data-testid="wc-sync-results"
+            className="bg-[#1a1a2e] border border-white/10 rounded-md p-4 max-w-md w-full mx-4 max-h-[70vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h3 className="text-sm font-semibold text-white">Resultado de Sincronizacion</h3>
+              <button data-testid="button-close-sync-result" onClick={() => setShowDetails(false)} className="text-white/40 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white/5 rounded p-2">
+                <span className="text-white/40">Total WC:</span>
+                <span className="text-white ml-1 font-medium">{syncResult.total}</span>
+              </div>
+              <div className="bg-green-500/10 rounded p-2">
+                <span className="text-green-400/60">Creados:</span>
+                <span className="text-green-400 ml-1 font-medium">{syncResult.created}</span>
+              </div>
+              <div className="bg-blue-500/10 rounded p-2">
+                <span className="text-blue-400/60">Actualizados:</span>
+                <span className="text-blue-400 ml-1 font-medium">{syncResult.updated}</span>
+              </div>
+              <div className="bg-red-500/10 rounded p-2">
+                <span className="text-red-400/60">Errores:</span>
+                <span className="text-red-400 ml-1 font-medium">{syncResult.errors}</span>
+              </div>
+            </div>
+            {syncResult.details.length > 0 && (
+              <div className="text-xs text-white/50 space-y-1 max-h-48 overflow-y-auto">
+                {syncResult.details.map((d, i) => (
+                  <div key={i} className={`${d.startsWith("Error") ? "text-red-400/70" : "text-white/40"}`}>{d}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {wcStatus.wcProductCount > 0 && (
+        <span className="text-[10px] text-white/30 hidden sm:inline">
+          WC: {wcStatus.wcProductCount}/{wcStatus.productCount}
+        </span>
+      )}
+      <Button
+        data-testid="button-wc-sync"
+        size="sm"
+        variant="outline"
+        onClick={() => syncMutation.mutate()}
+        disabled={syncMutation.isPending}
+        className="text-xs border-[#6200EA]/40 text-[#B388FF]"
+      >
+        {syncMutation.isPending ? (
+          <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+        ) : (
+          <Package className="w-3.5 h-3.5 mr-1" />
+        )}
+        {syncMutation.isPending ? "Sincronizando..." : "Sync WooCommerce"}
+      </Button>
+    </div>
+  );
 }
 
 function ProductsPanel() {
@@ -939,16 +1069,19 @@ function ProductsPanel() {
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="p-3 border-b border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-sm font-semibold text-white">Catalogo de Productos</h2>
-        <Button
-          data-testid="button-add-product"
-          size="sm"
-          onClick={() => { setIsAdding(true); setEditingId(null); resetForm(); }}
-          className="bg-[#6200EA] text-white text-xs"
-          disabled={isAdding}
-        >
-          <Plus className="w-3.5 h-3.5 mr-1" />
-          Agregar Producto
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <WCSyncSection />
+          <Button
+            data-testid="button-add-product"
+            size="sm"
+            onClick={() => { setIsAdding(true); setEditingId(null); resetForm(); }}
+            className="bg-[#6200EA] text-white text-xs"
+            disabled={isAdding}
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Agregar Producto
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
@@ -981,6 +1114,9 @@ function ProductsPanel() {
                       <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getAvailabilityColor(p.availability)}`}>
                         {getAvailabilityLabel(p.availability)}
                       </span>
+                      {p.wcProductId && (
+                        <span className="text-[9px] bg-blue-500/10 text-blue-400/60 px-1 py-0.5 rounded border border-blue-500/20">WC</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="text-[10px] bg-[#6200EA]/15 text-[#6200EA] px-1.5 py-0.5 rounded">
