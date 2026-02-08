@@ -47,6 +47,10 @@ function ChatWidget() {
     logout();
   }, [logout]);
 
+  const handleRatingComplete = useCallback(() => {
+    logout();
+  }, [logout]);
+
   useEffect(() => {
     if (!isOpen && messages.length > 0) {
       const last = messages[messages.length - 1];
@@ -89,6 +93,7 @@ function ChatWidget() {
                 onClose={toggleChat}
                 onExitChat={handleExitChat}
                 sessionId={user.sessionId}
+                onRatingComplete={handleRatingComplete}
               />
             ) : (
               <WelcomeForm onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)} onClose={toggleChat} />

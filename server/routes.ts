@@ -837,6 +837,7 @@ export async function registerRoutes(
         return res.status(409).json({ message: "Ya existe una calificacion para esta sesion", rating: existing });
       }
       const created = await storage.createRating(parsed.data);
+      await storage.updateSessionStatus(parsed.data.sessionId, "closed");
       res.status(201).json(created);
     } catch (error: any) {
       log(`Error al crear calificacion: ${error.message}`, "api");

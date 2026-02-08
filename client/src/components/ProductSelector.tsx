@@ -193,21 +193,19 @@ export function ProductSelector({
                       onClick={() => handleProductSelect(product)}
                       className="w-full px-3 py-2 text-left hover:bg-[#6200EA]/20 transition-colors text-sm"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-white truncate">{product.name}</div>
-                          <div className="flex items-center gap-2 mt-1">
-                            {product.price && (
-                              <span className="text-xs text-white/60">
-                                {product.price}
-                              </span>
-                            )}
-                            {platformBadge && (
-                              <span className="inline-block px-2 py-0.5 bg-[#6200EA]/30 text-white/80 text-xs rounded">
-                                {platformBadge}
-                              </span>
-                            )}
-                          </div>
+                      <div className="flex flex-col gap-1">
+                        <div className="text-white text-sm leading-snug break-words whitespace-normal">{product.name}</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {product.price && (
+                            <span className="text-xs text-white/60">
+                              {product.price}
+                            </span>
+                          )}
+                          {platformBadge && (
+                            <span className="inline-block px-2 py-0.5 bg-[#6200EA]/30 text-white/80 text-xs rounded flex-shrink-0">
+                              {platformBadge}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </button>

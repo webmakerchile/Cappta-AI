@@ -43,6 +43,7 @@ interface ChatWindowProps {
   onClose: () => void;
   onExitChat: () => void;
   sessionId: string;
+  onRatingComplete?: () => void;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -84,7 +85,7 @@ function parseQuickReplies(content: string): { text: string; buttons: QuickReply
   return { text: content, buttons: [] };
 }
 
-function RatingCard({ sessionId, userEmail, userName }: { sessionId: string; userEmail: string; userName: string }) {
+function RatingCard({ sessionId, userEmail, userName, onRatingComplete }: { sessionId: string; userEmail: string; userName: string; onRatingComplete?: () => void }) {
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -124,6 +125,9 @@ function RatingCard({ sessionId, userEmail, userName }: { sessionId: string; use
         try {
           localStorage.setItem("rated_session_" + sessionId, JSON.stringify({ rating: selectedRating }));
         } catch {}
+        if (onRatingComplete) {
+          setTimeout(() => onRatingComplete(), 2500);
+        }
       }
     } catch {} finally {
       setSubmitting(false);
@@ -137,7 +141,7 @@ function RatingCard({ sessionId, userEmail, userName }: { sessionId: string; use
           <CheckCircle className="w-5 h-5 text-green-400" />
           <span className="text-sm font-medium text-white">Gracias por tu calificacion</span>
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 mb-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
               key={star}
@@ -145,6 +149,9 @@ function RatingCard({ sessionId, userEmail, userName }: { sessionId: string; use
             />
           ))}
         </div>
+        {onRatingComplete && (
+          <p className="text-xs text-white/40">Cerrando chat...</p>
+        )}
       </div>
     );
   }
@@ -198,9 +205,10 @@ interface MessageBubbleProps {
   searchQuery: string;
   isLastSupport: boolean;
   onQuickReply: (btn: QuickReplyButton) => void;
+  onRatingComplete?: () => void;
 }
 
-function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: MessageBubbleProps) {
+function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
@@ -231,7 +239,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: Me
           <Headphones className="w-3.5 h-3.5 text-[#6200EA]" />
         </div>
         <div className="flex flex-col gap-1.5 max-w-[80%]">
-          <RatingCard sessionId={sessionId} userEmail={userEmail} userName={uName} />
+          <RatingCard sessionId={sessionId} userEmail={userEmail} userName={uName} onRatingComplete={onRatingComplete} />
           <span className="text-[10px] text-white/30 text-left">
             {formatTime(message.timestamp)}
           </span>
@@ -390,7 +398,7 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
   );
 }
 
-export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose, onExitChat, sessionId }: ChatWindowProps) {
+export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose, onExitChat, sessionId, onRatingComplete }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -643,6 +651,7 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
               searchQuery={searchQuery}
               isLastSupport={idx === lastSupportIdx}
               onQuickReply={handleQuickReply}
+              onRatingComplete={onRatingComplete}
             />
           ))
         )}
