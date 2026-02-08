@@ -88,6 +88,7 @@ function ChatWidget() {
                 contactRequested={contactRequested}
                 onClose={toggleChat}
                 onExitChat={handleExitChat}
+                sessionId={user.sessionId}
               />
             ) : (
               <WelcomeForm onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)} onClose={toggleChat} />

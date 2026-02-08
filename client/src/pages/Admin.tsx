@@ -481,6 +481,22 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     },
   });
 
+  const sendRatingMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/admin/sessions/${sessionId}/send-rating`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Error al enviar encuesta");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "rating"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    },
+  });
+
   const { uploadFile: adminUploadFile, isUploading: adminIsUploading } = useUpload({
     onSuccess: (response) => {
       replyMutation.mutate({ imageUrl: response.objectPath });
@@ -599,6 +615,17 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               }`}
             >
               {statusMutation.isPending ? "..." : sessionStatus === "active" ? "Finalizar" : "Reabrir"}
+            </Button>
+            <Button
+              data-testid="button-send-survey"
+              variant="ghost"
+              size="sm"
+              onClick={() => sendRatingMutation.mutate()}
+              disabled={!!sessionRating || sendRatingMutation.isPending}
+              className="text-xs text-yellow-400"
+            >
+              <Star className="w-3.5 h-3.5 mr-1" />
+              {sendRatingMutation.isPending ? "..." : sessionRating ? "Encuesta enviada" : "Enviar Encuesta"}
             </Button>
             <Button
               size="icon"

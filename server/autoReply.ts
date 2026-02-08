@@ -1060,25 +1060,17 @@ function getTrustResponse(state: ConversationState): string {
 }
 
 function getGratitudeResponse(state: ConversationState): string {
-  const text = pickUnused([
-    `¡Con gusto! Me alegra haberte ayudado. ¿Te gustaria finalizar el chat y calificar tu experiencia?`,
-    `¡De nada! Fue un placer ayudarte. ¿Quieres finalizar la conversacion y dejarnos tu opinion?`,
+  return pickUnused([
+    `¡Con gusto! Me alegra haberte ayudado. Si deseas, puedes finalizar el chat y dejarnos tu valoracion usando el boton al final del chat.`,
+    `¡De nada! Fue un placer ayudarte. Recuerda que puedes valorar tu experiencia con el boton "Finalizar y Valorar" que aparece abajo.`,
   ], state.usedResponses);
-  return withButtons(text, [
-    {label: "Finalizar y calificar", value: "__qr:rate"},
-    {label: "Tengo otra consulta", value: "__qr:back"},
-  ]);
 }
 
 function getFarewellResponse(state: ConversationState): string {
-  const text = pickUnused([
-    `¡Hasta pronto! Antes de irte, ¿te gustaria calificar tu experiencia con nosotros?`,
-    `¡Chao! Nos encantaria saber que te parecio nuestra atencion. ¿Quieres dejarnos tu calificacion?`,
+  return pickUnused([
+    `¡Hasta pronto! Si lo deseas, puedes calificarnos usando el boton "Finalizar y Valorar" al final del chat. ¡Que tengas un excelente dia!`,
+    `¡Chao! Nos encantaria saber que te parecio nuestra atencion. Usa el boton "Finalizar y Valorar" abajo para dejarnos tu opinion. ¡Hasta la proxima!`,
   ], state.usedResponses);
-  return withButtons(text, [
-    {label: "Calificar experiencia", value: "__qr:rate"},
-    {label: "Solo despedirme", value: "__qr:farewell_skip"},
-  ]);
 }
 
 function getFollowupResponse(state: ConversationState, msg: string): string {

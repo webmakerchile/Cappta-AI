@@ -947,6 +947,65 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/sessions/:sessionId/send-rating", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      const existingRating = await storage.getRatingBySessionId(req.params.sessionId);
+      if (existingRating) {
+        return res.status(409).json({ message: "Ya existe una calificacion para esta sesion" });
+      }
+
+      const message = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session.userEmail,
+        userName: "Soporte",
+        sender: "support",
+        content: "{{SHOW_RATING}}",
+        imageUrl: null,
+      });
+
+      await storage.touchSession(req.params.sessionId);
+      io.to(`session:${req.params.sessionId}`).emit("new_message", message);
+
+      res.json(message);
+    } catch (error: any) {
+      log(`Error al enviar encuesta: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al enviar encuesta" });
+    }
+  });
+
+  app.post("/api/sessions/:sessionId/request-rating", async (req, res) => {
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      const message = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session.userEmail,
+        userName: "Soporte",
+        sender: "support",
+        content: "{{SHOW_RATING}}",
+        imageUrl: null,
+      });
+
+      await storage.touchSession(req.params.sessionId);
+      io.to(`session:${req.params.sessionId}`).emit("new_message", message);
+
+      res.json(message);
+    } catch (error: any) {
+      log(`Error al solicitar calificacion: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al solicitar calificacion" });
+    }
+  });
+
   io.on("connection", (socket) => {
     const { email, name, sessionId } = socket.handshake.auth as { email: string; name: string; sessionId: string };
 

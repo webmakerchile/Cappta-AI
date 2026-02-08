@@ -42,6 +42,7 @@ interface ChatWindowProps {
   contactRequested: boolean;
   onClose: () => void;
   onExitChat: () => void;
+  sessionId: string;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -320,7 +321,76 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply }: Me
   );
 }
 
-export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose, onExitChat }: ChatWindowProps) {
+function FinalizeRateButton({ sessionId }: { sessionId: string }) {
+  const [confirmState, setConfirmState] = useState<"idle" | "confirming" | "sent">("idle");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("rated_session_" + sessionId);
+      if (stored) setConfirmState("sent");
+    } catch {}
+  }, [sessionId]);
+
+  const handleClick = async () => {
+    if (confirmState === "sent" || sending) return;
+    if (confirmState === "idle") {
+      setConfirmState("confirming");
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/request-rating`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setConfirmState("sent");
+      }
+    } catch {} finally {
+      setSending(false);
+    }
+  };
+
+  const isDisabled = confirmState === "sent" || sending;
+
+  return (
+    <Button
+      data-testid="button-finalize-rate"
+      variant="outline"
+      onClick={handleClick}
+      disabled={isDisabled}
+      className={`
+        w-full mb-2 border-yellow-500/30 text-white/70
+        ${confirmState === "sent"
+          ? "opacity-50 cursor-not-allowed bg-yellow-500/10"
+          : confirmState === "confirming"
+            ? "bg-yellow-500/10 border-yellow-500/50"
+            : "bg-transparent"
+        }
+      `}
+    >
+      {confirmState === "sent" ? (
+        <>
+          <CheckCircle className="w-4 h-4 mr-2 text-yellow-400" />
+          Encuesta enviada
+        </>
+      ) : confirmState === "confirming" ? (
+        <>
+          <CheckCircle className="w-4 h-4 mr-2 text-yellow-400" />
+          {sending ? "Enviando..." : "¿Confirmar finalizar?"}
+        </>
+      ) : (
+        <>
+          <Star className="w-4 h-4 mr-2 text-yellow-400" />
+          Finalizar y Valorar
+        </>
+      )}
+    </Button>
+  );
+}
+
+export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose, onExitChat, sessionId }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -596,6 +666,7 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           <UserRound className="w-4 h-4 mr-2 text-[#6200EA]" />
           {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
         </Button>
+        <FinalizeRateButton sessionId={sessionId} />
       </div>
 
       <div className="relative px-3 pb-3">
