@@ -1201,17 +1201,52 @@ function detectPurchaseStage(conversationHistory: ConversationEntry[]): number {
   return 0;
 }
 
+function extractProductNameFromHistory(history: ConversationEntry[]): string | null {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const entry = history[i];
+    if (entry.sender !== "support") continue;
+    const content = entry.content;
+
+    const nameMatch = content.match(/^(.+?)\s*\|\s*Precio:/);
+    if (nameMatch) return nameMatch[1].trim();
+
+    const comprarMatch = content.match(/comprar\s+(.+?)(?:\s*[!.]|\s+La\s+entrega)/i);
+    if (comprarMatch) return comprarMatch[1].trim();
+
+    const tieneMatch = content.match(/!\s+(.+?)\s+tiene\s+un\s+precio/);
+    if (tieneMatch) return tieneMatch[1].trim();
+
+    const precioDeMatch = content.match(/(?:El precio de|precio de)\s+(.+?)\s+es\s/i);
+    if (precioDeMatch) return precioDeMatch[1].trim();
+
+    const perfectoMatch = content.match(/(?:Perfecto|Genial)[!]?\s+(.+?)(?:\s+tiene\s|\s*[|.]|\s+Precio)/);
+    if (perfectoMatch) return perfectoMatch[1].trim();
+
+    const recomMatch = content.match(/Te recomiendo este producto:\s*(.+?)\.\s*Precio:/);
+    if (recomMatch) return recomMatch[1].trim();
+  }
+  return null;
+}
+
 async function lookupCatalogProduct(
   state: ConversationState,
   sessionData: SessionData | undefined,
-  catalogLookup?: CatalogLookup
+  catalogLookup?: CatalogLookup,
+  conversationHistory?: ConversationEntry[]
 ): Promise<CatalogProduct | null> {
   if (!catalogLookup) return null;
 
   const queries: string[] = [];
 
+  if (conversationHistory && conversationHistory.length > 0) {
+    const mentionedProduct = extractProductNameFromHistory(conversationHistory);
+    if (mentionedProduct) {
+      queries.unshift(mentionedProduct);
+    }
+  }
+
   if (sessionData?.gameName) {
-    queries.unshift(sessionData.gameName);
+    queries.push(sessionData.gameName);
   }
 
   if (sessionData?.wpProductName) {
@@ -1518,7 +1553,7 @@ export async function getSmartAutoReply(
     }
   }
 
-  const catalogProduct = await lookupCatalogProduct(state, sessionData, catalogLookup);
+  const catalogProduct = await lookupCatalogProduct(state, sessionData, catalogLookup, conversationHistory);
 
   if (sessionData?.wpProductName && !state.product && !state.lastTopicProduct) {
     const wpProduct: DetectedProduct = {
