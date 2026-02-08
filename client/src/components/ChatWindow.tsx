@@ -369,28 +369,28 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
       onClick={handleClick}
       disabled={isDisabled}
       className={`
-        w-full mb-2 border-yellow-500/30 text-white/70
+        w-full mb-2 font-semibold text-sm
         ${confirmState === "sent"
-          ? "opacity-50 cursor-not-allowed bg-yellow-500/10"
+          ? "opacity-50 cursor-not-allowed bg-amber-500/10 border-amber-500/30 text-white/50"
           : confirmState === "confirming"
-            ? "bg-yellow-500/10 border-yellow-500/50"
-            : "bg-transparent"
+            ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
+            : "bg-amber-500/90 border-amber-500 text-black shadow-[0_0_12px_rgba(245,158,11,0.35)]"
         }
       `}
     >
       {confirmState === "sent" ? (
         <>
-          <CheckCircle className="w-4 h-4 mr-2 text-yellow-400" />
+          <CheckCircle className="w-4 h-4 mr-2" />
           Encuesta enviada
         </>
       ) : confirmState === "confirming" ? (
         <>
-          <CheckCircle className="w-4 h-4 mr-2 text-yellow-400" />
+          <CheckCircle className="w-4 h-4 mr-2" />
           {sending ? "Enviando..." : "¿Confirmar finalizar?"}
         </>
       ) : (
         <>
-          <Star className="w-4 h-4 mr-2 text-yellow-400" />
+          <Star className="w-4 h-4 mr-2" />
           Finalizar y Valorar
         </>
       )}
@@ -665,14 +665,14 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           onClick={onContactExecutive}
           disabled={contactRequested}
           className={`
-            w-full mb-2 border-[#6200EA]/30 text-white/70
+            w-full mb-2 font-semibold text-sm
             ${contactRequested
-              ? "opacity-50 cursor-not-allowed bg-[#6200EA]/10"
-              : "bg-transparent"
+              ? "opacity-50 cursor-not-allowed bg-[#6200EA]/10 border-[#6200EA]/30 text-white/50"
+              : "bg-[#6200EA] border-[#6200EA] text-white shadow-[0_0_12px_rgba(98,0,234,0.4)]"
             }
           `}
         >
-          <UserRound className="w-4 h-4 mr-2 text-[#6200EA]" />
+          <UserRound className="w-4 h-4 mr-2" />
           {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
         </Button>
         <FinalizeRateButton sessionId={sessionId} />

@@ -24,6 +24,7 @@ interface SessionSummary {
   userName: string;
   userEmail: string;
   messageCount: number;
+  unreadCount: number;
   lastMessage: string | null;
   firstMessage: string | null;
   status: string;
@@ -235,6 +236,14 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
           <p className="text-sm font-medium text-white truncate">{session.userName || "Sin nombre"}</p>
           <p className="text-[11px] text-white/40 truncate">{session.userEmail || "Sin correo"}</p>
         </div>
+        {session.unreadCount > 0 && (
+          <span
+            data-testid={`badge-unread-${session.sessionId}`}
+            className="flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#6200EA] text-white text-[11px] font-bold animate-pulse"
+          >
+            {session.unreadCount > 99 ? "99+" : session.unreadCount}
+          </span>
+        )}
       </div>
       {(session.problemType || session.gameName) && (
         <div className="flex items-center gap-2 pl-9 mb-1 flex-wrap">
@@ -419,7 +428,9 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     queryFn: async () => {
       const res = await adminFetch(`/api/admin/sessions/${sessionId}/messages`);
       if (!res.ok) throw new Error("Error");
-      return res.json();
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      return data;
     },
     enabled: !!sessionId,
     refetchInterval: isAdminActive ? 3000 : false,
@@ -2111,6 +2122,7 @@ export default function AdminPage() {
         userName: r.userName,
         userEmail: r.userEmail,
         messageCount: r.messages.length,
+        unreadCount: 0,
         lastMessage: r.messages[0]?.timestamp ? String(r.messages[0].timestamp) : null,
         firstMessage: null,
         status: "active",

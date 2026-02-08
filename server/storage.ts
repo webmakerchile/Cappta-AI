@@ -6,7 +6,8 @@ export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean }[]>;
+  markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
   upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session>;
@@ -138,7 +139,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean }[]> {
+  async markSessionRead(sessionId: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ lastReadAt: new Date() })
+      .where(eq(sessions.sessionId, sessionId));
+  }
+
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean }[]> {
     const allSessions = await db.select().from(sessions).orderBy(desc(sessions.lastMessageAt));
 
     const allContactRequests = await db.select({ userEmail: contactRequests.userEmail }).from(contactRequests);
@@ -161,11 +169,27 @@ export class DatabaseStorage implements IStorage {
         .from(messages)
         .where(eq(messages.sessionId, s.sessionId));
 
+      let unreadCount = 0;
+      if (s.lastReadAt) {
+        const unread = await db
+          .select({ count: sql<number>`COUNT(*)::int` })
+          .from(messages)
+          .where(sql`${messages.sessionId} = ${s.sessionId} AND ${messages.sender} = 'user' AND ${messages.timestamp} > ${s.lastReadAt}`);
+        unreadCount = unread[0]?.count || 0;
+      } else {
+        const unread = await db
+          .select({ count: sql<number>`COUNT(*)::int` })
+          .from(messages)
+          .where(sql`${messages.sessionId} = ${s.sessionId} AND ${messages.sender} = 'user'`);
+        unreadCount = unread[0]?.count || 0;
+      }
+
       result.push({
         sessionId: s.sessionId,
         userName: s.userName,
         userEmail: s.userEmail,
         messageCount: msgCount[0]?.count || 0,
+        unreadCount,
         lastMessage: msgTimes[0]?.lastMessage || null,
         firstMessage: msgTimes[0]?.firstMessage || null,
         status: s.status,
@@ -198,6 +222,7 @@ export class DatabaseStorage implements IStorage {
         const lrEmail = lr.userEmail ? lr.userEmail.toLowerCase() : "";
         result.push({
           ...lr,
+          unreadCount: lr.messageCount,
           status: "active",
           tags: [],
           problemType: null,

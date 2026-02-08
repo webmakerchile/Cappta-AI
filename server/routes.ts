@@ -541,6 +541,7 @@ export async function registerRoutes(
     if (!adminUser) return;
     try {
       const msgs = await storage.getMessagesBySessionId(req.params.sessionId);
+      await storage.markSessionRead(req.params.sessionId);
       res.json(msgs);
     } catch (error: any) {
       log(`Error al obtener mensajes de sesion: ${error.message}`, "api");
@@ -929,6 +930,7 @@ export async function registerRoutes(
       });
 
       await storage.touchSession(req.params.sessionId);
+      await storage.markSessionRead(req.params.sessionId);
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
 

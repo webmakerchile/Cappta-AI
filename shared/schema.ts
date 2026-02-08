@@ -27,6 +27,7 @@ export const sessions = pgTable("sessions", {
   gameName: text("game_name"),
   adminActive: boolean("admin_active").notNull().default(false),
   lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  lastReadAt: timestamp("last_read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
