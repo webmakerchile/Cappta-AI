@@ -8,7 +8,7 @@ export interface IStorage {
   getSessionsByEmail(email: string): Promise<Session[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null }[]>;
   markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
@@ -17,7 +17,7 @@ export interface IStorage {
   updateSessionStatus(sessionId: string, status: "active" | "closed"): Promise<Session | null>;
   updateSessionTags(sessionId: string, tags: string[]): Promise<Session | null>;
   updateSessionAdminActive(sessionId: string, adminActive: boolean): Promise<Session | null>;
-  claimSession(sessionId: string, adminId: number, adminName: string): Promise<Session | null>;
+  claimSession(sessionId: string, adminId: number, adminName: string, adminColor: string): Promise<Session | null>;
   unclaimSession(sessionId: string): Promise<Session | null>;
   touchSession(sessionId: string): Promise<void>;
   getCannedResponses(): Promise<CannedResponse[]>;
@@ -152,10 +152,10 @@ export class DatabaseStorage implements IStorage {
     return updated || null;
   }
 
-  async claimSession(sessionId: string, adminId: number, adminName: string): Promise<Session | null> {
+  async claimSession(sessionId: string, adminId: number, adminName: string, adminColor: string): Promise<Session | null> {
     const [updated] = await db
       .update(sessions)
-      .set({ assignedTo: adminId, assignedToName: adminName })
+      .set({ assignedTo: adminId, assignedToName: adminName, assignedToColor: adminColor })
       .where(eq(sessions.sessionId, sessionId))
       .returning();
     return updated || null;
@@ -164,7 +164,7 @@ export class DatabaseStorage implements IStorage {
   async unclaimSession(sessionId: string): Promise<Session | null> {
     const [updated] = await db
       .update(sessions)
-      .set({ assignedTo: null, assignedToName: null })
+      .set({ assignedTo: null, assignedToName: null, assignedToColor: null })
       .where(eq(sessions.sessionId, sessionId))
       .returning();
     return updated || null;
@@ -184,7 +184,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null }[]> {
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null }[]> {
     const allSessions = await db.select().from(sessions).orderBy(desc(sessions.lastMessageAt));
 
     const allContactRequests = await db.select({ userEmail: contactRequests.userEmail }).from(contactRequests);
@@ -238,6 +238,7 @@ export class DatabaseStorage implements IStorage {
         contactRequested: contactRequestEmails.has(s.userEmail.toLowerCase()),
         assignedTo: s.assignedTo ?? null,
         assignedToName: s.assignedToName ?? null,
+        assignedToColor: s.assignedToColor ?? null,
       });
     }
 
@@ -271,6 +272,7 @@ export class DatabaseStorage implements IStorage {
           contactRequested: contactRequestEmails.has(lrEmail),
           assignedTo: null,
           assignedToName: null,
+          assignedToColor: null,
         });
       }
     }

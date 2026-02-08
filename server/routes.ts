@@ -953,10 +953,12 @@ export async function registerRoutes(
           assignedToName: session.assignedToName,
         });
       }
+      const dbAdmin = await storage.getAdminUserById(adminUser.id);
       const updated = await storage.claimSession(
         req.params.sessionId,
         adminUser.id,
-        adminUser.displayName
+        adminUser.displayName,
+        dbAdmin?.color || "#6200EA"
       );
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "claim", session: updated });
       res.json(updated);

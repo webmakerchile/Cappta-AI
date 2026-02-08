@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import {
@@ -74,7 +74,7 @@ interface RatingData {
   timestamp: string;
 }
 
-const PREDEFINED_TAGS = ["Venta", "Soporte", "Urgente", "Resuelto", "Pendiente"];
+const PREDEFINED_TAGS = ["Venta", "Soporte", "Urgente", "Resuelto", "Pendiente", "Reembolso", "Entrega", "Seguimiento", "VIP", "Reclamo"];
 
 function getAuthToken(): string {
   try { return localStorage.getItem("admin_token") || ""; } catch { return ""; }
@@ -292,7 +292,14 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
           </span>
         )}
         {session.assignedToName && (
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#6200EA]/15 text-[#6200EA]/70 truncate max-w-[80px]">
+          <span 
+            className="text-[9px] px-1.5 py-0.5 rounded font-semibold truncate max-w-[100px]"
+            style={{ 
+              backgroundColor: `${(session as any).assignedToColor || '#6200EA'}25`,
+              color: (session as any).assignedToColor || '#6200EA',
+              border: `1px solid ${(session as any).assignedToColor || '#6200EA'}40`,
+            }}
+          >
             {session.assignedToName}
           </span>
         )}
@@ -312,6 +319,16 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
   const [showInput, setShowInput] = useState(false);
   const [customTag, setCustomTag] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const { data: sessionsData } = useQuery<any[]>({
+    queryKey: ["/api/admin/sessions"],
+  });
+  const allUsedTags = useMemo(() => {
+    if (!sessionsData) return [];
+    const tagSet = new Set<string>();
+    sessionsData.forEach((s: any) => s.tags?.forEach((t: string) => tagSet.add(t)));
+    return Array.from(tagSet);
+  }, [sessionsData]);
 
   const tagsMutation = useMutation({
     mutationFn: async (newTags: string[]) => {
@@ -341,7 +358,8 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
     tagsMutation.mutate(tags.filter((t) => t !== tag));
   };
 
-  const availableSuggestions = PREDEFINED_TAGS.filter((t) => !tags.includes(t));
+  const allSuggestions = Array.from(new Set([...PREDEFINED_TAGS, ...allUsedTags]));
+  const availableSuggestions = allSuggestions.filter((t) => !tags.includes(t));
 
   return (
     <div className="flex items-center gap-1 flex-wrap">
@@ -372,8 +390,8 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
                 if (e.key === "Enter" && customTag.trim()) { addTag(customTag); }
                 if (e.key === "Escape") { setShowInput(false); setCustomTag(""); setShowSuggestions(false); }
               }}
-              placeholder="Etiqueta..."
-              className="h-6 w-24 text-[11px] bg-white/5 border-white/10 text-white placeholder:text-white/25 px-1.5 focus-visible:ring-[#6200EA]"
+              placeholder="Escribe una etiqueta..."
+              className="h-6 w-28 text-[11px] bg-white/5 border-white/10 text-white placeholder:text-white/25 px-1.5 focus-visible:ring-[#6200EA]"
               autoFocus
               onFocus={() => setShowSuggestions(true)}
             />
