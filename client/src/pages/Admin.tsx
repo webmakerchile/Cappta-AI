@@ -2205,12 +2205,18 @@ export default function AdminPage() {
       adminSocket.emit("join_admin_room", { token });
     });
 
-    adminSocket.on("session_updated", () => {
+    adminSocket.on("session_updated", (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      if (data?.sessionId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
+      }
     });
 
-    adminSocket.on("admin_new_message", () => {
+    adminSocket.on("admin_new_message", (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      if (data?.sessionId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
+      }
     });
 
     return () => {

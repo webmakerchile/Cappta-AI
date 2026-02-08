@@ -227,6 +227,7 @@ export async function registerRoutes(
       await storage.touchSession(sessionId);
 
       io.to(`session:${sessionId}`).emit("new_message", message);
+      io.to("admin_room").emit("admin_new_message", { sessionId });
 
       if (parsed.data.sender === "user" && !req.body.imageUrl) {
         const pageUrl = req.body.pageUrl || "";
@@ -306,6 +307,7 @@ export async function registerRoutes(
               content: replyContent,
             });
             io.to(`session:${sessionId}`).emit("new_message", autoReply);
+            io.to("admin_room").emit("admin_new_message", { sessionId });
 
             if (!isSessionOnline(sessionId)) {
               sendOfflineNotification({
@@ -1011,6 +1013,7 @@ export async function registerRoutes(
       await storage.markSessionRead(req.params.sessionId);
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId });
 
       if (!isSessionOnline(req.params.sessionId)) {
         sendOfflineNotification({
@@ -1238,6 +1241,7 @@ export async function registerRoutes(
                 content: replyContent,
               });
               io.to(`session:${sid}`).emit("new_message", autoReply);
+              io.to("admin_room").emit("admin_new_message", { sessionId: sid });
             } catch (err: any) {
               log(`Error en auto-respuesta: ${err.message}`, "socket.io");
             }
