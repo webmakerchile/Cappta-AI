@@ -66,18 +66,18 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
           <X className="w-4 h-4 text-white" />
         </button>
       </div>
-      <div className="flex flex-col items-center pt-4 pb-3 px-6">
-        <div className="w-14 h-14 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-3 border border-[#6200EA]/30">
-          <Headphones className="w-7 h-7 text-[#6200EA]" />
+      <div className="flex flex-col items-center pt-3 pb-2 px-4 sm:px-6">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-2 sm:mb-3 border border-[#6200EA]/30">
+          <Headphones className="w-6 h-6 sm:w-7 sm:h-7 text-[#6200EA]" />
         </div>
-        <h2 data-testid="text-welcome-title" className="text-lg font-bold text-white mb-1">Bienvenido</h2>
-        <p data-testid="text-welcome-subtitle" className="text-xs text-white/50 text-center">
+        <h2 data-testid="text-welcome-title" className="text-base sm:text-lg font-bold text-white mb-0.5 sm:mb-1">Bienvenido</h2>
+        <p data-testid="text-welcome-subtitle" className="text-[11px] sm:text-xs text-white/50 text-center">
           Completa tus datos para iniciar la conversacion
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-3 px-6 pb-4 flex-1 overflow-y-auto chat-scrollbar">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-2.5 sm:gap-3 px-4 sm:px-6 pb-3 sm:pb-4 flex-1 overflow-y-auto chat-scrollbar">
           <FormField
             control={form.control}
             name="email"

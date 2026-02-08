@@ -407,6 +407,9 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   const [showProductSearch, setShowProductSearch] = useState(false);
   const [productQuery, setProductQuery] = useState("");
   const [debouncedProductQuery, setDebouncedProductQuery] = useState("");
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [slashFilter, setSlashFilter] = useState("");
+  const [slashSelectedIndex, setSlashSelectedIndex] = useState(0);
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
   const isAdminActive = currentSession?.adminActive ?? false;
@@ -512,6 +515,46 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     if (adminFileInputRef.current) adminFileInputRef.current.value = "";
   }, [adminUploadFile]);
 
+  const { data: cannedResponses = [] } = useQuery<CannedResponse[]>({
+    queryKey: ["/api/admin/canned-responses"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/canned-responses");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isAdminActive,
+  });
+
+  const filteredCanned = cannedResponses.filter((r) =>
+    !slashFilter || r.shortcut.toLowerCase().includes(slashFilter.toLowerCase()) || r.content.toLowerCase().includes(slashFilter.toLowerCase())
+  );
+
+  const handleReplyInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setReplyText(val);
+    if (val === "/") {
+      setShowSlashMenu(true);
+      setSlashFilter("");
+      setSlashSelectedIndex(0);
+    } else if (val.startsWith("/") && val.length > 1) {
+      setShowSlashMenu(true);
+      setSlashFilter(val.slice(1));
+      setSlashSelectedIndex(0);
+    } else {
+      setShowSlashMenu(false);
+      setSlashFilter("");
+      setSlashSelectedIndex(0);
+    }
+  };
+
+  const selectCannedResponse = (r: CannedResponse) => {
+    setReplyText(r.content);
+    setShowSlashMenu(false);
+    setSlashFilter("");
+    setSlashSelectedIndex(0);
+    setTimeout(() => replyInputRef.current?.focus(), 50);
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -570,11 +613,11 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-white/[0.06]">
+      <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06]">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="relative w-9 h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
-              <User className="w-4 h-4 text-[#6200EA]" />
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6200EA]" />
               <span
                 className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#111] ${
                   sessionStatus === "active" ? "bg-green-500" : "bg-white/30"
@@ -582,25 +625,26 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{userName || "Usuario"}</p>
-              <p className="text-[11px] text-white/40 truncate">{userEmail}</p>
+              <p className="text-xs sm:text-sm font-semibold text-white truncate">{userName || "Usuario"}</p>
+              <p className="text-[10px] sm:text-[11px] text-white/40 truncate">{userEmail}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 flex-wrap">
             <Button
               data-testid="button-admin-takeover"
               variant="ghost"
               size="sm"
               onClick={() => adminActiveMutation.mutate(!isAdminActive)}
               disabled={adminActiveMutation.isPending}
-              className={`text-xs ${
+              className={`text-[10px] sm:text-xs px-1.5 sm:px-2 ${
                 isAdminActive
                   ? "text-orange-400"
                   : "text-emerald-400"
               }`}
             >
-              {isAdminActive ? <ShieldOff className="w-3.5 h-3.5 mr-1" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1" />}
-              {adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir del Chat" : "Entrar al Chat"}
+              {isAdminActive ? <ShieldOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" /> : <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />}
+              <span className="hidden sm:inline">{adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir del Chat" : "Entrar al Chat"}</span>
+              <span className="sm:hidden">{adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir" : "Entrar"}</span>
             </Button>
             <Button
               data-testid="button-toggle-session-status"
@@ -608,13 +652,13 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               size="sm"
               onClick={() => statusMutation.mutate(sessionStatus === "active" ? "closed" : "active")}
               disabled={statusMutation.isPending}
-              className={`text-xs ${
+              className={`text-[10px] sm:text-xs px-1.5 sm:px-2 ${
                 sessionStatus === "active"
                   ? "text-red-400"
                   : "text-green-400"
               }`}
             >
-              {statusMutation.isPending ? "..." : sessionStatus === "active" ? "Finalizar" : "Reabrir"}
+              {statusMutation.isPending ? "..." : sessionStatus === "active" ? "Cerrar" : "Reabrir"}
             </Button>
             <Button
               data-testid="button-send-survey"
@@ -622,10 +666,10 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               size="sm"
               onClick={() => sendRatingMutation.mutate()}
               disabled={!!sessionRating || sendRatingMutation.isPending}
-              className="text-xs text-yellow-400"
+              className="text-[10px] sm:text-xs text-yellow-400 px-1.5 sm:px-2"
             >
-              <Star className="w-3.5 h-3.5 mr-1" />
-              {sendRatingMutation.isPending ? "..." : sessionRating ? "Encuesta enviada" : "Enviar Encuesta"}
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 flex-shrink-0" />
+              <span className="hidden sm:inline">{sendRatingMutation.isPending ? "..." : sessionRating ? "Enviada" : "Encuesta"}</span>
             </Button>
             <Button
               size="icon"
@@ -634,7 +678,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               onClick={() => { setShowLocalSearch(!showLocalSearch); setLocalSearch(""); }}
               className={showLocalSearch ? "text-[#6200EA]" : "text-white/40"}
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
@@ -751,6 +795,26 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
 
       {isAdminActive ? (
         <div className="relative">
+          {showSlashMenu && (
+            <div data-testid="slash-command-menu" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-48 overflow-y-auto z-20">
+              <div className="px-3 py-1.5 border-b border-white/[0.06] text-[10px] text-white/30 uppercase tracking-wide">Respuestas rapidas</div>
+              {filteredCanned.length === 0 ? (
+                <div className="px-3 py-3 text-center text-xs text-white/30">No se encontraron atajos</div>
+              ) : (
+                filteredCanned.map((r, idx) => (
+                  <button
+                    key={r.id}
+                    data-testid={`slash-option-${r.id}`}
+                    onClick={() => selectCannedResponse(r)}
+                    className={`w-full text-left px-3 py-2 transition-colors border-b border-white/[0.04] last:border-0 ${idx === slashSelectedIndex ? "bg-[#6200EA]/15" : "hover:bg-white/[0.06]"}`}
+                  >
+                    <span className="text-xs font-mono text-[#6200EA]">/{r.shortcut}</span>
+                    <p className="text-xs text-white/50 truncate mt-0.5">{r.content}</p>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
           {showProductSearch && (
             <div data-testid="product-search-panel" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-72 flex flex-col z-10">
               <div className="p-2 border-b border-white/[0.06] flex items-center gap-2">
@@ -837,9 +901,16 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
               ref={replyInputRef}
               data-testid="input-admin-reply"
               value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReplySend(); } }}
-              placeholder="Escribe tu respuesta..."
+              onChange={handleReplyInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && showSlashMenu) { setShowSlashMenu(false); setSlashFilter(""); setSlashSelectedIndex(0); return; }
+                if (showSlashMenu && filteredCanned.length > 0) {
+                  if (e.key === "ArrowDown") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev + 1) % filteredCanned.length); return; }
+                  if (e.key === "ArrowUp") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev - 1 + filteredCanned.length) % filteredCanned.length); return; }
+                }
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (showSlashMenu) { if (filteredCanned.length > 0) selectCannedResponse(filteredCanned[slashSelectedIndex]); } else { handleReplySend(); } }
+              }}
+              placeholder="Escribe tu respuesta... (/ para atajos)"
               className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
               autoFocus
             />
@@ -2003,7 +2074,7 @@ export default function AdminPage() {
         if (existing) return;
         const permission = await Notification.requestPermission();
         if (permission !== "granted") return;
-        function urlBase64ToUint8Array(base64String: string) {
+        const urlBase64ToUint8Array = (base64String: string) => {
           const padding = '='.repeat((4 - base64String.length % 4) % 4);
           const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
           const rawData = window.atob(base64);
@@ -2012,7 +2083,7 @@ export default function AdminPage() {
             outputArray[i] = rawData.charCodeAt(i);
           }
           return outputArray;
-        }
+        };
 
         const subscription = await reg.pushManager.subscribe({
           userVisibleOnly: true,
@@ -2094,35 +2165,35 @@ export default function AdminPage() {
 
   return (
     <div className="h-screen flex flex-col" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
-      <header className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between gap-3" style={{ background: "#6200EA" }}>
-        <div className="flex items-center gap-3">
+      <header className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] flex items-center justify-between gap-2" style={{ background: "#6200EA" }}>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {mobileView === "chat" && (
             <button
               data-testid="button-back-to-list"
               onClick={() => setMobileView("list")}
-              className="md:hidden w-8 h-8 rounded-full bg-white/15 flex items-center justify-center"
+              className="md:hidden w-8 h-8 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-white" />
             </button>
           )}
-          <img src="/logo-192.webp" alt="CJM" className="w-8 h-8 rounded-lg" />
-          <div>
-            <h1 data-testid="text-admin-title" className="text-base font-bold text-white leading-tight">Soporte CJM DIGITALES</h1>
+          <img src="/logo-192.webp" alt="CJM" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" />
+          <div className="min-w-0">
+            <h1 data-testid="text-admin-title" className="text-sm sm:text-base font-bold text-white leading-tight truncate">Soporte CJM</h1>
             {adminUser && (
-              <p className="text-[11px] text-white/60">{adminUser.displayName}</p>
+              <p className="text-[10px] sm:text-[11px] text-white/60 truncate">{adminUser.displayName}</p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {allRatings.length > 0 && (
-            <span data-testid="text-avg-rating" className="text-sm text-white/70 flex items-center gap-1">
+            <span data-testid="text-avg-rating" className="text-xs sm:text-sm text-white/70 items-center gap-1 hidden sm:flex">
               <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
               <span>{avgRating.toFixed(1)}</span>
               <span className="text-white/40">({allRatings.length})</span>
             </span>
           )}
-          <span className="text-sm text-white/70 flex items-center gap-1.5">
-            <MessageSquare className="w-4 h-4" />
+          <span className="text-xs sm:text-sm text-white/70 flex items-center gap-1">
+            <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span data-testid="text-session-count">{sessions.length}</span>
           </span>
           <Button
@@ -2134,43 +2205,43 @@ export default function AdminPage() {
               setSoundEnabled(next);
               try { localStorage.setItem("admin_sound", String(next)); } catch {}
             }}
-            className="text-white/60 hover:text-white"
+            className="text-white/60 w-7 h-7 sm:w-9 sm:h-9"
             title={soundEnabled ? "Silenciar notificaciones" : "Activar sonido"}
           >
-            {soundEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+            {soundEnabled ? <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <BellOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </Button>
           <Button
             size="icon"
             variant="ghost"
             data-testid="button-change-password-trigger"
             onClick={() => setShowPasswordChange(true)}
-            className="text-white/60 hover:text-white"
+            className="text-white/60 w-7 h-7 sm:w-9 sm:h-9 hidden sm:flex"
             title="Cambiar contraseña"
           >
-            <Lock className="w-4 h-4" />
+            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
           <button
             data-testid="button-admin-logout"
             onClick={handleLogout}
-            className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors flex-shrink-0"
             title="Cerrar sesion"
           >
-            <LogOut className="w-4 h-4 text-white" />
+            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
           </button>
         </div>
       </header>
 
       {showPasswordChange && <PasswordChangeModal onClose={() => setShowPasswordChange(false)} />}
 
-      <div className="border-b border-white/[0.06] flex items-center gap-0 px-2">
+      <div className="border-b border-white/[0.06] flex items-center gap-0 px-1 sm:px-2 overflow-x-auto scrollbar-hide">
         <button
           data-testid="tab-conversations"
           onClick={() => setAdminTab("conversations")}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+          className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap ${
             adminTab === "conversations" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
           }`}
         >
-          Conversaciones
+          Chats
           {adminTab === "conversations" && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
           )}
@@ -2178,11 +2249,11 @@ export default function AdminPage() {
         <button
           data-testid="tab-canned-responses"
           onClick={() => setAdminTab("canned")}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+          className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap ${
             adminTab === "canned" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
           }`}
         >
-          Respuestas Rapidas
+          Atajos
           {adminTab === "canned" && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
           )}
@@ -2190,11 +2261,11 @@ export default function AdminPage() {
         <button
           data-testid="tab-products"
           onClick={() => setAdminTab("products")}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-1.5 ${
+          className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
             adminTab === "products" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
           }`}
         >
-          <Package className="w-3.5 h-3.5" />
+          <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Productos
           {adminTab === "products" && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
@@ -2204,11 +2275,11 @@ export default function AdminPage() {
           <button
             data-testid="tab-users"
             onClick={() => setAdminTab("users")}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-1.5 ${
+            className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
               adminTab === "users" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
+            <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             Usuarios
             {adminTab === "users" && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />

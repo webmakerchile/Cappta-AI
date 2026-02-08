@@ -683,7 +683,7 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
           <div
             ref={productBrowserRef}
             data-testid="product-browser-overlay"
-            className="absolute bottom-full left-3 right-3 mb-1 bg-[#1e1e1e] border border-white/10 rounded-md shadow-lg z-50 flex flex-col max-h-72"
+            className="absolute bottom-full left-0 right-0 mx-1 sm:left-3 sm:right-3 sm:mx-0 mb-1 bg-[#1e1e1e] border border-white/10 rounded-md shadow-lg z-50 flex flex-col max-h-60 sm:max-h-72"
           >
             <div className="px-3 py-2 border-b border-white/[0.06] flex items-center gap-2">
               <ShoppingBag className="w-3.5 h-3.5 text-[#6200EA] flex-shrink-0" />
