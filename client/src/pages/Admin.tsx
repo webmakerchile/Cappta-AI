@@ -612,8 +612,8 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06]">
+    <div className="flex flex-col h-full overflow-y-auto">
+      <div className="sticky top-0 z-30 bg-[#111] px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06]">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
@@ -730,7 +730,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+      <div className="flex-1 px-4 py-4 flex flex-col gap-3">
         {filteredMessages.length === 0 && activeSearch ? (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-sm text-white/30">No se encontraron mensajes con "{activeSearch}"</p>
@@ -794,7 +794,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
       </div>
 
       {isAdminActive ? (
-        <div className="relative">
+        <div className="sticky bottom-0 z-30 bg-[#111] relative">
           {showSlashMenu && (
             <div data-testid="slash-command-menu" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-48 overflow-y-auto z-20">
               <div className="px-3 py-1.5 border-b border-white/[0.06] text-[10px] text-white/30 uppercase tracking-wide">Respuestas rapidas</div>
@@ -926,7 +926,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
           </div>
         </div>
       ) : (
-        <div className="px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
+        <div className="sticky bottom-0 z-30 bg-[#111] px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
           {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
         </div>
       )}
@@ -2164,7 +2164,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="flex flex-col" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif", height: "100dvh" }}>
       <header className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] flex items-center justify-between gap-2" style={{ background: "#6200EA" }}>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {mobileView === "chat" && (
