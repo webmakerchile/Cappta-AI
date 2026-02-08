@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
 
@@ -47,6 +47,9 @@ export interface IStorage {
   getAllPushSubscriptions(): Promise<PushSubscription[]>;
   createPushSubscription(data: InsertPushSubscription): Promise<PushSubscription>;
   deletePushSubscription(endpoint: string): Promise<boolean>;
+  getCustomTags(): Promise<string[]>;
+  addCustomTag(name: string): Promise<void>;
+  deleteCustomTag(name: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -640,6 +643,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(pushSubscriptions.endpoint, endpoint))
       .returning();
     return result.length > 0;
+  }
+  async getCustomTags(): Promise<string[]> {
+    const result = await db.select({ name: customTags.name }).from(customTags).orderBy(customTags.name);
+    return result.map(r => r.name);
+  }
+
+  async addCustomTag(name: string): Promise<void> {
+    await db.insert(customTags).values({ name }).onConflictDoNothing();
+  }
+
+  async deleteCustomTag(name: string): Promise<void> {
+    await db.delete(customTags).where(eq(customTags.name, name));
   }
 }
 

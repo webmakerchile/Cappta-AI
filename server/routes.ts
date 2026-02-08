@@ -555,6 +555,31 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/tags", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    const tags = await storage.getCustomTags();
+    res.json(tags);
+  });
+
+  app.post("/api/admin/tags", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ message: "Nombre de etiqueta requerido" });
+    }
+    await storage.addCustomTag(name.trim());
+    res.json({ success: true });
+  });
+
+  app.delete("/api/admin/tags/:name", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    await storage.deleteCustomTag(req.params.name);
+    res.json({ success: true });
+  });
+
   app.get("/api/admin/sessions", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;

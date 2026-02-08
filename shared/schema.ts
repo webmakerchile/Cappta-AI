@@ -90,6 +90,12 @@ export const adminUsers = pgTable("admin_users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const customTags = pgTable("custom_tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const pushSubscriptions = pgTable("push_subscriptions", {
   id: serial("id").primaryKey(),
   adminUserId: integer("admin_user_id").notNull(),

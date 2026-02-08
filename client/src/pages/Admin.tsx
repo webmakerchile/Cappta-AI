@@ -74,7 +74,35 @@ interface RatingData {
   timestamp: string;
 }
 
-const PREDEFINED_TAGS = ["Venta", "Soporte", "Urgente", "Resuelto", "Pendiente", "Reembolso", "Entrega", "Seguimiento", "VIP", "Reclamo"];
+const PREDEFINED_TAGS: string[] = ["Venta", "Soporte", "Urgente", "Resuelto", "Pendiente", "Reembolso", "Entrega", "Seguimiento", "VIP", "Reclamo"];
+
+const TAG_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  "Venta": { bg: "rgba(34,197,94,0.15)", text: "#22c55e", border: "rgba(34,197,94,0.3)" },
+  "Soporte": { bg: "rgba(59,130,246,0.15)", text: "#3b82f6", border: "rgba(59,130,246,0.3)" },
+  "Urgente": { bg: "rgba(239,68,68,0.15)", text: "#ef4444", border: "rgba(239,68,68,0.3)" },
+  "Resuelto": { bg: "rgba(16,185,129,0.15)", text: "#10b981", border: "rgba(16,185,129,0.3)" },
+  "Pendiente": { bg: "rgba(245,158,11,0.15)", text: "#f59e0b", border: "rgba(245,158,11,0.3)" },
+  "Reembolso": { bg: "rgba(168,85,247,0.15)", text: "#a855f7", border: "rgba(168,85,247,0.3)" },
+  "Entrega": { bg: "rgba(6,182,212,0.15)", text: "#06b6d4", border: "rgba(6,182,212,0.3)" },
+  "Seguimiento": { bg: "rgba(249,115,22,0.15)", text: "#f97316", border: "rgba(249,115,22,0.3)" },
+  "VIP": { bg: "rgba(234,179,8,0.15)", text: "#eab308", border: "rgba(234,179,8,0.3)" },
+  "Reclamo": { bg: "rgba(244,63,94,0.15)", text: "#f43f5e", border: "rgba(244,63,94,0.3)" },
+};
+
+const CUSTOM_TAG_COLORS = [
+  { bg: "rgba(139,92,246,0.15)", text: "#8b5cf6", border: "rgba(139,92,246,0.3)" },
+  { bg: "rgba(236,72,153,0.15)", text: "#ec4899", border: "rgba(236,72,153,0.3)" },
+  { bg: "rgba(20,184,166,0.15)", text: "#14b8a6", border: "rgba(20,184,166,0.3)" },
+  { bg: "rgba(99,102,241,0.15)", text: "#6366f1", border: "rgba(99,102,241,0.3)" },
+  { bg: "rgba(251,146,60,0.15)", text: "#fb923c", border: "rgba(251,146,60,0.3)" },
+];
+
+function getTagColor(tag: string) {
+  if (TAG_COLORS[tag]) return TAG_COLORS[tag];
+  let hash = 0;
+  for (let i = 0; i < tag.length; i++) hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+  return CUSTOM_TAG_COLORS[Math.abs(hash) % CUSTOM_TAG_COLORS.length];
+}
 
 function getAuthToken(): string {
   try { return localStorage.getItem("admin_token") || ""; } catch { return ""; }
@@ -271,9 +299,19 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
       )}
       {session.tags && session.tags.length > 0 && (
         <div className="flex items-center gap-1 pl-9 mb-1 flex-wrap">
-          {session.tags.map((tag) => (
-            <span key={tag} className="text-[10px] bg-white/[0.06] text-white/50 px-1.5 py-0.5 rounded">{tag}</span>
-          ))}
+          {session.tags.map((tag) => {
+            const tc = getTagColor(tag);
+            return (
+              <span
+                key={tag}
+                data-testid={`session-tag-${session.sessionId}-${tag}`}
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                style={{ backgroundColor: tc.bg, color: tc.text, border: `1px solid ${tc.border}` }}
+              >
+                {tag}
+              </span>
+            );
+          })}
         </div>
       )}
       <div className="flex items-center gap-2 text-[11px] text-white/30 pl-9 flex-wrap">
@@ -337,6 +375,15 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
     return Array.from(tagSet);
   }, [sessionsData]);
 
+  const { data: customTagsFromDB = [] } = useQuery<string[]>({
+    queryKey: ["/api/admin/tags"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/tags");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
   const tagsMutation = useMutation({
     mutationFn: async (newTags: string[]) => {
       const res = await fetch(`/api/admin/sessions/${sessionId}/tags`, {
@@ -365,27 +412,32 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
     tagsMutation.mutate(tags.filter((t) => t !== tag));
   };
 
-  const allSuggestions = Array.from(new Set([...PREDEFINED_TAGS, ...allUsedTags]));
+  const allSuggestions = Array.from(new Set([...PREDEFINED_TAGS, ...customTagsFromDB, ...allUsedTags]));
   const availableSuggestions = allSuggestions.filter((t) => !tags.includes(t));
 
   return (
     <div className="flex items-center gap-1 flex-wrap">
-      {tags.map((tag) => (
-        <span
-          key={tag}
-          data-testid={`tag-badge-${tag}`}
-          className="inline-flex items-center gap-0.5 text-[10px] bg-[#6200EA]/15 text-[#6200EA] px-1.5 py-0.5 rounded"
-        >
-          {tag}
-          <button
-            data-testid={`button-remove-tag-${tag}`}
-            onClick={() => removeTag(tag)}
-            className="text-[#6200EA]/50 hover:text-[#6200EA] ml-0.5"
+      {tags.map((tag) => {
+        const tc = getTagColor(tag);
+        return (
+          <span
+            key={tag}
+            data-testid={`tag-badge-${tag}`}
+            className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded"
+            style={{ backgroundColor: tc.bg, color: tc.text, border: `1px solid ${tc.border}` }}
           >
-            <X className="w-2.5 h-2.5" />
-          </button>
-        </span>
-      ))}
+            {tag}
+            <button
+              data-testid={`button-remove-tag-${tag}`}
+              onClick={() => removeTag(tag)}
+              className="ml-0.5 opacity-60 hover:opacity-100"
+              style={{ color: tc.text }}
+            >
+              <X className="w-2.5 h-2.5" />
+            </button>
+          </span>
+        );
+      })}
       {showInput ? (
         <div className="relative">
           <div className="flex items-center gap-1">
@@ -417,19 +469,28 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
             </button>
           </div>
           {showSuggestions && availableSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-md py-1 z-50 min-w-[120px]">
+            <div className="absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-md py-1 z-50 min-w-[160px] max-h-[200px] overflow-y-auto">
               {availableSuggestions
                 .filter((s) => !customTag || s.toLowerCase().includes(customTag.toLowerCase()))
-                .map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    data-testid={`button-suggestion-${suggestion}`}
-                    onClick={() => addTag(suggestion)}
-                    className="w-full text-left text-[11px] text-white/60 hover:bg-white/[0.06] px-2 py-1"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+                .slice(0, 15)
+                .map((suggestion) => {
+                  const tc = getTagColor(suggestion);
+                  return (
+                    <button
+                      key={suggestion}
+                      data-testid={`button-suggestion-${suggestion}`}
+                      onClick={() => addTag(suggestion)}
+                      className="w-full text-left text-[11px] hover:bg-white/[0.06] px-2 py-1.5 flex items-center gap-2"
+                    >
+                      <span
+                        className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                        style={{ backgroundColor: tc.bg, color: tc.text, border: `1px solid ${tc.border}` }}
+                      >
+                        {suggestion}
+                      </span>
+                    </button>
+                  );
+                })}
             </div>
           )}
         </div>
@@ -1868,6 +1929,183 @@ function playNotificationSound() {
   } catch {}
 }
 
+function TagsPanel() {
+  const [newTag, setNewTag] = useState("");
+
+  const { data: sessionsData } = useQuery<any[]>({
+    queryKey: ["/api/admin/sessions"],
+  });
+
+  const { data: customTagsFromDB = [] } = useQuery<string[]>({
+    queryKey: ["/api/admin/tags"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/tags");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const allUsedTags = useMemo(() => {
+    if (!sessionsData) return [];
+    const tagSet = new Set<string>();
+    sessionsData.forEach((s: any) => s.tags?.forEach((t: string) => tagSet.add(t)));
+    return Array.from(tagSet);
+  }, [sessionsData]);
+
+  const allTags = useMemo(() => {
+    return Array.from(new Set([...PREDEFINED_TAGS, ...customTagsFromDB, ...allUsedTags])).sort();
+  }, [customTagsFromDB, allUsedTags]);
+
+  const tagUsageCount = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (sessionsData) {
+      sessionsData.forEach((s: any) => {
+        s.tags?.forEach((t: string) => {
+          counts[t] = (counts[t] || 0) + 1;
+        });
+      });
+    }
+    return counts;
+  }, [sessionsData]);
+
+  const createTagMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await adminFetch("/api/admin/tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tags"] });
+      setNewTag("");
+    },
+  });
+
+  const deleteTagMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await adminFetch(`/api/admin/tags/${encodeURIComponent(name)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tags"] });
+    },
+  });
+
+  const handleCreate = () => {
+    const trimmed = newTag.trim();
+    if (trimmed && !allTags.includes(trimmed)) {
+      createTagMutation.mutate(trimmed);
+    }
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-white">Etiquetas</h2>
+          <p className="text-xs text-white/40 mt-1">Gestiona las etiquetas para organizar tus conversaciones</p>
+        </div>
+
+        <div className="mb-6 p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+          <h3 className="text-sm font-semibold text-white mb-3">Crear nueva etiqueta</h3>
+          <div className="flex items-center gap-2">
+            <Input
+              data-testid="input-new-tag-name"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
+              placeholder="Nombre de la etiqueta..."
+              className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+            />
+            <Button
+              data-testid="button-create-tag"
+              onClick={handleCreate}
+              disabled={!newTag.trim() || allTags.includes(newTag.trim()) || createTagMutation.isPending}
+              className="bg-[#6200EA] hover:bg-[#7C4DFF] text-white"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Crear
+            </Button>
+          </div>
+          {newTag.trim() && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs text-white/40">Vista previa:</span>
+              {(() => {
+                const tc = getTagColor(newTag.trim());
+                return (
+                  <span
+                    className="text-[11px] font-medium px-2 py-0.5 rounded"
+                    style={{ backgroundColor: tc.bg, color: tc.text, border: `1px solid ${tc.border}` }}
+                  >
+                    {newTag.trim()}
+                  </span>
+                );
+              })()}
+              {allTags.includes(newTag.trim()) && (
+                <span className="text-[11px] text-amber-400">Ya existe</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-white mb-3">Etiquetas disponibles ({allTags.length})</h3>
+          <div className="grid gap-2">
+            {allTags.map((tag) => {
+              const tc = getTagColor(tag);
+              const count = tagUsageCount[tag] || 0;
+              const isPredefined = PREDEFINED_TAGS.includes(tag);
+              const isCustomDB = customTagsFromDB.includes(tag);
+              return (
+                <div
+                  key={tag}
+                  data-testid={`tag-manage-${tag}`}
+                  className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span
+                      className="text-[11px] font-medium px-2 py-0.5 rounded flex-shrink-0"
+                      style={{ backgroundColor: tc.bg, color: tc.text, border: `1px solid ${tc.border}` }}
+                    >
+                      {tag}
+                    </span>
+                    <span className="text-[11px] text-white/30 truncate">
+                      {count > 0 ? `Usada en ${count} ${count === 1 ? "chat" : "chats"}` : "Sin usar"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-[10px] text-white/20">
+                      {isPredefined ? "Predefinida" : "Personalizada"}
+                    </span>
+                    {isCustomDB && !isPredefined && count === 0 && (
+                      <button
+                        data-testid={`button-delete-tag-${tag}`}
+                        onClick={() => deleteTagMutation.mutate(tag)}
+                        className="w-6 h-6 rounded flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-400/10"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {allTags.length === 0 && (
+            <div className="text-center py-8 text-white/30 text-sm">
+              No hay etiquetas creadas. Crea una nueva etiqueta arriba.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UsersPanel() {
   const [isAdding, setIsAdding] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -2163,7 +2401,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "pendientes" | "mis_chats">("all");
-  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings">("conversations");
+  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings" | "tags">("conversations");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -2507,6 +2745,19 @@ export default function AdminPage() {
           )}
         </button>
         <button
+          data-testid="tab-tags"
+          onClick={() => setAdminTab("tags")}
+          className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+            adminTab === "tags" ? "text-[#6200EA]" : "text-white/40 hover:text-white/60"
+          }`}
+        >
+          <Tag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          Etiquetas
+          {adminTab === "tags" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6200EA]" />
+          )}
+        </button>
+        <button
           data-testid="tab-products"
           onClick={() => setAdminTab("products")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -2536,7 +2787,9 @@ export default function AdminPage() {
         )}
       </div>
 
-      {adminTab === "users" ? (
+      {adminTab === "tags" ? (
+        <TagsPanel />
+      ) : adminTab === "users" ? (
         <UsersPanel />
       ) : adminTab === "products" ? (
         <ProductsPanel />
