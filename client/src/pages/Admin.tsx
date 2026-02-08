@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
+import { io, Socket } from "socket.io-client";
 
 interface SessionSummary {
   sessionId: string;
@@ -479,7 +480,23 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) throw new Error("Error al cambiar modo admin");
       return res.json();
     },
-    onSuccess: () => {
+    onMutate: async (adminActive) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/sessions"] });
+      const queries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] });
+      queries.forEach(([key, old]) => {
+        if (!old) return;
+        queryClient.setQueryData(key, old.map(s =>
+          s.sessionId === sessionId ? { ...s, adminActive } : s
+        ));
+      });
+      return { queries };
+    },
+    onError: (_err, _val, context) => {
+      context?.queries.forEach(([key, old]) => {
+        if (old) queryClient.setQueryData(key, old);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
     },
@@ -527,9 +544,29 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Error");
-      return res.json();
+      return { action, data: await res.json() };
     },
-    onSuccess: () => {
+    onMutate: async (action) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/sessions"] });
+      const queries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] });
+      queries.forEach(([key, old]) => {
+        if (!old) return;
+        queryClient.setQueryData(key, old.map(s => {
+          if (s.sessionId !== sessionId) return s;
+          if (action === "claim") {
+            return { ...s, assignedTo: adminUser?.id ?? null, assignedToName: adminUser?.displayName ?? null };
+          }
+          return { ...s, assignedTo: null, assignedToName: null };
+        }));
+      });
+      return { queries };
+    },
+    onError: (_err, _action, context) => {
+      context?.queries.forEach(([key, old]) => {
+        if (old) queryClient.setQueryData(key, old);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
     },
   });
@@ -2083,6 +2120,36 @@ export default function AdminPage() {
         .catch(() => { clearAuthToken(); });
     }
   }, []);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    const token = getAuthToken();
+    if (!token) return;
+
+    const adminSocket = io(window.location.origin, {
+      transports: ["websocket", "polling"],
+      withCredentials: false,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+    });
+
+    adminSocket.on("connect", () => {
+      adminSocket.emit("join_admin_room", { token });
+    });
+
+    adminSocket.on("session_updated", () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    });
+
+    adminSocket.on("admin_new_message", () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    });
+
+    return () => {
+      adminSocket.disconnect();
+    };
+  }, [authenticated]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(globalSearch), 300);

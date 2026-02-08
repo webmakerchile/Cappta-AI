@@ -587,6 +587,7 @@ export async function registerRoutes(
       if (!updated) {
         return res.status(404).json({ message: "Sesion no encontrada" });
       }
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "status", session: updated });
       res.json(updated);
     } catch (error: any) {
       log(`Error al actualizar estado: ${error.message}`, "api");
@@ -606,6 +607,7 @@ export async function registerRoutes(
       if (!updated) {
         return res.status(404).json({ message: "Sesion no encontrada" });
       }
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "tags", session: updated });
       res.json(updated);
     } catch (error: any) {
       log(`Error al actualizar tags: ${error.message}`, "api");
@@ -924,6 +926,7 @@ export async function registerRoutes(
       });
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "admin_active", session: updated });
 
       res.json(updated);
     } catch (error: any) {
@@ -951,6 +954,7 @@ export async function registerRoutes(
         adminUser.id,
         adminUser.displayName
       );
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "claim", session: updated });
       res.json(updated);
     } catch (error: any) {
       log(`Error al tomar chat: ${error.message}`, "api");
@@ -963,6 +967,7 @@ export async function registerRoutes(
     if (!adminUser) return;
     try {
       const updated = await storage.unclaimSession(req.params.sessionId);
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "unclaim", session: updated });
       res.json(updated);
     } catch (error: any) {
       log(`Error al liberar chat: ${error.message}`, "api");
