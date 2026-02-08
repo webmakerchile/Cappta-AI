@@ -113,11 +113,13 @@ export async function registerRoutes(
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
     try {
       const subs = await storage.getAllPushSubscriptions();
+      const allSessions = await storage.getAllSessions("active");
+      const totalUnread = allSessions.reduce((sum, s) => sum + (s.unreadCount || 0), 0);
       for (const sub of subs) {
         try {
           await webpush.sendNotification(
             { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-            JSON.stringify({ title, body, sessionId, url: "/admin" })
+            JSON.stringify({ title, body, sessionId, url: "/admin", badgeCount: totalUnread })
           );
         } catch (err: any) {
           if (err.statusCode === 410 || err.statusCode === 404) {

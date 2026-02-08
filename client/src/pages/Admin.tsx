@@ -2152,6 +2152,28 @@ export default function AdminPage() {
   }, [authenticated]);
 
   useEffect(() => {
+    if (!authenticated) return;
+    function clearBadge() {
+      if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "CLEAR_BADGE" });
+      }
+      if ("clearAppBadge" in navigator) {
+        (navigator as any).clearAppBadge().catch(() => {});
+      }
+    }
+    function handleVisibility() {
+      if (document.visibilityState === "visible") clearBadge();
+    }
+    clearBadge();
+    window.addEventListener("focus", clearBadge);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", clearBadge);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [authenticated]);
+
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(globalSearch), 300);
     return () => clearTimeout(timer);
   }, [globalSearch]);
