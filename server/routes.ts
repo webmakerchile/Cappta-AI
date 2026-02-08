@@ -161,6 +161,32 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/messages/thread/:email", async (req, res) => {
+    try {
+      const email = req.params.email;
+      if (!email || !email.includes("@")) {
+        return res.status(400).json({ message: "Email invalido" });
+      }
+      const msgs = await storage.getMessagesByEmail(email.toLowerCase());
+      res.json(msgs);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener hilo" });
+    }
+  });
+
+  app.get("/api/sessions/by-email/:email", async (req, res) => {
+    try {
+      const email = req.params.email;
+      if (!email || !email.includes("@")) {
+        return res.status(400).json({ message: "Email invalido" });
+      }
+      const userSessions = await storage.getSessionsByEmail(email.toLowerCase());
+      res.json(userSessions);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener sesiones" });
+    }
+  });
+
   app.post("/api/messages", async (req, res) => {
     try {
       const hasImage = !!req.body.imageUrl;
@@ -903,6 +929,44 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error al cambiar admin activo: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  app.patch("/api/admin/sessions/:sessionId/claim", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+      if (session.assignedTo && session.assignedTo !== adminUser.id) {
+        return res.status(409).json({
+          message: `Este chat ya esta asignado a ${session.assignedToName || "otro agente"}`,
+          assignedToName: session.assignedToName,
+        });
+      }
+      const updated = await storage.claimSession(
+        req.params.sessionId,
+        adminUser.id,
+        adminUser.displayName
+      );
+      res.json(updated);
+    } catch (error: any) {
+      log(`Error al tomar chat: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al tomar chat" });
+    }
+  });
+
+  app.patch("/api/admin/sessions/:sessionId/unclaim", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const updated = await storage.unclaimSession(req.params.sessionId);
+      res.json(updated);
+    } catch (error: any) {
+      log(`Error al liberar chat: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al liberar chat" });
     }
   });
 

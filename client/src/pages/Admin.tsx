@@ -4,7 +4,8 @@ import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
-  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key
+  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
+  UserPlus, UserMinus
 } from "lucide-react";
 import {
   Select,
@@ -33,6 +34,8 @@ interface SessionSummary {
   gameName: string | null;
   adminActive: boolean;
   contactRequested?: boolean;
+  assignedTo: number | null;
+  assignedToName: string | null;
 }
 
 interface BrowseProduct {
@@ -287,6 +290,11 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
             Bot
           </span>
         )}
+        {session.assignedToName && (
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#6200EA]/15 text-[#6200EA]/70 truncate max-w-[80px]">
+            {session.assignedToName}
+          </span>
+        )}
         {rating && (
           <span data-testid={`session-rating-${session.sessionId}`} className="flex items-center gap-0.5">
             {[1, 2, 3, 4, 5].map((s) => (
@@ -406,7 +414,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
   );
 }
 
-function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; searchQuery: string; sessions: SessionSummary[] }) {
+function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId: string; searchQuery: string; sessions: SessionSummary[]; adminUser: { id: number; email: string; displayName: string; role: string } | null }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [showLocalSearch, setShowLocalSearch] = useState(false);
@@ -507,6 +515,21 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "rating"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    },
+  });
+
+  const claimMutation = useMutation({
+    mutationFn: async (action: "claim" | "unclaim") => {
+      const endpoint = action === "claim" ? "claim" : "unclaim";
+      const res = await fetch(`/api/admin/sessions/${sessionId}/${endpoint}`, {
+        method: "PATCH",
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
     },
   });
@@ -641,6 +664,36 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
             </div>
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 flex-wrap">
+            {currentSession?.assignedTo === adminUser?.id ? (
+              <Button
+                data-testid="button-unclaim-session"
+                variant="ghost"
+                size="sm"
+                onClick={() => claimMutation.mutate("unclaim")}
+                disabled={claimMutation.isPending}
+                className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-[#6200EA]"
+              >
+                <UserMinus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
+                <span className="hidden sm:inline">Liberar</span>
+              </Button>
+            ) : !currentSession?.assignedTo ? (
+              <Button
+                data-testid="button-claim-session"
+                variant="ghost"
+                size="sm"
+                onClick={() => claimMutation.mutate("claim")}
+                disabled={claimMutation.isPending}
+                className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-cyan-400"
+              >
+                <UserPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
+                <span className="hidden sm:inline">Tomar Chat</span>
+                <span className="sm:hidden">Tomar</span>
+              </Button>
+            ) : (
+              <span className="text-[10px] text-white/30 px-1">
+                Asignado a {currentSession.assignedToName}
+              </span>
+            )}
             <Button
               data-testid="button-admin-takeover"
               variant="ghost"
@@ -805,6 +858,13 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
       </div>
 
       {isAdminActive ? (
+        currentSession?.assignedTo && currentSession.assignedTo !== adminUser?.id ? (
+        <div className="px-3 py-2 text-center">
+          <p className="text-xs text-white/40">
+            Chat asignado a {currentSession?.assignedToName}. Solo el agente asignado puede responder.
+          </p>
+        </div>
+        ) : (
         <div className="sticky bottom-0 z-30 bg-[#111] relative">
           {showSlashMenu && (
             <div data-testid="slash-command-menu" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-48 overflow-y-auto z-20">
@@ -936,6 +996,7 @@ function ChatViewer({ sessionId, searchQuery, sessions }: { sessionId: string; s
             </Button>
           </div>
         </div>
+        )
       ) : (
         <div className="sticky bottom-0 z-30 bg-[#111] px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
           {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
@@ -1997,6 +2058,7 @@ export default function AdminPage() {
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
+  const [assignmentFilter, setAssignmentFilter] = useState<"all" | "pendientes" | "mis_chats">("all");
   const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings">("conversations");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -2131,17 +2193,29 @@ export default function AdminPage() {
         gameName: null,
         adminActive: false,
         contactRequested: false,
+        assignedTo: null,
+        assignedToName: null,
       }))
     : sessions;
 
-  const displaySessions = agentFilter === "all"
-    ? baseSessions
-    : baseSessions.filter((s) => {
-        if (agentFilter === "ejecutivo") return s.adminActive;
-        if (agentFilter === "solicita") return !s.adminActive && s.contactRequested;
-        if (agentFilter === "bot") return !s.adminActive && !s.contactRequested;
-        return true;
-      });
+  const displaySessions = (() => {
+    let filtered = agentFilter === "all"
+      ? baseSessions
+      : baseSessions.filter((s) => {
+          if (agentFilter === "ejecutivo") return s.adminActive;
+          if (agentFilter === "solicita") return !s.adminActive && s.contactRequested;
+          if (agentFilter === "bot") return !s.adminActive && !s.contactRequested;
+          return true;
+        });
+
+    if (assignmentFilter === "pendientes") {
+      filtered = filtered.filter(s => !s.assignedTo);
+    } else if (assignmentFilter === "mis_chats") {
+      filtered = filtered.filter(s => s.assignedTo === adminUser?.id);
+    }
+
+    return filtered;
+  })();
 
   const selectSession = useCallback((sid: string) => {
     setSelectedSession(sid);
@@ -2377,6 +2451,28 @@ export default function AdminPage() {
                     </button>
                   ))}
                 </div>
+                <div className="flex items-center gap-1">
+                  {([
+                    { key: "all" as const, label: "Todos" },
+                    { key: "pendientes" as const, label: "Pendientes" },
+                    { key: "mis_chats" as const, label: "Mis Chats" },
+                  ]).map((tab) => (
+                    <button
+                      key={tab.key}
+                      data-testid={`tab-assign-${tab.key}`}
+                      onClick={() => setAssignmentFilter(tab.key)}
+                      className={`px-2 py-0.5 text-[10px] rounded-md transition-colors ${
+                        assignmentFilter === tab.key
+                          ? tab.key === "pendientes" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                            : tab.key === "mis_chats" ? "bg-[#6200EA]/20 text-[#6200EA] border border-[#6200EA]/30"
+                            : "bg-[#6200EA] text-white border border-transparent"
+                          : "text-white/30 hover:text-white/50 bg-white/[0.03] border border-transparent"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -2408,7 +2504,7 @@ export default function AdminPage() {
 
           <div className={`flex-1 flex flex-col ${mobileView === "list" ? "hidden md:flex" : "flex"}`}>
             {selectedSession ? (
-              <ChatViewer sessionId={selectedSession} searchQuery={debouncedSearch} sessions={sessions} />
+              <ChatViewer sessionId={selectedSession} searchQuery={debouncedSearch} sessions={sessions} adminUser={adminUser} />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
                 <div className="w-16 h-16 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">

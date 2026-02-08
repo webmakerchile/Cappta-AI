@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
-import type { Message } from "@shared/schema";
+import type { Message, Session } from "@shared/schema";
 
 function playUserNotificationSound() {
   try {
@@ -56,6 +56,38 @@ function isValidParam(value: string | null): boolean {
   return true;
 }
 
+const STORAGE_KEY = "chat_thread_user";
+const OLD_STORAGE_KEY = "chat_user";
+
+function loadStoredUser(): { email: string; name: string; activeSessionId: string } | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.email && parsed.name && parsed.activeSessionId) {
+        return parsed;
+      }
+    }
+    const oldStored = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldStored) {
+      const parsed = JSON.parse(oldStored);
+      if (parsed.email && parsed.name && parsed.sessionId) {
+        const migrated = { email: parsed.email, name: parsed.name, activeSessionId: parsed.sessionId };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+        localStorage.removeItem(OLD_STORAGE_KEY);
+        return migrated;
+      }
+    }
+  } catch {}
+  return null;
+}
+
+function saveStoredUser(email: string, name: string, activeSessionId: string) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, name, activeSessionId }));
+  } catch {}
+}
+
 export function useChat() {
   const [user, setUser] = useState<ChatUser | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -96,18 +128,14 @@ export function useChat() {
 
     if (isValidParam(email) && isValidParam(name)) {
       const sessionId = generateSessionId();
-      setUser({ email: email!, name: name!, sessionId });
-      try { localStorage.setItem("chat_user", JSON.stringify({ email, name, sessionId })); } catch {}
+      const userData: ChatUser = { email: email!, name: name!, sessionId };
+      setUser(userData);
+      saveStoredUser(email!, name!, sessionId);
     } else {
-      try {
-        const stored = localStorage.getItem("chat_user");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.email && parsed.name && parsed.sessionId) {
-            setUser(parsed);
-          }
-        }
-      } catch {}
+      const stored = loadStoredUser();
+      if (stored) {
+        setUser({ email: stored.email, name: stored.name, sessionId: stored.activeSessionId });
+      }
     }
     setIsLoading(false);
   }, []);
@@ -128,16 +156,29 @@ export function useChat() {
   }, [pageInfo]);
 
   const { data: messages = [] } = useQuery<Message[]>({
-    queryKey: ["/api/messages", user?.sessionId],
+    queryKey: ["/api/messages/thread", user?.email],
     queryFn: async () => {
       if (!user) return [];
-      const res = await fetch(`/api/messages/session/${user.sessionId}`);
+      const res = await fetch(`/api/messages/thread/${encodeURIComponent(user.email)}`);
       if (!res.ok) throw new Error("Error loading messages");
       return res.json();
     },
     enabled: !!user,
     refetchInterval: 4000,
     staleTime: 2000,
+  });
+
+  const { data: sessions = [] } = useQuery<Session[]>({
+    queryKey: ["/api/sessions/by-email", user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      const res = await fetch(`/api/sessions/by-email/${encodeURIComponent(user.email)}`);
+      if (!res.ok) throw new Error("Error loading sessions");
+      return res.json();
+    },
+    enabled: !!user,
+    refetchInterval: 8000,
+    staleTime: 4000,
   });
 
   useEffect(() => {
@@ -160,12 +201,12 @@ export function useChat() {
       });
 
       socket.on("chat_history", (history: Message[]) => {
-        queryClient.setQueryData(["/api/messages", user.sessionId], history);
+        queryClient.setQueryData(["/api/messages/thread", user.email], history);
       });
 
       socket.on("new_message", (msg: Message) => {
         queryClient.setQueryData(
-          ["/api/messages", user.sessionId],
+          ["/api/messages/thread", user.email],
           (old: Message[] | undefined) => {
             const existing = old || [];
             if (existing.some(m => m.id === msg.id)) return existing;
@@ -231,7 +272,7 @@ export function useChat() {
         if (res.ok) {
           const msg = await res.json();
           queryClient.setQueryData(
-            ["/api/messages", user.sessionId],
+            ["/api/messages/thread", user.email],
             (old: Message[] | undefined) => {
               const existing = old || [];
               if (existing.some(m => m.id === msg.id)) return existing;
@@ -240,7 +281,7 @@ export function useChat() {
           );
 
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/messages", user.sessionId] });
+            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
           }, 2500);
         }
       } catch {
@@ -282,7 +323,7 @@ export function useChat() {
       if (res.ok) {
         setContactRequested(true);
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["/api/messages", user.sessionId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
         }, 1500);
       }
     } catch {
@@ -306,7 +347,7 @@ export function useChat() {
   const login = useCallback((email: string, name: string, problemType?: string, gameName?: string) => {
     const sessionId = generateSessionId();
     const userData: ChatUser = { email, name, sessionId, problemType, gameName };
-    try { localStorage.setItem("chat_user", JSON.stringify(userData)); } catch {}
+    saveStoredUser(email, name, sessionId);
     setUser(userData);
 
     if (problemType && gameName) {
@@ -341,7 +382,7 @@ export function useChat() {
           });
           if (res.ok) {
             setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/messages", sessionId] });
+              queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", email] });
             }, 2500);
           }
         } catch {}
@@ -349,8 +390,55 @@ export function useChat() {
     }
   }, [pageInfo]);
 
+  const startNewSession = useCallback((problemType: string, gameName: string) => {
+    if (!user) return;
+    const newSessionId = generateSessionId();
+    const updatedUser: ChatUser = { ...user, sessionId: newSessionId, problemType, gameName };
+    setUser(updatedUser);
+    saveStoredUser(user.email, user.name, newSessionId);
+
+    const problemLabels: Record<string, string> = {
+      compra: "Quiero comprar un producto",
+      problema_cuenta: "Problema con mi cuenta",
+      entrega: "No he recibido mi producto",
+      devolucion: "Solicitar devolucion o cambio",
+      info_producto: "Informacion sobre un producto",
+      precio: "Consulta de precios",
+      otro: "Otro",
+    };
+    const label = problemLabels[problemType] || problemType;
+    const introMessage = `Hola, mi consulta es: ${label}. Producto/Juego: ${gameName}`;
+
+    setTimeout(async () => {
+      try {
+        const res = await fetch("/api/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: introMessage,
+            sessionId: newSessionId,
+            userEmail: user.email,
+            userName: user.name,
+            sender: "user",
+            pageUrl: pageInfo.url,
+            pageTitle: pageInfo.title,
+            problemType,
+            gameName,
+          }),
+        });
+        if (res.ok) {
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
+            queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
+          }, 2500);
+        }
+      } catch {}
+    }, 500);
+  }, [user, pageInfo]);
+
   const logout = useCallback(() => {
-    try { localStorage.removeItem("chat_user"); } catch {}
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(OLD_STORAGE_KEY); } catch {}
     setUser(null);
     setContactRequested(false);
     try { disconnectSocket(); } catch {}
@@ -359,12 +447,14 @@ export function useChat() {
   return {
     user,
     messages,
+    sessions,
     isConnected,
     isLoading,
     contactRequested,
     sendMessage,
     requestContact,
     login,
+    startNewSession,
     logout,
   };
 }

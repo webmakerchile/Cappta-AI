@@ -14,12 +14,14 @@ function ChatWidget() {
   const {
     user,
     messages,
+    sessions,
     isConnected,
     isLoading,
     contactRequested,
     sendMessage,
     requestContact,
     login,
+    startNewSession,
     logout,
   } = useChat();
 
@@ -48,8 +50,9 @@ function ChatWidget() {
   }, [logout]);
 
   const handleRatingComplete = useCallback(() => {
-    logout();
-  }, [logout]);
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
+  }, [user?.email]);
 
   useEffect(() => {
     if (!isOpen && messages.length > 0) {
@@ -85,15 +88,18 @@ function ChatWidget() {
             {user ? (
               <ChatWindow
                 messages={messages}
+                sessions={sessions}
                 onSend={sendMessage}
                 onContactExecutive={requestContact}
                 isConnected={isConnected}
                 userName={user.name}
+                userEmail={user.email}
                 contactRequested={contactRequested}
                 onClose={toggleChat}
                 onExitChat={handleExitChat}
                 sessionId={user.sessionId}
                 onRatingComplete={handleRatingComplete}
+                onStartNewSession={startNewSession}
               />
             ) : (
               <WelcomeForm onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)} onClose={toggleChat} />

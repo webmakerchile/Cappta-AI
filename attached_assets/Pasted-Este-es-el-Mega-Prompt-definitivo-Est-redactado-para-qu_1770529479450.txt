@@ -1,0 +1,39 @@
+Este es el Mega-Prompt definitivo. Está redactado para que Replit entienda la arquitectura completa: por un lado, cómo se organizan los agentes (para que no choquen) y, por otro, cómo el cliente vive una experiencia continua sin que lo "echen" del chat.
+
+Copia y pega esto tal cual en Replit:
+
+PROMPT PARA REPLIT:
+Plaintext
+Tengo un sistema de chat avanzado y necesito implementar una reestructuración importante en la lógica de "Sesiones" y "Asignación", tanto para el lado del Agente como para el Cliente.
+
+Por favor, implementa los siguientes cambios en el código existente sin romper la funcionalidad base:
+
+### 1. EXPERIENCIA DEL CLIENTE (Persistencia Total)
+El comportamiento actual donde el cliente "sale" del chat al terminar una sesión es incorrecto. Necesito cambiarlo a un flujo continuo:
+
+- **Historial Persistente:** Al entrar, el cliente debe ver SIEMPRE todo su historial de conversaciones pasadas. Nunca debe encontrar un chat vacío si ya ha hablado antes.
+- **No Expulsar al Cliente:** Al finalizar una consulta (o completar la encuesta de satisfacción), el cliente debe PERMANECER en la vista del chat. No lo redirijas a "Home" ni cierres la ventana.
+- **Re-conexión (Nueva Consulta):**
+  - Cuando una consulta finaliza (status: cerrada/resuelta), debe aparecer dentro del mismo hilo de chat un separador o botón que diga "Comenzar nueva consulta".
+  - Al hacer clic, el sistema debe preguntar el "Tipo de Consulta" (Menú de opciones: Soporte, Ventas, etc.).
+  - Una vez seleccionado el tema, se inicia una nueva "sesión lógica" (para métricas y asignación), pero visualmente se sigue escribiendo en el mismo hilo continuo de siempre.
+
+### 2. EXPERIENCIA DEL AGENTE (Sistema de "Claim" y Colaboración)
+Para evitar que dos agentes respondan lo mismo, implementa un sistema de asignación manual:
+
+- **Bandejas Separadas:**
+  a) **"Pendientes / Sin Asignar":** Muestra chats donde el cliente escribió pero ningún agente ha tomado el caso (campo `assigned_to` es NULL).
+  b) **"Mis Chats":** Muestra solo los chats asignados al agente actual.
+- **Acción de "Tomar Chat":**
+  - En la vista de "Pendientes", agrega un botón "Tomar Chat" (Claim).
+  - Al pulsarlo, asígnale el chat al agente actual y muévelo a "Mis Chats".
+- **Bloqueo de Seguridad (Locking):**
+  - Si un Agente A entra a ver un chat que ya está asignado al Agente B, el campo de escritura (input) debe estar DESHABILITADO.
+  - Muestra un aviso visual: "Este chat está siendo atendido por [Nombre del Agente B]".
+  - Esto es crítico para evitar respuestas simultáneas.
+
+### 3. LÓGICA DE DATOS
+- Ajusta el modelo de datos para soportar que una "Conversación Visual" (Thread) contenga múltiples "Sesiones Lógicas" (Tickets) a lo largo del tiempo, diferenciadas por el estado (Open, Closed) y el Agente Asignado.
+- Asegúrate de que el historial cargue todos los mensajes independientemente de si pertenecen a la sesión actual o a una anterior.
+
+Analiza mi código actual y aplica estas modificaciones

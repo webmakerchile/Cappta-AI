@@ -14,7 +14,7 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 2. **Auto-Authentication**: Reads `?email=` and `?name=` URL params for WordPress logged-in users
 3. **Page Context Detection**: Reads `?page_url=` and `?page_title=` params, or receives page info via postMessage from parent, to provide contextual auto-replies
 4. **Guest Form**: Welcome form (in Spanish) asking for email, problem type (dropdown), game/product name (searchable dropdown with live product search from catalog), and user name. Saves to localStorage with unique session ID
-5. **Session-Based Privacy**: Each chat gets a unique session ID (generated client-side). Messages are stored/fetched by sessionId, not email. Email is only used for executive contact. This prevents users from seeing each other's chat history even if they enter the same email
+5. **Thread-Based Conversation History**: Users are identified by email. All messages across multiple sessions (consultations) are displayed in a single continuous thread with session dividers. Each consultation gets its own sessionId but the user sees their entire conversation history. After a consultation is rated/closed, users can start a new consultation via an inline "Comenzar nueva consulta" button with problem-type picker. No forced logout on rating completion
 6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
 7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
 8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
@@ -36,10 +36,11 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 23. **PWA (Progressive Web App)**: Admin panel is installable as "Soporte CJM DIGITALES" on mobile/desktop. Manifest.json with standalone display, service worker for push notifications, Apple/Android icons.
 24. **Audio Notifications**: Web Audio API beep plays when new sessions appear (configurable via sound toggle in header).
 25. **Push Notifications**: Browser push notifications via VAPID/web-push when admin has the app backgrounded. Subscription managed per admin user.
+26. **Agent Assignment/Claiming**: Admin agents can claim ("Tomar Chat") and release ("Liberar") sessions. Sessions track assignedTo (admin user ID) and assignedToName. Admin panel has "Pendientes" (unassigned) and "Mis Chats" (assigned to me) filter tabs. Reply input is disabled when a chat is assigned to another agent.
 
 ## Database Tables
 - `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
-- `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt
+- `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt, assignedTo (admin user ID), assignedToName
 - `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
 - `contact_requests` - Executive contact requests with chat summary
 - `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category, wcProductId (WooCommerce ID), wcLastSync (last sync timestamp)
@@ -79,6 +80,8 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 - `DELETE /api/admin/canned-responses/:id` - Delete canned response
 - `PATCH /api/admin/sessions/:sessionId/admin-active` - Toggle admin takeover (sends notification to user)
 - `POST /api/admin/sessions/:sessionId/reply` - Send admin reply message to user
+- `PATCH /api/admin/sessions/:sessionId/claim` - Claim/assign session to current admin
+- `PATCH /api/admin/sessions/:sessionId/unclaim` - Release/unassign session
 - `GET /api/admin/products` - List all products in catalog
 - `POST /api/admin/products` - Create product
 - `PATCH /api/admin/products/:id` - Update product
@@ -99,6 +102,8 @@ A stand-alone chat widget built with React + Vite (Frontend) and Express + Socke
 
 ## Public API Endpoints
 - `GET /api/messages/session/:sessionId` - Get messages for a session
+- `GET /api/messages/thread/:email` - Get all messages for a user's email (thread view)
+- `GET /api/sessions/by-email/:email` - Get all sessions for a user's email
 - `POST /api/messages` - Send a message (auto-creates/reopens session)
 - `POST /api/contact-executive` - Request executive contact
 - `GET /api/canned-responses` - Get canned responses (for slash commands)

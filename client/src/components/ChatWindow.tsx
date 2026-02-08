@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Message } from "@shared/schema";
+import type { Message, Session } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
 
 interface BrowseProduct {
@@ -35,15 +35,18 @@ interface QuickReplyButton {
 
 interface ChatWindowProps {
   messages: Message[];
+  sessions: Session[];
   onSend: (content: string, imageUrl?: string, quickReplyValue?: string) => void;
   onContactExecutive: () => void;
   isConnected: boolean;
   userName: string;
+  userEmail: string;
   contactRequested: boolean;
   onClose: () => void;
   onExitChat: () => void;
   sessionId: string;
   onRatingComplete?: () => void;
+  onStartNewSession?: (problemType: string, gameName: string) => void;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -398,7 +401,106 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
   );
 }
 
-export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, userName, contactRequested, onClose, onExitChat, sessionId, onRatingComplete }: ChatWindowProps) {
+const PROBLEM_TYPES = [
+  { value: "compra", label: "Quiero comprar un producto" },
+  { value: "problema_cuenta", label: "Problema con mi cuenta" },
+  { value: "entrega", label: "No he recibido mi producto" },
+  { value: "devolucion", label: "Solicitar devolucion o cambio" },
+  { value: "info_producto", label: "Informacion sobre un producto" },
+  { value: "precio", label: "Consulta de precios" },
+  { value: "otro", label: "Otro" },
+];
+
+function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, gameName: string) => void }) {
+  const [selectedType, setSelectedType] = useState("");
+  const [gameName, setGameName] = useState("");
+  const [expanded, setExpanded] = useState(false);
+
+  if (!expanded) {
+    return (
+      <div className="flex justify-center my-4">
+        <button
+          data-testid="button-new-consultation"
+          onClick={() => setExpanded(true)}
+          className="px-4 py-2.5 rounded-md bg-[#6200EA] text-white text-sm font-semibold shadow-[0_0_12px_rgba(98,0,234,0.3)] transition-opacity hover:opacity-90"
+        >
+          Comenzar nueva consulta
+        </button>
+      </div>
+    );
+  }
+
+  const handleSubmit = () => {
+    if (selectedType && gameName.trim()) {
+      onSelect(selectedType, gameName.trim());
+      setExpanded(false);
+      setSelectedType("");
+      setGameName("");
+    }
+  };
+
+  return (
+    <div data-testid="new-consultation-form" className="mx-2 my-3 p-3 rounded-md bg-[#1e1e1e] border border-[#6200EA]/30">
+      <p className="text-sm font-medium text-white mb-3">Nueva consulta</p>
+      <div className="flex flex-col gap-2">
+        <select
+          data-testid="select-new-problem-type"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm p-2 focus:outline-none focus:ring-1 focus:ring-[#6200EA]"
+        >
+          <option value="" disabled>Tipo de consulta</option>
+          {PROBLEM_TYPES.map(t => (
+            <option key={t.value} value={t.value} className="bg-[#1e1e1e]">{t.label}</option>
+          ))}
+        </select>
+        <input
+          data-testid="input-new-game-name"
+          type="text"
+          value={gameName}
+          onChange={(e) => setGameName(e.target.value)}
+          placeholder="Producto o juego..."
+          className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm p-2 placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#6200EA]"
+        />
+        <button
+          data-testid="button-submit-new-consultation"
+          onClick={handleSubmit}
+          disabled={!selectedType || !gameName.trim()}
+          className="w-full py-2 rounded-md bg-[#6200EA] text-white text-sm font-semibold disabled:opacity-40 transition-opacity hover:opacity-90"
+        >
+          Iniciar consulta
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SessionDivider({ session }: { session: Session }) {
+  const problemLabels: Record<string, string> = {
+    compra: "Compra",
+    problema_cuenta: "Problema de cuenta",
+    entrega: "Entrega",
+    devolucion: "Devolucion",
+    info_producto: "Info producto",
+    precio: "Precio",
+    otro: "Otro",
+  };
+
+  return (
+    <div data-testid={`session-divider-${session.sessionId}`} className="flex items-center gap-3 my-4 px-2">
+      <div className="flex-1 h-px bg-white/10" />
+      <div className="flex items-center gap-1.5 text-[10px] text-white/30">
+        <span>{session.status === "closed" ? "Consulta finalizada" : "Nueva consulta"}</span>
+        {session.problemType && (
+          <span className="text-[#6200EA]/60">({problemLabels[session.problemType] || session.problemType})</span>
+        )}
+      </div>
+      <div className="flex-1 h-px bg-white/10" />
+    </div>
+  );
+}
+
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -557,6 +659,9 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
     return -1;
   })();
 
+  const latestSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
+  const isSessionClosed = latestSession?.status === "closed";
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: "#6200EA" }}>
@@ -644,16 +749,44 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             </p>
           </div>
         ) : (
-          filteredMessages.map((msg, idx) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              searchQuery={searchQuery}
-              isLastSupport={idx === lastSupportIdx}
-              onQuickReply={handleQuickReply}
-              onRatingComplete={onRatingComplete}
-            />
-          ))
+          (() => {
+            const items: React.ReactNode[] = [];
+            let currentSessionId = "";
+            const sessionMap = new Map(sessions.map(s => [s.sessionId, s]));
+
+            filteredMessages.forEach((msg, idx) => {
+              if (msg.sessionId !== currentSessionId && currentSessionId !== "") {
+                const newSession = sessionMap.get(msg.sessionId);
+                if (newSession) {
+                  items.push(<SessionDivider key={`divider-${msg.sessionId}`} session={newSession} />);
+                }
+              }
+              currentSessionId = msg.sessionId;
+
+              items.push(
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  searchQuery={searchQuery}
+                  isLastSupport={idx === lastSupportIdx}
+                  onQuickReply={handleQuickReply}
+                  onRatingComplete={onRatingComplete}
+                />
+              );
+            });
+
+            const latestSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
+            if (latestSession && latestSession.status === "closed" && onStartNewSession) {
+              items.push(
+                <SessionDivider key={`divider-closed-${latestSession.sessionId}`} session={latestSession} />
+              );
+              items.push(
+                <NewConsultationPicker key="new-consultation" onSelect={onStartNewSession} />
+              );
+            }
+
+            return items;
+          })()
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -799,20 +932,21 @@ export function ChatWindow({ messages, onSend, onContactExecutive, isConnected, 
             type="text"
             value={input}
             onChange={handleInputChange}
-            placeholder='Escribe un mensaje...'
+            placeholder={isSessionClosed ? "Inicia una nueva consulta para escribir..." : "Escribe un mensaje..."}
+            disabled={isSessionClosed}
             className="
               flex-1 py-2.5 px-3.5 rounded-md
               bg-white/5 border border-white/10
               text-white text-sm placeholder:text-white/25
               focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]
-              transition-colors
+              transition-colors disabled:opacity-50
             "
           />
           <Button
             data-testid="button-send"
             type="submit"
             size="icon"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isSessionClosed}
             className="bg-[#6200EA] text-white flex-shrink-0"
           >
             <Send className="w-4 h-4" />
