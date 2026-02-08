@@ -5,7 +5,7 @@ import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
   Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
-  UserPlus, UserMinus
+  UserPlus, UserMinus, Check
 } from "lucide-react";
 import {
   Select,
@@ -126,6 +126,13 @@ function formatTime(date: string | Date | null) {
 function formatDateTime(date: string | Date | null) {
   if (!date) return "";
   return `${formatDate(date)} ${formatTime(date)}`;
+}
+
+function parseAdminQuickReplies(content: string): string {
+  const marker = "{{QUICK_REPLIES:";
+  const idx = content.indexOf(marker);
+  if (idx === -1) return content;
+  return content.substring(0, idx).trim();
 }
 
 function highlightText(text: string, query: string) {
@@ -391,14 +398,20 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
                 if (e.key === "Escape") { setShowInput(false); setCustomTag(""); setShowSuggestions(false); }
               }}
               placeholder="Escribe una etiqueta..."
-              className="h-6 w-28 text-[11px] bg-white/5 border-white/10 text-white placeholder:text-white/25 px-1.5 focus-visible:ring-[#6200EA]"
+              className="h-6 w-36 text-[11px] bg-white/5 border-white/10 text-white placeholder:text-white/25 px-1.5 focus-visible:ring-[#6200EA]"
               autoFocus
               onFocus={() => setShowSuggestions(true)}
             />
             <button
-              data-testid="button-cancel-tag"
+              data-testid="button-submit-tag"
+              onClick={() => { if (customTag.trim()) addTag(customTag); }}
+              className="w-6 h-6 rounded bg-[#6200EA]/20 flex items-center justify-center text-[#6200EA] hover:bg-[#6200EA]/30"
+            >
+              <Check className="w-3 h-3" />
+            </button>
+            <button
               onClick={() => { setShowInput(false); setCustomTag(""); setShowSuggestions(false); }}
-              className="text-white/30 hover:text-white/60"
+              className="w-6 h-6 rounded bg-white/[0.06] flex items-center justify-center text-white/30 hover:text-white/60"
             >
               <X className="w-3 h-3" />
             </button>
@@ -424,9 +437,10 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
         <button
           data-testid="button-add-tag"
           onClick={() => setShowInput(true)}
-          className="w-5 h-5 rounded bg-white/[0.06] flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/[0.1]"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/[0.06] text-[10px] text-white/40 hover:text-white/60 hover:bg-white/[0.1]"
         >
           <Plus className="w-3 h-3" />
+          <span>Etiqueta</span>
         </button>
       )}
     </div>
@@ -718,7 +732,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               <p className="text-[10px] sm:text-[11px] text-white/40 truncate">{userEmail}</p>
             </div>
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 flex-wrap justify-end">
             {currentSession?.assignedTo === adminUser?.id ? (
               <Button
                 data-testid="button-unclaim-session"
@@ -913,7 +927,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                       )}
                       {!isImageOnly && (
                         <div className="px-3 py-2 text-sm leading-relaxed break-words">
-                          {activeSearch ? highlightText(msg.content, activeSearch) : msg.content}
+                          {activeSearch ? highlightText(parseAdminQuickReplies(msg.content), activeSearch) : parseAdminQuickReplies(msg.content)}
                         </div>
                       )}
                     </div>
