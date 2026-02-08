@@ -3,6 +3,7 @@ import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loade
 import { Button } from "@/components/ui/button";
 import type { Message, Session } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
+import { ProductSelector } from "@/components/ProductSelector";
 
 interface BrowseProduct {
   id: number;
@@ -454,13 +455,11 @@ function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, g
             <option key={t.value} value={t.value} className="bg-[#1e1e1e]">{t.label}</option>
           ))}
         </select>
-        <input
-          data-testid="input-new-game-name"
-          type="text"
+        <ProductSelector
           value={gameName}
-          onChange={(e) => setGameName(e.target.value)}
-          placeholder="Producto o juego..."
-          className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm p-2 placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#6200EA]"
+          onChange={setGameName}
+          placeholder="Buscar juego o producto..."
+          dataTestId="input-new-game-name"
         />
         <button
           data-testid="button-submit-new-consultation"
