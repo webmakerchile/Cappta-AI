@@ -32,6 +32,7 @@ export interface IStorage {
   searchProductsByName(query: string): Promise<Product[]>;
   getProductsByPlatform(platform: string): Promise<Product[]>;
   getProductsByCategory(category: string): Promise<Product[]>;
+  getProductCount(): Promise<number>;
   createRating(data: InsertRating): Promise<Rating>;
   getRatingBySessionId(sessionId: string): Promise<Rating | null>;
   getAllRatings(): Promise<Rating[]>;
@@ -552,6 +553,11 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .where(sql`${products.category} = ${category}`)
       .orderBy(asc(products.name));
+  }
+
+  async getProductCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(products);
+    return result[0]?.count || 0;
   }
 
   async createRating(data: InsertRating): Promise<Rating> {

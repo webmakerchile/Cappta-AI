@@ -305,7 +305,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
               </a>
             )}
             {!isImageOnly && (
-              <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words">
+              <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words whitespace-pre-line">
                 {searchQuery ? highlightText(displayText, searchQuery) : displayText}
               </div>
             )}

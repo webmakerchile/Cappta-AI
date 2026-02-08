@@ -280,6 +280,9 @@ export async function registerRoutes(
                   category: p.category,
                 }));
               },
+              getTotalCount: async () => {
+                return storage.getProductCount();
+              },
             };
 
             const autoReplyInput = req.body.quickReplyValue || parsed.data.content;
@@ -1241,6 +1244,9 @@ export async function registerRoutes(
                     description: p.description,
                     category: p.category,
                   }));
+                },
+                getTotalCount: async () => {
+                  return storage.getProductCount();
                 },
               };
 

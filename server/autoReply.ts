@@ -39,6 +39,7 @@ interface CatalogLookup {
   searchByName: (query: string) => Promise<CatalogProduct[]>;
   getByPlatform: (platform: string) => Promise<CatalogProduct[]>;
   getByCategory: (category: string) => Promise<CatalogProduct[]>;
+  getTotalCount: () => Promise<number>;
 }
 
 interface ConversationEntry {
@@ -1310,11 +1311,11 @@ export async function getSmartAutoReply(
         label: `${p.name} - ${p.price || "Consultar precio"}`,
         value: `__qr:product:${p.name}`
       }));
+      productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
       const platformName = platform.includes("ps") ? "PlayStation" : "Xbox";
-      return withButtons(
-        `Estos son nuestros productos disponibles para ${platformName}:`,
-        productButtons
-      );
+      const totalCount = await catalogLookup.getTotalCount();
+      const text = `Catalogo ${platformName}\n\nContamos con ${products.length} productos disponibles para ${platformName}.\n\nA continuacion te mostramos algunos de nuestros titulos destacados:\n\nBuscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del juego que te interesa para encontrarlo rapidamente.`;
+      return withButtons(text, productButtons);
     }
 
     if (msg.startsWith("__qr:category:")) {
@@ -1339,10 +1340,10 @@ export async function getSmartAutoReply(
         bundle: "Bundles",
       };
       const categoryName = categoryNames[category] || category;
-      return withButtons(
-        `Estos son nuestros productos de ${categoryName}:`,
-        productButtons
-      );
+      productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
+      const totalCount = await catalogLookup.getTotalCount();
+      const text = `Catalogo de ${categoryName}\n\nContamos con ${products.length} productos disponibles en esta categoria.\n\nA continuacion te mostramos algunas opciones destacadas:\n\nBuscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del producto que te interesa para encontrarlo rapidamente.`;
+      return withButtons(text, productButtons);
     }
 
     if (msg.startsWith("__qr:product:")) {
@@ -1376,11 +1377,14 @@ export async function getSmartAutoReply(
     }
 
     if (msg === "__qr:back") {
-      const text = `¿Que te gustaria ver? Tenemos juegos y suscripciones para PlayStation y Xbox.`;
+      const text = `Que categoria te gustaria explorar?\n\nContamos con un amplio catalogo de juegos digitales, suscripciones y mas para PlayStation y Xbox.`;
       return withButtons(text, [
         {label: "Juegos PS5", value: "__qr:platform:ps5"},
-        {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
+        {label: "Juegos PS4", value: "__qr:platform:ps4"},
+        {label: "Juegos Xbox Series", value: "__qr:platform:xbox_series"},
+        {label: "Juegos Xbox One", value: "__qr:platform:xbox_one"},
         {label: "Suscripciones", value: "__qr:category:subscription"},
+        {label: "Bundles", value: "__qr:category:bundle"},
       ]);
     }
   }
@@ -1427,11 +1431,12 @@ export async function getSmartAutoReply(
           label: `${p.name} - ${p.price || "Consultar"}`,
           value: `__qr:product:${p.name}`
         }));
+        productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
         productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
-        return withButtons(
-          `Estos son nuestros productos de ${categoryNames[matchedCategory] || matchedCategory}:`,
-          productButtons
-        );
+        const totalCount = await catalogLookup.getTotalCount();
+        const catDisplayName = categoryNames[matchedCategory] || matchedCategory;
+        const text = `Catalogo de ${catDisplayName}\n\nContamos con ${categoryProducts.length} productos disponibles en esta categoria.\n\nA continuacion te mostramos algunas opciones destacadas:\n\nBuscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del producto que te interesa para encontrarlo rapidamente.`;
+        return withButtons(text, productButtons);
       }
     }
 
@@ -1501,9 +1506,10 @@ export async function getSmartAutoReply(
               label: `${p.name} - ${p.price || "Consultar"}`,
               value: `__qr:product:${p.name}`
             }));
+            productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
             productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
             return withButtons(
-              `Encontre ${catalogResults.length} productos. Selecciona el que te interesa:`,
+              `Encontramos ${catalogResults.length} resultados para tu busqueda.\n\nSelecciona el producto que te interesa para ver mas detalles:`,
               productButtons
             );
           }
@@ -1537,10 +1543,10 @@ export async function getSmartAutoReply(
           label: `${p.name} - ${p.price || "Consultar"}`,
           value: `__qr:product:${p.name}`
         }));
-        return withButtons(
-          `Estos son nuestros productos disponibles para ${platformDisplayName}:`,
-          productButtons
-        );
+        productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
+        const totalCount = await catalogLookup.getTotalCount();
+        const text = `Catalogo ${platformDisplayName}\n\nContamos con ${platformProducts.length} productos disponibles para ${platformDisplayName}.\n\nA continuacion te mostramos algunos de nuestros titulos destacados:\n\nBuscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del juego que te interesa para encontrarlo rapidamente.`;
+        return withButtons(text, productButtons);
       } else {
         return withButtons(
           `No tenemos productos disponibles para ${platformDisplayName} en este momento.`,
