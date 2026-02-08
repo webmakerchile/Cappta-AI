@@ -227,7 +227,7 @@ export async function registerRoutes(
       await storage.touchSession(sessionId);
 
       io.to(`session:${sessionId}`).emit("new_message", message);
-      io.to("admin_room").emit("admin_new_message", { sessionId });
+      io.to("admin_room").emit("admin_new_message", { sessionId, message });
 
       if (parsed.data.sender === "user" && !req.body.imageUrl) {
         const pageUrl = req.body.pageUrl || "";
@@ -310,7 +310,7 @@ export async function registerRoutes(
               content: replyContent,
             });
             io.to(`session:${sessionId}`).emit("new_message", autoReply);
-            io.to("admin_room").emit("admin_new_message", { sessionId });
+            io.to("admin_room").emit("admin_new_message", { sessionId, message: autoReply });
 
             if (!isSessionOnline(sessionId)) {
               sendOfflineNotification({
@@ -1041,7 +1041,7 @@ export async function registerRoutes(
       await storage.markSessionRead(req.params.sessionId);
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
-      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId });
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
 
       if (!isSessionOnline(req.params.sessionId)) {
         sendOfflineNotification({
@@ -1196,7 +1196,7 @@ export async function registerRoutes(
             parsed.data.content.substring(0, 100),
             sid
           );
-          io.to("admin_room").emit("admin_new_message", { sessionId: sid, userName: parsed.data.userName, content: parsed.data.content });
+          io.to("admin_room").emit("admin_new_message", { sessionId: sid, userName: parsed.data.userName, content: parsed.data.content, message });
           setTimeout(async () => {
             try {
               const currentSession = await storage.getSession(sid);
@@ -1272,7 +1272,7 @@ export async function registerRoutes(
                 content: replyContent,
               });
               io.to(`session:${sid}`).emit("new_message", autoReply);
-              io.to("admin_room").emit("admin_new_message", { sessionId: sid });
+              io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: autoReply });
             } catch (err: any) {
               log(`Error en auto-respuesta: ${err.message}`, "socket.io");
             }

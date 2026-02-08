@@ -605,9 +605,43 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) throw new Error("Error al enviar respuesta");
       return res.json();
     },
-    onSuccess: () => {
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      const prev = queryClient.getQueryData<Message[]>(["/api/admin/sessions", sessionId, "messages"]);
+      const tempId = -Date.now();
+      const optimisticMsg: Message = {
+        id: tempId,
+        sessionId,
+        userEmail: "",
+        userName: "Soporte",
+        sender: "support",
+        content: data.content || (data.imageUrl ? "Imagen enviada" : ""),
+        imageUrl: data.imageUrl || null,
+        adminName: adminUser?.displayName || null,
+        adminColor: "#6200EA",
+        timestamp: new Date(),
+      };
+      queryClient.setQueryData<Message[]>(
+        ["/api/admin/sessions", sessionId, "messages"],
+        (old) => [...(old || []), optimisticMsg]
+      );
+      return { prev, tempId };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.prev) {
+        queryClient.setQueryData(["/api/admin/sessions", sessionId, "messages"], context.prev);
+      }
+    },
+    onSuccess: (serverMsg, _data, context) => {
       setReplyText("");
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      queryClient.setQueryData<Message[]>(
+        ["/api/admin/sessions", sessionId, "messages"],
+        (old) => {
+          if (!old) return [serverMsg];
+          const cleaned = old.filter(m => m.id !== context?.tempId && m.id !== serverMsg.id);
+          return [...cleaned, serverMsg];
+        }
+      );
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
       setTimeout(() => replyInputRef.current?.focus(), 100);
     },
@@ -2452,7 +2486,16 @@ export default function AdminPage() {
 
     adminSocket.on("admin_new_message", (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
-      if (data?.sessionId) {
+      if (data?.sessionId && data?.message) {
+        queryClient.setQueryData<Message[]>(
+          ["/api/admin/sessions", data.sessionId, "messages"],
+          (old) => {
+            if (!old) return undefined;
+            if (old.some(m => m.id === data.message.id)) return old;
+            return [...old, data.message];
+          }
+        );
+      } else if (data?.sessionId) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
       }
     });
