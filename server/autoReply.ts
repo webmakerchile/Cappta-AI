@@ -555,8 +555,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "problema_cuenta") {
       const text = pickUnused([
-        `¡Hola${nameGreeting}! Lamento que estes teniendo problemas con tu cuenta. No te preocupes, vamos a resolverlo. Te recomiendo contactar a uno de nuestros ejecutivos para brindarte atencion personalizada.`,
-        `¡Hola${nameGreeting}! Entiendo que tienes un inconveniente con tu cuenta. Nuestro equipo esta listo para ayudarte. Lo mejor es que hables directamente con un ejecutivo para resolver tu caso lo antes posible.`,
+        `¡Hola${nameGreeting}! Lamento que estes teniendo problemas con tu cuenta. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat. Por favor, no te desconectes ni cierres la ventana para que podamos atender tu problema. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
+        `¡Hola${nameGreeting}! Entiendo que tienes un inconveniente con tu cuenta. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
       ], state.usedResponses);
       return withButtons(text, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -565,8 +565,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "entrega") {
       const text = pickUnused([
-        `¡Hola${nameGreeting}! Entiendo tu preocupacion sobre la entrega. Recuerda que todos nuestros productos son digitales y la entrega es instantanea a tu correo electronico. Si no has recibido tu producto, un ejecutivo puede verificar tu pedido de inmediato.`,
-        `¡Hola${nameGreeting}! Lamento el inconveniente con tu entrega. Nuestros productos digitales se entregan al instante por email. Si hay algun problema, un ejecutivo puede revisar el estado de tu pedido rapidamente.`,
+        `¡Hola${nameGreeting}! Entiendo tu preocupacion sobre la entrega. Recuerda que todos nuestros productos son digitales y la entrega es instantanea a tu correo electronico. Si no has recibido tu producto, quedate en este chat y un ejecutivo te ayudara directamente aqui. Recibiras un sonido de notificacion cuando haya una respuesta nueva.`,
+        `¡Hola${nameGreeting}! Lamento el inconveniente con tu entrega. Nuestros productos digitales se entregan al instante por email. Si hay algun problema, no te desconectes de este chat, un ejecutivo revisara tu caso directamente aqui. Te notificaremos con sonido cuando recibas una respuesta.`,
       ], state.usedResponses);
       return withButtons(text, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -575,8 +575,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "devolucion") {
       const text = pickUnused([
-        `¡Hola${nameGreeting}! Entiendo que necesitas gestionar una devolucion o cambio. Para agilizar tu solicitud, te conecto directamente con un ejecutivo que revisara tu caso segun nuestra politica de devoluciones.`,
-        `¡Hola${nameGreeting}! Lamento que necesites una devolucion. Nuestro equipo revisara tu caso de acuerdo a nuestra politica de devoluciones. Te recomiendo contactar a un ejecutivo para una respuesta rapida.`,
+        `¡Hola${nameGreeting}! Entiendo que necesitas gestionar una devolucion o cambio. Para agilizar tu solicitud, quedate en este chat y un ejecutivo revisara tu caso segun nuestra politica de devoluciones. Recibiras una notificacion con sonido si no estas viendo el chat.`,
+        `¡Hola${nameGreeting}! Lamento que necesites una devolucion. Nuestro equipo revisara tu caso directamente aqui en el chat. No te desconectes para que podamos atenderte lo antes posible. Te avisaremos con sonido cuando haya una respuesta.`,
       ], state.usedResponses);
       return withButtons(text, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
