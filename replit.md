@@ -1,146 +1,38 @@
 # Chat Widget Application
 
 ## Overview
-A stand-alone chat widget built with React + Vite (Frontend) and Express + Socket.io (Backend). Designed to be embedded in an iframe on a WordPress site. Communicates with the parent window via `postMessage` for dynamic resizing. All UI is in Spanish.
+This project is a standalone chat widget, integrating a React + Vite frontend with an Express + Socket.io backend. It's designed for seamless embedding within an iframe on WordPress sites, communicating with the parent window for dynamic resizing. The primary goal is to provide real-time customer support, automate responses, and facilitate agent interaction, enhancing user experience and streamlining support operations. The widget aims to improve customer engagement and operational efficiency for businesses.
 
-## Architecture
-- **Frontend**: React, Tailwind CSS, Lucide React icons, Socket.io-client
-- **Backend**: Express, Socket.io, Drizzle ORM, Resend (email)
-- **Database**: PostgreSQL for message, session, canned response, and contact request persistence
-- **Theme**: Dark gaming aesthetic with neon purple (#6200EA) accents
+## User Preferences
+I want iterative development.
+I prefer detailed explanations.
+Ask before making major changes.
+Do not make changes to the folder `Z`.
+Do not make changes to the file `Y`.
 
-## Key Features
-1. **Widget States**: Launcher button (closed) + Chat window (open), with postMessage events (`open_chat`/`close_chat`) with dimensions for iframe resizing
-2. **Auto-Authentication**: Reads `?email=` and `?name=` URL params for WordPress logged-in users
-3. **Page Context Detection**: Reads `?page_url=` and `?page_title=` params, or receives page info via postMessage from parent, to provide contextual auto-replies
-4. **Guest Form**: Welcome form (in Spanish) asking for email, problem type (dropdown), game/product name (searchable dropdown with live product search from catalog), and user name. Saves to localStorage with unique session ID
-5. **Thread-Based Conversation History**: Users are identified by email. All messages across multiple sessions (consultations) are displayed in a single continuous thread with session dividers. Each consultation gets its own sessionId but the user sees their entire conversation history. After a consultation is rated/closed, users can start a new consultation via an inline "Comenzar nueva consulta" button with problem-type picker. No forced logout on rating completion
-6. **Hybrid Messaging**: HTTP POST for sending messages (iframe-compatible), Socket.io for real-time receiving, with 4s polling fallback
-7. **Message Persistence**: All messages stored in PostgreSQL with session isolation, history loaded on reconnect within same session
-8. **Contact Executive**: Button to request human contact, sends email notification via Resend to cjmdigitales@gmail.com with chat summary, page context, and pre-chat form data (problem type, game/product name)
-9. **Smart Auto-replies**: Intelligent context-aware auto-reply engine (`server/autoReply.ts`) with conversation memory, intent detection (12 intent types), game/product name recognition (20+ titles including EA FC, GTA, COD, Spider-Man, etc.), no-repetition system, smart escalation to human agents after unresolved exchanges, and **consultation-type-adaptive greetings** (compra→shopping focus, entrega→delivery empathy, devolucion→executive redirect, problema_cuenta→support focus, info_producto→product info, precio→price display)
-10. **Product Catalog**: Database-backed product catalog that the bot queries to include real prices, availability, and purchase URLs in responses. Managed via admin panel "Productos" tab. Purchase flow tracks stages (inquiry→confirmed→link) to avoid looping.
-11. **Admin Panel** (`/admin`): Private admin page with session list, chat viewer, global search, status filters, tags, canned responses management, product catalog management, **session agent badges** (Bot/Ejecutivo/Solicita Ejecutivo), **agent type filter tabs**, and **admin product search/send** (search products from catalog and send formatted product messages directly to users)
-12. **In-Chat Search**: Search bar within the chat window to filter messages within the current conversation, with text highlighting
-13. **Conversation Status Management**: Sessions can be marked as 'active' or 'closed' (soft delete). Closed chats are hidden from inbox but accessible via filter. Auto-reopens when user sends new message.
-14. **Slash Commands / Canned Responses**: Admin-only feature. Typing "/" in the admin reply input shows a dropdown of predefined quick responses. Managed via admin panel CRUD.
-15. **Session Tags**: Conversations can be tagged (Venta, Soporte, Urgente, etc.) for categorization in the admin panel.
-16. **Offline Email Notifications**: When a support reply is sent and the user is disconnected (no active Socket.io connection), an email notification is sent to the user via Resend.
-17. **Admin Live Chat Takeover**: Admin can click "Entrar al Chat" to take over a conversation. Bot auto-replies are paused, admin gets a reply input to respond directly. User receives a notification message. Admin can click "Salir del Chat" to return control to the bot. Messages auto-refresh every 3s when admin is active.
-18. **Image Uploads**: Both users and admins can send images in chat. Images are uploaded to Replit Object Storage via presigned URL flow. Messages with images display inline with clickable previews. Image-only messages skip auto-reply. Max file size: 5MB.
-19. **In-Chat Product Browser**: ShoppingBag button in chat input opens a floating product catalog overlay with search. Users can browse/search products and click to send a product inquiry directly in the conversation.
-20. **Satisfaction Survey**: When the bot detects the conversation is resolved (user says "gracias" or "adios"), it asks if the user wants to end the chat and rate their experience. Shows 1-5 star rating + optional comment. Ratings are stored in the database and visible in the admin panel with per-session ratings, average score, and comments.
+## System Architecture
+The application features a React frontend with Tailwind CSS for styling and Lucide React for icons, communicating with an Express backend utilizing Socket.io for real-time messaging. PostgreSQL is used for data persistence via Drizzle ORM, and Resend handles email notifications. The UI adopts a dark gaming aesthetic with neon purple accents.
 
-21. **JWT Authentication**: Admin panel uses JWT-based email/password authentication instead of API key. Superadmin account (webmakerchile@gmail.com) is auto-seeded on startup. Users can change their own passwords. Superadmin can create/delete admin users.
-22. **User Management**: Superadmin-only tab to create and delete admin users. Regular admins can access all features except user management.
-23. **PWA (Progressive Web App)**: Admin panel is installable as "Soporte CJM DIGITALES" on mobile/desktop. Manifest.json with standalone display, service worker for push notifications, Apple/Android icons.
-24. **Audio Notifications**: Web Audio API beep plays when new sessions appear (configurable via sound toggle in header).
-25. **Push Notifications**: Browser push notifications via VAPID/web-push when admin has the app backgrounded. Subscription managed per admin user.
-26. **Agent Assignment/Claiming**: Admin agents can claim ("Tomar Chat") and release ("Liberar") sessions. Sessions track assignedTo (admin user ID) and assignedToName. Admin panel has "Pendientes" (unassigned) and "Mis Chats" (assigned to me) filter tabs. Reply input is disabled when a chat is assigned to another agent.
+Key architectural decisions and features include:
+- **Dynamic Iframe Resizing**: The widget communicates with the parent WordPress site using `postMessage` for responsive iframe adjustments based on its open/closed state.
+- **Contextual User Experience**: It supports auto-authentication via URL parameters (`email`, `name`) for logged-in users and detects page context (`page_url`, `page_title`) to provide relevant auto-replies.
+- **Persistent Conversation History**: Messages and sessions are stored in PostgreSQL, allowing users to view their entire conversation history across multiple consultations.
+- **Hybrid Messaging**: Combines HTTP POST for sending messages (iframe compatibility) with Socket.io for real-time message reception, including a 4-second polling fallback.
+- **Intelligent Auto-reply Engine**: A sophisticated `autoReply.ts` engine in the backend provides context-aware responses, detects user intent, recognizes product/game names, avoids repetition, and escalates to human agents when necessary, with consultation-type-adaptive greetings.
+- **Integrated Product Catalog**: The bot can query a PostgreSQL-backed product catalog to include real-time prices, availability, and purchase URLs in its responses. An admin panel manages this catalog.
+- **Comprehensive Admin Panel**: Located at `/admin`, this panel offers session management, a chat viewer, global search, status filters, tags, canned responses, product catalog management, session agent badges, and agent type filters.
+- **Admin-User Collaboration Tools**: Features include live chat takeover by admins, agent assignment/claiming, unique agent color differentiation in chat, and image uploads for both users and admins.
+- **PWA for Admin Panel**: The admin interface is installable as a Progressive Web App, supporting offline access and push notifications.
+- **Authentication and User Management**: Admin panel access is secured with JWT-based authentication. A superadmin role manages admin users, and agents can change their passwords.
+- **Notification Systems**: Includes audio notifications for new sessions and browser push notifications for admins via VAPID/web-push when the app is backgrounded.
+- **Satisfaction Survey**: The bot prompts users for a 1-5 star rating and optional comments upon conversation resolution, with results visible in the admin panel.
+- **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
 
-## Database Tables
-- `messages` - Chat messages with sessionId, sender, content, imageUrl (optional), timestamp
-- `sessions` - Session metadata: status (active/closed), tags, problemType, gameName, adminActive, lastMessageAt, assignedTo (admin user ID), assignedToName
-- `canned_responses` - Quick reply shortcuts (shortcut + content) for slash commands
-- `contact_requests` - Executive contact requests with chat summary
-- `products` - Product catalog: name, searchAliases, platform, price, productUrl, imageUrl, availability, description, category, wcProductId (WooCommerce ID), wcLastSync (last sync timestamp)
-- `ratings` - Satisfaction ratings: sessionId, userEmail, userName, rating (1-5), comment (optional), timestamp
-- `admin_users` - Admin user accounts: email, passwordHash (bcrypt), displayName, role (admin/superadmin), createdAt
-- `push_subscriptions` - Web push notification subscriptions: endpoint, keys (p256dh, auth), createdAt
-
-## Project Structure
-- `shared/schema.ts` - Database schema (messages, sessions, canned_responses, contact_requests) and TypeScript types
-- `server/autoReply.ts` - Smart auto-reply engine with conversation memory, intent detection, product/game recognition, no-repetition, and escalation
-- `server/routes.ts` - Socket.io setup, message handling, contact executive, admin API endpoints, offline detection
-- `server/storage.ts` - Database CRUD operations (session queries, search, admin queries, canned responses)
-- `server/db.ts` - Database connection pool
-- `server/email.ts` - Resend email notification service (contact notification + offline notification)
-- `server/woocommerce.ts` - WooCommerce REST API sync service (auto-sync on startup, manual sync via admin)
-- `server/seed.ts` - Demo data seeding (Spanish)
-- `client/src/App.tsx` - Main app container with routing (/ = widget, /admin = admin panel)
-- `client/src/pages/Admin.tsx` - Admin panel with session list, chat viewer, global search, status filters, tags, canned responses CRUD
-- `client/src/components/Launcher.tsx` - Floating chat button
-- `client/src/components/ChatWindow.tsx` - Chat messages area + input + in-chat search + slash commands + contact executive button + image upload
-- `client/src/components/WelcomeForm.tsx` - Guest login form (Spanish)
-- `client/src/hooks/use-chat.ts` - Chat state management hook with TanStack Query integration
-- `client/src/hooks/use-upload.ts` - Presigned URL upload hook for object storage
-- `client/src/lib/socket.ts` - Socket.io client configuration
-- `server/replit_integrations/object_storage/` - Object storage service, routes (presigned URLs), ACL
-
-## Admin API Endpoints (all require Authorization: Bearer {JWT} header)
-- `GET /api/admin/sessions?status=active|closed|all` - List sessions with filters
-- `GET /api/admin/sessions/:sessionId/messages` - Get full message history
-- `PATCH /api/admin/sessions/:sessionId/status` - Update session status (active/closed)
-- `PATCH /api/admin/sessions/:sessionId/tags` - Update session tags
-- `GET /api/admin/search?q=query` - Search across all messages
-- `GET /api/admin/contact-requests` - List executive contact requests
-- `GET /api/admin/canned-responses` - List all canned responses
-- `POST /api/admin/canned-responses` - Create canned response
-- `PATCH /api/admin/canned-responses/:id` - Update canned response
-- `DELETE /api/admin/canned-responses/:id` - Delete canned response
-- `PATCH /api/admin/sessions/:sessionId/admin-active` - Toggle admin takeover (sends notification to user)
-- `POST /api/admin/sessions/:sessionId/reply` - Send admin reply message to user
-- `PATCH /api/admin/sessions/:sessionId/claim` - Claim/assign session to current admin
-- `PATCH /api/admin/sessions/:sessionId/unclaim` - Release/unassign session
-- `GET /api/admin/products` - List all products in catalog
-- `POST /api/admin/products` - Create product
-- `PATCH /api/admin/products/:id` - Update product
-- `DELETE /api/admin/products/:id` - Delete product
-- `GET /api/admin/wc/status` - WooCommerce sync status (configured, counts, last sync)
-- `POST /api/admin/wc/sync` - Trigger manual WooCommerce product sync
-- `GET /api/admin/users` - List admin users
-- `POST /api/admin/users` - Create admin user (superadmin only)
-- `DELETE /api/admin/users/:id` - Delete admin user (superadmin only, cannot delete superadmin)
-- `POST /api/admin/change-password` - Change own password
-- `POST /api/admin/push-subscribe` - Subscribe to push notifications
-- `DELETE /api/admin/push-subscribe` - Unsubscribe from push notifications
-
-## Auth API Endpoints (public)
-- `POST /api/auth/login` - Login with email/password, returns JWT token
-- `GET /api/auth/me` - Get current user info from JWT token
-- `GET /api/push/vapid-public-key` - Get VAPID public key for push subscription
-
-## Public API Endpoints
-- `GET /api/messages/session/:sessionId` - Get messages for a session
-- `GET /api/messages/thread/:email` - Get all messages for a user's email (thread view)
-- `GET /api/sessions/by-email/:email` - Get all sessions for a user's email
-- `POST /api/messages` - Send a message (auto-creates/reopens session)
-- `POST /api/contact-executive` - Request executive contact
-- `GET /api/canned-responses` - Get canned responses (for slash commands)
-- `GET /api/products/search?q=query` - Search products by name/aliases (used by auto-reply)
-- `GET /api/products/browse?q=search&category=game&platform=ps5&limit=50&offset=0` - Browse all products with optional filters (used by product selector)
-
-## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string
-- `RESEND_API_KEY` - Resend API key for email notifications
-- `SESSION_SECRET` - JWT signing secret for admin authentication
-- `WC_CONSUMER_KEY` - WooCommerce REST API consumer key
-- `WC_CONSUMER_SECRET` - WooCommerce REST API consumer secret
-- `WC_STORE_URL` - WordPress/WooCommerce store URL (env var, default: https://cjmdigitales.cl)
-- `VAPID_PUBLIC_KEY` - VAPID public key for web push notifications
-- `VAPID_PRIVATE_KEY` - VAPID private key for web push notifications
-- Notification email: cjmdigitales@gmail.com (configured in server/email.ts)
-
-## Running
-- `npm run dev` starts Express + Vite dev server on port 5000
-- Socket.io runs on the same HTTP server
-- CORS configured for `*` (any origin) for iframe compatibility
-
-## WordPress Iframe Integration
-Embed the widget with URL params:
-```html
-<iframe src="https://your-app.replit.app/?email=user@email.com&name=UserName&page_url=https://yoursite.com/page&page_title=Page Title&product_name=EA Sports FC 26&product_price=$29.99 USD&product_url=https://yoursite.com/product/fc-26&product_image=https://yoursite.com/img/fc26.jpg" />
-```
-Product-specific params (optional, for product pages):
-- `product_name` - Name of the product on the current page
-- `product_price` - Price of the product
-- `product_url` - Direct link to buy the product
-- `product_image` - Product image URL
-The widget sends postMessage events to the parent for resize:
-```js
-{ type: "open_chat", width: 390, height: 600 }
-{ type: "close_chat", width: 70, height: 70 }
-```
-
-## Resend Setup Note
-For production email delivery, you need to verify a domain in Resend. The free tier onboarding@resend.dev sender only delivers to the Resend account owner's email. To send to any email, add and verify your domain in Resend dashboard.
+## External Dependencies
+- **PostgreSQL**: Primary database for storing messages, sessions, canned responses, contact requests, products, ratings, admin users, and push subscriptions.
+- **Resend**: Email API for sending notifications, including executive contact requests and offline user replies.
+- **Socket.io**: Real-time bidirectional event-based communication.
+- **Drizzle ORM**: TypeScript ORM for interacting with PostgreSQL.
+- **WooCommerce REST API**: Used for syncing product catalog data (consumer key/secret required).
+- **Replit Object Storage**: For storing image uploads, accessed via presigned URLs.
+- **VAPID/Web-Push**: For sending browser push notifications to admin users.

@@ -140,6 +140,7 @@ export async function registerRoutes(
           passwordHash: hash,
           displayName: "Admin Principal",
           role: "superadmin",
+          color: "#6200EA",
         });
         log("Superadmin creado: webmakerchile@gmail.com", "auth");
       }
@@ -430,14 +431,14 @@ export async function registerRoutes(
     if (!dbUser) {
       return res.status(401).json({ message: "Usuario no encontrado" });
     }
-    res.json({ id: dbUser.id, email: dbUser.email, role: dbUser.role, displayName: dbUser.displayName });
+    res.json({ id: dbUser.id, email: dbUser.email, role: dbUser.role, displayName: dbUser.displayName, color: dbUser.color });
   });
 
   app.get("/api/admin/users", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
     const users = await storage.getAllAdminUsers();
-    res.json(users.map(u => ({ id: u.id, email: u.email, displayName: u.displayName, role: u.role, createdAt: u.createdAt })));
+    res.json(users.map(u => ({ id: u.id, email: u.email, displayName: u.displayName, role: u.role, color: u.color, createdAt: u.createdAt })));
   });
 
   app.post("/api/admin/users", async (req, res) => {
@@ -447,7 +448,7 @@ export async function registerRoutes(
       return res.status(403).json({ message: "Solo el superadmin puede crear usuarios" });
     }
     try {
-      const { email, password, displayName } = req.body;
+      const { email, password, displayName, color } = req.body;
       if (!email || !password || !displayName) {
         return res.status(400).json({ message: "Email, contraseña y nombre requeridos" });
       }
@@ -461,8 +462,9 @@ export async function registerRoutes(
         passwordHash: hash,
         displayName: displayName.trim(),
         role: "admin",
+        color: color || "#6200EA",
       });
-      res.status(201).json({ id: created.id, email: created.email, displayName: created.displayName, role: created.role, createdAt: created.createdAt });
+      res.status(201).json({ id: created.id, email: created.email, displayName: created.displayName, role: created.role, color: created.color, createdAt: created.createdAt });
     } catch (error: any) {
       log(`Error al crear usuario: ${error.message}`, "auth");
       res.status(500).json({ message: "Error al crear usuario" });
@@ -991,6 +993,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Sesion no encontrada" });
       }
 
+      const dbAdmin = await storage.getAdminUserById(adminUser.id);
       const message = await storage.createMessage({
         sessionId: req.params.sessionId,
         userEmail: session.userEmail,
@@ -998,6 +1001,8 @@ export async function registerRoutes(
         sender: "support",
         content: (content || "").trim() || (imageUrl ? "Imagen enviada" : ""),
         imageUrl: imageUrl || null,
+        adminName: adminUser.displayName,
+        adminColor: dbAdmin?.color || "#6200EA",
       });
 
       await storage.touchSession(req.params.sessionId);

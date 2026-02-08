@@ -842,50 +842,67 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             const hasImage = !!(msg as any).imageUrl;
             const imageUrl = (msg as any).imageUrl;
             const isImageOnly = hasImage && (!msg.content || msg.content === "Imagen enviada");
+            const msgAdminName = (msg as any).adminName;
+            const msgAdminColor = (msg as any).adminColor || "#6200EA";
             return (
               <div
                 key={msg.id}
                 data-testid={`admin-message-${msg.id}`}
-                className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}
               >
-                {!isUser && (
-                  <div className="w-6 h-6 rounded-full bg-[#6200EA]/20 border border-[#6200EA]/30 flex items-center justify-center flex-shrink-0">
-                    <Headphones className="w-3 h-3 text-[#6200EA]" />
+                {!isUser && msgAdminName && (
+                  <div className="flex items-center gap-1 ml-8 mb-0.5">
+                    <span className="text-[10px] font-semibold" style={{ color: msgAdminColor }}>
+                      {msgAdminName}
+                    </span>
                   </div>
                 )}
-                {isUser && (
-                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                    <User className="w-3 h-3 text-white/50" />
+                <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+                  {!isUser && (
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border"
+                      style={{
+                        backgroundColor: `${msgAdminName ? msgAdminColor : '#6200EA'}20`,
+                        borderColor: `${msgAdminName ? msgAdminColor : '#6200EA'}30`,
+                      }}
+                    >
+                      <Headphones className="w-3 h-3" style={{ color: msgAdminName ? msgAdminColor : '#6200EA' }} />
+                    </div>
+                  )}
+                  {isUser && (
+                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <User className="w-3 h-3 text-white/50" />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-0.5 max-w-[75%]">
+                    <div
+                      className={`rounded-md overflow-hidden ${
+                        isUser
+                          ? "bg-[#6200EA] text-white rounded-br-none"
+                          : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
+                      }`}
+                      style={!isUser && msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined}
+                    >
+                      {hasImage && (
+                        <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                          <img
+                            src={imageUrl}
+                            alt="Imagen compartida"
+                            data-testid={`admin-message-image-${msg.id}`}
+                            className="max-w-full max-h-48 object-contain cursor-pointer rounded-md"
+                            loading="lazy"
+                          />
+                        </a>
+                      )}
+                      {!isImageOnly && (
+                        <div className="px-3 py-2 text-sm leading-relaxed break-words">
+                          {activeSearch ? highlightText(msg.content, activeSearch) : msg.content}
+                        </div>
+                      )}
+                    </div>
+                    <span className={`text-[10px] text-white/25 ${isUser ? "text-right" : "text-left"}`}>
+                      {formatDateTime(msg.timestamp)}
+                    </span>
                   </div>
-                )}
-                <div className="flex flex-col gap-0.5 max-w-[75%]">
-                  <div
-                    className={`rounded-md overflow-hidden ${
-                      isUser
-                        ? "bg-[#6200EA] text-white rounded-br-none"
-                        : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
-                    }`}
-                  >
-                    {hasImage && (
-                      <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
-                        <img
-                          src={imageUrl}
-                          alt="Imagen compartida"
-                          data-testid={`admin-message-image-${msg.id}`}
-                          className="max-w-full max-h-48 object-contain cursor-pointer rounded-md"
-                          loading="lazy"
-                        />
-                      </a>
-                    )}
-                    {!isImageOnly && (
-                      <div className="px-3 py-2 text-sm leading-relaxed break-words">
-                        {activeSearch ? highlightText(msg.content, activeSearch) : msg.content}
-                      </div>
-                    )}
-                  </div>
-                  <span className={`text-[10px] text-white/25 ${isUser ? "text-right" : "text-left"}`}>
-                    {formatDateTime(msg.timestamp)}
-                  </span>
                 </div>
               </div>
             );
@@ -1824,8 +1841,9 @@ function UsersPanel() {
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newName, setNewName] = useState("");
+  const [newColor, setNewColor] = useState("#6200EA");
 
-  const { data: users = [], isLoading } = useQuery<{ id: number; email: string; displayName: string; role: string; createdAt: string }[]>({
+  const { data: users = [], isLoading } = useQuery<{ id: number; email: string; displayName: string; role: string; color?: string; createdAt: string }[]>({
     queryKey: ["/api/admin/users"],
     queryFn: async () => {
       const res = await adminFetch("/api/admin/users");
@@ -1835,7 +1853,7 @@ function UsersPanel() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { email: string; password: string; displayName: string }) => {
+    mutationFn: async (data: { email: string; password: string; displayName: string; color: string }) => {
       const res = await adminFetch("/api/admin/users", {
         method: "POST",
         body: JSON.stringify(data),
@@ -1852,6 +1870,7 @@ function UsersPanel() {
       setNewEmail("");
       setNewPassword("");
       setNewName("");
+      setNewColor("#6200EA");
     },
   });
 
@@ -1921,6 +1940,21 @@ function UsersPanel() {
                 placeholder="Contraseña (min. 6 caracteres)"
                 className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
               />
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-white/60 whitespace-nowrap">Color del agente:</label>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {["#6200EA", "#00BCD4", "#4CAF50", "#FF9800", "#E91E63", "#2196F3", "#FF5722", "#9C27B0"].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      data-testid={`color-option-${c.slice(1)}`}
+                      onClick={() => setNewColor(c)}
+                      className={`w-7 h-7 rounded-full border-2 ${newColor === c ? "border-white" : "border-transparent opacity-50"}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
               {createMutation.isError && (
                 <p className="text-xs text-red-400">{(createMutation.error as Error).message}</p>
               )}
@@ -1929,7 +1963,7 @@ function UsersPanel() {
                   data-testid="button-cancel-user"
                   variant="ghost"
                   size="sm"
-                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); }}
+                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); setNewColor("#6200EA"); }}
                   className="text-white/40 text-xs"
                 >
                   Cancelar
@@ -1937,7 +1971,7 @@ function UsersPanel() {
                 <Button
                   data-testid="button-save-user"
                   size="sm"
-                  onClick={() => createMutation.mutate({ email: newEmail.trim(), password: newPassword, displayName: newName.trim() })}
+                  onClick={() => createMutation.mutate({ email: newEmail.trim(), password: newPassword, displayName: newName.trim(), color: newColor })}
                   disabled={!newEmail.trim() || !newPassword.trim() || newPassword.length < 6 || !newName.trim() || createMutation.isPending}
                   className="bg-[#6200EA] text-white text-xs"
                 >
@@ -1956,6 +1990,7 @@ function UsersPanel() {
           >
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: u.color || "#6200EA" }} />
                 <span className="text-sm font-medium text-white">{u.displayName}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                   u.role === "superadmin" ? "bg-[#6200EA]/15 text-[#6200EA]" : "bg-white/[0.06] text-white/50"

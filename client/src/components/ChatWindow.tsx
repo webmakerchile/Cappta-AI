@@ -258,76 +258,92 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
 
   const showButtons = !isUser && isLastSupport && buttons.length > 0;
 
+  const msgAdminName = (message as any).adminName;
+  const msgAdminColor = (message as any).adminColor || "#6200EA";
+
   return (
-    <div
-      data-testid={`message-bubble-${message.id}`}
-      className={`flex items-end gap-2 animate-fade-in ${isUser ? "flex-row-reverse" : "flex-row"}`}
-    >
-      {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-[#6200EA]/20 border border-[#6200EA]/30 flex items-center justify-center flex-shrink-0">
-          <Headphones className="w-3.5 h-3.5 text-[#6200EA]" />
+    <div data-testid={`message-bubble-${message.id}`} className="animate-fade-in">
+      {!isUser && msgAdminName && (
+        <div className="flex items-center gap-1 ml-9 mb-0.5">
+          <span className="text-[10px] font-semibold" style={{ color: msgAdminColor }}>
+            {msgAdminName}
+          </span>
         </div>
       )}
-      <div className="flex flex-col gap-1.5 max-w-[80%]">
-        <div
-          className={`
-            rounded-md overflow-hidden
-            ${isUser
-              ? "bg-[#6200EA] text-white rounded-br-none"
-              : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
-            }
-          `}
-        >
-          {hasImage && (
-            <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
-              <img
-                src={imageUrl}
-                alt="Imagen compartida"
-                data-testid={`message-image-${message.id}`}
-                className="max-w-full max-h-52 object-contain cursor-pointer rounded-md"
-                loading="lazy"
-              />
-            </a>
-          )}
-          {!isImageOnly && (
-            <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words">
-              {searchQuery ? highlightText(displayText, searchQuery) : displayText}
-            </div>
-          )}
-        </div>
-        {showButtons && (
-          <div data-testid="quick-reply-buttons" className="flex flex-wrap gap-1.5 pl-0.5">
-            {buttons.map((btn, i) => (
-              btn.url ? (
-                <a
-                  key={i}
-                  href={btn.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid={`quick-reply-link-${i}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF] bg-[#6200EA] text-white shadow-[0_0_8px_rgba(98,0,234,0.4)] transition-opacity hover:opacity-90 cursor-pointer"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  {btn.label}
-                </a>
-              ) : (
-                <button
-                  key={i}
-                  data-testid={`quick-reply-btn-${i}`}
-                  onClick={() => onQuickReply(btn)}
-                  className="px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF]/60 bg-[#6200EA]/20 text-[#E0B0FF] transition-opacity hover:opacity-80 cursor-pointer"
-                >
-                  {btn.label}
-                </button>
-              )
-            ))}
+      <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+        {!isUser && (
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border"
+            style={{
+              backgroundColor: `${msgAdminName ? msgAdminColor : '#6200EA'}20`,
+              borderColor: `${msgAdminName ? msgAdminColor : '#6200EA'}30`,
+            }}
+          >
+            <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminName ? msgAdminColor : '#6200EA' }} />
           </div>
         )}
-        <span
-          className={`text-[10px] text-white/30 ${isUser ? "text-right" : "text-left"}`}
-        >
-          {formatTime(message.timestamp)}
-        </span>
+        <div className="flex flex-col gap-1.5 max-w-[80%]">
+          <div
+            className={`
+              rounded-md overflow-hidden
+              ${isUser
+                ? "bg-[#6200EA] text-white rounded-br-none"
+                : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
+              }
+            `}
+            style={!isUser && msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined}
+          >
+            {hasImage && (
+              <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                <img
+                  src={imageUrl}
+                  alt="Imagen compartida"
+                  data-testid={`message-image-${message.id}`}
+                  className="max-w-full max-h-52 object-contain cursor-pointer rounded-md"
+                  loading="lazy"
+                />
+              </a>
+            )}
+            {!isImageOnly && (
+              <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words">
+                {searchQuery ? highlightText(displayText, searchQuery) : displayText}
+              </div>
+            )}
+          </div>
+          {showButtons && (
+            <div data-testid="quick-reply-buttons" className="flex flex-wrap gap-1.5 pl-0.5">
+              {buttons.map((btn, i) => (
+                btn.url ? (
+                  <a
+                    key={i}
+                    href={btn.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`quick-reply-link-${i}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF] bg-[#6200EA] text-white shadow-[0_0_8px_rgba(98,0,234,0.4)] transition-opacity hover:opacity-90 cursor-pointer"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    {btn.label}
+                  </a>
+                ) : (
+                  <button
+                    key={i}
+                    data-testid={`quick-reply-btn-${i}`}
+                    onClick={() => onQuickReply(btn)}
+                    className="px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF]/60 bg-[#6200EA]/20 text-[#E0B0FF] transition-opacity hover:opacity-80 cursor-pointer"
+                  >
+                    {btn.label}
+                  </button>
+                )
+              ))}
+            </div>
+          )}
+          <span
+            className={`text-[10px] text-white/30 ${isUser ? "text-right" : "text-left"}`}
+          >
+            {formatTime(message.timestamp)}
+          </span>
+        </div>
       </div>
     </div>
   );

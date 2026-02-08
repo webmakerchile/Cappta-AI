@@ -11,6 +11,8 @@ export const messages = pgTable("messages", {
   sender: text("sender", { enum: ["user", "support"] }).notNull(),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
+  adminName: text("admin_name"),
+  adminColor: text("admin_color"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 }, (table) => [
   index("idx_messages_session_id").on(table.sessionId),
@@ -83,6 +85,7 @@ export const adminUsers = pgTable("admin_users", {
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name").notNull(),
   role: text("role", { enum: ["superadmin", "admin"] }).notNull().default("admin"),
+  color: text("color").notNull().default("#6200EA"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
