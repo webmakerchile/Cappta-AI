@@ -160,8 +160,8 @@ function formatDateTime(date: string | Date | null) {
 function parseAdminQuickReplies(content: string): string {
   const marker = "{{QUICK_REPLIES:";
   const idx = content.indexOf(marker);
-  if (idx === -1) return content;
-  return content.substring(0, idx).trim();
+  if (idx !== -1) return content.substring(0, idx).trim();
+  return content.replace(/\[BTN:[^|]+\|URL:[^\]]+\]/g, "").trim();
 }
 
 function highlightText(text: string, query: string) {
@@ -867,7 +867,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   });
 
   const handleProductSend = (product: BrowseProduct) => {
-    const content = `Te recomiendo este producto: ${product.name}. Precio: ${product.price || "Consultar"}. Entrega digital inmediata a tu correo.${product.productUrl ? ` [BTN:Ir a comprar|URL:${product.productUrl}]` : ""}`;
+    const btnJson = product.productUrl ? JSON.stringify([{ label: "Ir a comprar", url: product.productUrl }]) : "";
+    const content = `Te recomiendo este producto: ${product.name}. Precio: ${product.price || "Consultar"}. Entrega digital inmediata a tu correo.${btnJson ? `{{QUICK_REPLIES:${btnJson}}}` : ""}`;
     replyMutation.mutate({ content }, {
       onSuccess: () => {
         setShowProductSearch(false);

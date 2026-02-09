@@ -75,17 +75,29 @@ function highlightText(text: string, query: string) {
 function parseQuickReplies(content: string): { text: string; buttons: QuickReplyButton[] } {
   const marker = "{{QUICK_REPLIES:";
   const idx = content.indexOf(marker);
-  if (idx === -1) return { text: content, buttons: [] };
+  if (idx !== -1) {
+    const text = content.substring(0, idx).trim();
+    const jsonStart = idx + marker.length;
+    const jsonEnd = content.indexOf("}}", jsonStart);
+    if (jsonEnd !== -1) {
+      try {
+        const buttons = JSON.parse(content.substring(jsonStart, jsonEnd));
+        if (Array.isArray(buttons)) return { text, buttons };
+      } catch {}
+    }
+  }
 
-  const text = content.substring(0, idx).trim();
-  const jsonStart = idx + marker.length;
-  const jsonEnd = content.indexOf("}}", jsonStart);
-  if (jsonEnd === -1) return { text: content, buttons: [] };
+  const btnRegex = /\[BTN:([^|]+)\|URL:([^\]]+)\]/g;
+  let match;
+  const buttons: QuickReplyButton[] = [];
+  while ((match = btnRegex.exec(content)) !== null) {
+    buttons.push({ label: match[1], url: match[2] });
+  }
+  if (buttons.length > 0) {
+    const text = content.replace(btnRegex, "").trim();
+    return { text, buttons };
+  }
 
-  try {
-    const buttons = JSON.parse(content.substring(jsonStart, jsonEnd));
-    if (Array.isArray(buttons)) return { text, buttons };
-  } catch {}
   return { text: content, buttons: [] };
 }
 
