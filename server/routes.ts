@@ -389,6 +389,7 @@ export async function registerRoutes(
       });
 
       io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);
+      io.to("admin_room").emit("admin_new_message", { sessionId: parsed.data.sessionId, message: confirmMsg });
       log(`Solicitud de contacto de ${parsed.data.userName} (${parsed.data.userEmail}) - Email: ${emailSent ? "enviado" : "no enviado"}`, "contact");
       res.json({ confirmed: true });
     } catch (error: any) {
@@ -960,6 +961,7 @@ export async function registerRoutes(
       });
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "admin_active", session: updated });
 
       res.json(updated);
@@ -1084,6 +1086,7 @@ export async function registerRoutes(
 
       await storage.touchSession(req.params.sessionId);
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
 
       res.json(message);
     } catch (error: any) {
@@ -1110,6 +1113,7 @@ export async function registerRoutes(
 
       await storage.touchSession(req.params.sessionId);
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
 
       res.json(message);
     } catch (error: any) {
@@ -1119,7 +1123,22 @@ export async function registerRoutes(
   });
 
   io.on("connection", (socket) => {
-    const { email, name, sessionId } = socket.handshake.auth as { email: string; name: string; sessionId: string };
+    const { email, name, sessionId, role } = socket.handshake.auth as { email: string; name: string; sessionId: string; role?: string };
+
+    if (role === "admin") {
+      log(`Admin socket conectado: ${socket.id}`, "socket.io");
+      socket.on("join_admin_room", (data: { token: string }) => {
+        const adminUser = verifyToken(data.token);
+        if (adminUser) {
+          socket.join("admin_room");
+          log(`Admin ${adminUser.displayName} unido a admin_room`, "socket.io");
+        }
+      });
+      socket.on("disconnect", () => {
+        log(`Admin socket desconectado: ${socket.id}`, "socket.io");
+      });
+      return;
+    }
 
     if (!email || !name || !sessionId) {
       socket.disconnect(true);
@@ -1139,13 +1158,6 @@ export async function registerRoutes(
     }).catch((err) => {
       log(`Error al cargar historial: ${err.message}`, "socket.io");
       socket.emit("chat_history", []);
-    });
-
-    socket.on("join_admin_room", (data: { token: string }) => {
-      const adminUser = verifyToken(data.token);
-      if (adminUser) {
-        socket.join("admin_room");
-      }
     });
 
     socket.on("page_info", (data: { url?: string; title?: string }) => {
@@ -1337,6 +1349,7 @@ export async function registerRoutes(
         });
 
         io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);
+        io.to("admin_room").emit("admin_new_message", { sessionId: parsed.data.sessionId, message: confirmMsg });
         log(`Solicitud de contacto de ${parsed.data.userName} (${parsed.data.userEmail}) - Email: ${emailSent ? "enviado" : "no enviado"}`, "contact");
       } catch (error: any) {
         log(`Error en solicitud de contacto: ${error.message}`, "socket.io");

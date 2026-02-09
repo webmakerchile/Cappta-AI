@@ -2466,11 +2466,13 @@ export default function AdminPage() {
     if (!token) return;
 
     const adminSocket = io(window.location.origin, {
+      auth: { role: "admin" },
       transports: ["websocket", "polling"],
       withCredentials: false,
       reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     adminSocket.on("connect", () => {
