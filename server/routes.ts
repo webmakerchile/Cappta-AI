@@ -202,6 +202,23 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/session/resolve/:email", async (req, res) => {
+    try {
+      const email = req.params.email;
+      if (!email || !email.includes("@")) {
+        return res.status(400).json({ message: "Email invalido" });
+      }
+      const session = await storage.findActiveSessionByEmail(email.toLowerCase());
+      if (session) {
+        res.json({ sessionId: session.sessionId });
+      } else {
+        res.json({ sessionId: null });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Error al resolver sesion" });
+    }
+  });
+
   app.post("/api/messages", async (req, res) => {
     try {
       const hasImage = !!req.body.imageUrl;

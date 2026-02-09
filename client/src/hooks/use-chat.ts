@@ -127,17 +127,33 @@ export function useChat() {
     });
 
     if (isValidParam(email) && isValidParam(name)) {
-      const sessionId = generateSessionId();
-      const userData: ChatUser = { email: email!, name: name!, sessionId };
-      setUser(userData);
-      saveStoredUser(email!, name!, sessionId);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      fetch(`/api/session/resolve/${encodeURIComponent(email!.toLowerCase())}`, { signal: controller.signal })
+        .then(r => r.json())
+        .then(data => {
+          const sessionId = data.sessionId || generateSessionId();
+          const userData: ChatUser = { email: email!, name: name!, sessionId };
+          setUser(userData);
+          saveStoredUser(email!, name!, sessionId);
+        })
+        .catch(() => {
+          const sessionId = generateSessionId();
+          const userData: ChatUser = { email: email!, name: name!, sessionId };
+          setUser(userData);
+          saveStoredUser(email!, name!, sessionId);
+        })
+        .finally(() => {
+          clearTimeout(timeout);
+          setIsLoading(false);
+        });
     } else {
       const stored = loadStoredUser();
       if (stored) {
         setUser({ email: stored.email, name: stored.name, sessionId: stored.activeSessionId });
       }
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -344,8 +360,15 @@ export function useChat() {
     }
   }, [user, contactRequested, pageInfo]);
 
-  const login = useCallback((email: string, name: string, problemType?: string, gameName?: string) => {
-    const sessionId = generateSessionId();
+  const login = useCallback(async (email: string, name: string, problemType?: string, gameName?: string) => {
+    let sessionId: string;
+    try {
+      const res = await fetch(`/api/session/resolve/${encodeURIComponent(email.toLowerCase())}`);
+      const data = await res.json();
+      sessionId = data.sessionId || generateSessionId();
+    } catch {
+      sessionId = generateSessionId();
+    }
     const userData: ChatUser = { email, name, sessionId, problemType, gameName };
     saveStoredUser(email, name, sessionId);
     setUser(userData);
@@ -392,10 +415,8 @@ export function useChat() {
 
   const startNewSession = useCallback((problemType: string, gameName: string) => {
     if (!user) return;
-    const newSessionId = generateSessionId();
-    const updatedUser: ChatUser = { ...user, sessionId: newSessionId, problemType, gameName };
+    const updatedUser: ChatUser = { ...user, problemType, gameName };
     setUser(updatedUser);
-    saveStoredUser(user.email, user.name, newSessionId);
 
     const problemLabels: Record<string, string> = {
       compra: "Quiero comprar un producto",
@@ -416,7 +437,7 @@ export function useChat() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content: introMessage,
-            sessionId: newSessionId,
+            sessionId: user.sessionId,
             userEmail: user.email,
             userName: user.name,
             sender: "user",

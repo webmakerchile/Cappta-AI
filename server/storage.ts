@@ -51,6 +51,7 @@ export interface IStorage {
   getCustomTags(): Promise<string[]>;
   addCustomTag(name: string): Promise<void>;
   deleteCustomTag(name: string): Promise<void>;
+  findActiveSessionByEmail(email: string): Promise<Session | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -60,6 +61,17 @@ export class DatabaseStorage implements IStorage {
       .from(messages)
       .where(eq(messages.sessionId, sessionId))
       .orderBy(asc(messages.timestamp));
+  }
+
+  async findActiveSessionByEmail(email: string): Promise<Session | null> {
+    const results = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userEmail, email))
+      .orderBy(desc(sessions.lastMessageAt))
+      .limit(5);
+    const active = results.find(s => s.status === "active");
+    return active || results[0] || null;
   }
 
   async getMessagesByEmail(email: string): Promise<Message[]> {
