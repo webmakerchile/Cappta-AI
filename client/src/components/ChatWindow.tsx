@@ -693,8 +693,21 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const latestSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
   const isSessionClosed = latestSession?.status === "closed";
 
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handleResize = () => {
+      setViewportHeight(vv.height);
+    };
+    vv.addEventListener("resize", handleResize);
+    handleResize();
+    return () => vv.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={viewportHeight ? { height: `${viewportHeight}px` } : { height: '100%' }}>
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: "#6200EA" }}>
         <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
           <Headphones className="w-4 h-4 text-white" />
