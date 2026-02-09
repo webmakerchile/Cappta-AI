@@ -37,6 +37,7 @@ interface SessionSummary {
   contactRequested?: boolean;
   assignedTo: number | null;
   assignedToName: string | null;
+  assignedToColor: string | null;
 }
 
 interface BrowseProduct {
@@ -251,15 +252,33 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
 }
 
 function SessionCard({ session, onClick, isSelected, rating }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData }) {
+  const agentColor = session.assignedToColor;
+  const hasAgent = !!agentColor;
+  const cardStyle: React.CSSProperties = hasAgent && !isSelected
+    ? { backgroundColor: `${agentColor}20`, borderColor: `${agentColor}50` }
+    : {};
   return (
     <button
       data-testid={`session-card-${session.sessionId}`}
       onClick={onClick}
-      className={`w-full text-left p-3 rounded-md border transition-colors ${
+      className={`w-full text-left p-3 rounded-md border transition-all ${
         isSelected
           ? "bg-[#6200EA]/15 border-[#6200EA]/40"
-          : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
+          : hasAgent
+            ? ""
+            : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
       }`}
+      style={cardStyle}
+      onMouseEnter={(e) => {
+        if (hasAgent && !isSelected) {
+          e.currentTarget.style.backgroundColor = `${agentColor}30`;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (hasAgent && !isSelected) {
+          e.currentTarget.style.backgroundColor = `${agentColor}20`;
+        }
+      }}
     >
       <div className="flex items-center gap-2 mb-1.5">
         <div className="relative w-7 h-7 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
@@ -340,9 +359,9 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
           <span 
             className="text-[9px] px-1.5 py-0.5 rounded font-semibold truncate max-w-[100px]"
             style={{ 
-              backgroundColor: `${(session as any).assignedToColor || '#6200EA'}25`,
-              color: (session as any).assignedToColor || '#6200EA',
-              border: `1px solid ${(session as any).assignedToColor || '#6200EA'}40`,
+              backgroundColor: `${session.assignedToColor || '#6200EA'}25`,
+              color: session.assignedToColor || '#6200EA',
+              border: `1px solid ${session.assignedToColor || '#6200EA'}40`,
             }}
           >
             {session.assignedToName}
@@ -531,7 +550,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
   );
 }
 
-function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId: string; searchQuery: string; sessions: SessionSummary[]; adminUser: { id: number; email: string; displayName: string; role: string } | null }) {
+function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId: string; searchQuery: string; sessions: SessionSummary[]; adminUser: { id: number; email: string; displayName: string; role: string; color?: string } | null }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [showLocalSearch, setShowLocalSearch] = useState(false);
@@ -677,7 +696,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         content: data.content || (data.imageUrl ? "Imagen enviada" : ""),
         imageUrl: data.imageUrl || null,
         adminName: adminUser?.displayName || null,
-        adminColor: "#6200EA",
+        adminColor: adminUser?.color || "#6200EA",
         timestamp: new Date(),
       };
       queryClient.setQueryData<Message[]>(
@@ -752,9 +771,9 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         queryClient.setQueryData(key, old.map(s => {
           if (s.sessionId !== sessionId) return s;
           if (action === "claim") {
-            return { ...s, assignedTo: adminUser?.id ?? null, assignedToName: adminUser?.displayName ?? null };
+            return { ...s, assignedTo: adminUser?.id ?? null, assignedToName: adminUser?.displayName ?? null, assignedToColor: adminUser?.color ?? '#6200EA' };
           }
-          return { ...s, assignedTo: null, assignedToName: null };
+          return { ...s, assignedTo: null, assignedToName: null, assignedToColor: null };
         }));
       });
       return { queries };
@@ -2506,7 +2525,7 @@ function PasswordChangeModal({ onClose }: { onClose: () => void }) {
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
-  const [adminUser, setAdminUser] = useState<{ id: number; email: string; role: string; displayName: string } | null>(null);
+  const [adminUser, setAdminUser] = useState<{ id: number; email: string; role: string; displayName: string; color?: string } | null>(null);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -2730,6 +2749,7 @@ export default function AdminPage() {
         contactRequested: false,
         assignedTo: null,
         assignedToName: null,
+        assignedToColor: null,
       }))
     : sessions;
 

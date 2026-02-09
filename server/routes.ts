@@ -435,7 +435,7 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Credenciales incorrectas" });
       }
       const token = generateToken({ id: user.id, email: user.email, role: user.role, displayName: user.displayName });
-      res.json({ token, user: { id: user.id, email: user.email, role: user.role, displayName: user.displayName } });
+      res.json({ token, user: { id: user.id, email: user.email, role: user.role, displayName: user.displayName, color: user.color } });
     } catch (error: any) {
       log(`Error en login: ${error.message}`, "auth");
       res.status(500).json({ message: "Error en autenticacion" });
