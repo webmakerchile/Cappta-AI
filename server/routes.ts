@@ -130,6 +130,18 @@ export async function registerRoutes(
     } catch {}
   }
 
+  function isLockedToOtherAgent(session: any, adminUser: { id: number }): boolean {
+    return !!(session.assignedTo && session.assignedTo !== adminUser.id);
+  }
+
+  function lockedResponse(session: any) {
+    return {
+      message: `Este chat esta asignado a ${session.assignedToName || "otro agente"}. No puedes realizar acciones mientras este asignado a otro agente.`,
+      locked: true,
+      assignedToName: session.assignedToName,
+    };
+  }
+
   (async () => {
     try {
       const existing = await storage.getAdminUserByEmail("webmakerchile@gmail.com");
@@ -618,6 +630,10 @@ export async function registerRoutes(
       if (status !== "active" && status !== "closed") {
         return res.status(400).json({ message: "Estado invalido" });
       }
+      const sessionCheck = await storage.getSession(req.params.sessionId);
+      if (sessionCheck && isLockedToOtherAgent(sessionCheck, adminUser)) {
+        return res.status(403).json(lockedResponse(sessionCheck));
+      }
       const updated = await storage.updateSessionStatus(req.params.sessionId, status);
       if (!updated) {
         return res.status(404).json({ message: "Sesion no encontrada" });
@@ -637,6 +653,10 @@ export async function registerRoutes(
       const { tags } = req.body;
       if (!Array.isArray(tags)) {
         return res.status(400).json({ message: "Tags debe ser un array" });
+      }
+      const sessionCheck = await storage.getSession(req.params.sessionId);
+      if (sessionCheck && isLockedToOtherAgent(sessionCheck, adminUser)) {
+        return res.status(403).json(lockedResponse(sessionCheck));
       }
       const updated = await storage.updateSessionTags(req.params.sessionId, tags);
       if (!updated) {
@@ -942,6 +962,10 @@ export async function registerRoutes(
       if (typeof adminActive !== "boolean") {
         return res.status(400).json({ message: "adminActive debe ser boolean" });
       }
+      const sessionCheck = await storage.getSession(req.params.sessionId);
+      if (sessionCheck && isLockedToOtherAgent(sessionCheck, adminUser)) {
+        return res.status(403).json(lockedResponse(sessionCheck));
+      }
       const updated = await storage.updateSessionAdminActive(req.params.sessionId, adminActive);
       if (!updated) {
         return res.status(404).json({ message: "Sesion no encontrada" });
@@ -1004,6 +1028,10 @@ export async function registerRoutes(
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;
     try {
+      const sessionCheck = await storage.getSession(req.params.sessionId);
+      if (sessionCheck && sessionCheck.assignedTo && sessionCheck.assignedTo !== adminUser.id && adminUser.role !== "superadmin") {
+        return res.status(403).json(lockedResponse(sessionCheck));
+      }
       const updated = await storage.unclaimSession(req.params.sessionId);
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "unclaim", session: updated });
       res.json(updated);
@@ -1025,6 +1053,10 @@ export async function registerRoutes(
       const session = await storage.getSession(req.params.sessionId);
       if (!session) {
         return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      if (isLockedToOtherAgent(session, adminUser)) {
+        return res.status(403).json(lockedResponse(session));
       }
 
       const dbAdmin = await storage.getAdminUserById(adminUser.id);
@@ -1068,6 +1100,10 @@ export async function registerRoutes(
       const session = await storage.getSession(req.params.sessionId);
       if (!session) {
         return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      if (isLockedToOtherAgent(session, adminUser)) {
+        return res.status(403).json(lockedResponse(session));
       }
 
       const existingRating = await storage.getRatingBySessionId(req.params.sessionId);

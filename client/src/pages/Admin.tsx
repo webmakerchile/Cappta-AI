@@ -524,6 +524,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
   const isAdminActive = currentSession?.adminActive ?? false;
+  const isLockedByOther = !!(currentSession?.assignedTo && currentSession.assignedTo !== adminUser?.id);
 
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/admin/sessions", sessionId, "messages"],
@@ -555,7 +556,13 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (!res.ok) throw new Error("Error al actualizar estado");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.locked) {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+        }
+        throw new Error(data.message || "Error al actualizar estado");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -570,7 +577,13 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify({ adminActive }),
       });
-      if (!res.ok) throw new Error("Error al cambiar modo admin");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.locked) {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+        }
+        throw new Error(data.message || "Error al cambiar modo admin");
+      }
       return res.json();
     },
     onMutate: async (adminActive) => {
@@ -602,7 +615,13 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Error al enviar respuesta");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (errData.locked) {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+        }
+        throw new Error(errData.message || "Error al enviar respuesta");
+      }
       return res.json();
     },
     onMutate: async (data) => {
@@ -653,7 +672,13 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         method: "POST",
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error("Error al enviar encuesta");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.locked) {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+        }
+        throw new Error(data.message || "Error al enviar encuesta");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -670,7 +695,13 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         method: "PATCH",
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.locked) {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+        }
+        throw new Error(data.message || "Error");
+      }
       return { action, data: await res.json() };
     },
     onMutate: async (action) => {
@@ -863,7 +894,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               variant="ghost"
               size="sm"
               onClick={() => adminActiveMutation.mutate(!isAdminActive)}
-              disabled={adminActiveMutation.isPending}
+              disabled={isLockedByOther || adminActiveMutation.isPending}
               className={`text-[10px] sm:text-xs px-1.5 sm:px-2 ${
                 isAdminActive
                   ? "text-orange-400"
@@ -879,7 +910,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               variant="ghost"
               size="sm"
               onClick={() => statusMutation.mutate(sessionStatus === "active" ? "closed" : "active")}
-              disabled={statusMutation.isPending}
+              disabled={isLockedByOther || statusMutation.isPending}
               className={`text-[10px] sm:text-xs px-1.5 sm:px-2 ${
                 sessionStatus === "active"
                   ? "text-red-400"
@@ -893,7 +924,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               variant="ghost"
               size="sm"
               onClick={() => sendRatingMutation.mutate()}
-              disabled={!!sessionRating || sendRatingMutation.isPending}
+              disabled={isLockedByOther || !!sessionRating || sendRatingMutation.isPending}
               className="text-[10px] sm:text-xs text-yellow-400 px-1.5 sm:px-2"
             >
               <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 flex-shrink-0" />
@@ -918,7 +949,14 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
           </div>
         )}
 
-        <div className="mt-2 pl-12">
+        {isLockedByOther && (
+          <div className="mt-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-md flex items-center gap-2">
+            <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+            <span className="text-[11px] text-red-300">Chat asignado a {currentSession?.assignedToName}. No puedes realizar acciones en este chat.</span>
+          </div>
+        )}
+
+        <div className={`mt-2 pl-12 ${isLockedByOther ? "pointer-events-none opacity-50" : ""}`}>
           <TagsEditor sessionId={sessionId} tags={sessionTags} />
         </div>
         {sessionRating && (
@@ -1038,14 +1076,16 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         <div ref={messagesEndRef} />
       </div>
 
-      {isAdminActive ? (
-        currentSession?.assignedTo && currentSession.assignedTo !== adminUser?.id ? (
-        <div className="px-3 py-2 text-center">
-          <p className="text-xs text-white/40">
-            Chat asignado a {currentSession?.assignedToName}. Solo el agente asignado puede responder.
-          </p>
+      {isLockedByOther ? (
+        <div className="px-3 py-3 text-center border-t border-white/[0.06]">
+          <div className="flex items-center justify-center gap-2">
+            <Lock className="w-3.5 h-3.5 text-red-400" />
+            <p className="text-xs text-red-300/70">
+              Chat asignado a {currentSession?.assignedToName}. Solo el agente asignado puede responder.
+            </p>
+          </div>
         </div>
-        ) : (
+      ) : isAdminActive ? (
         <div className="sticky bottom-0 z-30 bg-[#111] relative">
           {showSlashMenu && (
             <div data-testid="slash-command-menu" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-48 overflow-y-auto z-20">
@@ -1177,7 +1217,6 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             </Button>
           </div>
         </div>
-        )
       ) : (
         <div className="sticky bottom-0 z-30 bg-[#111] px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
           {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
