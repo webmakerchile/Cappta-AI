@@ -391,10 +391,33 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
         body: JSON.stringify({ tags: newTags }),
       });
-      if (!res.ok) throw new Error("Error al actualizar tags");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.locked) {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+        }
+        throw new Error(data.message || "Error al actualizar tags");
+      }
       return res.json();
     },
-    onSuccess: () => {
+    onMutate: async (newTags) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/sessions"] });
+      const queries = queryClient.getQueriesData<any[]>({ queryKey: ["/api/admin/sessions"] })
+        .filter(([key]) => (key as string[]).length <= 2);
+      queries.forEach(([key, old]) => {
+        if (!old || !Array.isArray(old)) return;
+        queryClient.setQueryData(key, old.map((s: any) =>
+          s.sessionId === sessionId ? { ...s, tags: newTags } : s
+        ));
+      });
+      return { queries };
+    },
+    onError: (_err, _val, context) => {
+      context?.queries.forEach(([key, old]) => {
+        if (old) queryClient.setQueryData(key, old);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
     },
   });
@@ -565,7 +588,24 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       }
       return res.json();
     },
-    onSuccess: () => {
+    onMutate: async (newStatus) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/sessions"] });
+      const queries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
+        .filter(([key]) => (key as string[]).length <= 2);
+      queries.forEach(([key, old]) => {
+        if (!old || !Array.isArray(old)) return;
+        queryClient.setQueryData(key, old.map(s =>
+          s.sessionId === sessionId ? { ...s, status: newStatus } : s
+        ));
+      });
+      return { queries };
+    },
+    onError: (_err, _val, context) => {
+      context?.queries.forEach(([key, old]) => {
+        if (old) queryClient.setQueryData(key, old);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
     },
   });
@@ -2519,6 +2559,17 @@ export default function AdminPage() {
     });
 
     adminSocket.on("session_updated", (data: any) => {
+      if (data?.session && data?.sessionId) {
+        const updatedSession = data.session;
+        const allQueries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
+          .filter(([key]) => (key as string[]).length <= 2);
+        allQueries.forEach(([key, old]) => {
+          if (!old || !Array.isArray(old)) return;
+          queryClient.setQueryData(key, old.map((s: any) =>
+            s.sessionId === data.sessionId ? { ...s, ...updatedSession } : s
+          ));
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
       if (data?.sessionId) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
