@@ -581,6 +581,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     },
     enabled: !!sessionId,
     refetchInterval: isAdminActive ? 3000 : false,
+    staleTime: 2000,
   });
 
   const { data: sessionRating } = useQuery<RatingData>({
@@ -2646,7 +2647,7 @@ export default function AdminPage() {
     return () => clearTimeout(timer);
   }, [globalSearch]);
 
-  const { data: sessions = [], isLoading: sessionsLoading } = useQuery<SessionSummary[]>({
+  const { data: sessions = [], isLoading: sessionsLoading, isPlaceholderData } = useQuery<SessionSummary[]>({
     queryKey: ["/api/admin/sessions", statusFilter],
     queryFn: async () => {
       const res = await adminFetch(`/api/admin/sessions?status=${statusFilter}`);
@@ -2655,6 +2656,8 @@ export default function AdminPage() {
     },
     enabled: authenticated,
     refetchInterval: 10000,
+    staleTime: 5000,
+    placeholderData: (prev) => prev,
   });
 
   const { data: searchResults = [], isLoading: searchLoading } = useQuery<SearchResult[]>({

@@ -252,67 +252,70 @@ export async function syncWooCommerceProducts(): Promise<SyncResult> {
     result.total = allProducts.length;
     log(`WooCommerce: fetched ${allProducts.length} products`, "woocommerce");
 
-    for (const wcProduct of allProducts) {
-      try {
-        if (wcProduct.status !== "publish") {
-          result.skipped++;
-          continue;
-        }
+    const existingProducts = await db.select({ id: products.id, wcProductId: products.wcProductId, price: products.price, imageUrl: products.imageUrl, description: products.description }).from(products).where(sql`${products.wcProductId} IS NOT NULL`);
+    const existingMap = new Map(existingProducts.map(p => [p.wcProductId!, p]));
 
-        const platform = detectPlatform(wcProduct);
-        const category = detectCategory(wcProduct);
-        const availability = detectAvailability(wcProduct);
-        const searchAliases = generateSearchAliases(wcProduct);
-        const price = formatPrice(wcProduct);
-        const imageUrl = wcProduct.images.length > 0 ? wcProduct.images[0].src : null;
-        const description = stripHtml(wcProduct.short_description || wcProduct.description || "").slice(0, 500);
-        const cleanName = stripHtml(wcProduct.name);
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < allProducts.length; i += BATCH_SIZE) {
+      const batch = allProducts.slice(i, i + BATCH_SIZE);
+      await Promise.all(batch.map(async (wcProduct) => {
+        try {
+          if (wcProduct.status !== "publish") {
+            result.skipped++;
+            return;
+          }
 
-        const existing = await db
-          .select()
-          .from(products)
-          .where(eq(products.wcProductId, wcProduct.id))
-          .limit(1);
+          const platform = detectPlatform(wcProduct);
+          const category = detectCategory(wcProduct);
+          const availability = detectAvailability(wcProduct);
+          const searchAliases = generateSearchAliases(wcProduct);
+          const price = formatPrice(wcProduct);
+          const imageUrl = wcProduct.images.length > 0 ? wcProduct.images[0].src : null;
+          const description = stripHtml(wcProduct.short_description || wcProduct.description || "").slice(0, 500);
+          const cleanName = stripHtml(wcProduct.name);
 
-        if (existing.length > 0) {
-          await db
-            .update(products)
-            .set({
+          const existing = existingMap.get(wcProduct.id);
+
+          if (existing) {
+            await db
+              .update(products)
+              .set({
+                name: cleanName,
+                searchAliases,
+                platform: platform as any,
+                price: price || existing.price,
+                productUrl: wcProduct.permalink,
+                imageUrl: imageUrl || existing.imageUrl,
+                availability: availability as any,
+                description: description || existing.description,
+                category: category as any,
+                wcLastSync: new Date(),
+              })
+              .where(eq(products.wcProductId, wcProduct.id));
+            result.updated++;
+          } else {
+            await db.insert(products).values({
+              wcProductId: wcProduct.id,
               name: cleanName,
               searchAliases,
               platform: platform as any,
-              price: price || existing[0].price,
+              price,
               productUrl: wcProduct.permalink,
-              imageUrl: imageUrl || existing[0].imageUrl,
+              imageUrl,
               availability: availability as any,
-              description: description || existing[0].description,
+              description,
               category: category as any,
               wcLastSync: new Date(),
-            })
-            .where(eq(products.wcProductId, wcProduct.id));
-          result.updated++;
-          result.details.push(`Actualizado: ${cleanName}`);
-        } else {
-          await db.insert(products).values({
-            wcProductId: wcProduct.id,
-            name: cleanName,
-            searchAliases,
-            platform: platform as any,
-            price,
-            productUrl: wcProduct.permalink,
-            imageUrl,
-            availability: availability as any,
-            description,
-            category: category as any,
-            wcLastSync: new Date(),
-          });
-          result.created++;
-          result.details.push(`Creado: ${cleanName}`);
+            });
+            result.created++;
+          }
+        } catch (err: any) {
+          result.errors++;
+          log(`WC sync error for product ${wcProduct.id}: ${err.message}`, "woocommerce");
         }
-      } catch (err: any) {
-        result.errors++;
-        result.details.push(`Error en "${wcProduct.name}": ${err.message}`);
-        log(`WC sync error for product ${wcProduct.id}: ${err.message}`, "woocommerce");
+      }));
+      if (i + BATCH_SIZE < allProducts.length) {
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
     }
 

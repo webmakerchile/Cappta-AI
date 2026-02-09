@@ -618,7 +618,9 @@ export async function registerRoutes(
     if (!adminUser) return;
     try {
       const statusFilter = (req.query.status as string) || "all";
+      const start = Date.now();
       const sessions = await storage.getAllSessions(statusFilter as "active" | "closed" | "all");
+      log(`getAllSessions(${statusFilter}) took ${Date.now() - start}ms, returned ${sessions.length} sessions`, "perf");
       res.json(sessions);
     } catch (error: any) {
       log(`Error al obtener sesiones: ${error.message}`, "api");

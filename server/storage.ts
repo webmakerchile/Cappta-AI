@@ -201,103 +201,123 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null }[]> {
-    const allSessions = await db.select().from(sessions).orderBy(desc(sessions.lastMessageAt));
+    const statusCondition = statusFilter && statusFilter !== "all"
+      ? sql`WHERE s.status = ${statusFilter}`
+      : sql``;
 
-    const allContactRequests = await db.select({ userEmail: contactRequests.userEmail }).from(contactRequests);
-    const contactRequestEmails = new Set(allContactRequests.map(cr => cr.userEmail.toLowerCase()));
+    const sessionsWithStats = await db.execute(sql`
+      SELECT
+        s.session_id AS "sessionId",
+        s.user_name AS "userName",
+        s.user_email AS "userEmail",
+        s.status,
+        s.tags,
+        s.problem_type AS "problemType",
+        s.game_name AS "gameName",
+        s.admin_active AS "adminActive",
+        s.assigned_to AS "assignedTo",
+        s.assigned_to_name AS "assignedToName",
+        s.assigned_to_color AS "assignedToColor",
+        s.last_read_at AS "lastReadAt",
+        COALESCE(ms.msg_count, 0)::int AS "messageCount",
+        COALESCE(ms.unread_user, 0)::int AS "totalUserMessages",
+        ms.last_msg AS "lastMessage",
+        ms.first_msg AS "firstMessage",
+        COALESCE(ms.unread_after, 0)::int AS "unreadAfterRead",
+        CASE WHEN cr.user_email IS NOT NULL THEN true ELSE false END AS "contactRequested"
+      FROM sessions s
+      LEFT JOIN LATERAL (
+        SELECT
+          COUNT(*)::int AS msg_count,
+          MAX(m.timestamp) AS last_msg,
+          MIN(m.timestamp) AS first_msg,
+          COUNT(*) FILTER (WHERE m.sender = 'user')::int AS unread_user,
+          COUNT(*) FILTER (WHERE m.sender = 'user' AND m.timestamp > COALESCE(s.last_read_at, '1970-01-01'))::int AS unread_after
+        FROM messages m
+        WHERE m.session_id = s.session_id
+      ) ms ON true
+      LEFT JOIN (
+        SELECT DISTINCT LOWER(user_email) AS user_email FROM contact_requests
+      ) cr ON LOWER(s.user_email) = cr.user_email
+      ${statusCondition}
+      ORDER BY COALESCE(ms.last_msg, s.last_message_at) DESC
+    `);
 
-    const result = [];
-    for (const s of allSessions) {
-      if (statusFilter && statusFilter !== "all" && s.status !== statusFilter) continue;
-
-      const msgCount = await db
-        .select({ count: sql<number>`COUNT(*)::int` })
-        .from(messages)
-        .where(eq(messages.sessionId, s.sessionId));
-
-      const msgTimes = await db
-        .select({
-          lastMessage: sql<Date>`MAX(${messages.timestamp})`,
-          firstMessage: sql<Date>`MIN(${messages.timestamp})`,
-        })
-        .from(messages)
-        .where(eq(messages.sessionId, s.sessionId));
-
-      let unreadCount = 0;
-      if (s.lastReadAt) {
-        const unread = await db
-          .select({ count: sql<number>`COUNT(*)::int` })
-          .from(messages)
-          .where(sql`${messages.sessionId} = ${s.sessionId} AND ${messages.sender} = 'user' AND ${messages.timestamp} > ${s.lastReadAt}`);
-        unreadCount = unread[0]?.count || 0;
-      } else {
-        const unread = await db
-          .select({ count: sql<number>`COUNT(*)::int` })
-          .from(messages)
-          .where(sql`${messages.sessionId} = ${s.sessionId} AND ${messages.sender} = 'user'`);
-        unreadCount = unread[0]?.count || 0;
-      }
-
+    const result: any[] = [];
+    for (const row of sessionsWithStats.rows) {
+      const r = row as any;
+      const unreadCount = r.lastReadAt ? r.unreadAfterRead : r.totalUserMessages;
       result.push({
-        sessionId: s.sessionId,
-        userName: s.userName,
-        userEmail: s.userEmail,
-        messageCount: msgCount[0]?.count || 0,
+        sessionId: r.sessionId,
+        userName: r.userName,
+        userEmail: r.userEmail,
+        messageCount: r.messageCount,
         unreadCount,
-        lastMessage: msgTimes[0]?.lastMessage || null,
-        firstMessage: msgTimes[0]?.firstMessage || null,
-        status: s.status,
-        tags: s.tags || [],
-        problemType: s.problemType,
-        gameName: s.gameName,
-        adminActive: s.adminActive ?? false,
-        contactRequested: contactRequestEmails.has(s.userEmail.toLowerCase()),
-        assignedTo: s.assignedTo ?? null,
-        assignedToName: s.assignedToName ?? null,
-        assignedToColor: s.assignedToColor ?? null,
+        lastMessage: r.lastMessage || null,
+        firstMessage: r.firstMessage || null,
+        status: r.status,
+        tags: r.tags || [],
+        problemType: r.problemType,
+        gameName: r.gameName,
+        adminActive: r.adminActive ?? false,
+        contactRequested: r.contactRequested ?? false,
+        assignedTo: r.assignedTo ?? null,
+        assignedToName: r.assignedToName ?? null,
+        assignedToColor: r.assignedToColor ?? null,
       });
     }
 
-    const sessionIds = new Set(allSessions.map(s => s.sessionId));
-    const legacyResult = await db
-      .select({
-        sessionId: messages.sessionId,
-        userName: sql<string>`MAX(CASE WHEN ${messages.sender} = 'user' THEN ${messages.userName} END)`,
-        userEmail: sql<string>`MAX(CASE WHEN ${messages.sender} = 'user' THEN ${messages.userEmail} END)`,
-        messageCount: sql<number>`COUNT(*)::int`,
-        lastMessage: sql<Date>`MAX(${messages.timestamp})`,
-        firstMessage: sql<Date>`MIN(${messages.timestamp})`,
-      })
-      .from(messages)
-      .where(sql`${messages.sessionId} != 'legacy'`)
-      .groupBy(messages.sessionId)
-      .orderBy(sql`MAX(${messages.timestamp}) DESC`);
+    const sessionIds = new Set(result.map((s: any) => s.sessionId));
+    if (statusFilter !== "closed") {
+      const legacyResult = await db.execute(sql`
+        SELECT
+          m.session_id AS "sessionId",
+          MAX(CASE WHEN m.sender = 'user' THEN m.user_name END) AS "userName",
+          MAX(CASE WHEN m.sender = 'user' THEN m.user_email END) AS "userEmail",
+          COUNT(*)::int AS "messageCount",
+          MAX(m.timestamp) AS "lastMessage",
+          MIN(m.timestamp) AS "firstMessage"
+        FROM messages m
+        LEFT JOIN sessions s ON m.session_id = s.session_id
+        WHERE s.session_id IS NULL AND m.session_id != 'legacy'
+        GROUP BY m.session_id
+        ORDER BY MAX(m.timestamp) DESC
+      `);
 
-    for (const lr of legacyResult) {
-      if (!sessionIds.has(lr.sessionId)) {
-        if (statusFilter === "closed") continue;
-        const lrEmail = lr.userEmail ? lr.userEmail.toLowerCase() : "";
-        result.push({
-          ...lr,
-          unreadCount: lr.messageCount,
-          status: "active",
-          tags: [],
-          problemType: null,
-          gameName: null,
-          adminActive: false,
-          contactRequested: contactRequestEmails.has(lrEmail),
-          assignedTo: null,
-          assignedToName: null,
-          assignedToColor: null,
-        });
+      const contactEmails = new Set(
+        (await db.select({ email: sql<string>`LOWER(user_email)` }).from(contactRequests)).map(c => c.email)
+      );
+
+      for (const lr of legacyResult.rows) {
+        const r = lr as any;
+        if (!sessionIds.has(r.sessionId)) {
+          result.push({
+            sessionId: r.sessionId,
+            userName: r.userName,
+            userEmail: r.userEmail,
+            messageCount: r.messageCount,
+            unreadCount: r.messageCount,
+            lastMessage: r.lastMessage || null,
+            firstMessage: r.firstMessage || null,
+            status: "active",
+            tags: [],
+            problemType: null,
+            gameName: null,
+            adminActive: false,
+            contactRequested: contactEmails.has((r.userEmail || "").toLowerCase()),
+            assignedTo: null,
+            assignedToName: null,
+            assignedToColor: null,
+          });
+        }
       }
-    }
 
-    result.sort((a, b) => {
-      const aTime = a.lastMessage ? new Date(a.lastMessage).getTime() : 0;
-      const bTime = b.lastMessage ? new Date(b.lastMessage).getTime() : 0;
-      return bTime - aTime;
-    });
+      result.sort((a: any, b: any) => {
+        const aTime = a.lastMessage ? new Date(a.lastMessage).getTime() : 0;
+        const bTime = b.lastMessage ? new Date(b.lastMessage).getTime() : 0;
+        return bTime - aTime;
+      });
+    }
 
     return result;
   }
