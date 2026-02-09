@@ -641,6 +641,22 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/admin/sessions/all", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    if (adminUser.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo superadmin puede eliminar todos los chats" });
+    }
+    try {
+      const count = await storage.deleteAllSessions();
+      io.to("admin_room").emit("sessions_cleared");
+      res.json({ message: "Todos los chats eliminados", count });
+    } catch (error: any) {
+      log(`Error al eliminar todos los chats: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al eliminar chats" });
+    }
+  });
+
   app.patch("/api/admin/sessions/:sessionId/status", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;

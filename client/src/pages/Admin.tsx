@@ -2599,6 +2599,10 @@ export default function AdminPage() {
       }
     });
 
+    adminSocket.on("sessions_cleared", () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    });
+
     adminSocket.on("admin_new_message", (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
       if (data?.sessionId && data?.message) {
@@ -3002,6 +3006,30 @@ export default function AdminPage() {
                       {tab.label}
                     </button>
                   ))}
+                  {adminUser?.role === "superadmin" && (
+                    <button
+                      data-testid="button-delete-all-chats"
+                      onClick={async () => {
+                        if (!window.confirm("¿Estas seguro de eliminar TODOS los chats? Esta accion no se puede deshacer.")) return;
+                        try {
+                          const res = await adminFetch("/api/admin/sessions/all", { method: "DELETE" });
+                          if (res.ok) {
+                            queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+                            alert("Todos los chats eliminados");
+                          } else {
+                            const data = await res.json();
+                            alert(data.message || "Error al eliminar chats");
+                          }
+                        } catch {
+                          alert("Error de conexion");
+                        }
+                      }}
+                      className="ml-auto p-1 text-white/30 hover:text-red-400 transition-colors"
+                      title="Vaciar chats"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   {([

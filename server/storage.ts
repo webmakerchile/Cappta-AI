@@ -52,6 +52,7 @@ export interface IStorage {
   addCustomTag(name: string): Promise<void>;
   deleteCustomTag(name: string): Promise<void>;
   findActiveSessionByEmail(email: string): Promise<Session | null>;
+  deleteAllSessions(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -693,6 +694,16 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomTag(name: string): Promise<void> {
     await db.delete(customTags).where(eq(customTags.name, name));
+  }
+
+  async deleteAllSessions(): Promise<number> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(messages);
+      await tx.delete(contactRequests);
+      await tx.delete(ratings);
+      const deleted = await tx.delete(sessions).returning();
+      return deleted.length;
+    });
   }
 }
 
