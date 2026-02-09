@@ -1027,12 +1027,22 @@ export async function registerRoutes(
         });
       }
       const dbAdmin = await storage.getAdminUserById(adminUser.id);
-      const updated = await storage.claimSession(
+      const claimed = await storage.claimSession(
         req.params.sessionId,
         adminUser.id,
         adminUser.displayName,
         dbAdmin?.color || "#6200EA"
       );
+      let updated = claimed;
+      if (updated && updated.tags) {
+        const newTags = updated.tags.filter((t: string) => t !== "Bot");
+        if (!newTags.includes("Ejecutivo")) newTags.push("Ejecutivo");
+        if (newTags.length !== updated.tags.length || newTags.includes("Ejecutivo")) {
+          updated = await storage.updateSessionTags(req.params.sessionId, newTags) || updated;
+        }
+      } else if (updated) {
+        updated = await storage.updateSessionTags(req.params.sessionId, ["Ejecutivo"]) || updated;
+      }
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "claim", session: updated });
       res.json(updated);
     } catch (error: any) {
@@ -1049,7 +1059,15 @@ export async function registerRoutes(
       if (sessionCheck && sessionCheck.assignedTo && sessionCheck.assignedTo !== adminUser.id && adminUser.role !== "superadmin") {
         return res.status(403).json(lockedResponse(sessionCheck));
       }
-      const updated = await storage.unclaimSession(req.params.sessionId);
+      const unclaimed = await storage.unclaimSession(req.params.sessionId);
+      let updated = unclaimed;
+      if (updated && updated.tags) {
+        const newTags = updated.tags.filter((t: string) => t !== "Ejecutivo" && t !== "Solicita Ejecutivo");
+        if (!newTags.includes("Bot")) newTags.push("Bot");
+        updated = await storage.updateSessionTags(req.params.sessionId, newTags) || updated;
+      } else if (updated) {
+        updated = await storage.updateSessionTags(req.params.sessionId, ["Bot"]) || updated;
+      }
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "unclaim", session: updated });
       res.json(updated);
     } catch (error: any) {
