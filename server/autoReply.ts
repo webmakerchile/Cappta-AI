@@ -587,13 +587,23 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
     if (problemType === "info_producto") {
       if (productName) {
         const priceInfo = catalogPrice ? ` Precio: ${catalogPrice}.` : "";
+
+        if (catalogProduct && catalogProduct.availability !== "available" && catalogProduct.availability !== "preorder") {
+          const text = `¡Hola${nameGreeting}! Veo que quieres informacion sobre ${productName}${platSuffix}.${priceInfo}\n\nEste producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, te recomendamos contactar a uno de nuestros ejecutivos.`;
+          return withButtons(text, [
+            {label: "Contactar ejecutivo", value: "__qr:contact"},
+            {label: "Buscar en catalogo", value: "__qr:browse"},
+            {label: "Ver categorias", value: "__qr:back"},
+          ]);
+        }
+
         const availInfo = catalogProduct?.availability === "available" ? " Esta disponible para compra inmediata." : "";
         const text = pickUnused([
           `¡Hola${nameGreeting}! Veo que quieres informacion sobre ${productName}${platSuffix}.${priceInfo}${availInfo} Entrega digital inmediata por correo. ¿Te gustaria comprarlo?`,
           `¡Hola${nameGreeting}! Con gusto te doy informacion sobre ${productName}${platSuffix}.${priceInfo} Trabajamos con codigos digitales y entrega instantanea por correo.`,
         ], state.usedResponses);
         const buttons: Array<{label: string, value?: string, url?: string}> = [];
-        if (catalogProduct?.productUrl) {
+        if (catalogProduct?.productUrl && (catalogProduct?.availability === "available" || catalogProduct?.availability === "preorder")) {
           buttons.push({label: "Comprar ahora", url: catalogProduct.productUrl});
         }
         buttons.push({label: "Si, quiero comprarlo", value: "si quiero comprarlo"});
@@ -708,24 +718,34 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
   if (catalogProduct) {
     const displayName = catalogProduct.name;
     const priceInfo = catalogProduct.price ? ` Precio: ${catalogProduct.price}.` : "";
+
+    if (catalogProduct.availability !== "available" && catalogProduct.availability !== "preorder") {
+      const text = `${displayName}${platSuffix}.${priceInfo}\n\nEste producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, te recomendamos contactar a uno de nuestros ejecutivos.`;
+      return withButtons(text, [
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
+        {label: "Buscar en catalogo", value: "__qr:browse"},
+        {label: "Ver categorias", value: "__qr:back"},
+      ]);
+    }
+
     const availInfo = catalogProduct.availability === "available"
       ? " Disponible para entrega digital inmediata."
-      : catalogProduct.availability === "preorder"
-      ? " Disponible para pre-orden."
-      : " Actualmente agotado.";
+      : " Disponible para pre-orden.";
 
     const responseText = pickUnused([
       `¡${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Te gustaria comprarlo?`,
       `¡Tenemos ${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Quieres que te ayude con la compra?`,
     ], state.usedResponses);
 
-    if (catalogProduct.productUrl && catalogProduct.availability === "available") {
+    if (catalogProduct.productUrl && (catalogProduct.availability === "available" || catalogProduct.availability === "preorder")) {
       return withButtons(responseText, [
         {label: "Comprar ahora", url: catalogProduct.productUrl},
-        {label: "Mas informacion", value: "__qr:contact"},
+        {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
-    return responseText;
+    return withButtons(responseText, [
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+    ]);
   }
 
   const text = pickUnused([
@@ -1352,11 +1372,21 @@ export async function getSmartAutoReply(
       if (results.length > 0) {
         const p = results[0];
         const priceText = p.price ? `Precio: ${p.price}` : "Precio: Consultar";
-        const availText = p.availability === "available" ? "Disponible" : p.availability === "preorder" ? "Pre-orden" : "Agotado";
+
+        if (p.availability !== "available" && p.availability !== "preorder") {
+          const text = `${p.name} | ${priceText} | No disponible.\n\nEste producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, contacta a uno de nuestros ejecutivos.`;
+          return withButtons(text, [
+            {label: "Contactar ejecutivo", value: "__qr:contact"},
+            {label: "Buscar en catalogo", value: "__qr:browse"},
+            {label: "Ver categorias", value: "__qr:back"},
+          ]);
+        }
+
+        const availText = p.availability === "available" ? "Disponible" : "Pre-orden";
         const text = `${p.name} | ${priceText} | ${availText}. ${p.description || "Entrega digital inmediata."}`;
 
         const buttons: Array<{label: string, value?: string, url?: string}> = [];
-        if (p.productUrl && p.availability === "available") {
+        if (p.productUrl) {
           buttons.push({label: "Comprar ahora", url: p.productUrl});
         }
         buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
@@ -1496,11 +1526,21 @@ export async function getSmartAutoReply(
           if (catalogResults.length === 1) {
             const p = catalogResults[0];
             const priceText = p.price ? `Precio: ${p.price}` : "Precio: Consultar";
-            const availText = p.availability === "available" ? "Disponible" : p.availability === "preorder" ? "Pre-orden" : "Agotado";
+
+            if (p.availability !== "available" && p.availability !== "preorder") {
+              const text = `${p.name} | ${priceText} | No disponible.\n\nEste producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, contacta a uno de nuestros ejecutivos.`;
+              return withButtons(text, [
+                {label: "Contactar ejecutivo", value: "__qr:contact"},
+                {label: "Buscar en catalogo", value: "__qr:browse"},
+                {label: "Ver categorias", value: "__qr:back"},
+              ]);
+            }
+
+            const availText = p.availability === "available" ? "Disponible" : "Pre-orden";
             const descText = p.description ? ` ${p.description}` : " Entrega digital inmediata.";
             const text = `${p.name} | ${priceText} | ${availText}.${descText}`;
             const buttons: Array<{label: string, value?: string, url?: string}> = [];
-            if (p.productUrl && p.availability === "available") {
+            if (p.productUrl) {
               buttons.push({label: "Comprar ahora", url: p.productUrl});
             }
             buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
