@@ -1364,7 +1364,14 @@ export async function getSmartAutoReply(
 
         return withButtons(text, buttons);
       }
-      return "No encontre ese producto en nuestro catalogo. ¿Puedes darme mas detalles?";
+      return withButtons(
+        "No encontre ese producto en nuestro catalogo. Puedes buscar directamente en nuestro catalogo completo o darme mas detalles del producto que buscas.",
+        [
+          {label: "Buscar en catalogo", value: "__qr:browse"},
+          {label: "Ver categorias", value: "__qr:back"},
+          {label: "Contactar ejecutivo", value: "__qr:contact"},
+        ]
+      );
     }
 
     if (msg === "__qr:contact") {
@@ -1515,9 +1522,10 @@ export async function getSmartAutoReply(
           }
           if (catalogResults.length === 0 && searchQuery.length >= 3) {
             return withButtons(
-              `No encontre "${searchQuery}" en nuestro catalogo. Puedo ayudarte a buscar otro producto o contactar a un ejecutivo.`,
+              `No encontre "${searchQuery}" en nuestro catalogo. Puedes buscar directamente en nuestro catalogo completo o contactar a un ejecutivo para asistencia personalizada.`,
               [
-                {label: "Ver productos", value: "__qr:back"},
+                {label: "Buscar en catalogo", value: "__qr:browse"},
+                {label: "Ver categorias", value: "__qr:back"},
                 {label: "Contactar ejecutivo", value: "__qr:contact"},
               ]
             );

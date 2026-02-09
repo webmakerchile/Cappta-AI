@@ -651,12 +651,16 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
       return;
     }
     const value = btn.value || btn.label;
+    if (value === "__qr:browse") {
+      toggleProductBrowser();
+      return;
+    }
     if (value.startsWith("__qr:")) {
       onSend(btn.label, undefined, value);
     } else {
       onSend(value);
     }
-  }, [onSend]);
+  }, [onSend, toggleProductBrowser]);
 
   const filteredMessages = searchQuery.length >= 2
     ? messages.filter(m => {
