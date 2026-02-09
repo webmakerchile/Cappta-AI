@@ -997,6 +997,19 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           </Button>
         </form>
       </div>
+
+      <div className="flex-shrink-0 py-1.5 px-3 border-t border-white/[0.04]">
+        <a
+          href="https://www.webmakerchile.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1 text-[10px] text-white/20 hover:text-white/35 transition-colors"
+          data-testid="link-copyright"
+        >
+          <span>Powered by</span>
+          <span className="font-medium">webmakerchile.com</span>
+        </a>
+      </div>
     </div>
   );
 }

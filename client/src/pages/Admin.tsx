@@ -3024,6 +3024,7 @@ export default function AdminPage() {
                           alert("Error de conexion");
                         }
                       }}
+                      data-testid="button-clear-all-chats"
                       className="ml-auto p-1 text-white/30 hover:text-red-400 transition-colors"
                       title="Vaciar chats"
                     >
