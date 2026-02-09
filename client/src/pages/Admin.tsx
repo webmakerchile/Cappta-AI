@@ -254,8 +254,10 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
 function SessionCard({ session, onClick, isSelected, rating }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData }) {
   const agentColor = session.assignedToColor;
   const hasAgent = !!agentColor;
-  const cardStyle: React.CSSProperties = hasAgent && !isSelected
-    ? { backgroundColor: `${agentColor}20`, borderColor: `${agentColor}50` }
+  const cardStyle: React.CSSProperties = hasAgent
+    ? isSelected
+      ? { backgroundColor: `${agentColor}40`, borderColor: `${agentColor}70` }
+      : { backgroundColor: `${agentColor}30`, borderColor: `${agentColor}55` }
     : {};
   return (
     <button
@@ -263,7 +265,7 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
       onClick={onClick}
       className={`w-full text-left p-3 rounded-md border transition-all ${
         isSelected
-          ? "bg-[#6200EA]/15 border-[#6200EA]/40"
+          ? hasAgent ? "" : "bg-[#6200EA]/15 border-[#6200EA]/40"
           : hasAgent
             ? ""
             : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
@@ -271,12 +273,12 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
       style={cardStyle}
       onMouseEnter={(e) => {
         if (hasAgent && !isSelected) {
-          e.currentTarget.style.backgroundColor = `${agentColor}30`;
+          e.currentTarget.style.backgroundColor = `${agentColor}40`;
         }
       }}
       onMouseLeave={(e) => {
         if (hasAgent && !isSelected) {
-          e.currentTarget.style.backgroundColor = `${agentColor}20`;
+          e.currentTarget.style.backgroundColor = `${agentColor}30`;
         }
       }}
     >
