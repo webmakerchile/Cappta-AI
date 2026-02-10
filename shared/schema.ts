@@ -85,7 +85,7 @@ export const adminUsers = pgTable("admin_users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name").notNull(),
-  role: text("role", { enum: ["superadmin", "admin"] }).notNull().default("admin"),
+  role: text("role", { enum: ["superadmin", "admin", "ejecutivo"] }).notNull().default("ejecutivo"),
   color: text("color").notNull().default("#6200EA"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
