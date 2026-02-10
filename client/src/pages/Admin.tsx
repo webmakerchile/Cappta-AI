@@ -2274,12 +2274,13 @@ function TagsPanel() {
   );
 }
 
-function UsersPanel() {
+function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; role: string; displayName: string; color?: string } | null }) {
   const [isAdding, setIsAdding] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#6200EA");
+  const [newRole, setNewRole] = useState("ejecutivo");
 
   const { data: users = [], isLoading } = useQuery<{ id: number; email: string; displayName: string; role: string; color?: string; createdAt: string }[]>({
     queryKey: ["/api/admin/users"],
@@ -2291,7 +2292,7 @@ function UsersPanel() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { email: string; password: string; displayName: string; color: string }) => {
+    mutationFn: async (data: { email: string; password: string; displayName: string; color: string; role: string }) => {
       const res = await adminFetch("/api/admin/users", {
         method: "POST",
         body: JSON.stringify(data),
@@ -2309,6 +2310,7 @@ function UsersPanel() {
       setNewPassword("");
       setNewName("");
       setNewColor("#6200EA");
+      setNewRole("ejecutivo");
     },
   });
 
@@ -2338,16 +2340,18 @@ function UsersPanel() {
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="p-3 border-b border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-sm font-semibold text-white">Gestion de Usuarios</h2>
-        <Button
-          data-testid="button-add-user"
-          size="sm"
-          onClick={() => setIsAdding(true)}
-          className="bg-[#6200EA] text-white text-xs"
-          disabled={isAdding}
-        >
-          <Plus className="w-3.5 h-3.5 mr-1" />
-          Crear Usuario
-        </Button>
+        {adminUser?.role !== "ejecutivo" && (
+          <Button
+            data-testid="button-add-user"
+            size="sm"
+            onClick={() => setIsAdding(true)}
+            className="bg-[#6200EA] text-white text-xs"
+            disabled={isAdding}
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Crear Usuario
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
@@ -2393,6 +2397,22 @@ function UsersPanel() {
                   ))}
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-white/60 whitespace-nowrap">Rol:</label>
+                <div className="flex items-center gap-1.5">
+                  {(adminUser?.role === "superadmin" ? ["admin", "ejecutivo"] : ["ejecutivo"]).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      data-testid={`role-option-${r}`}
+                      onClick={() => setNewRole(r)}
+                      className={`px-2.5 py-1 rounded text-xs transition-colors ${newRole === r ? "bg-[#6200EA] text-white" : "bg-white/[0.06] text-white/50"}`}
+                    >
+                      {r === "admin" ? "Admin" : "Ejecutivo"}
+                    </button>
+                  ))}
+                </div>
+              </div>
               {createMutation.isError && (
                 <p className="text-xs text-red-400">{(createMutation.error as Error).message}</p>
               )}
@@ -2401,7 +2421,7 @@ function UsersPanel() {
                   data-testid="button-cancel-user"
                   variant="ghost"
                   size="sm"
-                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); setNewColor("#6200EA"); }}
+                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); setNewColor("#6200EA"); setNewRole("ejecutivo"); }}
                   className="text-white/40 text-xs"
                 >
                   Cancelar
@@ -2409,7 +2429,7 @@ function UsersPanel() {
                 <Button
                   data-testid="button-save-user"
                   size="sm"
-                  onClick={() => createMutation.mutate({ email: newEmail.trim(), password: newPassword, displayName: newName.trim(), color: newColor })}
+                  onClick={() => createMutation.mutate({ email: newEmail.trim(), password: newPassword, displayName: newName.trim(), color: newColor, role: newRole })}
                   disabled={!newEmail.trim() || !newPassword.trim() || newPassword.length < 6 || !newName.trim() || createMutation.isPending}
                   className="bg-[#6200EA] text-white text-xs"
                 >
@@ -2431,14 +2451,16 @@ function UsersPanel() {
                 <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: u.color || "#6200EA" }} />
                 <span className="text-sm font-medium text-white">{u.displayName}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                  u.role === "superadmin" ? "bg-[#BB86FC]/15 text-[#BB86FC]" : "bg-white/[0.06] text-white/50"
+                  u.role === "superadmin" ? "bg-[#BB86FC]/15 text-[#BB86FC]" 
+                    : u.role === "admin" ? "bg-blue-500/15 text-blue-400"
+                    : "bg-emerald-500/15 text-emerald-400"
                 }`}>
-                  {u.role === "superadmin" ? "Superadmin" : "Admin"}
+                  {u.role === "superadmin" ? "Superadmin" : u.role === "admin" ? "Admin" : "Ejecutivo"}
                 </span>
               </div>
               <p className="text-xs text-white/40">{u.email}</p>
             </div>
-            {u.role !== "superadmin" && (
+            {u.role !== "superadmin" && adminUser?.role !== "ejecutivo" && !(adminUser?.role === "admin" && u.role === "admin") && (
               <Button
                 data-testid={`button-delete-user-${u.id}`}
                 size="icon"
@@ -2969,7 +2991,7 @@ export default function AdminPage() {
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
           )}
         </button>
-        {adminUser?.role === "superadmin" && (
+        {adminUser?.role !== "ejecutivo" && (
           <button
             data-testid="tab-users"
             onClick={() => setAdminTab("users")}
@@ -2989,7 +3011,7 @@ export default function AdminPage() {
       {adminTab === "tags" ? (
         <TagsPanel />
       ) : adminTab === "users" ? (
-        <UsersPanel />
+        <UsersPanel adminUser={adminUser} />
       ) : adminTab === "products" ? (
         <ProductsPanel />
       ) : adminTab === "canned" ? (
@@ -3040,7 +3062,7 @@ export default function AdminPage() {
                       {tab.label}
                     </button>
                   ))}
-                  {adminUser?.role === "superadmin" && (
+                  {adminUser?.role !== "ejecutivo" && (
                     <button
                       data-testid="button-clear-all-chats"
                       onClick={async () => {

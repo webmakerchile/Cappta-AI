@@ -472,18 +472,28 @@ export async function registerRoutes(
   app.get("/api/admin/users", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
-    const users = await storage.getAllAdminUsers();
+    let users = await storage.getAllAdminUsers();
+    if (user.role === "admin" || user.role === "ejecutivo") {
+      users = users.filter(u => u.role !== "superadmin");
+    }
     res.json(users.map(u => ({ id: u.id, email: u.email, displayName: u.displayName, role: u.role, color: u.color, createdAt: u.createdAt })));
   });
 
   app.post("/api/admin/users", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
-    if (user.role !== "superadmin") {
-      return res.status(403).json({ message: "Solo el superadmin puede crear usuarios" });
+    if (user.role === "ejecutivo") {
+      return res.status(403).json({ message: "Solo administradores pueden crear usuarios" });
     }
     try {
       const { email, password, displayName, color } = req.body;
+      const role = req.body.role || "ejecutivo";
+      if (!["admin", "ejecutivo"].includes(role)) {
+        return res.status(403).json({ message: "Rol no permitido" });
+      }
+      if (user.role === "admin" && role !== "ejecutivo") {
+        return res.status(403).json({ message: "Solo el superadmin puede crear administradores" });
+      }
       if (!email || !password || !displayName) {
         return res.status(400).json({ message: "Email, contraseña y nombre requeridos" });
       }
@@ -496,7 +506,7 @@ export async function registerRoutes(
         email: email.toLowerCase().trim(),
         passwordHash: hash,
         displayName: displayName.trim(),
-        role: "admin",
+        role,
         color: color || "#6200EA",
       });
       res.status(201).json({ id: created.id, email: created.email, displayName: created.displayName, role: created.role, color: created.color, createdAt: created.createdAt });
@@ -509,15 +519,21 @@ export async function registerRoutes(
   app.delete("/api/admin/users/:id", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
-    if (user.role !== "superadmin") {
-      return res.status(403).json({ message: "Solo el superadmin puede eliminar usuarios" });
+    if (user.role === "ejecutivo") {
+      return res.status(403).json({ message: "Solo administradores pueden eliminar usuarios" });
     }
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+    if (id === user.id) {
+      return res.status(403).json({ message: "No puedes eliminarte a ti mismo" });
+    }
     const target = await storage.getAdminUserById(id);
     if (!target) return res.status(404).json({ message: "Usuario no encontrado" });
     if (target.role === "superadmin") {
       return res.status(403).json({ message: "No se puede eliminar al superadmin" });
+    }
+    if (user.role === "admin" && target.role === "admin") {
+      return res.status(403).json({ message: "No puedes eliminar a otro administrador" });
     }
     await storage.deleteAdminUser(id);
     res.json({ success: true });
@@ -644,8 +660,8 @@ export async function registerRoutes(
   app.delete("/api/admin/sessions/all", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;
-    if (adminUser.role !== "superadmin") {
-      return res.status(403).json({ message: "Solo superadmin puede eliminar todos los chats" });
+    if (adminUser.role === "ejecutivo") {
+      return res.status(403).json({ message: "Solo administradores pueden eliminar todos los chats" });
     }
     try {
       const count = await storage.deleteAllSessions();
