@@ -556,6 +556,8 @@ const ESCALATION_RESPONSES = [
   "💬 Para brindarte la mejor atencion, te sugiero contactar a uno de nuestros ejecutivos. Haz clic en 'Contactar un Ejecutivo' y recibiras ayuda directa por correo 📧",
 ];
 
+const PERSISTENCE_NOTICE = "\n\n💡 Puedes salir y volver cuando quieras, tu conversacion no se pierde. Si un agente te responde mientras no estas conectado, la respuesta te estara esperando aqui.";
+
 function getGreetingResponse(state: ConversationState, sessionData?: SessionData, catalogProduct?: CatalogProduct | null): string {
   const userName = sessionData?.userName;
   const nameGreeting = userName ? `, ${userName}` : "";
@@ -582,13 +584,13 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         }
         buttons.push({label: "Si, quiero comprarlo", value: "si quiero comprarlo"});
         buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
-        return withButtons(text, buttons);
+        return withButtons(text + PERSISTENCE_NOTICE, buttons);
       }
       const text = pickUnused([
         `👋 ¡Hola${nameGreeting}! 🛒 ¡Bienvenido a nuestra tienda! Estamos listos para ayudarte con tu compra.${pageContext} 🎮 ¿Que producto te interesa?`,
         `👋 ¡Hola${nameGreeting}! 💜 ¡Que bueno que nos visitas! Tenemos juegos y suscripciones digitales con entrega inmediata ⚡${pageContext} 🎮 ¿Que te gustaria comprar?`,
       ], state.usedResponses);
-      return withButtons(text, [
+      return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Juegos PS5", value: "__qr:platform:ps5"},
         {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
         {label: "Suscripciones", value: "__qr:category:subscription"},
@@ -600,7 +602,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         `👋 ¡Hola${nameGreeting}! 🔑 Entiendo que necesitas un nuevo codigo de verificacion. No te preocupes, un ejecutivo te ayudara con eso directamente aqui en el chat. Por favor, no te desconectes ni cierres la ventana para que podamos atenderte. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
         `👋 ¡Hola${nameGreeting}! 🔑 Veo que necesitas un codigo de verificacion nuevo. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
       ], state.usedResponses);
-      return withButtons(text, [
+      return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
@@ -610,7 +612,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         `👋 ¡Hola${nameGreeting}! 🔒 Lamento que te aparezca un candado en tu juego. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat para ayudarte. Por favor, no te desconectes ni cierres la ventana. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
         `👋 ¡Hola${nameGreeting}! 🔒 Entiendo que tienes un problema con un candado en tu juego. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
       ], state.usedResponses);
-      return withButtons(text, [
+      return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
@@ -620,7 +622,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         `👋 ¡Hola${nameGreeting}! 📦 Entiendo que quieres saber el estado de tu pedido. Recuerda que todos nuestros productos son digitales y la entrega es instantanea a tu correo electronico ⚡📧 Si no has recibido tu producto, quedate en este chat y un ejecutivo te ayudara directamente aqui. Recibiras un sonido de notificacion cuando haya una respuesta nueva.`,
         `👋 ¡Hola${nameGreeting}! 📦 Veo que quieres consultar el estado de tu pedido. Nuestros productos digitales se entregan al instante por email ⚡ Si hay algun inconveniente, no te desconectes de este chat, un ejecutivo revisara tu caso directamente aqui. Te notificaremos con sonido cuando recibas una respuesta.`,
       ], state.usedResponses);
-      return withButtons(text, [
+      return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
@@ -630,7 +632,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         `👋 ¡Hola${nameGreeting}! 🎮 Lamento que estes teniendo problemas con tu Plus. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat. Por favor, no te desconectes ni cierres la ventana para que podamos atender tu problema. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
         `👋 ¡Hola${nameGreeting}! 🎮 Entiendo que tienes un inconveniente con tu Plus. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
       ], state.usedResponses);
-      return withButtons(text, [
+      return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
@@ -639,7 +641,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   if (state.product) {
     const productName = formatGameWithVersion(state.product);
     if (state.product.type === "game") {
-      return `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Veo que te interesa ${productName}. Tenemos juegos digitales disponibles para PS4, PS5, Xbox One y Xbox Series ⚡ ¿Te gustaria saber mas sobre ${productName} o buscas otro titulo?`;
+      return `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Veo que te interesa ${productName}. Tenemos juegos digitales disponibles para PS4, PS5, Xbox One y Xbox Series ⚡ ¿Te gustaria saber mas sobre ${productName} o buscas otro titulo?${PERSISTENCE_NOTICE}`;
     }
   }
 
@@ -648,7 +650,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
       `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos un amplio catalogo para PlayStation 🕹️ ¿Que estas buscando?`,
       `👋 ¡Hola${nameGreeting}! 💜 Que gusto tenerte aqui.${pageContext} Somos tu tienda de juegos digitales para PlayStation 🎮 ¿En que te puedo ayudar?`,
     ], state.usedResponses);
-    return withButtons(text, [
+    return withButtons(text + PERSISTENCE_NOTICE, [
       {label: "Juegos PS5", value: "__qr:platform:ps5"},
       {label: "PS Plus", value: "__qr:category:subscription"},
       {label: "Ver todo", value: "__qr:platform:ps5"},
@@ -660,7 +662,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
       `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Contamos con juegos y suscripciones para Xbox 🕹️ ¿En que te puedo ayudar?`,
       `👋 ¡Hola${nameGreeting}! 💜 Que bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales y Game Pass 🎮`,
     ], state.usedResponses);
-    return withButtons(text, [
+    return withButtons(text + PERSISTENCE_NOTICE, [
       {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
       {label: "Game Pass", value: "__qr:category:subscription"},
       {label: "Ver todo", value: "__qr:platform:xbox_series"},
@@ -671,7 +673,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
     `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos juegos y suscripciones para PlayStation y Xbox ⚡ ¿En que puedo ayudarte hoy?`,
     `👋 ¡Hola${nameGreeting}! 💜 Gracias por visitarnos.${pageContext} Somos tu tienda de juegos digitales con catalogo para PlayStation y Xbox 🕹️ ¿Que te gustaria saber?`,
   ], state.usedResponses);
-  return withButtons(text, [
+  return withButtons(text + PERSISTENCE_NOTICE, [
     {label: "Juegos PS5", value: "__qr:platform:ps5"},
     {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
     {label: "Suscripciones", value: "__qr:category:subscription"},
