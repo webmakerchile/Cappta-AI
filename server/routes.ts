@@ -259,6 +259,14 @@ export async function registerRoutes(
       io.to(`session:${sessionId}`).emit("new_message", message);
       io.to("admin_room").emit("admin_new_message", { sessionId, message });
 
+      if (parsed.data.sender === "user") {
+        sendPushToAdmins(
+          `Nuevo mensaje de ${parsed.data.userName}`,
+          parsed.data.content.substring(0, 100),
+          sessionId
+        );
+      }
+
       if (parsed.data.sender === "user" && !req.body.imageUrl) {
         const pageUrl = req.body.pageUrl || "";
         const pageTitle = req.body.pageTitle || "";

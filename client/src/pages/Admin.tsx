@@ -2258,6 +2258,29 @@ function playNotificationSound() {
   } catch {}
 }
 
+let _notificationSelectCallback: ((sessionId: string) => void) | null = null;
+
+function showForegroundNotification(title: string, body: string, sessionId: string, currentSessionRef?: React.RefObject<string | null>) {
+  try {
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission !== "granted") return;
+    const isViewingThis = currentSessionRef?.current === sessionId;
+    if (!document.hidden && isViewingThis) return;
+    const n = new Notification(title, {
+      body,
+      icon: "/logo-192.webp",
+      tag: "cjm-msg-" + sessionId,
+    } as NotificationOptions);
+    n.onclick = () => {
+      window.focus();
+      if (_notificationSelectCallback) {
+        _notificationSelectCallback(sessionId);
+      }
+      n.close();
+    };
+  } catch {}
+}
+
 function TagsPanel() {
   const [newTag, setNewTag] = useState("");
 
@@ -2763,9 +2786,24 @@ export default function AdminPage() {
   const [flashingSessions, setFlashingSessions] = useState<Record<string, boolean>>({});
   const selectedSessionRef = useRef<string | null>(null);
   const soundEnabledRef = useRef(true);
+  const [notifBannerVisible, setNotifBannerVisible] = useState(() => {
+    try {
+      if (typeof Notification === "undefined") return false;
+      if (localStorage.getItem("notification_banner_dismissed") === "true") return false;
+      return Notification.permission !== "granted";
+    } catch { return false; }
+  });
 
   useEffect(() => { selectedSessionRef.current = selectedSession; }, [selectedSession]);
   useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+
+  useEffect(() => {
+    _notificationSelectCallback = (sessionId: string) => {
+      setSelectedSession(sessionId);
+      setMobileView("chat");
+    };
+    return () => { _notificationSelectCallback = null; };
+  }, []);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -2853,8 +2891,16 @@ export default function AdminPage() {
             return next;
           });
         }, 3000);
-        if (data.message?.sender === "user" && soundEnabledRef.current) {
-          playNotificationSound();
+        if (data.message?.sender === "user") {
+          if (soundEnabledRef.current) {
+            playNotificationSound();
+          }
+          showForegroundNotification(
+            `Nuevo mensaje de ${data.message.userName || "Usuario"}`,
+            (data.message.content || "").substring(0, 100),
+            data.sessionId,
+            selectedSessionRef
+          );
         }
       } else if (data?.sessionId) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
@@ -2952,9 +2998,17 @@ export default function AdminPage() {
   const avgRating = allRatings.length > 0 ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length : 0;
 
   useEffect(() => {
-    if (!authenticated || !soundEnabled) return;
+    if (!authenticated) return;
     if (sessions.length > previousSessionCountRef.current && previousSessionCountRef.current > 0) {
-      playNotificationSound();
+      if (soundEnabled) {
+        playNotificationSound();
+      }
+      showForegroundNotification(
+        "Nuevo chat de soporte",
+        "Se ha iniciado una nueva conversacion de soporte",
+        "new-session",
+        selectedSessionRef
+      );
     }
     previousSessionCountRef.current = sessions.length;
   }, [sessions.length, authenticated, soundEnabled]);
@@ -3098,6 +3152,49 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col overflow-hidden" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif", position: "fixed" as const, inset: 0 }}>
+      {notifBannerVisible && (
+        <div
+          data-testid="banner-notification-prompt"
+          className="flex items-center justify-between gap-3 px-4 py-2.5"
+          style={{ background: "linear-gradient(135deg, #6200EA 0%, #3F51B5 100%)" }}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Bell className="w-4 h-4 text-white flex-shrink-0" />
+            <span className="text-sm text-white font-medium truncate">Activa las notificaciones para no perder ningun mensaje</span>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              data-testid="button-enable-notifications"
+              size="sm"
+              className="bg-white text-[#6200EA] font-semibold border-white"
+              onClick={async () => {
+                try {
+                  tryResumeAdminAudio();
+                  const result = await Notification.requestPermission();
+                  if (result === "granted" || result === "denied") {
+                    setNotifBannerVisible(false);
+                    localStorage.setItem("notification_banner_dismissed", "true");
+                  }
+                } catch {
+                  setNotifBannerVisible(false);
+                }
+              }}
+            >
+              Activar Notificaciones
+            </Button>
+            <button
+              data-testid="button-dismiss-notification-banner"
+              onClick={() => {
+                setNotifBannerVisible(false);
+                localStorage.setItem("notification_banner_dismissed", "true");
+              }}
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-white/20 text-white"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
       <header className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] flex items-center justify-between gap-2" style={{ background: "#6200EA" }}>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {mobileView === "chat" && (
