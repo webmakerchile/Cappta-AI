@@ -272,7 +272,8 @@ function getInitial(name: string): string {
   return (name || '?').charAt(0).toUpperCase();
 }
 
-function SessionCard({ session, onClick, isSelected, rating }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData }) {
+function SessionCard({ session, onClick, isSelected, rating, localUnread, isRecentlyUpdated }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData; localUnread?: number; isRecentlyUpdated?: boolean }) {
+  const totalUnread = (session.unreadCount || 0) + (localUnread || 0);
   const agentColor = session.assignedToColor;
   const hasAgent = !!agentColor;
   const cardStyle: React.CSSProperties = hasAgent
@@ -290,7 +291,7 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
           : hasAgent
             ? ""
             : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
-      }`}
+      } ${isRecentlyUpdated ? 'ring-2 ring-red-500/70 ring-offset-1 ring-offset-transparent' : ''}`}
       style={cardStyle}
       onMouseEnter={(e) => {
         if (hasAgent && !isSelected) {
@@ -328,12 +329,12 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
             </p>
           )}
         </div>
-        {session.unreadCount > 0 && (
+        {totalUnread > 0 && (
           <span
             data-testid={`badge-unread-${session.sessionId}`}
-            className="flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#6200EA] text-white text-[11px] font-bold animate-pulse"
+            className="flex items-center justify-center min-w-[26px] h-[26px] px-2 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-500/50 animate-bounce"
           >
-            {session.unreadCount > 99 ? "99+" : session.unreadCount}
+            {totalUnread > 99 ? "99+" : totalUnread}
           </span>
         )}
       </div>
@@ -2681,6 +2682,13 @@ export default function AdminPage() {
     try { return localStorage.getItem("admin_sound") !== "false"; } catch { return true; }
   });
   const previousSessionCountRef = useRef<number>(0);
+  const [localUnreads, setLocalUnreads] = useState<Record<string, number>>({});
+  const [flashingSessions, setFlashingSessions] = useState<Record<string, boolean>>({});
+  const selectedSessionRef = useRef<string | null>(null);
+  const soundEnabledRef = useRef(true);
+
+  useEffect(() => { selectedSessionRef.current = selectedSession; }, [selectedSession]);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -2751,6 +2759,21 @@ export default function AdminPage() {
             return [...old, data.message];
           }
         );
+        setLocalUnreads(prev => {
+          if (selectedSessionRef.current === data.sessionId) return prev;
+          return { ...prev, [data.sessionId]: (prev[data.sessionId] || 0) + 1 };
+        });
+        setFlashingSessions(prev => ({ ...prev, [data.sessionId]: true }));
+        setTimeout(() => {
+          setFlashingSessions(prev => {
+            const next = { ...prev };
+            delete next[data.sessionId];
+            return next;
+          });
+        }, 3000);
+        if (data.message?.sender === "user" && soundEnabledRef.current) {
+          playNotificationSound();
+        }
       } else if (data?.sessionId) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
       }
@@ -2776,9 +2799,15 @@ export default function AdminPage() {
     }
     function handleSWMessage(event: MessageEvent) {
       if (event.data?.type === "NOTIFICATION_CLICK" && event.data?.sessionId) {
-        setSelectedSession(event.data.sessionId);
+        const sid = event.data.sessionId;
+        setSelectedSession(sid);
         setMobileView("chat");
         setAdminTab("conversations");
+        setLocalUnreads(prev => {
+          const next = { ...prev };
+          delete next[sid];
+          return next;
+        });
       }
     }
     clearBadge();
@@ -2950,6 +2979,11 @@ export default function AdminPage() {
   const selectSession = useCallback((sid: string) => {
     setSelectedSession(sid);
     setMobileView("chat");
+    setLocalUnreads(prev => {
+      const next = { ...prev };
+      delete next[sid];
+      return next;
+    });
   }, []);
 
   const handleLogout = async () => {
@@ -3265,6 +3299,8 @@ export default function AdminPage() {
                     onClick={() => selectSession(session.sessionId)}
                     isSelected={selectedSession === session.sessionId}
                     rating={ratingsMap.get(session.sessionId)}
+                    localUnread={localUnreads[session.sessionId] || 0}
+                    isRecentlyUpdated={!!flashingSessions[session.sessionId]}
                   />
                 ))
               )}
