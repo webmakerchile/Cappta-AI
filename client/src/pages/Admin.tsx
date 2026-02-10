@@ -159,6 +159,15 @@ function formatDateTime(date: string | Date | null) {
   return `${formatDate(date)} ${formatTime(date)}`;
 }
 
+function invalidateSessionLists() {
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      const key = query.queryKey as string[];
+      return key[0] === "/api/admin/sessions" && key.length <= 2;
+    }
+  });
+}
+
 function parseAdminQuickReplies(content: string): string {
   const marker = "{{QUICK_REPLIES:";
   const idx = content.indexOf(marker);
@@ -448,7 +457,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.locked) {
-          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+          invalidateSessionLists();
         }
         throw new Error(data.message || "Error al actualizar tags");
       }
@@ -472,7 +481,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
     },
   });
 
@@ -609,11 +618,11 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       const res = await adminFetch(`/api/admin/sessions/${sessionId}/messages`);
       if (!res.ok) throw new Error("Error");
       const data = await res.json();
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
       return data;
     },
     enabled: !!sessionId,
-    refetchInterval: isAdminActive ? 3000 : false,
+    refetchInterval: isAdminActive ? 3000 : 8000,
     staleTime: 2000,
   });
 
@@ -637,7 +646,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.locked) {
-          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+          invalidateSessionLists();
         }
         throw new Error(data.message || "Error al actualizar estado");
       }
@@ -661,7 +670,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
     },
   });
 
@@ -675,7 +684,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.locked) {
-          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+          invalidateSessionLists();
         }
         throw new Error(data.message || "Error al cambiar modo admin");
       }
@@ -698,7 +707,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
     },
   });
@@ -713,7 +722,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         if (errData.locked) {
-          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+          invalidateSessionLists();
         }
         throw new Error(errData.message || "Error al enviar respuesta");
       }
@@ -756,7 +765,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
           return [...cleaned, serverMsg];
         }
       );
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
       setTimeout(() => replyInputRef.current?.focus(), 100);
     },
   });
@@ -770,7 +779,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.locked) {
-          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+          invalidateSessionLists();
         }
         throw new Error(data.message || "Error al enviar encuesta");
       }
@@ -779,7 +788,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "rating"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
     },
   });
 
@@ -793,7 +802,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.locked) {
-          queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+          invalidateSessionLists();
         }
         throw new Error(data.message || "Error");
       }
@@ -820,7 +829,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
     },
   });
 
@@ -848,7 +857,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
       setShowTransferMenu(false);
     },
@@ -2762,7 +2771,7 @@ export default function AdminPage() {
           }
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      invalidateSessionLists();
       if (data?.sessionId) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
       }
@@ -2773,7 +2782,6 @@ export default function AdminPage() {
     });
 
     adminSocket.on("admin_new_message", (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
       if (data?.sessionId && data?.message) {
         queryClient.setQueryData<Message[]>(
           ["/api/admin/sessions", data.sessionId, "messages"],
@@ -2801,6 +2809,7 @@ export default function AdminPage() {
       } else if (data?.sessionId) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", data.sessionId, "messages"] });
       }
+      invalidateSessionLists();
     });
 
     return () => {
@@ -3237,7 +3246,7 @@ export default function AdminPage() {
                         try {
                           const res = await adminFetch("/api/admin/sessions/all", { method: "DELETE" });
                           if (res.ok) {
-                            queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+                            invalidateSessionLists();
                             alert("Todos los chats eliminados");
                           } else {
                             const data = await res.json();

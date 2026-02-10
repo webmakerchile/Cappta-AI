@@ -180,7 +180,7 @@ export function useChat() {
       return res.json();
     },
     enabled: !!user,
-    refetchInterval: 4000,
+    refetchInterval: 2000,
     staleTime: 2000,
   });
 
