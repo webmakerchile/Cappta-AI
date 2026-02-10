@@ -3,7 +3,7 @@
   "short_name": "CJM Soporte",
   "description": "Panel de administracion de soporte en vivo - CJM Digitales",
   "start_url": "/admin",
-  "scope": "/admin",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#6200EA",

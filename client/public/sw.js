@@ -1,88 +1,111 @@
-const CACHE_NAME = 'cjm-soporte-v1';
+const CACHE_NAME = 'cjm-soporte-v2';
+const OFFLINE_URL = '/admin';
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([OFFLINE_URL]).catch(() => {});
+    })
+  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
+      );
+    }).then(() => clients.claim())
+  );
 });
 
 function setBadge(count) {
   if (self.registration && typeof self.registration.setAppBadge === 'function') {
-    return self.registration.setAppBadge(count);
-  }
-  if (typeof navigator !== 'undefined' && typeof navigator.setAppBadge === 'function') {
-    return navigator.setAppBadge(count);
+    return self.registration.setAppBadge(count).catch(() => {});
   }
   return Promise.resolve();
 }
 
 function clearBadge() {
   if (self.registration && typeof self.registration.clearAppBadge === 'function') {
-    return self.registration.clearAppBadge();
-  }
-  if (typeof navigator !== 'undefined' && typeof navigator.clearAppBadge === 'function') {
-    return navigator.clearAppBadge();
+    return self.registration.clearAppBadge().catch(() => {});
   }
   return Promise.resolve();
 }
 
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  
-  try {
-    const data = event.data.json();
-    const title = data.title || 'Nuevo mensaje';
+
+  const handlePush = async () => {
+    let data;
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'Nuevo mensaje', body: event.data.text() };
+    }
+
+    const title = data.title || 'Nuevo mensaje - CJM Soporte';
     const options = {
-      body: data.body || '',
+      body: data.body || 'Tienes un nuevo mensaje de soporte',
       icon: '/logo-192.webp',
       badge: '/logo-192.webp',
-      vibrate: [200, 100, 200],
+      vibrate: [300, 100, 300, 100, 300],
       tag: 'cjm-soporte-' + (data.sessionId || 'general'),
       renotify: true,
+      requireInteraction: true,
+      silent: false,
+      actions: [
+        { action: 'open', title: 'Abrir Chat' },
+        { action: 'dismiss', title: 'Cerrar' }
+      ],
       data: {
         url: data.url || '/admin',
-        sessionId: data.sessionId
+        sessionId: data.sessionId,
+        timestamp: Date.now()
       }
     };
-    
-    event.waitUntil(
-      self.registration.showNotification(title, options).then(() => {
-        const count = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
-        if (count > 0) {
-          return setBadge(count);
-        }
-        return clearBadge();
-      }).catch(() => {})
-    );
-  } catch (e) {
-    console.error('Push error:', e);
-  }
+
+    await self.registration.showNotification(title, options);
+
+    const count = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
+    if (count > 0) {
+      await setBadge(count);
+    } else {
+      await clearBadge();
+    }
+  };
+
+  event.waitUntil(handlePush());
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
-  const url = event.notification.data?.url || '/admin';
-  
+
+  const action = event.action;
+  if (action === 'dismiss') {
+    return;
+  }
+
+  const urlToOpen = event.notification.data?.url || '/admin';
+
   event.waitUntil(
-    Promise.all([
-      self.registration.getNotifications().then((notifications) => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes('/admin') && 'focus' in client) {
+          client.postMessage({ type: 'NOTIFICATION_CLICK', sessionId: event.notification.data?.sessionId });
+          return client.focus();
+        }
+      }
+      return clients.openWindow(urlToOpen);
+    }).then(() => {
+      return self.registration.getNotifications().then((notifications) => {
         if (notifications.length === 0) {
           return clearBadge();
         }
         return setBadge(notifications.length);
-      }).catch(() => {}),
-      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-        for (const client of windowClients) {
-          if (client.url.includes('/admin') && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        return clients.openWindow(url);
-      })
-    ])
+      });
+    }).catch(() => {})
   );
 });
 
@@ -90,10 +113,20 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CLEAR_BADGE') {
     self.registration.getNotifications().then((notifications) => {
       notifications.forEach(n => n.close());
-    });
-    clearBadge().catch(() => {});
+    }).catch(() => {});
+    clearBadge();
+  }
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match(OFFLINE_URL);
+      })
+    );
+  }
 });

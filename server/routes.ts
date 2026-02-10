@@ -578,6 +578,9 @@ export async function registerRoutes(
       if (!endpoint || !keys?.p256dh || !keys?.auth) {
         return res.status(400).json({ message: "Datos de suscripcion invalidos" });
       }
+      try {
+        await storage.deletePushSubscription(endpoint);
+      } catch {}
       await storage.createPushSubscription({
         adminUserId: user.id,
         endpoint,
@@ -1107,6 +1110,61 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error al liberar chat: ${error.message}`, "api");
       res.status(500).json({ message: "Error al liberar chat" });
+    }
+  });
+
+  app.patch("/api/admin/sessions/:sessionId/transfer", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const { targetAgentId } = req.body;
+      if (!targetAgentId || typeof targetAgentId !== "number") {
+        return res.status(400).json({ message: "ID del agente destino requerido" });
+      }
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+      if (adminUser.role === "ejecutivo") {
+        if (!session.assignedTo || session.assignedTo !== adminUser.id) {
+          return res.status(403).json({ message: "Solo puedes transferir chats que te estan asignados" });
+        }
+      } else if (session.assignedTo && session.assignedTo !== adminUser.id && adminUser.role !== "superadmin") {
+        return res.status(403).json(lockedResponse(session));
+      }
+      const targetAgent = await storage.getAdminUserById(targetAgentId);
+      if (!targetAgent) {
+        return res.status(404).json({ message: "Agente destino no encontrado" });
+      }
+      const transferred = await storage.claimSession(
+        req.params.sessionId,
+        targetAgent.id,
+        targetAgent.displayName,
+        targetAgent.color || "#6200EA"
+      );
+      let updated = transferred;
+      if (updated && updated.tags) {
+        const newTags = updated.tags.filter((t) => t !== "Bot");
+        if (!newTags.includes("Ejecutivo")) newTags.push("Ejecutivo");
+        updated = await storage.updateSessionTags(req.params.sessionId, newTags) || updated;
+      }
+      await storage.createMessage({
+        sessionId: req.params.sessionId,
+        content: `Chat transferido de ${adminUser.displayName} a ${targetAgent.displayName}`,
+        sender: "support" as const,
+        userEmail: session.userEmail || "",
+        userName: session.userName || "",
+      });
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "transfer", session: updated });
+      sendPushToAdmins(
+        `Chat transferido`,
+        `${adminUser.displayName} te ha transferido el chat de ${session.userName || "un usuario"}`,
+        req.params.sessionId
+      );
+      res.json(updated);
+    } catch (error) {
+      log(`Error al transferir chat: ${(error as Error).message}`, "api");
+      res.status(500).json({ message: "Error al transferir chat" });
     }
   });
 

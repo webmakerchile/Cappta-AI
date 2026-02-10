@@ -5,7 +5,7 @@ import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
   Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
-  UserPlus, UserMinus, Check
+  UserPlus, UserMinus, Check, ArrowRightLeft
 } from "lucide-react";
 import {
   Select,
@@ -823,6 +823,48 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     },
   });
 
+  const { data: adminUsersList = [] } = useQuery<{ id: number; displayName: string; color?: string; role: string }[]>({
+    queryKey: ["/api/admin/users"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/users");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const [showTransferMenu, setShowTransferMenu] = useState(false);
+
+  const transferMutation = useMutation({
+    mutationFn: async (targetAgentId: number) => {
+      const res = await adminFetch(`/api/admin/sessions/${sessionId}/transfer`, {
+        method: "PATCH",
+        body: JSON.stringify({ targetAgentId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Error al transferir");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      setShowTransferMenu(false);
+    },
+  });
+
+  useEffect(() => {
+    if (!showTransferMenu) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-testid="button-transfer-session"]') && !target.closest('.transfer-dropdown')) {
+        setShowTransferMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showTransferMenu]);
+
   const { uploadFile: adminUploadFile, isUploading: adminIsUploading } = useUpload({
     onSuccess: (response) => {
       replyMutation.mutate({ imageUrl: response.objectPath });
@@ -955,17 +997,58 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 flex-wrap justify-end">
             {currentSession?.assignedTo === adminUser?.id ? (
-              <Button
-                data-testid="button-unclaim-session"
-                variant="ghost"
-                size="sm"
-                onClick={() => claimMutation.mutate("unclaim")}
-                disabled={claimMutation.isPending}
-                className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-[#BB86FC]"
-              >
-                <UserMinus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
-                <span className="hidden sm:inline">Liberar</span>
-              </Button>
+              <>
+                <Button
+                  data-testid="button-unclaim-session"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => claimMutation.mutate("unclaim")}
+                  disabled={claimMutation.isPending}
+                  className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-[#BB86FC]"
+                >
+                  <UserMinus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Liberar</span>
+                </Button>
+                <div className="relative">
+                  <Button
+                    data-testid="button-transfer-session"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTransferMenu(!showTransferMenu)}
+                    className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-amber-400"
+                    disabled={transferMutation.isPending}
+                  >
+                    <ArrowRightLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
+                    <span className="hidden sm:inline">Transferir</span>
+                  </Button>
+                  {showTransferMenu && (
+                    <div className="transfer-dropdown absolute top-full right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
+                      <p className="text-[10px] text-white/40 px-3 py-1 border-b border-white/[0.06]">Transferir a:</p>
+                      {adminUsersList
+                        .filter(u => u.id !== adminUser?.id)
+                        .map(agent => (
+                          <button
+                            key={agent.id}
+                            data-testid={`transfer-to-${agent.id}`}
+                            onClick={() => {
+                              if (confirm(`¿Transferir este chat a ${agent.displayName}?`)) {
+                                transferMutation.mutate(agent.id);
+                              }
+                            }}
+                            className="w-full text-left px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.06] flex items-center gap-2"
+                          >
+                            <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: agent.color || '#6200EA' }} />
+                            <span>{agent.displayName}</span>
+                            <span className="text-[10px] text-white/30 ml-auto">{agent.role === "admin" ? "Admin" : "Ejecutivo"}</span>
+                          </button>
+                        ))}
+                      {adminUsersList.filter(u => u.id !== adminUser?.id).length === 0 && (
+                        <p className="text-[10px] text-white/30 px-3 py-2">No hay otros agentes disponibles</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
             ) : !currentSession?.assignedTo ? (
               <Button
                 data-testid="button-claim-session"
@@ -2691,12 +2774,25 @@ export default function AdminPage() {
     function handleVisibility() {
       if (document.visibilityState === "visible") clearBadge();
     }
+    function handleSWMessage(event: MessageEvent) {
+      if (event.data?.type === "NOTIFICATION_CLICK" && event.data?.sessionId) {
+        setSelectedSession(event.data.sessionId);
+        setMobileView("chat");
+        setAdminTab("conversations");
+      }
+    }
     clearBadge();
     window.addEventListener("focus", clearBadge);
     document.addEventListener("visibilitychange", handleVisibility);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", handleSWMessage);
+    }
     return () => {
       window.removeEventListener("focus", clearBadge);
       document.removeEventListener("visibilitychange", handleVisibility);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("message", handleSWMessage);
+      }
     };
   }, [authenticated]);
 
@@ -2756,13 +2852,24 @@ export default function AdminPage() {
     async function subscribePush() {
       try {
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-        const reg = await navigator.serviceWorker.register("/sw.js");
+        const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+        reg.addEventListener("updatefound", () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "activated") {
+                newWorker.postMessage({ type: "SKIP_WAITING" });
+              }
+            });
+          }
+        });
         const res = await fetch("/api/push/vapid-public-key");
         const { key } = await res.json();
         if (!key) return;
-        const existing = await reg.pushManager.getSubscription();
-        if (existing) return;
         const permission = await Notification.requestPermission();
         if (permission !== "granted") return;
         const urlBase64ToUint8Array = (base64String: string) => {
@@ -2775,11 +2882,13 @@ export default function AdminPage() {
           }
           return outputArray;
         };
-
-        const subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key),
-        });
+        let subscription = await reg.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(key),
+          });
+        }
         const subJson = subscription.toJSON();
         await adminFetch("/api/admin/push-subscribe", {
           method: "POST",
