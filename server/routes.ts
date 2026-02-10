@@ -224,7 +224,8 @@ export async function registerRoutes(
       const hasImage = !!req.body.imageUrl;
       const bodyForValidation = { ...req.body };
       if (hasImage && (!bodyForValidation.content || bodyForValidation.content.trim() === "")) {
-        bodyForValidation.content = "Imagen enviada";
+        const isVideo = /\.(mp4|webm|mov|avi|mkv)$/i.test(req.body.imageUrl || "");
+        bodyForValidation.content = isVideo ? "Video enviado" : "Imagen enviada";
       }
       const parsed = socketMessageSchema.safeParse(bodyForValidation);
       if (!parsed.success) {
@@ -976,6 +977,7 @@ export async function registerRoutes(
       }
       const created = await storage.createRating(parsed.data);
       await storage.updateSessionStatus(parsed.data.sessionId, "closed");
+      io.to("admin_room").emit("session_updated", { sessionId: parsed.data.sessionId, type: "status", session: { status: "closed" } });
       res.status(201).json(created);
     } catch (error: any) {
       log(`Error al crear calificacion: ${error.message}`, "api");
@@ -1192,7 +1194,7 @@ export async function registerRoutes(
         userEmail: session.userEmail,
         userName: "Soporte",
         sender: "support",
-        content: (content || "").trim() || (imageUrl ? "Imagen enviada" : ""),
+        content: (content || "").trim() || (imageUrl ? (/\.(mp4|webm|mov|avi|mkv)$/i.test(imageUrl) ? "Video enviado" : "Imagen enviada") : ""),
         imageUrl: imageUrl || null,
         adminName: adminUser.displayName,
         adminColor: dbAdmin?.color || "#6200EA",

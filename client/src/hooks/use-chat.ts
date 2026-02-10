@@ -270,7 +270,7 @@ export function useChat() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            content: content.trim() || (imageUrl ? "Imagen enviada" : ""),
+            content: content.trim() || (imageUrl ? (/\.(mp4|webm|mov|avi|mkv)$/i.test(imageUrl) ? "Video enviado" : "Imagen enviada") : ""),
             sessionId: user.sessionId,
             userEmail: user.email,
             userName: user.name,
@@ -376,11 +376,10 @@ export function useChat() {
     if (problemType && gameName) {
       const problemLabels: Record<string, string> = {
         compra: "Quiero comprar un producto",
-        problema_cuenta: "Problema con mi cuenta",
-        entrega: "No he recibido mi producto",
-        devolucion: "Solicitar devolucion o cambio",
-        info_producto: "Informacion sobre un producto",
-        precio: "Consulta de precios",
+        codigo_verificacion: "Necesito un nuevo codigo de verificacion",
+        candado_juego: "Me aparece un candado en mi juego",
+        estado_pedido: "Quiero saber el estado de mi pedido",
+        problema_plus: "Tengo problemas con mi plus",
         otro: "Otro",
       };
       const label = problemLabels[problemType] || problemType;
@@ -420,11 +419,10 @@ export function useChat() {
 
     const problemLabels: Record<string, string> = {
       compra: "Quiero comprar un producto",
-      problema_cuenta: "Problema con mi cuenta",
-      entrega: "No he recibido mi producto",
-      devolucion: "Solicitar devolucion o cambio",
-      info_producto: "Informacion sobre un producto",
-      precio: "Consulta de precios",
+      codigo_verificacion: "Necesito un nuevo codigo de verificacion",
+      candado_juego: "Me aparece un candado en mi juego",
+      estado_pedido: "Quiero saber el estado de mi pedido",
+      problema_plus: "Tengo problemas con mi plus",
       otro: "Otro",
     };
     const label = problemLabels[problemType] || problemType;

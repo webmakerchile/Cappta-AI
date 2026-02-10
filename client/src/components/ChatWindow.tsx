@@ -228,7 +228,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
-  const isImageOnly = hasImage && (!message.content || message.content === "Imagen enviada");
+  const isImageOnly = hasImage && (!message.content || message.content === "Imagen enviada" || message.content === "Video enviado");
 
   const isRatingMessage = !isUser && message.content.includes("{{SHOW_RATING}}");
 
@@ -306,15 +306,33 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
             style={!isUser && msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined}
           >
             {hasImage && (
-              <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
-                <img
-                  src={imageUrl}
-                  alt="Imagen compartida"
-                  data-testid={`message-image-${message.id}`}
-                  className="max-w-full max-h-52 object-contain cursor-pointer rounded-md"
-                  loading="lazy"
-                />
-              </a>
+              (() => {
+                const isVideo = /\.(mp4|webm|mov|avi|mkv)$/i.test(imageUrl || "");
+                if (isVideo) {
+                  return (
+                    <div className="p-1.5">
+                      <video
+                        src={imageUrl}
+                        controls
+                        data-testid={`message-video-${message.id}`}
+                        className="max-w-full max-h-52 rounded-md"
+                        preload="metadata"
+                      />
+                    </div>
+                  );
+                }
+                return (
+                  <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                    <img
+                      src={imageUrl}
+                      alt="Imagen compartida"
+                      data-testid={`message-image-${message.id}`}
+                      className="max-w-full max-h-52 object-contain cursor-pointer rounded-md"
+                      loading="lazy"
+                    />
+                  </a>
+                );
+              })()
             )}
             {!isImageOnly && (
               <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words whitespace-pre-line">
@@ -432,11 +450,10 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
 
 const PROBLEM_TYPES = [
   { value: "compra", label: "Quiero comprar un producto" },
-  { value: "problema_cuenta", label: "Problema con mi cuenta" },
-  { value: "entrega", label: "No he recibido mi producto" },
-  { value: "devolucion", label: "Solicitar devolucion o cambio" },
-  { value: "info_producto", label: "Informacion sobre un producto" },
-  { value: "precio", label: "Consulta de precios" },
+  { value: "codigo_verificacion", label: "Necesito un nuevo codigo de verificacion" },
+  { value: "candado_juego", label: "Me aparece un candado en mi juego" },
+  { value: "estado_pedido", label: "Quiero saber el estado de mi pedido" },
+  { value: "problema_plus", label: "Tengo problemas con mi plus" },
   { value: "otro", label: "Otro" },
 ];
 
@@ -505,11 +522,10 @@ function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, g
 function SessionDivider({ session }: { session: Session }) {
   const problemLabels: Record<string, string> = {
     compra: "Compra",
-    problema_cuenta: "Problema de cuenta",
-    entrega: "Entrega",
-    devolucion: "Devolucion",
-    info_producto: "Info producto",
-    precio: "Precio",
+    codigo_verificacion: "Codigo verificacion",
+    candado_juego: "Candado en juego",
+    estado_pedido: "Estado de pedido",
+    problema_plus: "Problema Plus",
     otro: "Otro",
   };
 
@@ -552,8 +568,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const handleImageSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) return;
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return;
+    if (file.size > 50 * 1024 * 1024) return;
     await uploadFile(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, [uploadFile]);
@@ -936,7 +952,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           onChange={handleImageSelect}
           className="hidden"
           data-testid="input-image-file"

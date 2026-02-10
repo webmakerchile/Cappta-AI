@@ -875,8 +875,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   const handleAdminImageSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) return;
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return;
+    if (file.size > 50 * 1024 * 1024) return;
     await adminUploadFile(file);
     if (adminFileInputRef.current) adminFileInputRef.current.value = "";
   }, [adminUploadFile]);
@@ -1185,7 +1185,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             const isUser = msg.sender === "user";
             const hasImage = !!(msg as any).imageUrl;
             const imageUrl = (msg as any).imageUrl;
-            const isImageOnly = hasImage && (!msg.content || msg.content === "Imagen enviada");
+            const isImageOnly = hasImage && (!msg.content || msg.content === "Imagen enviada" || msg.content === "Video enviado");
             const msgAdminName = (msg as any).adminName;
             const msgAdminColor = (msg as any).adminColor || "#6200EA";
             return (
@@ -1227,15 +1227,33 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                       style={!isUser && msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined}
                     >
                       {hasImage && (
-                        <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
-                          <img
-                            src={imageUrl}
-                            alt="Imagen compartida"
-                            data-testid={`admin-message-image-${msg.id}`}
-                            className="max-w-full max-h-48 object-contain cursor-pointer rounded-md"
-                            loading="lazy"
-                          />
-                        </a>
+                        (() => {
+                          const isVideo = /\.(mp4|webm|mov|avi|mkv)$/i.test(imageUrl || "");
+                          if (isVideo) {
+                            return (
+                              <div className="p-1.5">
+                                <video
+                                  src={imageUrl}
+                                  controls
+                                  data-testid={`admin-message-video-${msg.id}`}
+                                  className="max-w-full max-h-48 rounded-md"
+                                  preload="metadata"
+                                />
+                              </div>
+                            );
+                          }
+                          return (
+                            <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                              <img
+                                src={imageUrl}
+                                alt="Imagen compartida"
+                                data-testid={`admin-message-image-${msg.id}`}
+                                className="max-w-full max-h-48 object-contain cursor-pointer rounded-md"
+                                loading="lazy"
+                              />
+                            </a>
+                          );
+                        })()
                       )}
                       {!isImageOnly && (
                         <div className="px-3 py-2 text-sm leading-relaxed break-words">
@@ -1340,7 +1358,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             <input
               ref={adminFileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={handleAdminImageSelect}
               className="hidden"
               data-testid="input-admin-image-file"
@@ -2733,9 +2751,15 @@ export default function AdminPage() {
           .filter(([key]) => (key as string[]).length <= 2);
         allQueries.forEach(([key, old]) => {
           if (!old || !Array.isArray(old)) return;
-          queryClient.setQueryData(key, old.map((s: any) =>
+          const queryStatusFilter = (key as string[])[1] || "all";
+          const updatedList = old.map((s: any) =>
             s.sessionId === data.sessionId ? { ...s, ...updatedSession } : s
-          ));
+          );
+          if (updatedSession.status && queryStatusFilter !== "all") {
+            queryClient.setQueryData(key, updatedList.filter((s: any) => s.status === queryStatusFilter));
+          } else {
+            queryClient.setQueryData(key, updatedList);
+          }
         });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });

@@ -28,11 +28,10 @@ interface WelcomeFormProps {
 
 const PROBLEM_TYPES = [
   { value: "compra", label: "Quiero comprar un producto" },
-  { value: "problema_cuenta", label: "Problema con mi cuenta" },
-  { value: "entrega", label: "No he recibido mi producto" },
-  { value: "devolucion", label: "Solicitar devolucion o cambio" },
-  { value: "info_producto", label: "Informacion sobre un producto" },
-  { value: "precio", label: "Consulta de precios" },
+  { value: "codigo_verificacion", label: "Necesito un nuevo codigo de verificacion" },
+  { value: "candado_juego", label: "Me aparece un candado en mi juego" },
+  { value: "estado_pedido", label: "Quiero saber el estado de mi pedido" },
+  { value: "problema_plus", label: "Tengo problemas con mi plus" },
   { value: "otro", label: "Otro" },
 ];
 

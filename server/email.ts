@@ -60,11 +60,10 @@ export async function sendOfflineNotification(data: OfflineNotificationData): Pr
 function getProblemTypeLabel(problemType: string): string {
   const labels: Record<string, string> = {
     compra: "Quiero comprar un producto",
-    problema_cuenta: "Problema con mi cuenta",
-    entrega: "No he recibido mi producto",
-    devolucion: "Solicitar devoluci\u00f3n o cambio",
-    info_producto: "Informaci\u00f3n sobre un producto",
-    precio: "Consulta de precios",
+    codigo_verificacion: "Necesito un nuevo codigo de verificacion",
+    candado_juego: "Me aparece un candado en mi juego",
+    estado_pedido: "Quiero saber el estado de mi pedido",
+    problema_plus: "Tengo problemas con mi plus",
     otro: "Otro",
   };
   return labels[problemType] || problemType;
