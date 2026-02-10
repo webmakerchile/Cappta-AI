@@ -2191,20 +2191,70 @@ function CannedResponsesPanel() {
   );
 }
 
+let _adminAudioCtx: AudioContext | null = null;
+let _adminNeedsUnlock = true;
+
+function getOrCreateAdminAudioCtx(): AudioContext {
+  if (!_adminAudioCtx || _adminAudioCtx.state === "closed") {
+    _adminAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    _adminNeedsUnlock = true;
+  }
+  return _adminAudioCtx;
+}
+
+function tryResumeAdminAudio() {
+  try {
+    const ctx = getOrCreateAdminAudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    if (_adminNeedsUnlock) {
+      const s = ctx.createOscillator();
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      s.connect(g);
+      g.connect(ctx.destination);
+      s.start(ctx.currentTime);
+      s.stop(ctx.currentTime + 0.001);
+      _adminNeedsUnlock = false;
+    }
+  } catch {}
+}
+
+if (typeof window !== "undefined") {
+  const gestureEvents = ["touchstart", "touchend", "click", "keydown"];
+  const onGesture = () => tryResumeAdminAudio();
+  gestureEvents.forEach(e => document.addEventListener(e, onGesture, { capture: true, passive: true }));
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      _adminNeedsUnlock = true;
+    }
+  });
+}
+
 function playNotificationSound() {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.4);
+    const ctx = getOrCreateAdminAudioCtx();
+    const doPlay = () => {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(800, t);
+      osc.frequency.setValueAtTime(600, t + 0.1);
+      osc.frequency.setValueAtTime(800, t + 0.2);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    };
+    if (ctx.state === "suspended") {
+      ctx.resume().then(doPlay).catch(() => {});
+    } else {
+      doPlay();
+    }
   } catch {}
 }
 

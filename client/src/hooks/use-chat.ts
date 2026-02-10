@@ -4,20 +4,70 @@ import { queryClient } from "@/lib/queryClient";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import type { Message, Session } from "@shared/schema";
 
+let _userAudioCtx: AudioContext | null = null;
+let _userNeedsUnlock = true;
+
+function getOrCreateUserAudioCtx(): AudioContext {
+  if (!_userAudioCtx || _userAudioCtx.state === "closed") {
+    _userAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    _userNeedsUnlock = true;
+  }
+  return _userAudioCtx;
+}
+
+function tryResumeUserAudio() {
+  try {
+    const ctx = getOrCreateUserAudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    if (_userNeedsUnlock) {
+      const s = ctx.createOscillator();
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      s.connect(g);
+      g.connect(ctx.destination);
+      s.start(ctx.currentTime);
+      s.stop(ctx.currentTime + 0.001);
+      _userNeedsUnlock = false;
+    }
+  } catch {}
+}
+
+if (typeof window !== "undefined") {
+  const gestureEvents = ["touchstart", "touchend", "click", "keydown"];
+  const onGesture = () => tryResumeUserAudio();
+  gestureEvents.forEach(e => document.addEventListener(e, onGesture, { capture: true, passive: true }));
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      _userNeedsUnlock = true;
+    }
+  });
+}
+
 function playUserNotificationSound() {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(1100, audioContext.currentTime + 0.1);
-    oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.2);
-    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+    const ctx = getOrCreateUserAudioCtx();
+    const doPlay = () => {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.setValueAtTime(1100, t + 0.1);
+      osc.frequency.setValueAtTime(880, t + 0.2);
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+      osc.start(t);
+      osc.stop(t + 0.5);
+    };
+    if (ctx.state === "suspended") {
+      ctx.resume().then(doPlay).catch(() => {});
+    } else {
+      doPlay();
+    }
   } catch {}
 }
 
