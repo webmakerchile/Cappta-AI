@@ -38,6 +38,8 @@ interface SessionSummary {
   assignedTo: number | null;
   assignedToName: string | null;
   assignedToColor: string | null;
+  lastMessageContent: string | null;
+  lastMessageSender: string | null;
 }
 
 interface BrowseProduct {
@@ -251,6 +253,25 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
   );
 }
 
+const AVATAR_COLORS = [
+  '#E53935', '#D81B60', '#8E24AA', '#5E35B1', '#3949AB',
+  '#1E88E5', '#039BE5', '#00ACC1', '#00897B', '#43A047',
+  '#7CB342', '#C0CA33', '#FDD835', '#FFB300', '#FB8C00',
+  '#F4511E', '#6D4C41', '#757575', '#546E7A'
+];
+
+function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function getInitial(name: string): string {
+  return (name || '?').charAt(0).toUpperCase();
+}
+
 function SessionCard({ session, onClick, isSelected, rating }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData }) {
   const agentColor = session.assignedToColor;
   const hasAgent = !!agentColor;
@@ -283,11 +304,17 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
       }}
     >
       <div className="flex items-center gap-2 mb-1.5">
-        <div className="relative w-7 h-7 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
-          <User className="w-3.5 h-3.5 text-[#6200EA]" />
+        <div className="relative flex-shrink-0">
+          <div
+            data-testid={`avatar-${session.sessionId}`}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+            style={{ backgroundColor: getAvatarColor(session.userName || session.userEmail || session.sessionId) }}
+          >
+            {getInitial(session.userName || session.userEmail)}
+          </div>
           <span
             data-testid={`status-dot-${session.sessionId}`}
-            className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#111] ${
+            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#111] ${
               session.status === "active" ? "bg-green-500" : "bg-white/30"
             }`}
           />
@@ -295,6 +322,11 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white truncate">{session.userName || "Sin nombre"}</p>
           <p className="text-[11px] text-white/40 truncate">{session.userEmail || "Sin correo"}</p>
+          {session.lastMessageContent && (
+            <p className="text-[11px] text-white/30 truncate mt-0.5" data-testid={`last-msg-preview-${session.sessionId}`}>
+              {session.lastMessageSender === 'admin' ? 'Agente: ' : session.lastMessageSender === 'bot' ? 'Bot: ' : ''}{session.lastMessageContent.replace(/\{\{QUICK_REPLIES:.*?\}\}/g, '').substring(0, 80)}
+            </p>
+          )}
         </div>
         {session.unreadCount > 0 && (
           <span
@@ -306,7 +338,7 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
         )}
       </div>
       {(session.problemType || session.gameName) && (
-        <div className="flex items-center gap-2 pl-9 mb-1 flex-wrap">
+        <div className="flex items-center gap-2 pl-10 mb-1 flex-wrap">
           {session.problemType && (
             <span className="text-[10px] text-[#6200EA] bg-[#6200EA]/10 px-1.5 py-0.5 rounded">{session.problemType}</span>
           )}
@@ -319,7 +351,7 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
         </div>
       )}
       {session.tags && session.tags.length > 0 && (
-        <div className="flex items-center gap-1 pl-9 mb-1 flex-wrap">
+        <div className="flex items-center gap-1 pl-10 mb-1 flex-wrap">
           {session.tags.map((tag) => {
             const tc = getTagColor(tag);
             return (
@@ -335,7 +367,7 @@ function SessionCard({ session, onClick, isSelected, rating }: { session: Sessio
           })}
         </div>
       )}
-      <div className="flex items-center gap-2 text-[11px] text-white/30 pl-9 flex-wrap">
+      <div className="flex items-center gap-2 text-[11px] text-white/30 pl-10 flex-wrap">
         <span className="flex items-center gap-1">
           <MessageSquare className="w-3 h-3" />
           {session.messageCount}
@@ -2760,6 +2792,8 @@ export default function AdminPage() {
         assignedTo: null,
         assignedToName: null,
         assignedToColor: null,
+        lastMessageContent: r.messages[0]?.content || null,
+        lastMessageSender: r.messages[0]?.sender || null,
       }))
     : sessions;
 
@@ -3008,7 +3042,7 @@ export default function AdminPage() {
                   ))}
                   {adminUser?.role === "superadmin" && (
                     <button
-                      data-testid="button-delete-all-chats"
+                      data-testid="button-clear-all-chats"
                       onClick={async () => {
                         if (!window.confirm("¿Estas seguro de eliminar TODOS los chats? Esta accion no se puede deshacer.")) return;
                         try {
@@ -3024,7 +3058,6 @@ export default function AdminPage() {
                           alert("Error de conexion");
                         }
                       }}
-                      data-testid="button-clear-all-chats"
                       className="ml-auto p-1 text-white/30 hover:text-red-400 transition-colors"
                       title="Vaciar chats"
                     >

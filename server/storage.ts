@@ -8,7 +8,7 @@ export interface IStorage {
   getSessionsByEmail(email: string): Promise<Session[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null }[]>;
   markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
@@ -201,7 +201,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null }[]> {
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null }[]> {
     const statusCondition = statusFilter && statusFilter !== "all"
       ? sql`WHERE s.status = ${statusFilter}`
       : sql``;
@@ -225,7 +225,9 @@ export class DatabaseStorage implements IStorage {
         ms.last_msg AS "lastMessage",
         ms.first_msg AS "firstMessage",
         COALESCE(ms.unread_after, 0)::int AS "unreadAfterRead",
-        CASE WHEN cr.user_email IS NOT NULL THEN true ELSE false END AS "contactRequested"
+        CASE WHEN cr.user_email IS NOT NULL THEN true ELSE false END AS "contactRequested",
+        (SELECT m2.content FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS "lastMessageContent",
+        (SELECT m2.sender FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS "lastMessageSender"
       FROM sessions s
       LEFT JOIN LATERAL (
         SELECT
@@ -265,6 +267,8 @@ export class DatabaseStorage implements IStorage {
         assignedTo: r.assignedTo ?? null,
         assignedToName: r.assignedToName ?? null,
         assignedToColor: r.assignedToColor ?? null,
+        lastMessageContent: r.lastMessageContent || null,
+        lastMessageSender: r.lastMessageSender || null,
       });
     }
 
@@ -309,6 +313,8 @@ export class DatabaseStorage implements IStorage {
             assignedTo: null,
             assignedToName: null,
             assignedToColor: null,
+            lastMessageContent: null,
+            lastMessageSender: null,
           });
         }
       }
