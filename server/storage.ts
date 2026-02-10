@@ -8,7 +8,7 @@ export interface IStorage {
   getSessionsByEmail(email: string): Promise<Session[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null }[]>;
   markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
@@ -53,6 +53,10 @@ export interface IStorage {
   deleteCustomTag(name: string): Promise<void>;
   findActiveSessionByEmail(email: string): Promise<Session | null>;
   deleteAllSessions(): Promise<number>;
+  incrementWarningCount(sessionId: string): Promise<number>;
+  blockSession(sessionId: string): Promise<void>;
+  unblockSession(sessionId: string): Promise<void>;
+  isSessionBlocked(sessionId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -201,7 +205,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null }[]> {
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null }[]> {
     const statusCondition = statusFilter && statusFilter !== "all"
       ? sql`WHERE s.status = ${statusFilter}`
       : sql``;
@@ -219,6 +223,7 @@ export class DatabaseStorage implements IStorage {
         s.assigned_to AS "assignedTo",
         s.assigned_to_name AS "assignedToName",
         s.assigned_to_color AS "assignedToColor",
+        s.blocked_at AS "blockedAt",
         s.last_read_at AS "lastReadAt",
         COALESCE(ms.msg_count, 0)::int AS "messageCount",
         COALESCE(ms.unread_user, 0)::int AS "totalUserMessages",
@@ -267,6 +272,7 @@ export class DatabaseStorage implements IStorage {
         assignedTo: r.assignedTo ?? null,
         assignedToName: r.assignedToName ?? null,
         assignedToColor: r.assignedToColor ?? null,
+        blockedAt: r.blockedAt || null,
         lastMessageContent: r.lastMessageContent || null,
         lastMessageSender: r.lastMessageSender || null,
       });
@@ -313,6 +319,7 @@ export class DatabaseStorage implements IStorage {
             assignedTo: null,
             assignedToName: null,
             assignedToColor: null,
+            blockedAt: null,
             lastMessageContent: null,
             lastMessageSender: null,
           });
@@ -710,6 +717,38 @@ export class DatabaseStorage implements IStorage {
       const deleted = await tx.delete(sessions).returning();
       return deleted.length;
     });
+  }
+
+  async incrementWarningCount(sessionId: string): Promise<number> {
+    const result = await db
+      .update(sessions)
+      .set({ warningCount: sql`${sessions.warningCount} + 1` })
+      .where(eq(sessions.sessionId, sessionId))
+      .returning({ warningCount: sessions.warningCount });
+    return result[0]?.warningCount ?? 0;
+  }
+
+  async blockSession(sessionId: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ blockedAt: new Date() })
+      .where(eq(sessions.sessionId, sessionId));
+  }
+
+  async unblockSession(sessionId: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ blockedAt: null, warningCount: 0 })
+      .where(eq(sessions.sessionId, sessionId));
+  }
+
+  async isSessionBlocked(sessionId: string): Promise<boolean> {
+    const session = await db
+      .select({ blockedAt: sessions.blockedAt })
+      .from(sessions)
+      .where(eq(sessions.sessionId, sessionId))
+      .limit(1);
+    return !!session[0]?.blockedAt;
   }
 }
 

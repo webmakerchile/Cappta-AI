@@ -31,6 +31,8 @@ export const sessions = pgTable("sessions", {
   assignedTo: integer("assigned_to"),
   assignedToName: text("assigned_to_name"),
   assignedToColor: text("assigned_to_color"),
+  warningCount: integer("warning_count").notNull().default(0),
+  blockedAt: timestamp("blocked_at"),
   lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
   lastReadAt: timestamp("last_read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

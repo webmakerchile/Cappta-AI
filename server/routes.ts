@@ -8,6 +8,7 @@ import { log } from "./index";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getSmartAutoReply } from "./autoReply";
+import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD } from "./profanityFilter";
 import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -246,6 +247,46 @@ export async function registerRoutes(
         problemType: req.body.problemType || null,
         gameName: req.body.gameName || null,
       });
+
+      if (parsed.data.sender === "user") {
+        const blocked = await storage.isSessionBlocked(sessionId);
+        if (blocked) {
+          return res.status(403).json({ message: "Tu chat ha sido bloqueado por uso reiterado de lenguaje inapropiado." });
+        }
+
+        const profanityCheck = containsProfanity(parsed.data.content);
+        if (profanityCheck.hasProfanity) {
+          const newCount = await storage.incrementWarningCount(sessionId);
+          if (newCount >= BLOCK_THRESHOLD) {
+            await storage.blockSession(sessionId);
+          }
+          const warningText = getProfanityWarningMessage(newCount);
+
+          const blockedMsg = await storage.createMessage({
+            sessionId,
+            userEmail: normalizedEmail,
+            userName: parsed.data.userName,
+            sender: "user",
+            content: "[Mensaje con contenido inapropiado]",
+            imageUrl: null,
+          });
+          io.to(`session:${sessionId}`).emit("new_message", blockedMsg);
+          io.to("admin_room").emit("admin_new_message", { sessionId, message: blockedMsg });
+
+          const warningMsg = await storage.createMessage({
+            sessionId,
+            userEmail: normalizedEmail,
+            userName: "Soporte",
+            sender: "support",
+            content: warningText,
+          });
+          io.to(`session:${sessionId}`).emit("new_message", warningMsg);
+          io.to("admin_room").emit("admin_new_message", { sessionId, message: warningMsg });
+          await storage.touchSession(sessionId);
+
+          return res.status(200).json(blockedMsg);
+        }
+      }
 
       const message = await storage.createMessage({
         sessionId,
@@ -1182,6 +1223,54 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/admin/sessions/:sessionId/block", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      await storage.blockSession(req.params.sessionId);
+
+      const session = await storage.getSession(req.params.sessionId);
+      const warningMsg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session?.userEmail || "",
+        userName: "Soporte",
+        sender: "support",
+        content: "Tu chat ha sido bloqueado por un administrador debido a comportamiento inapropiado.",
+      });
+      io.to(`session:${req.params.sessionId}`).emit("new_message", warningMsg);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: warningMsg });
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId });
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Error al bloquear sesion" });
+    }
+  });
+
+  app.patch("/api/admin/sessions/:sessionId/unblock", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      await storage.unblockSession(req.params.sessionId);
+
+      const session = await storage.getSession(req.params.sessionId);
+      const unblockMsg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session?.userEmail || "",
+        userName: "Soporte",
+        sender: "support",
+        content: "Tu chat ha sido desbloqueado. Puedes continuar la conversacion.",
+      });
+      io.to(`session:${req.params.sessionId}`).emit("new_message", unblockMsg);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: unblockMsg });
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId });
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Error al desbloquear sesion" });
+    }
+  });
+
   app.post("/api/admin/sessions/:sessionId/reply", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;
@@ -1368,6 +1457,45 @@ export async function registerRoutes(
           userEmail: normalizedEmail,
           userName: parsed.data.userName,
         });
+
+        if (parsed.data.sender === "user") {
+          const blocked = await storage.isSessionBlocked(sid);
+          if (blocked) {
+            socket.emit("error", { message: "Tu chat ha sido bloqueado por uso reiterado de lenguaje inapropiado." });
+            return;
+          }
+
+          const profanityCheck = containsProfanity(parsed.data.content);
+          if (profanityCheck.hasProfanity) {
+            const newCount = await storage.incrementWarningCount(sid);
+            if (newCount >= BLOCK_THRESHOLD) {
+              await storage.blockSession(sid);
+            }
+            const warningText = getProfanityWarningMessage(newCount);
+
+            const blockedMsg = await storage.createMessage({
+              sessionId: sid,
+              userEmail: normalizedEmail,
+              userName: parsed.data.userName,
+              sender: "user",
+              content: "[Mensaje con contenido inapropiado]",
+            });
+            io.to(`session:${sid}`).emit("new_message", blockedMsg);
+            io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: blockedMsg });
+
+            const warningMsg = await storage.createMessage({
+              sessionId: sid,
+              userEmail: normalizedEmail,
+              userName: "Soporte",
+              sender: "support",
+              content: warningText,
+            });
+            io.to(`session:${sid}`).emit("new_message", warningMsg);
+            io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: warningMsg });
+            await storage.touchSession(sid);
+            return;
+          }
+        }
 
         const message = await storage.createMessage({
           sessionId: sid,

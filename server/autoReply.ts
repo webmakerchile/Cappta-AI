@@ -1,3 +1,5 @@
+import { containsProfanity } from "./profanityFilter";
+
 type Intent =
   | "greeting"
   | "product_inquiry"
@@ -1401,6 +1403,11 @@ export async function getSmartAutoReply(
         {label: "Bundles", value: "__qr:category:bundle"},
       ]);
     }
+  }
+
+  const profanityResult = containsProfanity(msg);
+  if (profanityResult.hasProfanity) {
+    return "Por favor, mantengamos una conversacion respetuosa. Estoy aqui para ayudarte con tus consultas sobre nuestros productos y servicios. ¿En que puedo asistirte?";
   }
 
   const state = buildConversationState(msg, conversationHistory, sessionData);

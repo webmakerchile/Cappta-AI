@@ -22,6 +22,8 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -60,9 +62,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const { seedDatabase } = await import("./seed");
-  await seedDatabase();
   await registerRoutes(httpServer, app);
+
+  // Run seed in background - don't block server startup
+  import("./seed").then(({ seedDatabase }) => {
+    seedDatabase().catch(err => log(`Seed error: ${err.message}`));
+  });
 
   setTimeout(async () => {
     try {

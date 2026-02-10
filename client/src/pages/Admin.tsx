@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
-  Send, ShieldCheck, ShieldOff, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
+  Send, ShieldCheck, ShieldOff, ShieldAlert, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
   UserPlus, UserMinus, Check, ArrowRightLeft
 } from "lucide-react";
 import {
@@ -38,6 +38,7 @@ interface SessionSummary {
   assignedTo: number | null;
   assignedToName: string | null;
   assignedToColor: string | null;
+  blockedAt: string | null;
   lastMessageContent: string | null;
   lastMessageSender: string | null;
 }
@@ -875,6 +876,23 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     return () => document.removeEventListener("mousedown", handler);
   }, [showTransferMenu]);
 
+  const isBlocked = !!currentSession?.blockedAt;
+
+  const blockMutation = useMutation({
+    mutationFn: async (action: "block" | "unblock") => {
+      const res = await fetch(`/api/admin/sessions/${sessionId}/${action}`, {
+        method: "PATCH",
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      invalidateSessionLists();
+    },
+  });
+
   const { uploadFile: adminUploadFile, isUploading: adminIsUploading } = useUpload({
     onSuccess: (response) => {
       replyMutation.mutate({ imageUrl: response.objectPath });
@@ -1092,6 +1110,17 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               {isAdminActive ? <ShieldOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" /> : <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />}
               <span className="hidden sm:inline">{adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir del Chat" : "Entrar al Chat"}</span>
               <span className="sm:hidden">{adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir" : "Entrar"}</span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => blockMutation.mutate(isBlocked ? "unblock" : "block")}
+              title={isBlocked ? "Desbloquear Usuario" : "Bloquear Usuario"}
+              className={isBlocked ? "text-green-400" : "text-red-400"}
+              data-testid="button-toggle-block"
+              disabled={blockMutation.isPending}
+            >
+              {isBlocked ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
             </Button>
             <Button
               data-testid="button-toggle-session-status"
@@ -3091,6 +3120,7 @@ export default function AdminPage() {
         assignedToColor: null,
         lastMessageContent: r.messages[0]?.content || null,
         lastMessageSender: r.messages[0]?.sender || null,
+        blockedAt: null,
       }))
     : sessions;
 
