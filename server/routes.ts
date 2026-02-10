@@ -237,9 +237,11 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Session ID requerido" });
       }
 
+      const normalizedEmail = parsed.data.userEmail.toLowerCase();
+
       await storage.upsertSession({
         sessionId,
-        userEmail: parsed.data.userEmail,
+        userEmail: normalizedEmail,
         userName: parsed.data.userName,
         problemType: req.body.problemType || null,
         gameName: req.body.gameName || null,
@@ -247,7 +249,7 @@ export async function registerRoutes(
 
       const message = await storage.createMessage({
         sessionId,
-        userEmail: parsed.data.userEmail,
+        userEmail: normalizedEmail,
         userName: parsed.data.userName,
         sender: parsed.data.sender,
         content: parsed.data.content,
@@ -342,7 +344,7 @@ export async function registerRoutes(
 
             const autoReply = await storage.createMessage({
               sessionId,
-              userEmail: parsed.data.userEmail,
+              userEmail: normalizedEmail,
               userName: "Soporte",
               sender: "support",
               content: replyContent,
@@ -396,8 +398,10 @@ export async function registerRoutes(
         .map((m) => `${m.sender === "user" ? parsed.data.userName : "Soporte"}: ${m.content}`)
         .join("\n");
 
+      const normalizedEmail = parsed.data.userEmail.toLowerCase();
+
       const contactRequest = await storage.createContactRequest({
-        userEmail: parsed.data.userEmail,
+        userEmail: normalizedEmail,
         userName: parsed.data.userName,
         pageUrl: parsed.data.pageUrl || null,
         pageTitle: parsed.data.pageTitle || null,
@@ -418,7 +422,7 @@ export async function registerRoutes(
 
       const confirmMsg = await storage.createMessage({
         sessionId: parsed.data.sessionId,
-        userEmail: parsed.data.userEmail,
+        userEmail: normalizedEmail,
         userName: "Soporte",
         sender: "support",
         content: emailSent
@@ -1357,15 +1361,17 @@ export async function registerRoutes(
       }
 
       try {
+        const normalizedEmail = parsed.data.userEmail.toLowerCase();
+
         await storage.upsertSession({
           sessionId: sid,
-          userEmail: parsed.data.userEmail,
+          userEmail: normalizedEmail,
           userName: parsed.data.userName,
         });
 
         const message = await storage.createMessage({
           sessionId: sid,
-          userEmail: parsed.data.userEmail,
+          userEmail: normalizedEmail,
           userName: parsed.data.userName,
           sender: parsed.data.sender,
           content: parsed.data.content,
@@ -1451,7 +1457,7 @@ export async function registerRoutes(
 
               const autoReply = await storage.createMessage({
                 sessionId: sid,
-                userEmail: parsed.data.userEmail,
+                userEmail: normalizedEmail,
                 userName: "Soporte",
                 sender: "support",
                 content: replyContent,
@@ -1483,8 +1489,10 @@ export async function registerRoutes(
           .map((m) => `${m.sender === "user" ? parsed.data.userName : "Soporte"}: ${m.content}`)
           .join("\n");
 
+        const normalizedEmail = parsed.data.userEmail.toLowerCase();
+
         const contactRequest = await storage.createContactRequest({
-          userEmail: parsed.data.userEmail,
+          userEmail: normalizedEmail,
           userName: parsed.data.userName,
           pageUrl: parsed.data.pageUrl || null,
           pageTitle: parsed.data.pageTitle || null,
@@ -1513,7 +1521,7 @@ export async function registerRoutes(
 
         const confirmMsg = await storage.createMessage({
           sessionId: parsed.data.sessionId,
-          userEmail: parsed.data.userEmail,
+          userEmail: normalizedEmail,
           userName: "Soporte",
           sender: "support",
           content: emailSent

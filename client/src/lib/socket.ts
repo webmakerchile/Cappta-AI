@@ -19,7 +19,14 @@ export function getSocket(): Socket {
 
 export function connectSocket(email: string, name: string, sessionId: string): Socket {
   const s = getSocket();
-  if (!s.connected) {
+  if (s.connected) {
+    const currentAuth = s.auth as any;
+    if (currentAuth?.sessionId !== sessionId) {
+      s.disconnect();
+      s.auth = { email, name, sessionId };
+      s.connect();
+    }
+  } else {
     s.auth = { email, name, sessionId };
     s.connect();
   }
@@ -27,7 +34,7 @@ export function connectSocket(email: string, name: string, sessionId: string): S
 }
 
 export function disconnectSocket() {
-  if (socket && socket.connected) {
+  if (socket) {
     socket.disconnect();
   }
 }

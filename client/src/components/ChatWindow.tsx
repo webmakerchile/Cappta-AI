@@ -237,10 +237,11 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
     let userEmail = message.userEmail || "";
     let uName = message.userName || "";
     try {
-      const stored = localStorage.getItem("chat_user");
+      const stored = localStorage.getItem("chat_thread_user") || localStorage.getItem("chat_user");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed.sessionId) sessionId = parsed.sessionId;
+        if (parsed.activeSessionId) sessionId = parsed.activeSessionId;
+        else if (parsed.sessionId) sessionId = parsed.sessionId;
         if (parsed.email) userEmail = parsed.email;
         if (parsed.name) uName = parsed.name;
       }
@@ -386,7 +387,11 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("rated_session_" + sessionId);
-      if (stored) setConfirmState("sent");
+      if (stored) {
+        setConfirmState("sent");
+      } else {
+        setConfirmState("idle");
+      }
     } catch {}
   }, [sessionId]);
 
@@ -886,7 +891,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           <UserRound className="w-4 h-4 mr-2" />
           {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
         </Button>
-        <FinalizeRateButton sessionId={sessionId} />
+        <FinalizeRateButton sessionId={latestSession?.sessionId || sessionId} />
       </div>
 
       <div className="relative px-3 pb-3">

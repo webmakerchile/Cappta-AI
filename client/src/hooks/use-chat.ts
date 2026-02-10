@@ -464,8 +464,11 @@ export function useChat() {
 
   const startNewSession = useCallback((problemType: string, gameName: string) => {
     if (!user) return;
-    const updatedUser: ChatUser = { ...user, problemType, gameName };
+    const newSessionId = generateSessionId();
+    const updatedUser: ChatUser = { ...user, sessionId: newSessionId, problemType, gameName };
+    saveStoredUser(user.email, user.name, newSessionId);
     setUser(updatedUser);
+    setContactRequested(false);
 
     const problemLabels: Record<string, string> = {
       compra: "Quiero comprar un producto",
@@ -485,7 +488,7 @@ export function useChat() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content: introMessage,
-            sessionId: user.sessionId,
+            sessionId: newSessionId,
             userEmail: user.email,
             userName: user.name,
             sender: "user",
@@ -496,10 +499,12 @@ export function useChat() {
           }),
         });
         if (res.ok) {
+          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
           setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
             queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
-          }, 2500);
+          }, 2000);
         }
       } catch {}
     }, 500);
