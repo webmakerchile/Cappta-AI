@@ -710,20 +710,38 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const isSessionClosed = latestSession?.status === "closed";
 
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [viewportOffset, setViewportOffset] = useState(0);
 
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     const handleResize = () => {
       setViewportHeight(vv.height);
+      setViewportOffset(vv.offsetTop);
     };
     vv.addEventListener("resize", handleResize);
+    vv.addEventListener("scroll", handleResize);
     handleResize();
-    return () => vv.removeEventListener("resize", handleResize);
+    return () => {
+      vv.removeEventListener("resize", handleResize);
+      vv.removeEventListener("scroll", handleResize);
+    };
   }, []);
 
   return (
-    <div className="flex flex-col" style={viewportHeight ? { height: `${viewportHeight}px` } : { height: '100%' }}>
+    <div
+      className="flex flex-col"
+      style={viewportHeight ? {
+        height: `${viewportHeight}px`,
+        transform: `translateY(${viewportOffset}px)`,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
+        background: '#1a1a1a',
+      } : { height: '100%' }}
+    >
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: "#6200EA" }}>
         <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
           <Headphones className="w-4 h-4 text-white" />
