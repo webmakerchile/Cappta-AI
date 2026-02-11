@@ -179,8 +179,24 @@ function ContactChat() {
     logout,
   } = useChat();
 
+  const [isEmbedded, setIsEmbedded] = useState<boolean | null>(null);
+
   useEffect(() => {
     document.documentElement.classList.add("dark");
+  }, []);
+
+  useEffect(() => {
+    try {
+      setIsEmbedded(window.self !== window.top);
+    } catch {
+      setIsEmbedded(true);
+    }
+  }, []);
+
+  const postToParent = useCallback((type: string) => {
+    try {
+      window.parent.postMessage({ type }, "*");
+    } catch {}
   }, []);
 
   const handleRatingComplete = useCallback(() => {
@@ -188,7 +204,7 @@ function ContactChat() {
     queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
   }, [user?.email]);
 
-  if (isLoading) {
+  if (isEmbedded === null || isLoading) {
     return (
       <div
         className="w-full h-screen flex items-center justify-center"
@@ -205,39 +221,39 @@ function ContactChat() {
     );
   }
 
+  if (!isEmbedded) {
+    return (
+      <div
+        className="w-full h-screen flex items-center justify-center"
+        style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
+      >
+        <div className="flex flex-col items-center gap-6 max-w-md px-6 text-center">
+          <div className="w-20 h-20 rounded-full bg-[#6200EA]/20 flex items-center justify-center border border-[#6200EA]/30">
+            <Headphones className="w-10 h-10 text-[#6200EA]" />
+          </div>
+          <h1 data-testid="text-contact-restricted-title" className="text-xl font-bold text-white">Chat de Contacto</h1>
+          <p data-testid="text-contact-restricted-message" className="text-white/60 text-sm leading-relaxed">
+            Para acceder al chat de soporte, visita nuestra pagina de contacto en CJM Digitales.
+          </p>
+          <a
+            href="https://cjmdigitales.cl/"
+            data-testid="link-contact-restricted-back"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#6200EA] text-white text-sm font-semibold transition-opacity hover:opacity-90"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Ir a CJM Digitales
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="w-full h-screen flex flex-col"
       style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
       data-testid="contact-chat-container"
     >
-      <div
-        className="flex items-center justify-between px-4 py-2.5 flex-shrink-0"
-        style={{ background: "#111111", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <div className="flex items-center gap-3">
-          <img
-            src="/cjm-logo.webp"
-            alt="CJM Digitales"
-            className="w-8 h-8 rounded-full object-cover"
-            data-testid="img-contact-logo"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-          <span className="text-white font-semibold text-sm" data-testid="text-contact-brand">CJM Digitales - Contacto</span>
-        </div>
-        <a
-          href="https://cjmdigitales.cl/"
-          data-testid="link-contact-back"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-[#6200EA]/20 border border-[#6200EA]/30 text-[#BB86FC] text-xs font-semibold transition-opacity hover:opacity-80"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Volver a CJM Digitales</span>
-          <span className="sm:hidden">Volver</span>
-        </a>
-      </div>
-
       <div className="flex-1 flex flex-col min-h-0">
         {user ? (
           <ChatWindow
@@ -249,10 +265,10 @@ function ContactChat() {
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
-            onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
+            onClose={() => { postToParent("close_contact_chat"); }}
             onExitChat={() => {
               logout();
-              window.location.href = "https://cjmdigitales.cl/";
+              postToParent("close_contact_chat");
             }}
             sessionId={user.sessionId}
             onRatingComplete={handleRatingComplete}
@@ -263,7 +279,7 @@ function ContactChat() {
             <div className="w-full max-w-md">
               <WelcomeForm
                 onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
-                onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
+                onClose={() => { postToParent("close_contact_chat"); }}
               />
             </div>
           </div>
