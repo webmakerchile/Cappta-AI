@@ -5,6 +5,7 @@ import { Launcher } from "@/components/Launcher";
 import { ChatWindow } from "@/components/ChatWindow";
 import { WelcomeForm } from "@/components/WelcomeForm";
 import { useChat } from "@/hooks/use-chat";
+import { MessageCircle } from "lucide-react";
 
 const AdminPage = lazy(() => import("@/pages/Admin"));
 
@@ -68,7 +69,15 @@ function ChatWidget() {
   }, []);
 
   if (isLoading) {
-    return null;
+    return (
+      <div className="w-full h-full flex items-end justify-end">
+        <div className="p-2">
+          <div className="w-14 h-14 rounded-full bg-[#6200EA] flex items-center justify-center">
+            <MessageCircle className="w-6 h-6 text-white" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
