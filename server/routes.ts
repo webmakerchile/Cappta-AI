@@ -77,6 +77,8 @@ export async function registerRoutes(
   });
 
   const userSessions = new Map<string, UserSession>();
+  const offlineNotificationTimestamps = new Map<string, number>();
+  const OFFLINE_NOTIFICATION_COOLDOWN = 30 * 60 * 1000;
 
   const JWT_SECRET = process.env.SESSION_SECRET || "default-secret";
 
@@ -1433,12 +1435,19 @@ export async function registerRoutes(
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
 
       if (!isSessionOnline(req.params.sessionId)) {
-        sendOfflineNotification({
-          userName: session.userName,
-          userEmail: session.userEmail,
-          messageContent: content.trim(),
-          sessionId: req.params.sessionId,
-        }).catch(() => {});
+        const lastNotificationTime = offlineNotificationTimestamps.get(req.params.sessionId);
+        const now = Date.now();
+        
+        if (!lastNotificationTime || now - lastNotificationTime >= OFFLINE_NOTIFICATION_COOLDOWN) {
+          sendOfflineNotification({
+            userName: session.userName,
+            userEmail: session.userEmail,
+            messageContent: content.trim(),
+            sessionId: req.params.sessionId,
+          }).catch(() => {});
+          
+          offlineNotificationTimestamps.set(req.params.sessionId, now);
+        }
       }
 
       res.json(message);

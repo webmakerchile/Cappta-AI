@@ -290,7 +290,11 @@ Estamos dentro del horario de atención. Si el cliente necesita ayuda personaliz
       systemPrompt += "\n";
     });
     systemPrompt +=
-      "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). NO incluyas links de productos en tu respuesta de texto - los links de compra se agregan automáticamente como botones debajo de tu mensaje. Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiere buscar en la tienda web o preguntar a un ejecutivo.";
+      "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). NO incluyas links de productos en tu respuesta de texto - los links de compra se agregan automáticamente como botones debajo de tu mensaje. Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiérele que pruebe escribir el nombre exacto del producto para buscarlo, o que revise directamente en la tienda web cjmdigitales.cl.";
+  }
+
+  if (!catalogProducts || catalogProducts.length === 0) {
+    systemPrompt += "\n\n===== BÚSQUEDA DE PRODUCTOS =====\nNo se encontraron productos del catálogo que coincidan con la consulta del cliente. Si el cliente busca un producto específico, sugiérele que escriba el nombre exacto del juego o producto para buscarlo nuevamente, o que revise directamente en nuestra tienda web cjmdigitales.cl. Hay un botón de 'Buscar en catálogo' debajo de tu mensaje que el cliente puede usar.";
   }
 
   if (options?.knowledgeEntries && options.knowledgeEntries.length > 0) {

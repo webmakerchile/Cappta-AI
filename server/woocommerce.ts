@@ -379,6 +379,74 @@ export async function syncWooCommerceProducts(): Promise<SyncResult> {
   return result;
 }
 
+export interface WCSearchResult {
+  name: string;
+  price: string | null;
+  productUrl: string | null;
+  availability: string;
+  platform: string;
+  description: string | null;
+  category: string;
+}
+
+export async function searchWooCommerceProducts(query: string, maxResults: number = 5): Promise<WCSearchResult[]> {
+  if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
+    return [];
+  }
+
+  try {
+    const encodedQuery = encodeURIComponent(query);
+    const urls = [
+      `${WC_STORE_URL}/wp-json/wc/v3/products?consumer_key=${WC_CONSUMER_KEY}&consumer_secret=${WC_CONSUMER_SECRET}&per_page=${maxResults}&search=${encodedQuery}&status=publish`,
+      `${WC_STORE_URL}/?rest_route=/wc/v3/products&consumer_key=${WC_CONSUMER_KEY}&consumer_secret=${WC_CONSUMER_SECRET}&per_page=${maxResults}&search=${encodedQuery}&status=publish`,
+    ];
+
+    for (const url of urls) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch(url, {
+          headers: { "Accept": "application/json" },
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (!response.ok) continue;
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("json")) continue;
+
+        const data = await response.json();
+        if (!Array.isArray(data)) continue;
+
+        const results: WCSearchResult[] = (data as WCProduct[]).map(product => {
+          const price = product.sale_price || product.price || product.regular_price;
+          const formattedPrice = price ? formatPrice(product) : null;
+          const desc = product.short_description ? stripHtml(product.short_description) : null;
+
+          return {
+            name: product.name,
+            price: formattedPrice,
+            productUrl: product.permalink || null,
+            availability: detectAvailability(product),
+            platform: detectPlatform(product),
+            description: desc && desc.length > 150 ? desc.substring(0, 147) + "..." : desc,
+            category: detectCategory(product),
+          };
+        });
+
+        log(`WooCommerce live search for "${query}": ${results.length} results`, "woocommerce");
+        return results;
+      } catch (err: any) {
+        continue;
+      }
+    }
+  } catch (err: any) {
+    log(`WooCommerce live search failed for "${query}": ${err.message}`, "woocommerce");
+  }
+
+  return [];
+}
+
 export async function getWCSyncStatus(): Promise<{
   lastSync: Date | null;
   productCount: number;

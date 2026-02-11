@@ -1,6 +1,7 @@
 import { containsProfanity } from "./profanityFilter";
 import { getAIReply } from "./aiReply";
 import { storage } from "./storage";
+import { searchWooCommerceProducts } from "./woocommerce";
 
 type Intent =
   | "greeting"
@@ -1202,6 +1203,7 @@ function getUnknownResponse(state: ConversationState): string {
   return withButtons(text, [
     {label: "Ver juegos", value: "__qr:category:game"},
     {label: "Suscripciones", value: "__qr:category:subscription"},
+    {label: "Buscar en catálogo", value: "__qr:manual_search"},
     {label: "Contactar ejecutivo", value: "__qr:contact"},
   ]);
 }
@@ -1252,6 +1254,7 @@ async function getAIResponse(
 
     buttons.push({label: "Ver juegos", value: "__qr:category:game"});
     buttons.push({label: "Suscripciones", value: "__qr:category:subscription"});
+    buttons.push({label: "Buscar en catálogo", value: "__qr:manual_search"});
     buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
 
     return withButtons(aiResponse, buttons);
@@ -1464,6 +1467,14 @@ async function _processAutoReply(
 
   if (msg === "__qr:farewell_skip") {
     return "👋 ¡Hasta pronto! Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia! 💜";
+  }
+
+  if (msg === "__qr:manual_search") {
+    const text = "Escribe el nombre del juego, suscripcion o producto que buscas y lo buscare en nuestro catalogo completo.";
+    return withButtons(text, [
+      {label: "Ver juegos", value: "__qr:category:game"},
+      {label: "Suscripciones", value: "__qr:category:subscription"},
+    ]);
   }
 
   if (msg.startsWith("__qr:") && catalogLookup) {
@@ -1843,6 +1854,24 @@ async function _processAutoReply(
               relevantProducts = results.slice(0, 5);
               break;
             }
+          }
+        } catch {}
+      }
+
+      if (relevantProducts.length === 0) {
+        try {
+          const wcQuery = extractProductKeywords(userMessage) || userMessage;
+          const wcResults = await searchWooCommerceProducts(wcQuery, 5);
+          if (wcResults.length > 0) {
+            relevantProducts = wcResults.map(r => ({
+              name: r.name,
+              price: r.price,
+              productUrl: r.productUrl,
+              availability: r.availability,
+              platform: r.platform,
+              description: r.description,
+              category: r.category,
+            }));
           }
         } catch {}
       }
