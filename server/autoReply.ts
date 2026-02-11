@@ -795,7 +795,7 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
   const text = pickUnused([
     `🎮 ¡${gameName}${platSuffix}! Es un excelente titulo 🔥 Tenemos juegos digitales con entrega inmediata por correo ⚡📧 ¿Te gustaria comprarlo o necesitas mas informacion?`,
     `🕹️ ¡Buena eleccion! ${gameName} es un juegazo 🔥 Lo manejamos en version digital${platSuffix} con entrega instantanea ⚡ ¿Quieres que te ayude con la compra?`,
-    `🎮 ${gameName}${platSuffix}, entendido. Trabajamos con codigos digitales que se entregan al instante por email ⚡📧 ¿Te gustaria proceder con la compra?`,
+    `🎮 ${gameName}${platSuffix}, entendido. Trabajamos con cuentas digitales que incluyen el juego listo para descargar, entrega al instante por email ⚡📧 ¿Te gustaria proceder con la compra?`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
@@ -1007,7 +1007,7 @@ function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogP
     }
 
     const text = pickUnused([
-      `🛒 ¡Perfecto! Para comprar ${productName}${platSuffix}, realizas el pago y recibiras tu codigo digital por correo de forma inmediata ⚡📧 ¿Te gustaria saber los metodos de pago?`,
+      `🛒 ¡Perfecto! Para comprar ${productName}${platSuffix}, realizas el pago y recibiras tu cuenta con el juego por correo de forma inmediata ⚡📧 ¿Te gustaria saber los metodos de pago?`,
       `🛒 ¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantanea a tu email ⚡ Contacta a un ejecutivo para completar la compra 💬`,
     ], state.usedResponses);
     return withButtons(text, [
@@ -1092,8 +1092,8 @@ function getPaymentResponse(state: ConversationState): string {
 
 function getDeliveryResponse(state: ConversationState): string {
   const text = pickUnused([
-    `⚡ La entrega de todos nuestros productos es digital e inmediata. Recibiras tu codigo por correo electronico al completar la compra, en cuestion de minutos 📧`,
-    `⚡ ¡Todo es digital! Al completar la compra, recibiras tu codigo por email en minutos 📧 Sin envio fisico, todo es instantaneo.`,
+    `⚡ La entrega de todos nuestros productos es digital e inmediata. Recibiras los datos de tu cuenta con el juego por correo electronico al completar la compra, en cuestion de minutos 📧`,
+    `⚡ ¡Todo es digital! Al completar la compra, recibiras tu cuenta con el juego por email en minutos 📧 Sin envio fisico, todo es instantaneo.`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ver productos", value: "__qr:back"},
@@ -1115,8 +1115,8 @@ function getSupportResponse(state: ConversationState, sessionData?: SessionData)
 
 function getTrustResponse(state: ConversationState): string {
   const text = pickUnused([
-    `🤝 ¡Somos una tienda 100% confiable! ✅ Todos nuestros productos son codigos digitales oficiales. Tenemos una larga trayectoria y miles de clientes satisfechos ⭐`,
-    `🤝 Tu seguridad es nuestra prioridad. ✅ Vendemos codigos digitales oficiales y garantizamos cada producto. Puedes verificar nuestra reputacion ⭐`,
+    `🤝 ¡Somos una tienda 100% confiable! ✅ Todos nuestros productos son cuentas digitales oficiales con los juegos incluidos. Tenemos una larga trayectoria y miles de clientes satisfechos ⭐`,
+    `🤝 Tu seguridad es nuestra prioridad. ✅ Vendemos cuentas digitales oficiales y garantizamos cada producto. Puedes verificar nuestra reputacion ⭐`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ver productos", value: "__qr:back"},
