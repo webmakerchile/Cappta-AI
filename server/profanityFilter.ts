@@ -1,5 +1,22 @@
 export const BLOCK_THRESHOLD = 3;
 
+let customWords: string[] = [];
+
+export function getCustomWords(): string[] {
+  return customWords;
+}
+
+export function setCustomWords(words: string[]) {
+  customWords = (Array.isArray(words) ? words : [])
+    .filter(w => typeof w === "string")
+    .map(w => w.trim().toLowerCase())
+    .filter(w => w.length > 0);
+}
+
+export function getBuiltinWords(): string[] {
+  return PROFANITY_LIST;
+}
+
 export const PROFANITY_LIST: string[] = [
   "maldito", "maldita", "malditos", "malditas",
   "puto", "puta", "putos", "putas", "putita", "putito",
@@ -19,7 +36,7 @@ export const PROFANITY_LIST: string[] = [
   "ctm",
   "conchetumare", "conchetumadre", "conchasumadre", "conchesumadre",
   "weon", "weón", "wea", "weona", "weonas", "weones",
-  "culiao", "culiao", "culiado", "culiada", "culiaos", "culia",
+  "culiao", "culiado", "culiada", "culiaos", "culia",
   "aweonao", "aweonado", "aweonada", "aweona", "aweonaos",
   "sacowea", "sacoewea", "saco de wea",
   "la wea", "que wea", "weon ql", "ql",
@@ -164,6 +181,20 @@ export function containsProfanity(text: string): { hasProfanity: boolean; words:
     const partialBoundary = new RegExp(`\\b${normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
     if (partialBoundary.test(normalized) || partialBoundary.test(deobfuscated)) {
       foundWords.add(term);
+    }
+  }
+
+  for (const cw of customWords) {
+    const normalizedCw = normalizeText(cw);
+    if (normalizedCw.includes(" ")) {
+      if (normalized.includes(normalizedCw) || deobfuscated.includes(normalizedCw)) {
+        foundWords.add(cw);
+      }
+      continue;
+    }
+    const cwBoundary = new RegExp(`\\b${normalizedCw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
+    if (cwBoundary.test(normalized) || cwBoundary.test(deobfuscated)) {
+      foundWords.add(cw);
     }
   }
 

@@ -8,7 +8,7 @@ import { log } from "./index";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getSmartAutoReply } from "./autoReply";
-import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD } from "./profanityFilter";
+import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuiltinWords, getCustomWords, setCustomWords } from "./profanityFilter";
 import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import bcrypt from "bcryptjs";
@@ -165,7 +165,62 @@ export async function registerRoutes(
     }
   })();
 
+  const savedCustomWords = await storage.getSetting("custom_profanity_words");
+  if (savedCustomWords) {
+    try { setCustomWords(JSON.parse(savedCustomWords)); } catch {}
+  }
+
   registerObjectStorageRoutes(app);
+
+  app.get("/api/admin/profanity-words", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    res.json({ builtin: getBuiltinWords(), custom: getCustomWords() });
+  });
+
+  app.post("/api/admin/profanity-words", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const { word } = req.body;
+      if (!word || typeof word !== "string") {
+        return res.status(400).json({ message: "Palabra requerida" });
+      }
+      const trimmedWord = word.trim().toLowerCase();
+      if (!trimmedWord) {
+        return res.status(400).json({ message: "Palabra requerida" });
+      }
+      const builtin = getBuiltinWords();
+      const custom = getCustomWords();
+      if (builtin.includes(trimmedWord) || custom.includes(trimmedWord)) {
+        return res.status(409).json({ message: "La palabra ya existe en la lista" });
+      }
+      const updated = [...custom, trimmedWord];
+      await storage.setSetting("custom_profanity_words", JSON.stringify(updated));
+      setCustomWords(updated);
+      res.json({ success: true, word: trimmedWord });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al agregar palabra" });
+    }
+  });
+
+  app.delete("/api/admin/profanity-words/:word", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const word = decodeURIComponent(req.params.word).toLowerCase();
+      const custom = getCustomWords();
+      if (!custom.includes(word)) {
+        return res.status(404).json({ message: "Palabra no encontrada en la lista personalizada" });
+      }
+      const updated = custom.filter(w => w !== word);
+      await storage.setSetting("custom_profanity_words", JSON.stringify(updated));
+      setCustomWords(updated);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al eliminar palabra" });
+    }
+  });
 
   app.get("/api/messages/session/:sessionId", async (req, res) => {
     try {

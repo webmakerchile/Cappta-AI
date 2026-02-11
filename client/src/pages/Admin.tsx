@@ -2941,6 +2941,167 @@ function SettingsPanel() {
           <p data-testid="text-bh-toggle-error" className="text-xs text-red-400 mt-2">Error al cambiar el estado</p>
         )}
       </div>
+
+      <ProfanityWordsSection />
+    </div>
+  );
+}
+
+function ProfanityWordsSection() {
+  const [newWord, setNewWord] = useState("");
+  const [customExpanded, setCustomExpanded] = useState(true);
+  const [builtinExpanded, setBuiltinExpanded] = useState(false);
+
+  const { data: profanityData, isLoading } = useQuery<{ builtin: string[]; custom: string[] }>({
+    queryKey: ["/api/admin/profanity-words"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/profanity-words");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async (word: string) => {
+      const res = await adminFetch("/api/admin/profanity-words", {
+        method: "POST",
+        body: JSON.stringify({ word }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Error al agregar");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/profanity-words"] });
+      setNewWord("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (word: string) => {
+      const res = await adminFetch(`/api/admin/profanity-words/${encodeURIComponent(word)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Error al eliminar");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/profanity-words"] });
+    },
+  });
+
+  const handleAdd = () => {
+    const trimmed = newWord.trim().toLowerCase();
+    if (!trimmed) return;
+    addMutation.mutate(trimmed);
+  };
+
+  const customWords = profanityData?.custom || [];
+  const builtinWords = profanityData?.builtin || [];
+
+  return (
+    <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg mt-4">
+      <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+        <ShieldAlert className="w-4 h-4 text-[#BB86FC]" />
+        Filtro de Palabras
+      </h3>
+      <p className="text-xs text-white/40 mb-3">
+        Administra las palabras que se filtran en el chat. Las palabras integradas vienen incluidas por defecto.
+      </p>
+
+      <div className="flex items-center gap-2 mb-4">
+        <Input
+          data-testid="input-profanity-word"
+          value={newWord}
+          onChange={(e) => setNewWord(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+          placeholder="Nueva palabra..."
+          className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        />
+        <Button
+          data-testid="button-add-profanity-word"
+          onClick={handleAdd}
+          disabled={!newWord.trim() || addMutation.isPending}
+          className="bg-[#6200EA] text-white"
+        >
+          {addMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-1" />
+          ) : (
+            <Plus className="w-4 h-4 mr-1" />
+          )}
+          Agregar
+        </Button>
+      </div>
+
+      {addMutation.isError && (
+        <p data-testid="text-profanity-add-error" className="text-xs text-red-400 mb-3">{(addMutation.error as Error).message}</p>
+      )}
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="w-5 h-5 animate-spin text-white/30" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div>
+            <button
+              data-testid="button-toggle-custom-words"
+              onClick={() => setCustomExpanded(!customExpanded)}
+              className="flex items-center gap-1 text-sm font-medium text-white/80 w-full text-left mb-2"
+            >
+              <span className={`transition-transform ${customExpanded ? "rotate-90" : ""}`}>&#9654;</span>
+              Palabras personalizadas ({customWords.length})
+            </button>
+            {customExpanded && (
+              <div className="flex flex-wrap gap-1.5" data-testid="container-custom-words">
+                {customWords.length === 0 ? (
+                  <p className="text-xs text-white/30">No hay palabras personalizadas</p>
+                ) : (
+                  customWords.map((word) => (
+                    <span key={word} className="inline-flex items-center gap-0.5">
+                      <Badge data-testid={`badge-custom-word-${word}`} variant="default" className="text-xs">
+                        {word}
+                      </Badge>
+                      <Button
+                        data-testid={`button-delete-word-${word}`}
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => deleteMutation.mutate(word)}
+                        disabled={deleteMutation.isPending}
+                        className="text-white/40"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </span>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <button
+              data-testid="button-toggle-builtin-words"
+              onClick={() => setBuiltinExpanded(!builtinExpanded)}
+              className="flex items-center gap-1 text-sm font-medium text-white/80 w-full text-left mb-2"
+            >
+              <span className={`transition-transform ${builtinExpanded ? "rotate-90" : ""}`}>&#9654;</span>
+              Palabras integradas ({builtinWords.length})
+            </button>
+            {builtinExpanded && (
+              <div className="flex flex-wrap gap-1.5" data-testid="container-builtin-words">
+                {builtinWords.map((word, idx) => (
+                  <Badge key={`${word}-${idx}`} data-testid={`badge-builtin-word-${word}`} variant="secondary" className="text-xs opacity-70">
+                    {word}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
