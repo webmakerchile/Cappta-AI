@@ -794,6 +794,19 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     },
   });
 
+  const sendEmailMutation = useMutation({
+    mutationFn: async () => {
+      const res = await adminFetch(`/api/admin/sessions/${sessionId}/send-email`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Error al enviar correo");
+      }
+      return res.json();
+    },
+  });
+
   const claimMutation = useMutation({
     mutationFn: async (action: "claim" | "unclaim") => {
       const endpoint = action === "claim" ? "claim" : "unclaim";
@@ -1147,6 +1160,18 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             >
               <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 flex-shrink-0" />
               <span className="hidden sm:inline">{sendRatingMutation.isPending ? "..." : sessionRating ? "Enviada" : "Encuesta"}</span>
+            </Button>
+            <Button
+              data-testid="button-send-invite-email"
+              variant="ghost"
+              size="sm"
+              onClick={() => sendEmailMutation.mutate()}
+              disabled={sendEmailMutation.isPending}
+              className="text-[10px] sm:text-xs text-blue-400 px-1.5 sm:px-2"
+            >
+              <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 flex-shrink-0" />
+              <span className="hidden sm:inline">{sendEmailMutation.isPending ? "Enviando..." : sendEmailMutation.isSuccess ? "Enviado" : "Enviar correo"}</span>
+              <span className="sm:hidden">{sendEmailMutation.isPending ? "..." : "Correo"}</span>
             </Button>
             <Button
               size="icon"

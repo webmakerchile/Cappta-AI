@@ -3,7 +3,7 @@ import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
 import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema } from "@shared/schema";
-import { sendContactNotification, sendOfflineNotification } from "./email";
+import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
 import { log } from "./index";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
@@ -1547,6 +1547,44 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error al enviar encuesta: ${error.message}`, "api");
       res.status(500).json({ message: "Error al enviar encuesta" });
+    }
+  });
+
+  app.post("/api/admin/sessions/:id/send-email", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const session = await storage.getSession(req.params.id);
+      if (!session) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      const userEmail = session.userEmail;
+      const userName = session.userName;
+
+      if (!userEmail) {
+        return res.status(400).json({ message: "No se encontro email del usuario" });
+      }
+
+      const baseUrl = req.protocol + "://" + req.get("host");
+      const chatUrl = `${baseUrl}?email=${encodeURIComponent(userEmail)}&name=${encodeURIComponent(userName || "")}`;
+
+      const sent = await sendChatInviteEmail({
+        userName: userName || "Usuario",
+        userEmail,
+        sessionId: req.params.id,
+        agentName: user.displayName,
+        chatUrl,
+      });
+
+      if (!sent) {
+        return res.status(500).json({ message: "Error al enviar el correo" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error al enviar correo de invitacion: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al enviar correo" });
     }
   });
 
