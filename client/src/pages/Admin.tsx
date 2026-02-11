@@ -1190,9 +1190,9 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
 
   return (
     <div ref={chatContainerRef} className="flex flex-col h-full" style={{ minHeight: 0 }}>
-      <div className="flex-shrink-0 z-30 bg-[#111] px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] overflow-y-auto max-h-[40vh] sticky top-0 shadow-md">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className="flex-shrink-0 z-30 bg-[#111] border-b border-white/[0.06] sticky top-0 shadow-md">
+        <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 mr-2">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
               <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#BB86FC]" />
               <span
@@ -1206,7 +1206,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               <p className="text-[10px] sm:text-[11px] text-white/40 truncate">{userEmail}</p>
             </div>
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 flex-wrap justify-end">
+
+          <div className="flex items-center gap-1">
             {currentSession?.assignedTo === adminUser?.id ? (
               <>
                 <Button
@@ -1215,10 +1216,10 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   size="sm"
                   onClick={() => claimMutation.mutate("unclaim")}
                   disabled={claimMutation.isPending}
-                  className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-[#BB86FC]"
+                  className="text-[10px] sm:text-xs px-2 text-[#BB86FC] h-8 flex-shrink-0"
                 >
-                  <UserMinus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
-                  <span className="hidden sm:inline">Liberar</span>
+                  <UserMinus className="w-3.5 h-3.5 mr-1" />
+                  Liberar
                 </Button>
                 <div className="relative">
                   <Button
@@ -1226,14 +1227,14 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowTransferMenu(!showTransferMenu)}
-                    className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-amber-400"
+                    className="text-[10px] sm:text-xs px-2 text-amber-400 h-8 flex-shrink-0"
                     disabled={transferMutation.isPending}
                   >
-                    <ArrowRightLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
-                    <span className="hidden sm:inline">Transferir</span>
+                    <ArrowRightLeft className="w-3.5 h-3.5 mr-1" />
+                    Transferir
                   </Button>
                   {showTransferMenu && (
-                    <div className="transfer-dropdown absolute top-full right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
+                    <div className="transfer-dropdown absolute top-full left-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
                       <p className="text-[10px] text-white/40 px-3 py-1 border-b border-white/[0.06]">Transferir a:</p>
                       {adminUsersList
                         .filter(u => u.id !== adminUser?.id)
@@ -1267,100 +1268,97 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                 size="sm"
                 onClick={() => claimMutation.mutate("claim")}
                 disabled={claimMutation.isPending}
-                className="text-[10px] sm:text-xs px-1.5 sm:px-2 text-cyan-400"
+                className="text-[10px] sm:text-xs px-2 text-[#BB86FC] h-8 flex-shrink-0"
               >
-                <UserPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />
-                <span className="hidden sm:inline">Tomar Chat</span>
-                <span className="sm:hidden">Tomar</span>
+                <UserPlus className="w-3.5 h-3.5 mr-1" />
+                Reclamar
               </Button>
-            ) : (
-              <span className="text-[10px] text-white/30 px-1">
-                Asignado a {currentSession.assignedToName}
-              </span>
-            )}
+            ) : null}
+
             <Button
-              data-testid="button-admin-takeover"
+              data-testid="button-toggle-admin-active"
               variant="ghost"
               size="sm"
               onClick={() => adminActiveMutation.mutate(!isAdminActive)}
-              disabled={isLockedByOther || adminActiveMutation.isPending}
-              className={`text-[10px] sm:text-xs px-1.5 sm:px-2 ${
-                isAdminActive
-                  ? "text-orange-400"
-                  : "text-emerald-400"
-              }`}
+              disabled={adminActiveMutation.isPending}
+              className={`text-[10px] sm:text-xs px-2 h-8 flex-shrink-0 ${isAdminActive ? "text-orange-400" : "text-emerald-400"}`}
             >
-              {isAdminActive ? <ShieldOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" /> : <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" />}
-              <span className="hidden sm:inline">{adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir del Chat" : "Entrar al Chat"}</span>
-              <span className="sm:hidden">{adminActiveMutation.isPending ? "..." : isAdminActive ? "Salir" : "Entrar"}</span>
+              {isAdminActive ? <ShieldOff className="w-3.5 h-3.5 mr-1" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1" />}
+              {isAdminActive ? "Salir" : "Entrar"}
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => {
-                const action = isBlocked ? "unblock" : "block";
-                const msg = isBlocked
-                  ? "¿Desbloquear a este usuario? Podra volver a escribir en el chat."
-                  : "¿Bloquear a este usuario? No podra enviar mas mensajes en el chat.";
-                if (window.confirm(msg)) {
-                  blockMutation.mutate(action);
-                }
-              }}
-              title={isBlocked ? "Desbloquear Usuario" : "Bloquear Usuario"}
-              className={isBlocked ? "text-green-400" : "text-red-400"}
-              data-testid="button-toggle-block"
-              disabled={blockMutation.isPending}
-            >
-              {isBlocked ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
-            </Button>
-            <Button
-              data-testid="button-toggle-session-status"
-              variant="ghost"
-              size="sm"
-              onClick={() => statusMutation.mutate(sessionStatus === "active" ? "closed" : "active")}
-              disabled={isLockedByOther || statusMutation.isPending}
-              className={`text-[10px] sm:text-xs px-1.5 sm:px-2 ${
-                sessionStatus === "active"
-                  ? "text-red-400"
-                  : "text-green-400"
-              }`}
-            >
-              {statusMutation.isPending ? "..." : sessionStatus === "active" ? "Cerrar" : "Reabrir"}
-            </Button>
-            <Button
-              data-testid="button-send-survey"
-              variant="ghost"
-              size="sm"
-              onClick={() => sendRatingMutation.mutate()}
-              disabled={isLockedByOther || !!sessionRating || sendRatingMutation.isPending}
-              className="text-[10px] sm:text-xs text-yellow-400 px-1.5 sm:px-2"
-            >
-              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 flex-shrink-0" />
-              <span className="hidden sm:inline">{sendRatingMutation.isPending ? "..." : sessionRating ? "Enviada" : "Encuesta"}</span>
-            </Button>
-            <Button
-              data-testid="button-send-invite-email"
-              variant="ghost"
-              size="sm"
-              onClick={() => sendEmailMutation.mutate()}
-              disabled={sendEmailMutation.isPending}
-              className="text-[10px] sm:text-xs text-blue-400 px-1.5 sm:px-2"
-            >
-              <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 flex-shrink-0" />
-              <span className="hidden sm:inline">{sendEmailMutation.isPending ? "Enviando..." : sendEmailMutation.isSuccess ? "Enviado" : "Enviar correo"}</span>
-              <span className="sm:hidden">{sendEmailMutation.isPending ? "..." : "Correo"}</span>
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              data-testid="button-toggle-chat-search"
-              onClick={() => { setShowLocalSearch(!showLocalSearch); setLocalSearch(""); }}
-              className={showLocalSearch ? "text-[#BB86FC]" : "text-white/40"}
-            >
-              <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </Button>
+
+            <div className="flex items-center gap-1 border-l border-white/10 pl-1">
+              <Select
+                value={sessionStatus}
+                onValueChange={(val) => statusMutation.mutate(val)}
+              >
+                <SelectTrigger
+                  data-testid="select-session-status"
+                  className="h-8 w-[100px] bg-transparent border-white/10 text-[10px] sm:text-xs text-white/70 flex-shrink-0"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a2e] border-white/10">
+                  <SelectItem value="active" className="text-xs">Activo</SelectItem>
+                  <SelectItem value="closed" className="text-xs">Cerrar</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                data-testid="button-send-rating"
+                variant="ghost"
+                size="icon"
+                onClick={() => { if (confirm("¿Enviar encuesta de satisfaccion?")) sendRatingMutation.mutate(); }}
+                disabled={sendRatingMutation.isPending || !!sessionRating}
+                title="Enviar encuesta"
+                className={`h-8 w-8 flex-shrink-0 ${sessionRating ? "text-yellow-400" : "text-white/40"}`}
+              >
+                <Star className={`w-3.5 h-3.5 ${sessionRating ? "fill-yellow-400" : ""}`} />
+              </Button>
+
+              <Button
+                data-testid="button-manual-email"
+                variant="ghost"
+                size="icon"
+                onClick={() => { if (confirm("¿Enviar notificacion por correo ahora?")) sendEmailMutation.mutate(); }}
+                disabled={sendEmailMutation.isPending}
+                title="Notificar por correo"
+                className="h-8 w-8 text-[#BB86FC] flex-shrink-0"
+              >
+                <Mail className="w-3.5 h-3.5" />
+              </Button>
+
+              <Button
+                data-testid="button-local-search"
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowLocalSearch(!showLocalSearch)}
+                title="Buscar en chat"
+                className={`h-8 w-8 flex-shrink-0 ${showLocalSearch ? "text-[#BB86FC]" : "text-white/40"}`}
+              >
+                <Search className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
+
+        {showLocalSearch && (
+          <div className="px-3 sm:px-4 py-1.5 border-t border-white/[0.06] flex items-center gap-2">
+            <Search className="w-3.5 h-3.5 text-white/30" />
+            <input
+              data-testid="input-local-search"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Buscar en el chat..."
+              className="flex-1 bg-transparent text-xs text-white outline-none"
+              autoFocus
+            />
+            <button onClick={() => { setShowLocalSearch(false); setLocalSearch(""); }} className="text-white/30 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
 
         {isAdminActive && (
           <div className="mt-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-2">
