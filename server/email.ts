@@ -3,7 +3,7 @@ import { log } from "./index";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const NOTIFICATION_EMAIL = "ayuda@cjmdigitales.cl";
-const FROM_ADDRESS = "CJM Digitales <noreply@send.cjmdigitales.cl>";
+const FROM_ADDRESS = "CJM Digitales <noreply@cjmdigitales.cl>";
 
 interface ContactEmailData {
   userName: string;
