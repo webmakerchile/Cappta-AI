@@ -67,8 +67,9 @@ interface ChatInviteData {
 
 export async function sendChatInviteEmail(data: ChatInviteData): Promise<{ success: boolean; error?: string }> {
   const fromAddresses = [
+    "CJM Digitales <noreply@send.cjmdigitales.cl>",
+    "CJM Digitales <ayuda@send.cjmdigitales.cl>",
     "CJM Digitales <noreply@cjmdigitales.cl>",
-    "CJM Digitales <ayuda@cjmdigitales.cl>",
     "CJM Digitales <onboarding@resend.dev>",
   ];
 
