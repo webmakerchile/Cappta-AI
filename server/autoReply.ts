@@ -317,7 +317,24 @@ function detectPlatformFromMessage(msg: string): Platform {
 }
 
 function detectIntent(msg: string, history: ConversationEntry[], product: DetectedProduct | null): Intent {
-  if (/\bhola\b|\bbuenas?\b|\bhey\b|\bhello\b|\bhi\b|\bbuen\s*dia\b|\bbuenos\s*dias\b/.test(msg) && history.filter(h => h.sender === "user").length <= 1) {
+  const hasPostPurchaseContext = /\bya\s*compre\b|\bya\s*pague\b|\bmi\s*compra\b|\bmi\s*pedido\b|\bmi\s*orden\b|\bno\s*me\s*llego\b|\bno\s*me\s*ha\s*llegado\b/.test(msg);
+  const hasVerificationCode = /\bcodigo\s*de\s*verificacion\b|\bcodigo\s*de\s*activacion\b|\bnuevo\s*codigo\b|\breenviar\s*codigo\b|\bno\s*me\s*llego\s*el\s*codigo\b/.test(msg);
+  const hasActivationWithContext = /\b(activar|canjear|redimir)\b/.test(msg) && hasPostPurchaseContext;
+  const hasPostPurchaseSupport = hasVerificationCode || hasPostPurchaseContext || hasActivationWithContext;
+  const hasFrustration = /\bno\s*te\s*pedi\s*eso\b|\beso\s*no\s*es\s*lo\s*que\b|\bno\s*es\s*eso\b|\bno\s*entendiste\b|\bno\s*era\s*eso\b|\botra\s*cosa\b|\bno\s*eso\b|\bte\s*equivocaste\b/.test(msg);
+
+  if (hasPostPurchaseSupport || hasFrustration) {
+    return "support_issue";
+  }
+
+  const hasSupportWords = /\bcodigo\b|\bverificacion\b|\bactivacion\b|\bproblema\b|\bayuda\b|\bno\s*me\s*llego\b|\bno\s*funciona\b|\bno\s*sirve\b|\bsoporte\b|\breclamo\b/.test(msg);
+  const hasGreeting = /\bhola\b|\bbuenas?\b|\bhey\b|\bhello\b|\bhi\b|\bbuen\s*dia\b|\bbuenos\s*dias\b/.test(msg);
+
+  if (hasGreeting && hasSupportWords) {
+    return "support_issue";
+  }
+
+  if (hasGreeting && history.filter(h => h.sender === "user").length <= 1) {
     return "greeting";
   }
 
@@ -1463,7 +1480,7 @@ export async function getSmartAutoReply(
     return pickUnused(ESCALATION_RESPONSES, state.usedResponses);
   }
 
-  if (state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude") {
+  if (state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "support_issue") {
     const durationResponse = getDurationResponse(state, msg);
     if (durationResponse && state.intent !== "product_inquiry") {
       return durationResponse;
@@ -1671,6 +1688,18 @@ export async function getSmartAutoReply(
       const durationResp = getDurationResponse(state, msg);
       if (durationResp) return durationResp;
 
+      if (aiAvailable) {
+        let relevantProducts: CatalogProduct[] = [];
+        if (catalogLookup) {
+          try {
+            const results = await catalogLookup.searchByName(userMessage);
+            if (results.length > 0) {
+              relevantProducts = results.slice(0, 5);
+            }
+          } catch {}
+        }
+        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+      }
       return getProductInquiryGeneric(state);
     }
 
@@ -1688,8 +1717,26 @@ export async function getSmartAutoReply(
     case "delivery_question":
       return getDeliveryResponse(state);
 
-    case "support_issue":
+    case "support_issue": {
+      if (aiAvailable) {
+        let relevantProducts: CatalogProduct[] = [];
+        if (catalogLookup) {
+          try {
+            const searchTerms = [userMessage];
+            if (state.lastTopicProduct) searchTerms.push(state.lastTopicProduct.name);
+            for (const term of searchTerms) {
+              const results = await catalogLookup.searchByName(term);
+              if (results.length > 0) {
+                relevantProducts = results.slice(0, 5);
+                break;
+              }
+            }
+          } catch {}
+        }
+        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+      }
       return getSupportResponse(state, sessionData);
+    }
 
     case "trust_question":
       return getTrustResponse(state);
