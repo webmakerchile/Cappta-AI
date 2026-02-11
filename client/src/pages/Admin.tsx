@@ -351,14 +351,31 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
               {totalUnread > 99 ? "99+" : totalUnread}
             </span>
           )}
-          <button
-            data-testid={`preview-btn-${session.sessionId}`}
-            onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
-            className="w-7 h-7 rounded-full flex items-center justify-center bg-[#6200EA]/20 border border-[#6200EA]/30 hover:bg-[#6200EA]/40 transition-colors"
-            title="Ver formulario pre-chat"
-          >
-            <FileText className="w-3.5 h-3.5 text-[#BB86FC]" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              data-testid={`preview-btn-${session.sessionId}`}
+              onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-[#6200EA]/20 border border-[#6200EA]/30 hover:bg-[#6200EA]/40 transition-colors"
+              title="Ver formulario pre-chat"
+            >
+              <FileText className="w-3.5 h-3.5 text-[#BB86FC]" />
+            </button>
+            {isAdmin && onDelete && (
+              <button
+                data-testid={`delete-btn-${session.sessionId}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm(`¿Eliminar el chat de ${session.userName || session.userEmail}? Esta accion no se puede deshacer.`)) {
+                    onDelete(session.sessionId);
+                  }
+                }}
+                className="w-7 h-7 rounded-full flex items-center justify-center bg-red-500/10 border border-red-500/20 hover:bg-red-500/30 transition-colors"
+                title="Eliminar este chat"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
       {(session.problemType || session.gameName) && (
