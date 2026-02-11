@@ -2337,6 +2337,96 @@ function SettingsPanel() {
 
   const aiEnabled = aiSetting?.value !== "false";
 
+  const { data: bhEnabledSetting, isLoading: bhEnabledLoading } = useQuery<{ value: string | null }>({
+    queryKey: ["/api/settings", "business_hours_enabled"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/settings/business_hours_enabled");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+  const { data: bhStartSetting } = useQuery<{ value: string | null }>({
+    queryKey: ["/api/settings", "business_hours_start"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/settings/business_hours_start");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+  const { data: bhEndSetting } = useQuery<{ value: string | null }>({
+    queryKey: ["/api/settings", "business_hours_end"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/settings/business_hours_end");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+  const { data: bhTicketSetting } = useQuery<{ value: string | null }>({
+    queryKey: ["/api/settings", "business_hours_ticket_url"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/settings/business_hours_ticket_url");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const [bhStart, setBhStart] = useState("12");
+  const [bhEnd, setBhEnd] = useState("21");
+  const [bhTicketUrl, setBhTicketUrl] = useState("https://cjmdigitales.zohodesk.com/portal/es/newticket");
+  const [bhInitialized, setBhInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!bhInitialized && bhStartSetting !== undefined && bhEndSetting !== undefined && bhTicketSetting !== undefined) {
+      setBhStart(bhStartSetting?.value || "12");
+      setBhEnd(bhEndSetting?.value || "21");
+      setBhTicketUrl(bhTicketSetting?.value || "https://cjmdigitales.zohodesk.com/portal/es/newticket");
+      setBhInitialized(true);
+    }
+  }, [bhStartSetting, bhEndSetting, bhTicketSetting, bhInitialized]);
+
+  const bhEnabled = bhEnabledSetting?.value !== "false";
+
+  const bhToggleMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const res = await adminFetch("/api/settings/business_hours_enabled", {
+        method: "PUT",
+        body: JSON.stringify({ value: enabled ? "true" : "false" }),
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_enabled"] });
+    },
+  });
+
+  const [bhSaveStatus, setBhSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+
+  const saveBhSettings = async () => {
+    const startVal = Math.max(0, Math.min(23, parseInt(bhStart) || 0));
+    const endVal = Math.max(0, Math.min(23, parseInt(bhEnd) || 23));
+    setBhStart(String(startVal));
+    setBhEnd(String(endVal));
+    setBhSaveStatus("saving");
+    try {
+      const updates = [
+        adminFetch("/api/settings/business_hours_start", { method: "PUT", body: JSON.stringify({ value: String(startVal) }) }),
+        adminFetch("/api/settings/business_hours_end", { method: "PUT", body: JSON.stringify({ value: String(endVal) }) }),
+        adminFetch("/api/settings/business_hours_ticket_url", { method: "PUT", body: JSON.stringify({ value: bhTicketUrl }) }),
+      ];
+      const results = await Promise.all(updates);
+      if (results.some(r => !r.ok)) throw new Error("Error");
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_start"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_end"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_ticket_url"] });
+      setBhSaveStatus("success");
+      setTimeout(() => setBhSaveStatus("idle"), 3000);
+    } catch {
+      setBhSaveStatus("error");
+      setTimeout(() => setBhSaveStatus("idle"), 3000);
+    }
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6">
       <h2 className="text-lg font-semibold text-white mb-4">Configuracion</h2>
@@ -2370,6 +2460,97 @@ function SettingsPanel() {
         )}
         {toggleMutation.isSuccess && (
           <p data-testid="text-settings-success" className="text-xs text-emerald-400 mt-2">Configuracion guardada</p>
+        )}
+      </div>
+
+      <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg mt-4">
+        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#BB86FC]" />
+          Horario de Atencion
+        </h3>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white/80">Activar horario de atencion</p>
+            <p className="text-xs text-white/40 mt-0.5">
+              Cuando esta activado, el bot solo responde dentro del horario configurado. Fuera de horario, se sugiere crear un ticket de soporte.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            {bhEnabledLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white/30" />
+            ) : (
+              <Switch
+                data-testid="switch-business-hours-toggle"
+                checked={bhEnabled}
+                disabled={bhToggleMutation.isPending}
+                onCheckedChange={(checked) => bhToggleMutation.mutate(checked)}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[100px]">
+              <label className="text-xs text-white/50 mb-1 block">Hora inicio (Chile)</label>
+              <Input
+                data-testid="input-business-hours-start"
+                type="number"
+                min={0}
+                max={23}
+                value={bhStart}
+                onChange={(e) => setBhStart(e.target.value)}
+                className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#6200EA]"
+              />
+            </div>
+            <div className="flex-1 min-w-[100px]">
+              <label className="text-xs text-white/50 mb-1 block">Hora fin (Chile)</label>
+              <Input
+                data-testid="input-business-hours-end"
+                type="number"
+                min={0}
+                max={23}
+                value={bhEnd}
+                onChange={(e) => setBhEnd(e.target.value)}
+                className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#6200EA]"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-white/50 mb-1 block">URL de ticket de soporte</label>
+            <Input
+              data-testid="input-business-hours-ticket-url"
+              type="url"
+              value={bhTicketUrl}
+              onChange={(e) => setBhTicketUrl(e.target.value)}
+              placeholder="https://..."
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+            />
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              data-testid="button-save-business-hours"
+              onClick={saveBhSettings}
+              disabled={bhSaveStatus === "saving"}
+              className="bg-[#6200EA] text-white"
+            >
+              {bhSaveStatus === "saving" ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+              ) : (
+                <Save className="w-4 h-4 mr-1" />
+              )}
+              Guardar horario
+            </Button>
+            {bhSaveStatus === "success" && (
+              <p data-testid="text-bh-save-success" className="text-xs text-emerald-400">Horario guardado</p>
+            )}
+            {bhSaveStatus === "error" && (
+              <p data-testid="text-bh-save-error" className="text-xs text-red-400">Error al guardar</p>
+            )}
+          </div>
+        </div>
+        {bhToggleMutation.isError && (
+          <p data-testid="text-bh-toggle-error" className="text-xs text-red-400 mt-2">Error al cambiar el estado</p>
         )}
       </div>
     </div>

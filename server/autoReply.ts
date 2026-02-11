@@ -1348,6 +1348,27 @@ export async function getSmartAutoReply(
   sessionData?: SessionData,
   catalogLookup?: CatalogLookup
 ): Promise<string> {
+  try {
+    const bhEnabled = await storage.getSetting("business_hours_enabled");
+    if (bhEnabled !== "false") {
+      const bhStart = parseInt(await storage.getSetting("business_hours_start") || "12", 10);
+      const bhEnd = parseInt(await storage.getSetting("business_hours_end") || "21", 10);
+      const ticketUrl = await storage.getSetting("business_hours_ticket_url") || "https://cjmdigitales.zohodesk.com/portal/es/newticket";
+
+      const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
+      const currentHour = nowChile.getHours();
+
+      if (currentHour < bhStart || currentHour >= bhEnd) {
+        const offlineText = `Hola! En este momento estamos fuera de nuestro horario de atencion.\n\nNuestro horario es de ${bhStart}:00 a ${bhEnd}:00 hrs (hora de Chile).\n\nPara una respuesta mas rapida, puedes crear un ticket de soporte y te responderemos a la brevedad:\n\nCrear ticket: ${ticketUrl}\n\nGracias por tu paciencia!`;
+        return withButtons(offlineText, [
+          { label: "Crear ticket de soporte", url: ticketUrl },
+          { label: "Ver catalogo", value: "__qr:category:game" },
+        ]);
+      }
+    }
+  } catch (e) {
+  }
+
   const msg = normalize(userMessage);
 
   if (msg === "__qr:rate") {
