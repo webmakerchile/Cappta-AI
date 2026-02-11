@@ -283,7 +283,7 @@ function getInitial(name: string): string {
   return (name || '?').charAt(0).toUpperCase();
 }
 
-function SessionCard({ session, onClick, isSelected, rating, localUnread, isRecentlyUpdated }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData; localUnread?: number; isRecentlyUpdated?: boolean }) {
+function SessionCard({ session, onClick, isSelected, rating, localUnread, isRecentlyUpdated, onDelete, isAdmin }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData; localUnread?: number; isRecentlyUpdated?: boolean; onDelete?: (sessionId: string) => void; isAdmin?: boolean }) {
   const totalUnread = (session.unreadCount || 0) + (localUnread || 0);
   const agentColor = session.assignedToColor;
   const hasAgent = !!agentColor;
@@ -463,6 +463,24 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
             <p className="text-[13px] text-white/90 font-medium">{session.gameName || "No especificado"}</p>
           </div>
         </div>
+        {isAdmin && onDelete && (
+          <div className="px-4 py-2 border-t border-white/[0.06]">
+            <button
+              data-testid={`delete-session-${session.sessionId}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`¿Eliminar el chat de ${session.userName || session.userEmail}? Esta accion no se puede deshacer.`)) {
+                  onDelete(session.sessionId);
+                  setShowPreview(false);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Eliminar este chat
+            </button>
+          </div>
+        )}
       </div>
     )}
     </div>
@@ -3793,6 +3811,16 @@ export default function AdminPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
     });
 
+    adminSocket.on("session_deleted", (data: any) => {
+      if (data?.sessionId) {
+        if (selectedSessionRef.current === data.sessionId) {
+          setSelectedSession(null);
+          setMobileView("list");
+        }
+        invalidateSessionLists();
+      }
+    });
+
     adminSocket.on("admin_new_message", (data: any) => {
       if (data?.sessionId && data?.message) {
         queryClient.setQueryData<Message[]>(
@@ -4047,6 +4075,24 @@ export default function AdminPage() {
       return next;
     });
   }, []);
+
+  const handleDeleteSession = useCallback(async (sessionId: string) => {
+    try {
+      const res = await adminFetch(`/api/admin/sessions/${sessionId}`, { method: "DELETE" });
+      if (res.ok) {
+        if (selectedSession === sessionId) {
+          setSelectedSession(null);
+          setMobileView("list");
+        }
+        invalidateSessionLists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Error al eliminar chat");
+      }
+    } catch {
+      alert("Error de conexion");
+    }
+  }, [selectedSession]);
 
   const handleLogout = async () => {
     try {
@@ -4438,6 +4484,8 @@ export default function AdminPage() {
                     rating={ratingsMap.get(session.sessionId)}
                     localUnread={localUnreads[session.sessionId] || 0}
                     isRecentlyUpdated={!!flashingSessions[session.sessionId]}
+                    onDelete={handleDeleteSession}
+                    isAdmin={adminUser?.role !== "ejecutivo"}
                   />
                 ))
               )}

@@ -52,6 +52,7 @@ export interface IStorage {
   addCustomTag(name: string): Promise<void>;
   deleteCustomTag(name: string): Promise<void>;
   findActiveSessionByEmail(email: string): Promise<Session | null>;
+  deleteSession(sessionId: string): Promise<boolean>;
   deleteAllSessions(): Promise<number>;
   incrementWarningCount(sessionId: string): Promise<number>;
   blockSession(sessionId: string): Promise<void>;
@@ -774,6 +775,15 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomTag(name: string): Promise<void> {
     await db.delete(customTags).where(eq(customTags.name, name));
+  }
+
+  async deleteSession(sessionId: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(messages).where(eq(messages.sessionId, sessionId));
+      await tx.delete(ratings).where(eq(ratings.sessionId, sessionId));
+      const deleted = await tx.delete(sessions).where(eq(sessions.sessionId, sessionId)).returning();
+      return deleted.length > 0;
+    });
   }
 
   async deleteAllSessions(): Promise<number> {

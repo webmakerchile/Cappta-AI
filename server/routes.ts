@@ -912,6 +912,25 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/admin/sessions/:sessionId", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    if (adminUser.role === "ejecutivo") {
+      return res.status(403).json({ message: "Solo administradores pueden eliminar chats" });
+    }
+    try {
+      const deleted = await storage.deleteSession(req.params.sessionId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Chat no encontrado" });
+      }
+      io.to("admin_room").emit("session_deleted", { sessionId: req.params.sessionId });
+      res.json({ message: "Chat eliminado" });
+    } catch (error: any) {
+      log(`Error al eliminar chat: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al eliminar chat" });
+    }
+  });
+
   app.patch("/api/admin/sessions/:sessionId/status", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;
