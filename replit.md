@@ -26,6 +26,7 @@ Key architectural decisions and features include:
 - **PWA for Admin Panel**: The admin interface is installable as a Progressive Web App, supporting offline access and push notifications.
 - **Authentication and User Management**: Admin panel access is secured with JWT-based authentication. A superadmin role manages admin users, and agents can change their passwords.
 - **Notification Systems**: Includes audio notifications for new sessions and browser push notifications for admins via VAPID/web-push when the app is backgrounded.
+- **Conversation Learning System**: An AI-powered learning pipeline that extracts knowledge from closed customer conversations. When triggered from the admin panel, it analyzes completed chats using OpenAI to extract FAQ patterns, troubleshooting solutions, product info, and business policies. Extracted entries are stored in a `knowledge_base` table with pending/approved/rejected status. Admins can review, edit, approve, or reject entries from the "Conocimiento" tab. Approved entries are automatically searched (using pg_trgm similarity) when generating AI responses and injected into the system prompt as learned context, making the chatbot progressively smarter with each interaction.
 - **Satisfaction Survey**: The bot prompts users for a 1-5 star rating and optional comments upon conversation resolution, with results visible in the admin panel.
 - **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
 

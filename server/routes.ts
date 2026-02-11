@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import { getSmartAutoReply } from "./autoReply";
 import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD } from "./profanityFilter";
 import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
+import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
@@ -730,6 +731,84 @@ export async function registerRoutes(
     if (!adminUser) return;
     await storage.deleteCustomTag(req.params.name);
     res.json({ success: true });
+  });
+
+  // Knowledge Base routes
+  app.get("/api/admin/knowledge", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const filter: { status?: string; category?: string; query?: string } = {};
+      if (req.query.status) filter.status = req.query.status as string;
+      if (req.query.category) filter.category = req.query.category as string;
+      if (req.query.query) filter.query = req.query.query as string;
+      const entries = await storage.getKnowledgeEntries(filter);
+      res.json(entries);
+    } catch (error: any) {
+      log(`Error al obtener conocimiento: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener conocimiento" });
+    }
+  });
+
+  app.patch("/api/admin/knowledge/:id", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const entry = await storage.updateKnowledgeEntry(id, updates);
+      if (!entry) {
+        res.status(404).json({ message: "Entrada no encontrada" });
+        return;
+      }
+      res.json(entry);
+    } catch (error: any) {
+      log(`Error al actualizar conocimiento: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  app.delete("/api/admin/knowledge/:id", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteKnowledgeEntry(id);
+      if (!deleted) {
+        res.status(404).json({ message: "Entrada no encontrada" });
+        return;
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error al eliminar conocimiento: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al eliminar" });
+    }
+  });
+
+  app.post("/api/admin/knowledge/extract", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const limit = req.body.limit || 10;
+      const result = await extractKnowledgeFromSessions({ limit });
+      res.json(result);
+    } catch (error: any) {
+      log(`Error al extraer conocimiento: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al extraer conocimiento" });
+    }
+  });
+
+  app.post("/api/admin/knowledge", async (req, res) => {
+    const adminUser = requireAuth(req, res);
+    if (!adminUser) return;
+    try {
+      const data = insertKnowledgeBaseSchema.parse(req.body);
+      const entry = await storage.createKnowledgeEntry(data);
+      res.json(entry);
+    } catch (error: any) {
+      log(`Error al crear conocimiento: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear entrada" });
+    }
   });
 
   app.get("/api/admin/sessions", async (req, res) => {

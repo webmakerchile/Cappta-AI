@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { storage } from "./storage";
 
 interface ConversationEntry {
   sender: string;
@@ -26,11 +27,20 @@ interface CatalogProduct {
   category: string;
 }
 
+interface KnowledgeEntry {
+  id: number;
+  question: string;
+  answer: string;
+  category: string;
+  confidence: number;
+}
+
 interface AIReplyOptions {
   isOfflineHours?: boolean;
   offlineTicketUrl?: string;
   offlineHoursStart?: number;
   offlineHoursEnd?: number;
+  knowledgeEntries?: KnowledgeEntry[];
 }
 
 let _openai: OpenAI | null = null;
@@ -283,6 +293,14 @@ Estamos dentro del horario de atención. Si el cliente necesita ayuda personaliz
       "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). NO incluyas links de productos en tu respuesta de texto - los links de compra se agregan automáticamente como botones debajo de tu mensaje. Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiere buscar en la tienda web o preguntar a un ejecutivo.";
   }
 
+  if (options?.knowledgeEntries && options.knowledgeEntries.length > 0) {
+    systemPrompt += "\n\n===== CONOCIMIENTO APRENDIDO DE CONVERSACIONES ANTERIORES =====\nEstas son lecciones aprendidas de conversaciones previas con clientes. Úsalas como contexto adicional para dar mejores respuestas:\n";
+    options.knowledgeEntries.forEach((entry, index) => {
+      systemPrompt += `${index + 1}. [${entry.category}] Pregunta: ${entry.question}\n   Respuesta: ${entry.answer}\n`;
+    });
+    systemPrompt += "\nUsa esta información como referencia cuando sea relevante, pero adáptala al contexto actual de la conversación. No copies las respuestas textualmente.";
+  }
+
   return systemPrompt;
 }
 
@@ -309,7 +327,27 @@ export async function getAIReply(
   options?: AIReplyOptions
 ): Promise<string> {
   try {
-    const systemPrompt = buildSystemPrompt(sessionData, catalogProducts, options);
+    let knowledgeEntries: KnowledgeEntry[] = [];
+    try {
+      const knowledgeResults = await storage.searchKnowledgeEntries(userMessage, 5);
+      if (knowledgeResults.length > 0) {
+        knowledgeEntries = knowledgeResults.map(k => ({
+          id: k.id,
+          question: k.question,
+          answer: k.answer,
+          category: k.category,
+          confidence: k.confidence,
+        }));
+        for (const k of knowledgeResults) {
+          storage.incrementKnowledgeUsage(k.id).catch(() => {});
+        }
+      }
+    } catch (error) {
+      console.error("Error searching knowledge base:", error);
+    }
+
+    const enrichedOptions = { ...options, knowledgeEntries };
+    const systemPrompt = buildSystemPrompt(sessionData, catalogProducts, enrichedOptions);
 
     const messages: Array<{ role: "user" | "assistant" | "system"; content: string }> = [
       {

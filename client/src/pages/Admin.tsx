@@ -2311,6 +2311,394 @@ function showForegroundNotification(title: string, body: string, sessionId: stri
   } catch {}
 }
 
+interface KnowledgeEntry {
+  id: number;
+  category: string;
+  question: string;
+  answer: string;
+  keywords: string[];
+  confidence: number;
+  status: string;
+  sourceSessionId: string | null;
+  usageCount: number;
+  lastUsedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function KnowledgePanel() {
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editingEntry, setEditingEntry] = useState<KnowledgeEntry | null>(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editKeywords, setEditKeywords] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [extractResult, setExtractResult] = useState<{ sessionsProcessed: number; entriesCreated: number } | null>(null);
+
+  const queryParams = new URLSearchParams();
+  if (statusFilter !== "all") queryParams.set("status", statusFilter);
+  if (categoryFilter !== "all") queryParams.set("category", categoryFilter);
+  if (searchQuery) queryParams.set("query", searchQuery);
+  const queryString = queryParams.toString();
+
+  const { data: entries = [], isLoading } = useQuery<KnowledgeEntry[]>({
+    queryKey: ["/api/admin/knowledge", queryString],
+    queryFn: async () => {
+      const res = await adminFetch(`/api/admin/knowledge${queryString ? `?${queryString}` : ""}`);
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await adminFetch(`/api/admin/knowledge/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge"] });
+      setEditingEntry(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await adminFetch(`/api/admin/knowledge/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge"] });
+    },
+  });
+
+  const handleExtract = async () => {
+    setExtracting(true);
+    setExtractResult(null);
+    try {
+      const res = await adminFetch("/api/admin/knowledge/extract", {
+        method: "POST",
+        body: JSON.stringify({ limit: 10 }),
+      });
+      if (!res.ok) throw new Error("Error");
+      const result = await res.json();
+      setExtractResult(result);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge"] });
+    } catch (error) {
+      console.error("Error extracting:", error);
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleApprove = (id: number) => {
+    updateMutation.mutate({ id, data: { status: "approved" } });
+  };
+
+  const handleReject = (id: number) => {
+    updateMutation.mutate({ id, data: { status: "rejected" } });
+  };
+
+  const startEdit = (entry: KnowledgeEntry) => {
+    setEditingEntry(entry);
+    setEditQuestion(entry.question);
+    setEditAnswer(entry.answer);
+    setEditCategory(entry.category);
+    setEditKeywords(entry.keywords.join(", "));
+  };
+
+  const saveEdit = () => {
+    if (!editingEntry) return;
+    updateMutation.mutate({
+      id: editingEntry.id,
+      data: {
+        question: editQuestion,
+        answer: editAnswer,
+        category: editCategory,
+        keywords: editKeywords.split(",").map(k => k.trim()).filter(Boolean),
+      },
+    });
+  };
+
+  const categoryLabels: Record<string, string> = {
+    faq: "FAQ",
+    troubleshooting: "Solucion",
+    product_info: "Producto",
+    policy: "Politica",
+    general: "General",
+  };
+
+  const categoryColors: Record<string, { bg: string; text: string }> = {
+    faq: { bg: "rgba(59,130,246,0.15)", text: "#3b82f6" },
+    troubleshooting: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
+    product_info: { bg: "rgba(34,197,94,0.15)", text: "#22c55e" },
+    policy: { bg: "rgba(168,85,247,0.15)", text: "#a855f7" },
+    general: { bg: "rgba(107,114,128,0.15)", text: "#6b7280" },
+  };
+
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    pending: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
+    approved: { bg: "rgba(34,197,94,0.15)", text: "#22c55e" },
+    rejected: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
+  };
+
+  const statusLabels: Record<string, string> = {
+    pending: "Pendiente",
+    approved: "Aprobado",
+    rejected: "Rechazado",
+  };
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="p-3 border-b border-white/[0.06] space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Zap className="w-4 h-4 text-[#BB86FC]" />
+            Base de Conocimiento
+          </h2>
+          <Button
+            data-testid="button-extract-knowledge"
+            onClick={handleExtract}
+            disabled={extracting}
+            size="sm"
+            className="bg-[#6200EA] hover:bg-[#7c3aed] text-white text-xs"
+          >
+            {extracting ? (
+              <>
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                Procesando...
+              </>
+            ) : (
+              <>
+                <Zap className="w-3 h-3 mr-1" />
+                Aprender de conversaciones
+              </>
+            )}
+          </Button>
+        </div>
+
+        {extractResult && (
+          <div className="text-xs p-2 rounded bg-[#6200EA]/10 border border-[#6200EA]/20 text-white/80">
+            Procesadas {extractResult.sessionsProcessed} conversaciones. Se extrajeron {extractResult.entriesCreated} nuevas entradas de conocimiento.
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+            <Input
+              data-testid="input-knowledge-search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar conocimiento..."
+              className="pl-9 bg-white/5 border-white/10 text-white text-xs placeholder:text-white/25 focus-visible:ring-[#6200EA] h-8"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger data-testid="select-knowledge-status" className="w-[120px] bg-white/5 border-white/10 text-white text-xs h-8">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1a2e] border-white/10">
+              <SelectItem value="all" className="text-white text-xs">Todos</SelectItem>
+              <SelectItem value="pending" className="text-white text-xs">Pendientes</SelectItem>
+              <SelectItem value="approved" className="text-white text-xs">Aprobados</SelectItem>
+              <SelectItem value="rejected" className="text-white text-xs">Rechazados</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger data-testid="select-knowledge-category" className="w-[120px] bg-white/5 border-white/10 text-white text-xs h-8">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1a2e] border-white/10">
+              <SelectItem value="all" className="text-white text-xs">Todas</SelectItem>
+              <SelectItem value="faq" className="text-white text-xs">FAQ</SelectItem>
+              <SelectItem value="troubleshooting" className="text-white text-xs">Solucion</SelectItem>
+              <SelectItem value="product_info" className="text-white text-xs">Producto</SelectItem>
+              <SelectItem value="policy" className="text-white text-xs">Politica</SelectItem>
+              <SelectItem value="general" className="text-white text-xs">General</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto p-3 space-y-2">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 text-[#BB86FC] animate-spin" />
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-white/30">
+            <Zap className="w-8 h-8 mb-2" />
+            <p className="text-sm">No hay entradas de conocimiento</p>
+            <p className="text-xs mt-1">Haz clic en "Aprender de conversaciones" para comenzar</p>
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <div
+              key={entry.id}
+              data-testid={`knowledge-entry-${entry.id}`}
+              className="bg-white/[0.03] border border-white/[0.06] rounded-md p-3 space-y-2"
+            >
+              {editingEntry?.id === entry.id ? (
+                <div className="space-y-2">
+                  <Select value={editCategory} onValueChange={setEditCategory}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a2e] border-white/10">
+                      <SelectItem value="faq" className="text-white text-xs">FAQ</SelectItem>
+                      <SelectItem value="troubleshooting" className="text-white text-xs">Solucion</SelectItem>
+                      <SelectItem value="product_info" className="text-white text-xs">Producto</SelectItem>
+                      <SelectItem value="policy" className="text-white text-xs">Politica</SelectItem>
+                      <SelectItem value="general" className="text-white text-xs">General</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    data-testid="input-edit-question"
+                    value={editQuestion}
+                    onChange={(e) => setEditQuestion(e.target.value)}
+                    placeholder="Pregunta"
+                    className="bg-white/5 border-white/10 text-white text-xs h-8"
+                  />
+                  <textarea
+                    data-testid="input-edit-answer"
+                    value={editAnswer}
+                    onChange={(e) => setEditAnswer(e.target.value)}
+                    placeholder="Respuesta"
+                    className="w-full bg-white/5 border border-white/10 rounded-md text-white text-xs p-2 min-h-[80px] resize-y focus:outline-none focus:ring-1 focus:ring-[#6200EA]"
+                  />
+                  <Input
+                    data-testid="input-edit-keywords"
+                    value={editKeywords}
+                    onChange={(e) => setEditKeywords(e.target.value)}
+                    placeholder="Palabras clave (separadas por coma)"
+                    className="bg-white/5 border-white/10 text-white text-xs h-8"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      data-testid="button-save-edit"
+                      onClick={saveEdit}
+                      disabled={updateMutation.isPending}
+                      size="sm"
+                      className="bg-[#6200EA] hover:bg-[#7c3aed] text-white text-xs"
+                    >
+                      <Save className="w-3 h-3 mr-1" />
+                      Guardar
+                    </Button>
+                    <Button
+                      data-testid="button-cancel-edit"
+                      onClick={() => setEditingEntry(null)}
+                      size="sm"
+                      variant="outline"
+                      className="border-white/10 text-white/60 text-xs"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                        style={{
+                          backgroundColor: categoryColors[entry.category]?.bg || categoryColors.general.bg,
+                          color: categoryColors[entry.category]?.text || categoryColors.general.text,
+                        }}
+                      >
+                        {categoryLabels[entry.category] || entry.category}
+                      </span>
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                        style={{
+                          backgroundColor: statusColors[entry.status]?.bg || statusColors.pending.bg,
+                          color: statusColors[entry.status]?.text || statusColors.pending.text,
+                        }}
+                      >
+                        {statusLabels[entry.status] || entry.status}
+                      </span>
+                      {entry.usageCount > 0 && (
+                        <span className="text-[10px] text-white/30">
+                          Usado {entry.usageCount}x
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {entry.status === "pending" && (
+                        <>
+                          <button
+                            data-testid={`button-approve-${entry.id}`}
+                            onClick={() => handleApprove(entry.id)}
+                            className="p-1 text-green-400/60 hover:text-green-400 transition-colors"
+                            title="Aprobar"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            data-testid={`button-reject-${entry.id}`}
+                            onClick={() => handleReject(entry.id)}
+                            className="p-1 text-red-400/60 hover:text-red-400 transition-colors"
+                            title="Rechazar"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                      <button
+                        data-testid={`button-edit-${entry.id}`}
+                        onClick={() => startEdit(entry)}
+                        className="p-1 text-white/30 hover:text-white/60 transition-colors"
+                        title="Editar"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        data-testid={`button-delete-${entry.id}`}
+                        onClick={() => deleteMutation.mutate(entry.id)}
+                        className="p-1 text-white/30 hover:text-red-400/60 transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/80 font-medium">{entry.question}</p>
+                    <p className="text-xs text-white/50 mt-1 line-clamp-3">{entry.answer}</p>
+                  </div>
+                  {entry.keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {entry.keywords.map((kw, i) => (
+                        <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-white/20">
+                    {formatDateTime(entry.createdAt)}
+                    {entry.confidence && ` | Confianza: ${entry.confidence}%`}
+                  </div>
+                </>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SettingsPanel() {
   const { data: aiSetting, isLoading } = useQuery<{ value: string | null }>({
     queryKey: ["/api/settings", "ai_enabled"],
@@ -3051,7 +3439,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "pendientes" | "mis_chats">("all");
-  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings" | "tags">("conversations");
+  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge">("conversations");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -3591,6 +3979,19 @@ export default function AdminPage() {
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
           )}
         </button>
+        <button
+          data-testid="tab-knowledge"
+          onClick={() => setAdminTab("knowledge")}
+          className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+            adminTab === "knowledge" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+          }`}
+        >
+          <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          Conocimiento
+          {adminTab === "knowledge" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+          )}
+        </button>
         {adminUser?.role !== "ejecutivo" && (
           <button
             data-testid="tab-users"
@@ -3631,6 +4032,8 @@ export default function AdminPage() {
         <UsersPanel adminUser={adminUser} />
       ) : adminTab === "products" ? (
         <ProductsPanel />
+      ) : adminTab === "knowledge" ? (
+        <KnowledgePanel />
       ) : adminTab === "canned" ? (
         <CannedResponsesPanel />
       ) : (

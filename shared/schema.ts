@@ -112,6 +112,24 @@ export const appSettings = pgTable("app_settings", {
   value: text("value").notNull(),
 });
 
+export const knowledgeBase = pgTable("knowledge_base", {
+  id: serial("id").primaryKey(),
+  category: text("category", { enum: ["faq", "troubleshooting", "product_info", "policy", "general"] }).notNull().default("general"),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  keywords: text("keywords").array().notNull().default(sql`'{}'::text[]`),
+  confidence: integer("confidence").notNull().default(80),
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull().default("pending"),
+  sourceSessionId: text("source_session_id"),
+  usageCount: integer("usage_count").notNull().default(0),
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_knowledge_status").on(table.status),
+  index("idx_knowledge_category").on(table.category),
+]);
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
@@ -140,6 +158,7 @@ export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, t
 
 export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true });
 export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({ id: true, createdAt: true });
+export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true, lastUsedAt: true });
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
@@ -157,6 +176,8 @@ export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;
+export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

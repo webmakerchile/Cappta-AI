@@ -1,6 +1,6 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, knowledgeBase, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type KnowledgeBase, type InsertKnowledgeBase } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
+import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
 export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
@@ -59,6 +59,14 @@ export interface IStorage {
   isSessionBlocked(sessionId: string): Promise<boolean>;
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
+  // Knowledge Base
+  createKnowledgeEntry(data: InsertKnowledgeBase): Promise<KnowledgeBase>;
+  getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]>;
+  getKnowledgeEntryById(id: number): Promise<KnowledgeBase | null>;
+  updateKnowledgeEntry(id: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase | null>;
+  deleteKnowledgeEntry(id: number): Promise<boolean>;
+  searchKnowledgeEntries(query: string, limit?: number): Promise<KnowledgeBase[]>;
+  incrementKnowledgeUsage(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -826,6 +834,82 @@ export class DatabaseStorage implements IStorage {
         target: appSettings.key,
         set: { value },
       });
+  }
+
+  async createKnowledgeEntry(data: InsertKnowledgeBase): Promise<KnowledgeBase> {
+    const [entry] = await db.insert(knowledgeBase).values(data).returning();
+    return entry;
+  }
+
+  async getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]> {
+    let query = db.select().from(knowledgeBase);
+    const conditions = [];
+    if (filter?.status) {
+      conditions.push(eq(knowledgeBase.status, filter.status as any));
+    }
+    if (filter?.category) {
+      conditions.push(eq(knowledgeBase.category, filter.category as any));
+    }
+    if (filter?.query) {
+      conditions.push(
+        or(
+          ilike(knowledgeBase.question, `%${filter.query}%`),
+          ilike(knowledgeBase.answer, `%${filter.query}%`)
+        )!
+      );
+    }
+    if (conditions.length > 0) {
+      return await query.where(and(...conditions)).orderBy(desc(knowledgeBase.createdAt));
+    }
+    return await query.orderBy(desc(knowledgeBase.createdAt));
+  }
+
+  async getKnowledgeEntryById(id: number): Promise<KnowledgeBase | null> {
+    const results = await db.select().from(knowledgeBase).where(eq(knowledgeBase.id, id));
+    return results[0] || null;
+  }
+
+  async updateKnowledgeEntry(id: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase | null> {
+    const results = await db.update(knowledgeBase).set({ ...data, updatedAt: new Date() }).where(eq(knowledgeBase.id, id)).returning();
+    return results[0] || null;
+  }
+
+  async deleteKnowledgeEntry(id: number): Promise<boolean> {
+    const results = await db.delete(knowledgeBase).where(eq(knowledgeBase.id, id)).returning();
+    return results.length > 0;
+  }
+
+  async searchKnowledgeEntries(query: string, limit: number = 5): Promise<KnowledgeBase[]> {
+    const normalizedQuery = query.toLowerCase().trim();
+    const results = await db.execute(sql`
+      SELECT *, 
+        GREATEST(
+          similarity(LOWER(question), ${normalizedQuery}),
+          similarity(LOWER(answer), ${normalizedQuery})
+        ) as sim_score
+      FROM knowledge_base 
+      WHERE status = 'approved'
+        AND (
+          LOWER(question) LIKE ${'%' + normalizedQuery + '%'}
+          OR LOWER(answer) LIKE ${'%' + normalizedQuery + '%'}
+          OR similarity(LOWER(question), ${normalizedQuery}) > 0.15
+          OR EXISTS (
+            SELECT 1 FROM unnest(keywords) AS kw 
+            WHERE LOWER(kw) LIKE ${'%' + normalizedQuery + '%'}
+            OR similarity(LOWER(kw), ${normalizedQuery}) > 0.2
+          )
+        )
+      ORDER BY sim_score DESC
+      LIMIT ${limit}
+    `);
+    return (results.rows || results) as KnowledgeBase[];
+  }
+
+  async incrementKnowledgeUsage(id: number): Promise<void> {
+    await db.update(knowledgeBase).set({
+      usageCount: sql`${knowledgeBase.usageCount} + 1`,
+      lastUsedAt: new Date(),
+    }).where(eq(knowledgeBase.id, id));
   }
 }
 
