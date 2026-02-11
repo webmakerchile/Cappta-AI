@@ -125,7 +125,7 @@ function buildSystemPrompt(
 **Soporte post-venta - Problemas comunes y cómo manejarlos:**
 - "No me llegaron los datos": Verificar correo, spam, y tiempo transcurrido. Si ha pasado más de 30 minutos, un ejecutivo puede revisar
 - "No puedo acceder a la cuenta": Puede haber un problema con los datos de acceso. Un ejecutivo verificará
-- "Código de verificación": Dirígelos a https://cjm-codes.cl/ donde pueden ingresar su correo electrónico y el sistema les enviará su código de verificación automáticamente. Solo escala a un ejecutivo si el sistema de cjm-codes.cl no les funciona
+- "Código de verificación": Dirígelos a https://cjm-codes.cl/ donde deben ingresar el correo DEL JUEGO (el correo de la cuenta que recibieron con su compra, NO su correo personal) y el sistema les enviará su código de verificación automáticamente. IMPORTANTE: Siempre aclara que deben usar el correo de la cuenta del juego, no su correo personal. Solo escala a un ejecutivo si el sistema de cjm-codes.cl no les funciona
 - "Quiero cambio o devolución": Los productos digitales generalmente no tienen devolución una vez entregados, pero un ejecutivo puede revisar cada caso
 - "Me aparece un candado en mi juego" (PROBLEMA MUY COMÚN - responder con pasos detallados):
 

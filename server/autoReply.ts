@@ -1504,7 +1504,7 @@ async function _processAutoReply(
   }
 
   if (/\bcodigo\s*de\s*verificacion\b|\bcodigo\s*de\s*activacion\b|\bverificar\s*codigo\b|\bcanjear\s*codigo\b|\bredeem\b|\bverificacion\b|\bcodigo\s*de\s*canje\b|\breenviar\s*codigo\b|\bnuevo\s*codigo\b|\bno\s*me\s*llego\s*el\s*codigo\b/.test(msg)) {
-    const text = "Para obtener tu codigo de verificacion, ingresa a https://cjm-codes.cl/ y escribe tu correo electronico. El sistema te enviara tu codigo automaticamente.\n\nSi el sistema no te funciona o tienes algun problema, puedes contactar a un ejecutivo para asistencia personalizada.";
+    const text = "Para obtener tu codigo de verificacion, ingresa a https://cjm-codes.cl/ y escribe el correo del juego (el correo de la cuenta que recibiste con tu compra, NO tu correo personal). El sistema te enviara tu codigo automaticamente.\n\nSi el sistema no te funciona o tienes algun problema, puedes contactar a un ejecutivo para asistencia personalizada.";
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
     ]);
