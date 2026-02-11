@@ -49,10 +49,9 @@ export const PROFANITY_LIST: string[] = [
   "boludo", "boluda", "boludos",
   "forro", "forra", "forros",
   "pajero", "pajera",
-  "concha", "conchatumadre",
+  "conchatumadre",
   "sorete", "soretes",
   "baboso", "babosa",
-  "naco", "naca", "nacos",
   "mamón", "mamon", "mamona",
   "pendejada", "pendejadas",
   "chingón", "chingona",
@@ -65,17 +64,7 @@ export const PROFANITY_LIST: string[] = [
   "ramera", "rameras",
   "desgraciado", "desgraciada", "desgraciados",
   "miserable", "miserables",
-  "asco",
-  "asqueroso", "asquerosa",
-  "cerdo", "cerda",
-  "cochino", "cochina",
-  "animal",
-  "bestia",
-  "bruto", "bruta",
-  "torpe",
-  "tonto", "tonta", "tontos", "tontas",
   "retrasado", "retrasada",
-  "anormal",
   "hdlgp",
   "ptm", "pqtp",
   "stfu",
@@ -168,16 +157,12 @@ export function containsProfanity(text: string): { hasProfanity: boolean; words:
     if (wordBoundary.test(normalized) || wordBoundary.test(deobfuscated)) {
       foundWords.add(original);
     }
-
-    if (collapsed.includes(word) || collapsedDeobfuscated.includes(word)) {
-      foundWords.add(original);
-    }
   }
 
   for (const term of PARTIAL_MATCH_TERMS) {
     const normalizedTerm = normalizeText(term);
-    if (normalized.includes(normalizedTerm) || deobfuscated.includes(normalizedTerm) ||
-        collapsed.includes(normalizedTerm) || collapsedDeobfuscated.includes(normalizedTerm)) {
+    const partialBoundary = new RegExp(`\\b${normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
+    if (partialBoundary.test(normalized) || partialBoundary.test(deobfuscated)) {
       foundWords.add(term);
     }
   }
