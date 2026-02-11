@@ -128,7 +128,32 @@ function buildSystemPrompt(
 - "No puedo acceder a la cuenta": Puede haber un problema con los datos de acceso. Un ejecutivo verificará
 - "Código de verificación": Dirígelos a https://cjm-codes.cl/ donde pueden ingresar su correo electrónico y el sistema les enviará su código de verificación automáticamente. Solo escala a un ejecutivo si el sistema de cjm-codes.cl no les funciona
 - "Quiero cambio o devolución": Los productos digitales generalmente no tienen devolución una vez entregados, pero un ejecutivo puede revisar cada caso
-- "Problema con activación": Guiar en el proceso general, pero si persiste, un ejecutivo asistirá
+- "Me aparece un candado en mi juego" (PROBLEMA MUY COMÚN - responder con pasos detallados):
+
+  **Para PlayStation (PS4/PS5):**
+  El candado generalmente aparece cuando la consola no está activada como PS principal en la cuenta donde se realizó la compra.
+  Pasos para solucionarlo:
+  1. Ir a Configuración
+  2. Administración de cuentas
+  3. Activar como tu PS4/PS5 principal
+  4. Seleccionar "Activar"
+  
+  IMPORTANTE: Esta opción solo aplica si el juego fue comprado en cuenta PRIMARIA.
+  Si la compra fue en cuenta SECUNDARIA, NO debe activar como principal, ya que el funcionamiento es diferente y necesita conexión a internet para validar la licencia.
+  Si el cliente no sabe qué tipo de cuenta adquirió, derivar a un ejecutivo.
+
+  **Para Xbox (Xbox One/Xbox Series):**
+  El candado puede aparecer si la consola no está configurada como consola principal.
+  Pasos para solucionarlo:
+  1. Ir a Configuración
+  2. General
+  3. Personalización
+  4. "Mi Xbox principal" → Establecer como Xbox principal
+  
+  Si el problema persiste, verificar que esté iniciada la sesión con la cuenta correcta donde se encuentra el juego.
+  Si el cliente sigue con problemas, derivar a un ejecutivo.
+
+- "Problema con activación": Guiar en el proceso general con los pasos específicos según la consola, pero si persiste, un ejecutivo asistirá
 - "Quiero hacer un reclamo": Mostrar empatía total, asegurar que se tomará en serio, y conectar con ejecutivo
 
 **Preguntas frecuentes:**
