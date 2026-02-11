@@ -743,8 +743,19 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   }, []);
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
-  const isAdminActive = currentSession?.adminActive ?? false;
+  const [adminActiveOverride, setAdminActiveOverride] = useState<boolean | null>(null);
+  const isAdminActive = adminActiveOverride !== null ? adminActiveOverride : (currentSession?.adminActive ?? false);
   const isLockedByOther = !!(currentSession?.assignedTo && currentSession.assignedTo !== adminUser?.id);
+
+  useEffect(() => {
+    if (adminActiveOverride !== null && currentSession?.adminActive === adminActiveOverride) {
+      setAdminActiveOverride(null);
+    }
+  }, [currentSession?.adminActive, adminActiveOverride]);
+
+  useEffect(() => {
+    setAdminActiveOverride(null);
+  }, [sessionId]);
 
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/admin/sessions", sessionId, "messages"],
@@ -825,6 +836,9 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       return res.json();
     },
     onMutate: async (adminActive) => {
+      const prevOverride = adminActiveOverride;
+      const prevServerValue = currentSession?.adminActive ?? false;
+      setAdminActiveOverride(adminActive);
       await queryClient.cancelQueries({ queryKey: ["/api/admin/sessions"] });
       const queries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] });
       queries.forEach(([key, old]) => {
@@ -833,17 +847,28 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
           s.sessionId === sessionId ? { ...s, adminActive } : s
         ));
       });
-      return { queries };
+      return { queries, prevOverride, prevServerValue };
     },
     onError: (err, _val, context) => {
+      setAdminActiveOverride(context?.prevServerValue ?? null);
       context?.queries.forEach(([key, old]) => {
         if (old) queryClient.setQueryData(key, old);
       });
       toast({ title: "Error", description: (err as Error).message || "Error al cambiar modo admin", variant: "destructive" });
     },
+    onSuccess: (serverData) => {
+      const allQueries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
+        .filter(([key]) => (key as string[]).length <= 2);
+      allQueries.forEach(([key, old]) => {
+        if (!old || !Array.isArray(old)) return;
+        queryClient.setQueryData(key, old.map(s =>
+          s.sessionId === sessionId ? { ...s, ...serverData } : s
+        ));
+      });
+    },
     onSettled: () => {
-      invalidateSessionLists();
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
+      invalidateSessionLists();
     },
   });
 
@@ -3953,6 +3978,7 @@ export default function AdminPage() {
     adminSocket.on("session_updated", (data: any) => {
       if (data?.session && data?.sessionId) {
         const updatedSession = data.session;
+        const isCurrentlySelected = selectedSessionRef.current === data.sessionId;
         const allQueries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
           .filter(([key]) => (key as string[]).length <= 2);
         allQueries.forEach(([key, old]) => {
@@ -3961,7 +3987,7 @@ export default function AdminPage() {
           const updatedList = old.map((s: any) =>
             s.sessionId === data.sessionId ? { ...s, ...updatedSession } : s
           );
-          if (updatedSession.status && queryStatusFilter !== "all") {
+          if (updatedSession.status && queryStatusFilter !== "all" && !isCurrentlySelected) {
             queryClient.setQueryData(key, updatedList.filter((s: any) => s.status === queryStatusFilter));
           } else {
             queryClient.setQueryData(key, updatedList);
