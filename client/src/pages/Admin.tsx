@@ -1232,7 +1232,15 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => blockMutation.mutate(isBlocked ? "unblock" : "block")}
+              onClick={() => {
+                const action = isBlocked ? "unblock" : "block";
+                const msg = isBlocked
+                  ? "¿Desbloquear a este usuario? Podra volver a escribir en el chat."
+                  : "¿Bloquear a este usuario? No podra enviar mas mensajes en el chat.";
+                if (window.confirm(msg)) {
+                  blockMutation.mutate(action);
+                }
+              }}
               title={isBlocked ? "Desbloquear Usuario" : "Bloquear Usuario"}
               className={isBlocked ? "text-green-400" : "text-red-400"}
               data-testid="button-toggle-block"
