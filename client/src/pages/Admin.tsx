@@ -718,7 +718,9 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     if (!vv) return;
     const handleResize = () => {
       if (chatContainerRef.current) {
-        chatContainerRef.current.style.height = `${vv.height}px`;
+        const rect = chatContainerRef.current.getBoundingClientRect();
+        const availableHeight = vv.height - rect.top + vv.offsetTop;
+        chatContainerRef.current.style.height = `${Math.max(availableHeight, 200)}px`;
       }
       setTimeout(() => {
         if (replyInputRef.current && document.activeElement === replyInputRef.current) {
