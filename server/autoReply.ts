@@ -1372,30 +1372,33 @@ async function lookupCatalogProduct(
 
   const queries: string[] = [];
 
-  if (conversationHistory && conversationHistory.length > 0) {
-    const mentionedProduct = extractProductNameFromHistory(conversationHistory);
-    if (mentionedProduct) {
-      queries.unshift(mentionedProduct);
+  if (state.product) {
+    if (state.product.type === "game" && state.product.version) {
+      queries.push(`${state.product.name} ${state.product.version}`);
     }
+    queries.push(state.product.name);
+  }
+
+  if (state.lastTopicProduct && state.lastTopicProduct.name !== state.product?.name) {
+    if (state.lastTopicProduct.type === "game" && (state.lastTopicProduct as any).version) {
+      queries.push(`${state.lastTopicProduct.name} ${(state.lastTopicProduct as any).version}`);
+    }
+    queries.push(state.lastTopicProduct.name);
+  }
+
+  if (sessionData?.wpProductName) {
+    queries.push(sessionData.wpProductName);
   }
 
   if (sessionData?.gameName) {
     queries.push(sessionData.gameName);
   }
 
-  if (sessionData?.wpProductName) {
-    queries.unshift(sessionData.wpProductName);
-  }
-
-  if (state.product) {
-    queries.push(state.product.name);
-    if (state.product.type === "game" && state.product.version) {
-      queries.push(`${state.product.name} ${state.product.version}`);
+  if (conversationHistory && conversationHistory.length > 0) {
+    const mentionedProduct = extractProductNameFromHistory(conversationHistory);
+    if (mentionedProduct) {
+      queries.push(mentionedProduct);
     }
-  }
-
-  if (state.lastTopicProduct) {
-    queries.push(state.lastTopicProduct.name);
   }
 
   const seen = new Set<string>();
@@ -1833,20 +1836,23 @@ async function _processAutoReply(
         try {
           const searchQueries: string[] = [];
           if (state.product) {
-            searchQueries.push(state.product.name);
             if (state.product.version) {
               searchQueries.push(`${state.product.name} ${state.product.version}`);
             }
+            searchQueries.push(state.product.name);
+          }
+          const extractedFromMsg = extractProductKeywords(userMessage);
+          if (extractedFromMsg && extractedFromMsg !== state.product?.name) {
+            searchQueries.push(extractedFromMsg);
           }
           if (state.lastTopicProduct && state.lastTopicProduct.name !== state.product?.name) {
+            if ((state.lastTopicProduct as any).version) {
+              searchQueries.push(`${state.lastTopicProduct.name} ${(state.lastTopicProduct as any).version}`);
+            }
             searchQueries.push(state.lastTopicProduct.name);
           }
           if (sessionData?.wpProductName) searchQueries.push(sessionData.wpProductName);
           if (sessionData?.gameName) searchQueries.push(sessionData.gameName);
-
-          const extractedFromMsg = extractProductKeywords(userMessage);
-          if (extractedFromMsg) searchQueries.push(extractedFromMsg);
-
           searchQueries.push(userMessage);
 
           for (const query of searchQueries) {
@@ -1878,7 +1884,11 @@ async function _processAutoReply(
       }
 
       if (catalogProduct && !relevantProducts.find(p => p.name === catalogProduct.name)) {
-        relevantProducts.unshift(catalogProduct);
+        if (relevantProducts.length === 0) {
+          relevantProducts.unshift(catalogProduct);
+        } else {
+          relevantProducts.push(catalogProduct);
+        }
         if (relevantProducts.length > 5) relevantProducts = relevantProducts.slice(0, 5);
       }
 
