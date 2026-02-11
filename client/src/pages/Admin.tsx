@@ -699,6 +699,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
 
 function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId: string; searchQuery: string; sessions: SessionSummary[]; adminUser: { id: number; email: string; displayName: string; role: string; color?: string } | null }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [showLocalSearch, setShowLocalSearch] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -710,6 +711,27 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashFilter, setSlashFilter] = useState("");
   const [slashSelectedIndex, setSlashSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handleResize = () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.style.height = `${vv.height}px`;
+      }
+      setTimeout(() => {
+        if (replyInputRef.current && document.activeElement === replyInputRef.current) {
+          replyInputRef.current.scrollIntoView({ block: "nearest" });
+        }
+      }, 100);
+    };
+    vv.addEventListener("resize", handleResize);
+    vv.addEventListener("scroll", handleResize);
+    return () => {
+      vv.removeEventListener("resize", handleResize);
+      vv.removeEventListener("scroll", handleResize);
+    };
+  }, []);
 
   const currentSession = sessions.find((s) => s.sessionId === sessionId);
   const isAdminActive = currentSession?.adminActive ?? false;
@@ -1124,8 +1146,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-shrink-0 z-30 bg-[#111] px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06]">
+    <div ref={chatContainerRef} className="flex flex-col h-full" style={{ minHeight: 0 }}>
+      <div className="flex-shrink-0 z-30 bg-[#111] px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] overflow-y-auto max-h-[40vh]">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
@@ -1628,7 +1650,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               }}
               placeholder="Escribe tu respuesta... (/ para atajos)"
               className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
-              autoFocus
+              inputMode="text"
             />
             <Button
               data-testid="button-admin-send"
@@ -4164,6 +4186,8 @@ export default function AdminPage() {
         lastMessageContent: r.messages[0]?.content || null,
         lastMessageSender: r.messages[0]?.sender || null,
         blockedAt: null,
+        lastAutoEmailAt: null,
+        lastManualEmailAt: null,
       }))
     : sessions;
 
@@ -4242,7 +4266,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="flex flex-col overflow-hidden" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif", position: "fixed" as const, inset: 0 }}>
+    <div className="flex flex-col overflow-hidden" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif", position: "fixed" as const, inset: 0, height: "100dvh" }}>
       {notifBannerVisible && (
         <div
           data-testid="banner-notification-prompt"
