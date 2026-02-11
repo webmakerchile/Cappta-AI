@@ -287,12 +287,14 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
   const totalUnread = (session.unreadCount || 0) + (localUnread || 0);
   const agentColor = session.assignedToColor;
   const hasAgent = !!agentColor;
+  const [showPreview, setShowPreview] = useState(false);
   const cardStyle: React.CSSProperties = hasAgent
     ? isSelected
       ? { backgroundColor: `${agentColor}40`, borderColor: `${agentColor}70` }
       : { backgroundColor: `${agentColor}30`, borderColor: `${agentColor}55` }
     : {};
   return (
+    <div className="relative">
     <button
       data-testid={`session-card-${session.sessionId}`}
       onClick={onClick}
@@ -340,14 +342,24 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
             </p>
           )}
         </div>
-        {totalUnread > 0 && (
-          <span
-            data-testid={`badge-unread-${session.sessionId}`}
-            className="flex items-center justify-center min-w-[26px] h-[26px] px-2 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-500/50 animate-bounce"
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          {totalUnread > 0 && (
+            <span
+              data-testid={`badge-unread-${session.sessionId}`}
+              className="flex items-center justify-center min-w-[26px] h-[26px] px-2 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-500/50 animate-bounce"
+            >
+              {totalUnread > 99 ? "99+" : totalUnread}
+            </span>
+          )}
+          <button
+            data-testid={`preview-btn-${session.sessionId}`}
+            onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
+            className="w-7 h-7 rounded-full flex items-center justify-center bg-[#6200EA]/20 border border-[#6200EA]/30 hover:bg-[#6200EA]/40 transition-colors"
+            title="Ver formulario pre-chat"
           >
-            {totalUnread > 99 ? "99+" : totalUnread}
-          </span>
-        )}
+            <FileText className="w-3.5 h-3.5 text-[#BB86FC]" />
+          </button>
+        </div>
       </div>
       {(session.problemType || session.gameName) && (
         <div className="flex items-center gap-2 pl-10 mb-1 flex-wrap">
@@ -422,6 +434,38 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
         )}
       </div>
     </button>
+    {showPreview && (
+      <div
+        data-testid={`preview-popup-${session.sessionId}`}
+        className="absolute left-0 right-0 top-full mt-1 z-50 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-xl shadow-black/40 overflow-hidden"
+      >
+        <div className="bg-white/[0.04] border-b border-white/[0.06] px-4 py-2 flex items-center justify-between">
+          <span className="text-xs font-medium text-white/50">Formulario pre-chat</span>
+          <button onClick={(e) => { e.stopPropagation(); setShowPreview(false); }} className="text-white/30 hover:text-white/60">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="px-4 py-3 space-y-2.5">
+          <div>
+            <p className="text-[10px] text-white/40">Nombre:</p>
+            <p className="text-[13px] text-white/90 font-medium">{session.userName || "No proporcionado"}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-white/40">E-mail:</p>
+            <p className="text-[13px] text-[#BB86FC] font-medium break-all">{session.userEmail || "No proporcionado"}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-white/40">En que necesitas ayuda?</p>
+            <p className="text-[13px] text-white/90 font-medium">{session.problemType || "No especificado"}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-white/40">Necesitas ayuda con un juego en especifico, cual?:</p>
+            <p className="text-[13px] text-white/90 font-medium">{session.gameName || "No especificado"}</p>
+          </div>
+        </div>
+      </div>
+    )}
+    </div>
   );
 }
 
@@ -1258,18 +1302,14 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   <p className="text-[11px] text-white/40 mb-0.5">E-mail:</p>
                   <p className="text-sm text-[#BB86FC] font-medium break-all">{userEmail || "No proporcionado"}</p>
                 </div>
-                {currentSession.problemType && (
-                  <div>
-                    <p className="text-[11px] text-white/40 mb-0.5">En que necesitas ayuda?</p>
-                    <p className="text-sm text-white/90 font-medium">{currentSession.problemType}</p>
-                  </div>
-                )}
-                {currentSession.gameName && (
-                  <div>
-                    <p className="text-[11px] text-white/40 mb-0.5">Necesitas ayuda con un juego en especifico, cual?:</p>
-                    <p className="text-sm text-white/90 font-medium">{currentSession.gameName}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-[11px] text-white/40 mb-0.5">En que necesitas ayuda?</p>
+                  <p className="text-sm text-white/90 font-medium">{currentSession.problemType || "No especificado"}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-white/40 mb-0.5">Necesitas ayuda con un juego en especifico, cual?:</p>
+                  <p className="text-sm text-white/90 font-medium">{currentSession.gameName || "No especificado"}</p>
+                </div>
               </div>
             </div>
           </div>
