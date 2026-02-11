@@ -1588,7 +1588,7 @@ export async function registerRoutes(
       const protocol = req.get("x-forwarded-proto") || req.protocol || "https";
       const host = req.get("host") || "";
       const baseUrl = `${protocol}://${host}`;
-      const chatUrl = `${baseUrl}?email=${encodeURIComponent(userEmail)}&name=${encodeURIComponent(userName || "")}`;
+      const chatUrl = `${baseUrl}/chat?email=${encodeURIComponent(userEmail)}&name=${encodeURIComponent(userName || "")}`;
 
       const result = await sendChatInviteEmail({
         userName: userName || "Usuario",
