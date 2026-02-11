@@ -42,6 +42,8 @@ interface SessionSummary {
   blockedAt: string | null;
   lastMessageContent: string | null;
   lastMessageSender: string | null;
+  lastAutoEmailAt: string | null;
+  lastManualEmailAt: string | null;
 }
 
 interface BrowseProduct {
@@ -447,6 +449,18 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
             {[1, 2, 3, 4, 5].map((s) => (
               <Star key={s} className={`w-2.5 h-2.5 ${s <= rating.rating ? "text-yellow-400 fill-yellow-400" : "text-white/15"}`} />
             ))}
+          </span>
+        )}
+        {session.lastAutoEmailAt && (
+          <span data-testid={`badge-auto-email-${session.sessionId}`} className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" title={`Correo automatico: ${new Date(session.lastAutoEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}`}>
+            <Mail className="w-2.5 h-2.5" />
+            Auto
+          </span>
+        )}
+        {session.lastManualEmailAt && (
+          <span data-testid={`badge-manual-email-${session.sessionId}`} className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-[#BB86FC]/15 text-[#BB86FC] border border-[#BB86FC]/30" title={`Correo manual: ${new Date(session.lastManualEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}`}>
+            <Mail className="w-2.5 h-2.5" />
+            Correo
           </span>
         )}
       </div>
@@ -1302,6 +1316,22 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             </div>
             {sessionRating.comment && (
               <span className="text-[11px] text-white/50 italic truncate max-w-[200px]">"{sessionRating.comment}"</span>
+            )}
+          </div>
+        )}
+        {(currentSession?.lastAutoEmailAt || currentSession?.lastManualEmailAt) && (
+          <div data-testid="email-history-section" className="mt-2 px-4 py-2 bg-cyan-500/5 border-t border-cyan-500/10 flex flex-col gap-1">
+            {currentSession.lastAutoEmailAt && (
+              <div data-testid="auto-email-log" className="flex items-center gap-1.5 text-[11px] text-cyan-400/80">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span>Correo automatico enviado: {new Date(currentSession.lastAutoEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</span>
+              </div>
+            )}
+            {currentSession.lastManualEmailAt && (
+              <div data-testid="manual-email-log" className="flex items-center gap-1.5 text-[11px] text-[#BB86FC]/80">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span>Correo manual enviado: {new Date(currentSession.lastManualEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</span>
+              </div>
             )}
           </div>
         )}
@@ -3850,6 +3880,18 @@ export default function AdminPage() {
           setSelectedSession(null);
           setMobileView("list");
         }
+        invalidateSessionLists();
+      }
+    });
+
+    adminSocket.on("auto_email_sent", (data: any) => {
+      if (data?.sessionId) {
+        invalidateSessionLists();
+      }
+    });
+
+    adminSocket.on("manual_email_sent", (data: any) => {
+      if (data?.sessionId) {
         invalidateSessionLists();
       }
     });

@@ -35,6 +35,8 @@ export const sessions = pgTable("sessions", {
   blockedAt: timestamp("blocked_at"),
   lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
   lastReadAt: timestamp("last_read_at"),
+  lastAutoEmailAt: timestamp("last_auto_email_at"),
+  lastManualEmailAt: timestamp("last_manual_email_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

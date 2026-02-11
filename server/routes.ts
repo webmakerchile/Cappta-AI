@@ -1602,6 +1602,21 @@ export async function registerRoutes(
         return res.status(500).json({ message: result.error || "Error al enviar el correo" });
       }
 
+      await storage.updateSessionManualEmailAt(req.params.id);
+
+      const systemMsg = await storage.createMessage({
+        sessionId: req.params.id,
+        userEmail: userEmail,
+        userName: user.displayName,
+        sender: "support",
+        content: `${user.displayName} envio un correo de invitacion al usuario`,
+        imageUrl: null,
+      });
+
+      io.to(`session:${req.params.id}`).emit("new_message", systemMsg);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.id, message: systemMsg });
+      io.to("admin_room").emit("manual_email_sent", { sessionId: req.params.id, agentName: user.displayName, timestamp: new Date().toISOString() });
+
       res.json({ success: true });
     } catch (error: any) {
       log(`Error al enviar correo de invitacion: ${error.message}`, "api");
@@ -1921,6 +1936,95 @@ export async function registerRoutes(
       }
       userSessions.delete(socket.id);
       log(`Usuario desconectado: ${name} (${email})`, "socket.io");
+
+      const disconnectedSessionId = sessionId;
+      const disconnectedEmail = email;
+      const disconnectedName = name;
+      const host = process.env.REPLIT_DEV_DOMAIN || socket.handshake.headers.host || "localhost:5000";
+
+      setTimeout(async () => {
+        try {
+          const activeConns = getActiveSessionConnections(disconnectedSessionId);
+          if (activeConns > 0) {
+            log(`Usuario reconectado a session ${disconnectedSessionId}, no se envia correo automatico`, "auto-email");
+            return;
+          }
+
+          const sessionData = await storage.getSession(disconnectedSessionId);
+          if (!sessionData || !sessionData.userEmail) return;
+
+          if (sessionData.status === "closed") return;
+          if (!sessionData.adminActive) return;
+
+          const msgs = await storage.getMessagesBySessionId(disconnectedSessionId);
+          if (msgs.length === 0) return;
+
+          const lastUserMsg = [...msgs].reverse().find(m => m.sender === "user");
+          const lastUserTime = lastUserMsg ? new Date(lastUserMsg.timestamp).getTime() : 0;
+
+          const recentAdminMsgs = msgs.filter(m =>
+            m.sender === "support" &&
+            m.adminName &&
+            m.content !== "{{SHOW_RATING}}" &&
+            !m.content.startsWith("Correo automatico enviado") &&
+            !m.content.includes("envio un correo de invitacion") &&
+            new Date(m.timestamp).getTime() > lastUserTime
+          );
+
+          if (recentAdminMsgs.length === 0) {
+            log(`No hay mensajes de admin sin leer en session ${disconnectedSessionId}, no se envia correo`, "auto-email");
+            return;
+          }
+
+          const latestAdminMsgTime = Math.max(...recentAdminMsgs.map(m => new Date(m.timestamp).getTime()));
+          const lastAutoEmail = sessionData.lastAutoEmailAt;
+          if (lastAutoEmail) {
+            const lastAutoEmailTime = new Date(lastAutoEmail).getTime();
+            if (lastAutoEmailTime > latestAdminMsgTime) {
+              log(`Ya se envio correo automatico para estos mensajes en session ${disconnectedSessionId}`, "auto-email");
+              return;
+            }
+            const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+            if (new Date(lastAutoEmail) > twoHoursAgo) {
+              log(`Cooldown activo para session ${disconnectedSessionId}, ultimo correo automatico: ${lastAutoEmail}`, "auto-email");
+              return;
+            }
+          }
+
+          const chatUrl = `https://${host}/chat?email=${encodeURIComponent(disconnectedEmail)}&name=${encodeURIComponent(disconnectedName)}`;
+
+          const result = await sendChatInviteEmail({
+            userName: disconnectedName || "Usuario",
+            userEmail: disconnectedEmail,
+            sessionId: disconnectedSessionId,
+            agentName: "Sistema automatico",
+            chatUrl,
+          });
+
+          if (result.success) {
+            await storage.updateSessionAutoEmailAt(disconnectedSessionId);
+
+            const systemMsg = await storage.createMessage({
+              sessionId: disconnectedSessionId,
+              userEmail: disconnectedEmail,
+              userName: "Soporte",
+              sender: "support",
+              content: "Correo automatico enviado al usuario",
+              imageUrl: null,
+            });
+
+            io.to(`session:${disconnectedSessionId}`).emit("new_message", systemMsg);
+            io.to("admin_room").emit("admin_new_message", { sessionId: disconnectedSessionId, message: systemMsg });
+            io.to("admin_room").emit("auto_email_sent", { sessionId: disconnectedSessionId, timestamp: new Date().toISOString() });
+
+            log(`Correo automatico enviado a ${disconnectedEmail} para session ${disconnectedSessionId}`, "auto-email");
+          } else {
+            log(`Error al enviar correo automatico a ${disconnectedEmail}: ${result.error}`, "auto-email");
+          }
+        } catch (error: any) {
+          log(`Error en auto-email para session ${disconnectedSessionId}: ${error.message}`, "auto-email");
+        }
+      }, 2 * 60 * 1000);
     });
   });
 

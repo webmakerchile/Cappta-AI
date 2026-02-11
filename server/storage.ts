@@ -8,7 +8,7 @@ export interface IStorage {
   getSessionsByEmail(email: string): Promise<Session[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
-  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null }[]>;
+  getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null; lastAutoEmailAt: Date | null; lastManualEmailAt: Date | null }[]>;
   markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
@@ -60,6 +60,8 @@ export interface IStorage {
   isSessionBlocked(sessionId: string): Promise<boolean>;
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
+  updateSessionAutoEmailAt(sessionId: string): Promise<void>;
+  updateSessionManualEmailAt(sessionId: string): Promise<void>;
   // Knowledge Base
   createKnowledgeEntry(data: InsertKnowledgeBase): Promise<KnowledgeBase>;
   getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]>;
@@ -216,7 +218,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId));
   }
 
-  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null }[]> {
+  async getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null; lastAutoEmailAt: Date | null; lastManualEmailAt: Date | null }[]> {
     const statusCondition = statusFilter && statusFilter !== "all"
       ? sql`WHERE s.status = ${statusFilter}`
       : sql``;
@@ -236,6 +238,8 @@ export class DatabaseStorage implements IStorage {
         s.assigned_to_color AS "assignedToColor",
         s.blocked_at AS "blockedAt",
         s.last_read_at AS "lastReadAt",
+        s.last_auto_email_at AS "lastAutoEmailAt",
+        s.last_manual_email_at AS "lastManualEmailAt",
         COALESCE(ms.msg_count, 0)::int AS "messageCount",
         COALESCE(ms.unread_user, 0)::int AS "totalUserMessages",
         ms.last_msg AS "lastMessage",
@@ -286,6 +290,8 @@ export class DatabaseStorage implements IStorage {
         blockedAt: r.blockedAt || null,
         lastMessageContent: r.lastMessageContent || null,
         lastMessageSender: r.lastMessageSender || null,
+        lastAutoEmailAt: r.lastAutoEmailAt || null,
+        lastManualEmailAt: r.lastManualEmailAt || null,
       });
     }
 
@@ -333,6 +339,8 @@ export class DatabaseStorage implements IStorage {
             blockedAt: null,
             lastMessageContent: null,
             lastMessageSender: null,
+            lastAutoEmailAt: null,
+            lastManualEmailAt: null,
           });
         }
       }
@@ -920,6 +928,20 @@ export class DatabaseStorage implements IStorage {
       usageCount: sql`${knowledgeBase.usageCount} + 1`,
       lastUsedAt: new Date(),
     }).where(eq(knowledgeBase.id, id));
+  }
+
+  async updateSessionAutoEmailAt(sessionId: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ lastAutoEmailAt: new Date() })
+      .where(eq(sessions.sessionId, sessionId));
+  }
+
+  async updateSessionManualEmailAt(sessionId: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ lastManualEmailAt: new Date() })
+      .where(eq(sessions.sessionId, sessionId));
   }
 }
 
