@@ -1236,13 +1236,13 @@ async function getAIResponse(
 
     const buttons: Array<{label: string, value?: string, url?: string}> = [];
 
-    const isProductContext = state && (
+    const hasSpecificProduct = state && state.product && (
       state.intent === "product_inquiry" || 
       state.intent === "price_inquiry" || 
       state.intent === "purchase_intent"
     );
 
-    if (isProductContext && catalogProducts && catalogProducts.length > 0) {
+    if (hasSpecificProduct && catalogProducts && catalogProducts.length > 0) {
       const topProduct = catalogProducts[0];
       if (topProduct.productUrl && (topProduct.availability === "available" || topProduct.availability === "preorder")) {
         const shortName = topProduct.name.length > 25 
