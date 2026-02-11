@@ -717,16 +717,20 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     const vv = window.visualViewport;
     if (!vv) return;
     const handleResize = () => {
-      if (chatContainerRef.current) {
+      if (!chatContainerRef.current) return;
+      const keyboardOpen = vv.height < window.innerHeight * 0.75;
+      if (keyboardOpen) {
         const rect = chatContainerRef.current.getBoundingClientRect();
-        const availableHeight = vv.height - rect.top + vv.offsetTop;
+        const availableHeight = vv.height - Math.max(rect.top, 0);
         chatContainerRef.current.style.height = `${Math.max(availableHeight, 200)}px`;
+        setTimeout(() => {
+          if (replyInputRef.current && document.activeElement === replyInputRef.current) {
+            replyInputRef.current.scrollIntoView({ block: "nearest" });
+          }
+        }, 100);
+      } else {
+        chatContainerRef.current.style.height = "";
       }
-      setTimeout(() => {
-        if (replyInputRef.current && document.activeElement === replyInputRef.current) {
-          replyInputRef.current.scrollIntoView({ block: "nearest" });
-        }
-      }, 100);
     };
     vv.addEventListener("resize", handleResize);
     vv.addEventListener("scroll", handleResize);
