@@ -25,6 +25,7 @@ interface CatalogProduct {
   platform: string;
   description: string | null;
   category: string;
+  accountType: string;
 }
 
 interface KnowledgeEntry {
@@ -84,7 +85,9 @@ function buildSystemPrompt(
 - Nintendo Switch (catálogo limitado)
 
 **Categorías de productos:**
-1. **Juegos digitales**: Se entregan como cuentas digitales con el juego ya incluido (NO son códigos sueltos). El cliente recibe los datos de acceso a una cuenta que tiene el juego listo para descargar
+1. **Juegos digitales**: Se entregan como cuentas digitales con el juego ya incluido (NO son códigos sueltos). El cliente recibe los datos de acceso a una cuenta que tiene el juego listo para descargar. Los juegos vienen en dos tipos de cuenta:
+   - **Cuenta Primaria**: El cliente tiene acceso completo al juego. Puede jugar sin conexión a internet. Precio más alto.
+   - **Cuenta Secundaria**: El cliente puede jugar el juego pero necesita conexión a internet para validar la licencia. Precio más bajo.
 2. **Suscripciones PlayStation Plus**:
    - PS Plus Essential: Juegos mensuales gratuitos + multijugador online
    - PS Plus Extra: Todo lo de Essential + catálogo de cientos de juegos
@@ -225,6 +228,7 @@ IMPORTANTE: Los juegos se venden como CUENTAS DIGITALES con el juego incluido, N
 6. **Distingue claramente** entre: consulta sobre un producto nuevo (pre-venta) vs problema con un producto ya comprado (post-venta)
 7. Cuando el usuario menciona un producto específico y hay datos del catálogo, incluye precio y disponibilidad si los tienes
 8. Si hay un producto en los datos del catálogo que coincide con lo que busca el cliente, menciónalo con su nombre exacto y precio
+9. **SIEMPRE especifica si el producto es cuenta primaria o secundaria** cuando muestres precios de juegos. Nunca muestres un precio de un juego sin indicar si es primaria o secundaria. Ejemplo: "Grand Theft Auto V (cuenta primaria) a $9.990 CLP" o "GTA V (cuenta secundaria) a $6.990 CLP"
 
 ===== ANTI-RESPUESTA GENÉRICA =====
 
@@ -321,7 +325,8 @@ Estamos dentro del horario de atención. Si el cliente necesita ayuda personaliz
             ? "Pre-orden"
             : "No disponible";
       const priceInfo = product.price ? `$${product.price} CLP` : "Precio por consultar";
-      systemPrompt += `${index + 1}. ${product.name} | Plataforma: ${product.platform} | ${priceInfo} | Estado: ${availability}`;
+      const accountTypeLabel = product.accountType === "primaria" ? " (Cuenta Primaria)" : product.accountType === "secundaria" ? " (Cuenta Secundaria)" : "";
+      systemPrompt += `${index + 1}. ${product.name}${accountTypeLabel} | Plataforma: ${product.platform} | ${priceInfo} | Estado: ${availability}`;
       if (product.productUrl) {
         systemPrompt += ` | Link: ${product.productUrl}`;
       }

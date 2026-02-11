@@ -1662,6 +1662,7 @@ interface AdminProduct {
   availability: string;
   description: string | null;
   category: string;
+  accountType: string;
   wcLastSync: string | null;
 }
 
@@ -1708,6 +1709,12 @@ const AVAILABILITY_OPTIONS = [
   { value: "preorder", label: "Pre-orden" },
 ];
 
+const ACCOUNT_TYPE_OPTIONS = [
+  { value: "no_aplica", label: "No aplica" },
+  { value: "primaria", label: "Primaria" },
+  { value: "secundaria", label: "Secundaria" },
+];
+
 function getAvailabilityColor(avail: string) {
   if (avail === "available") return "bg-green-500/15 text-green-400 border-green-500/30";
   if (avail === "out_of_stock") return "bg-red-500/15 text-red-400 border-red-500/30";
@@ -1727,6 +1734,17 @@ function getPlatformLabel(platform: string) {
 function getCategoryLabel(category: string) {
   const opt = CATEGORY_OPTIONS.find(o => o.value === category);
   return opt?.label || category;
+}
+
+function getAccountTypeLabel(accountType: string) {
+  const opt = ACCOUNT_TYPE_OPTIONS.find(o => o.value === accountType);
+  return opt?.label || accountType;
+}
+
+function getAccountTypeColor(accountType: string) {
+  if (accountType === "primaria") return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
+  if (accountType === "secundaria") return "bg-orange-500/15 text-orange-400 border-orange-500/30";
+  return "";
 }
 
 function WCSyncSection() {
@@ -1849,6 +1867,7 @@ function ProductsPanel() {
     description: "",
     category: "game",
     availability: "available",
+    accountType: "no_aplica",
   });
 
   const resetForm = () => {
@@ -1862,6 +1881,7 @@ function ProductsPanel() {
       description: "",
       category: "game",
       availability: "available",
+      accountType: "no_aplica",
     });
   };
 
@@ -1934,6 +1954,7 @@ function ProductsPanel() {
       description: p.description || "",
       category: p.category,
       availability: p.availability,
+      accountType: p.accountType || "no_aplica",
     });
   };
 
@@ -1947,6 +1968,7 @@ function ProductsPanel() {
     description: formData.description.trim() || null,
     category: formData.category,
     availability: formData.availability,
+    accountType: formData.accountType,
   });
 
   const handleSubmitNew = () => {
@@ -1976,7 +1998,7 @@ function ProductsPanel() {
         placeholder="Aliases de busqueda (separados por coma)"
         className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
       />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Select value={formData.platform} onValueChange={(v) => setFormData(f => ({ ...f, platform: v }))}>
           <SelectTrigger data-testid="select-product-platform" className="bg-white/5 border-white/10 text-white text-sm">
             <SelectValue placeholder="Plataforma" />
@@ -1993,6 +2015,16 @@ function ProductsPanel() {
           </SelectTrigger>
           <SelectContent>
             {CATEGORY_OPTIONS.map(o => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={formData.accountType} onValueChange={(v) => setFormData(f => ({ ...f, accountType: v }))}>
+          <SelectTrigger data-testid="select-product-account-type" className="bg-white/5 border-white/10 text-white text-sm">
+            <SelectValue placeholder="Tipo de Cuenta" />
+          </SelectTrigger>
+          <SelectContent>
+            {ACCOUNT_TYPE_OPTIONS.map(o => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
           </SelectContent>
@@ -2122,6 +2154,11 @@ function ProductsPanel() {
                       <span className="text-[10px] bg-white/[0.06] text-white/50 px-1.5 py-0.5 rounded">
                         {getCategoryLabel(p.category)}
                       </span>
+                      {p.accountType && p.accountType !== "no_aplica" && (
+                        <span data-testid={`text-product-account-type-${p.id}`} className={`text-[10px] px-1.5 py-0.5 rounded border ${getAccountTypeColor(p.accountType)}`}>
+                          {getAccountTypeLabel(p.accountType)}
+                        </span>
+                      )}
                       {p.price && (
                         <span data-testid={`text-product-price-${p.id}`} className="text-xs text-green-400 font-medium">{p.price}</span>
                       )}

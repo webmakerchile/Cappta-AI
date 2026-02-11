@@ -393,6 +393,7 @@ export async function registerRoutes(
                   platform: p.platform,
                   description: p.description,
                   category: p.category,
+                  accountType: p.accountType,
                 }));
               },
               getByPlatform: async (platform: string) => {
@@ -405,6 +406,7 @@ export async function registerRoutes(
                   platform: p.platform,
                   description: p.description,
                   category: p.category,
+                  accountType: p.accountType,
                 }));
               },
               getByCategory: async (category: string) => {
@@ -417,6 +419,7 @@ export async function registerRoutes(
                   platform: p.platform,
                   description: p.description,
                   category: p.category,
+                  accountType: p.accountType,
                 }));
               },
               getTotalCount: async () => {
@@ -1801,6 +1804,7 @@ export async function registerRoutes(
                     platform: p.platform,
                     description: p.description,
                     category: p.category,
+                    accountType: p.accountType,
                   }));
                 },
                 getByPlatform: async (platform: string) => {
@@ -1813,6 +1817,7 @@ export async function registerRoutes(
                     platform: p.platform,
                     description: p.description,
                     category: p.category,
+                    accountType: p.accountType,
                   }));
                 },
                 getByCategory: async (category: string) => {
@@ -1825,6 +1830,7 @@ export async function registerRoutes(
                     platform: p.platform,
                     description: p.description,
                     category: p.category,
+                    accountType: p.accountType,
                   }));
                 },
                 getTotalCount: async () => {

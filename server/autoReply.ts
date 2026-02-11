@@ -38,6 +38,7 @@ interface CatalogProduct {
   platform: string;
   description: string | null;
   category: string;
+  accountType: string;
 }
 
 interface CatalogLookup {
@@ -594,7 +595,13 @@ function truncateDescription(desc: string | null | undefined, maxLen: number = 3
   return sub + "...";
 }
 
-function formatProductDetail(product: { name: string; price: string | null; availability: string; description: string | null }): string {
+function formatAccountTypeSuffix(accountType?: string): string {
+  if (accountType === "primaria") return " (Cuenta Primaria)";
+  if (accountType === "secundaria") return " (Cuenta Secundaria)";
+  return "";
+}
+
+function formatProductDetail(product: { name: string; price: string | null; availability: string; description: string | null; accountType?: string }): string {
   const priceText = product.price ? `${product.price}` : "Consultar";
   let availEmoji = "✅";
   let availLabel = "Disponible";
@@ -606,7 +613,8 @@ function formatProductDetail(product: { name: string; price: string | null; avai
     availLabel = "No disponible";
   }
   const desc = truncateDescription(product.description);
-  let text = `🎮 ${product.name}\n💰 Precio: ${priceText} | ${availEmoji} ${availLabel}`;
+  const acctSuffix = formatAccountTypeSuffix(product.accountType);
+  let text = `🎮 ${product.name}${acctSuffix}\n💰 Precio: ${priceText} | ${availEmoji} ${availLabel}`;
   if (desc) {
     text += `\n\n${desc}`;
   }

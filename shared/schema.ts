@@ -71,6 +71,7 @@ export const products = pgTable("products", {
   availability: text("availability", { enum: ["available", "out_of_stock", "preorder"] }).notNull().default("available"),
   description: text("description"),
   category: text("category", { enum: ["game", "subscription", "card", "bundle", "console", "accessory", "other"] }).notNull().default("game"),
+  accountType: text("account_type", { enum: ["primaria", "secundaria", "no_aplica"] }).notNull().default("no_aplica"),
   wcLastSync: timestamp("wc_last_sync"),
 });
 
