@@ -1,0 +1,190 @@
+DNS
+
+Records
+Configure DNS records and review proxy status of your hostnames.
+
+
+cjmdigitales.cl is pending until you complete the instructions on the Overview page and we are able to verify ownership. Learn more about pending domains.
+Recommended steps to complete zone set-up
+Hide
+Add an A, AAAA, or CNAME record for www so that www.cjmdigitales.cl will resolve.
+
+DNS management for cjmdigitales.cl
+Review, add, and edit DNS records. Edits will go into effect once saved.
+DNS Setup: Full
+
+
+Import and Export
+
+
+Dashboard Display Settings
+Search DNS Records
+Your search yielded 17 results
+
+Type
+
+Name
+
+Content
+
+Proxy status
+
+TTL
+
+Actions
+
+
+
+A
+cjmdigitales.cl
+64.176.10.186
+
+Proxied
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+
+
+CNAME
+mail
+u161779.wl030.sendgrid.net
+
+Proxied
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+MX
+cjmdigitales.cl
+smtp.google.com
+
+1
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+MX
+send
+feedback-smtp.us-east-1.amazonses.com
+
+10
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+NS
+cjmdigitales.cl
+ns14.digicertdns.net
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+NS
+cjmdigitales.cl
+ns12.digicertdns.com
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+NS
+cjmdigitales.cl
+ns10.digicertdns.com
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+NS
+cjmdigitales.cl
+ns15.digicertdns.net
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+NS
+cjmdigitales.cl
+ns11.digicertdns.com
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+NS
+cjmdigitales.cl
+ns13.digicertdns.net
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+cjmdigitales.cl
+"google-site-verification=SDNEJbT3VYjg0dN0UtRfwJvsa6qQ-3OZPKRWGNQqb5I"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+cjmdigitales.cl
+"v=spf1 include:_spf.google.com ~all"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+cjmdigitales.cl
+"klaviyo-site-verification=XsUbRy"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+_dmarc
+"v=DMARC1; p=none;"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+google._domainkey
+"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwA0W2zpcoFCrJmRIpoP4aKk8flSCOCO5JF0nvYxd/JdJ+qBAhyjHxa4wD+mEu7OIoxVN8yEEwB1Pot1NdhhOgk/d2vyutzESnBOsdxx3ypviNfwWttIS19N7T5Y4TfvryIieQHv6nKKFs4RFQMU0VE3boyYFECmdA4yCP0UI8ME0tWKvYCemzG5e6dbDGIqUI" "01FezWDDrivp7/ArmxbeO0aEbRWAduDKWmJ9IZt15vUrZoXbc9pCPga7MLkSLn+1a59+wgBihR2aSH0VwKSIr8H8GYnndy9Gt+4gDvI9say1aqDT52aw3s+uP4lzMZUdyt4MIMghQFw4/XIT5Ue4wIDAQAB"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+resend._domainkey
+"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSOByhwnusOexAtIQhMSVB+eDne8yYTBSItX2mWrA+ZFjza/h631263AKDAv7SdczSL57jbFjYWYqkaG2aF549BXOqFfp3+OkwSKhmA3CNuU4QWbDLLZ14ZOcWiJEwHZTyb450zdo+CRNWy99661ftfgSHR88UECb96nTHuc9g5QIDAQAB"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+send
+"v=spf1 include:amazonses.com ~all"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+Cloudflare Nameservers
+To use Cloudflare, change your nameservers, or authoritative DNS servers. These are your assigned Cloudflare nameservers.
+
+Type	Value
+NS	kobe.ns.cloudflare.com
+NS	vita.ns.cloudflare.com
+Support
+System status
+Careers
+T
