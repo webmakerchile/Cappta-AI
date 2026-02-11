@@ -66,59 +66,50 @@ interface ChatInviteData {
 }
 
 export async function sendChatInviteEmail(data: ChatInviteData): Promise<{ success: boolean; error?: string }> {
-  const fromAddresses = [
-    "CJM Digitales <noreply@send.cjmdigitales.cl>",
-    "CJM Digitales <ayuda@send.cjmdigitales.cl>",
-    "CJM Digitales <noreply@cjmdigitales.cl>",
-    "CJM Digitales <onboarding@resend.dev>",
-  ];
+  const fromAddr = "CJM Digitales <noreply@send.cjmdigitales.cl>";
 
-  for (const fromAddr of fromAddresses) {
-    try {
-      log(`Attempting to send chat invite email to ${data.userEmail} from ${fromAddr}`, "resend");
-      const { data: result, error } = await resend.emails.send({
-        from: fromAddr,
-        to: data.userEmail,
-        subject: "Tienes un mensaje pendiente en CJM Digitales",
-        html: `
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #ffffff; border-radius: 8px; overflow: hidden;">
-            <div style="background: #6200EA; padding: 24px 32px;">
-              <h1 style="margin: 0; font-size: 20px; color: #ffffff;">Mensaje Pendiente</h1>
-            </div>
-            <div style="padding: 32px;">
-              <p style="color: #cccccc; margin-top: 0;">Hola <strong>${data.userName}</strong>,</p>
-              <p style="color: #cccccc;">Un agente de CJM Digitales te ha enviado un mensaje y esta esperando tu respuesta.</p>
-              <div style="background: #222; border-radius: 6px; padding: 16px; color: #ccc; font-size: 14px; line-height: 1.6; margin: 20px 0;">
-                <strong style="color: #9d6fff;">Agente:</strong> ${data.agentName}
-              </div>
-              <div style="margin-top: 32px; text-align: center;">
-                <a href="${data.chatUrl}" style="display: inline-block; background: #6200EA; color: #fff; padding: 14px 40px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">Volver al Chat</a>
-              </div>
-              <p style="color: #666; font-size: 12px; margin-top: 24px; word-break: break-all;">Si no puedes acceder al link, copia y pega esta URL en tu navegador: ${data.chatUrl}</p>
-            </div>
-            <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-              Notificacion enviada desde CJM Digitales
-            </div>
+  try {
+    log(`Sending chat invite email to ${data.userEmail} from ${fromAddr}`, "resend");
+    const { data: result, error } = await resend.emails.send({
+      from: fromAddr,
+      to: data.userEmail,
+      subject: "Tienes un mensaje pendiente en CJM Digitales",
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <div style="background: #6200EA; padding: 24px 32px;">
+            <h1 style="margin: 0; font-size: 20px; color: #ffffff;">Mensaje Pendiente</h1>
           </div>
-        `,
-      });
+          <div style="padding: 32px;">
+            <p style="color: #cccccc; margin-top: 0;">Hola <strong>${data.userName}</strong>,</p>
+            <p style="color: #cccccc;">Un agente de CJM Digitales te ha enviado un mensaje y esta esperando tu respuesta.</p>
+            <div style="background: #222; border-radius: 6px; padding: 16px; color: #ccc; font-size: 14px; line-height: 1.6; margin: 20px 0;">
+              <strong style="color: #9d6fff;">Agente:</strong> ${data.agentName}
+            </div>
+            <div style="margin-top: 32px; text-align: center;">
+              <a href="${data.chatUrl}" style="display: inline-block; background: #6200EA; color: #fff; padding: 14px 40px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">Volver al Chat</a>
+            </div>
+            <p style="color: #666; font-size: 12px; margin-top: 24px; word-break: break-all;">Si no puedes acceder al link, copia y pega esta URL en tu navegador: ${data.chatUrl}</p>
+          </div>
+          <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
+            Notificacion enviada desde CJM Digitales
+          </div>
+        </div>
+      `,
+    });
 
-      if (error) {
-        log(`Error sending chat invite from ${fromAddr}: ${JSON.stringify(error)}`, "resend");
-        continue;
-      }
-
-      log(`Chat invite email sent to ${data.userEmail} from ${fromAddr} (id: ${result?.id})`, "resend");
-      return { success: true };
-    } catch (err: any) {
-      log(`Failed to send chat invite from ${fromAddr}: ${err.message}`, "resend");
-      continue;
+    if (error) {
+      const errorMsg = `Error de Resend: ${JSON.stringify(error)}`;
+      log(`Error sending chat invite: ${errorMsg}`, "resend");
+      return { success: false, error: errorMsg };
     }
-  }
 
-  const errorMsg = "No se pudo enviar el correo con ninguna direccion de remitente. Verifica que tu dominio (cjmdigitales.cl) este verificado en Resend, o que la API key sea valida.";
-  log(errorMsg, "resend");
-  return { success: false, error: errorMsg };
+    log(`Chat invite email sent to ${data.userEmail} (id: ${result?.id})`, "resend");
+    return { success: true };
+  } catch (err: any) {
+    const errorMsg = `Error enviando correo: ${err.message}`;
+    log(`Failed to send chat invite: ${errorMsg}`, "resend");
+    return { success: false, error: errorMsg };
+  }
 }
 
 function getProblemTypeLabel(problemType: string): string {
