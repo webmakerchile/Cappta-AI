@@ -1006,6 +1006,12 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
       toast({ title: "Error", description: (err as Error).message || "Error en la operacion", variant: "destructive" });
     },
+    onSuccess: (data) => {
+      if (data.action === "claim") {
+        adminActiveMutation.mutate(true);
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    },
     onSettled: () => {
       invalidateSessionLists();
     },
@@ -1184,7 +1190,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
 
   return (
     <div ref={chatContainerRef} className="flex flex-col h-full" style={{ minHeight: 0 }}>
-      <div className="flex-shrink-0 z-30 bg-[#111] px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] overflow-y-auto max-h-[40vh]">
+      <div className="flex-shrink-0 z-30 bg-[#111] px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] overflow-y-auto max-h-[40vh] sticky top-0 shadow-md">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
@@ -1640,65 +1646,67 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               </div>
             </div>
           )}
-          <div className="px-3 py-2 border-t border-white/[0.06] flex items-center gap-2">
-            <input
-              ref={adminFileInputRef}
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleAdminImageSelect}
-              className="hidden"
-              data-testid="input-admin-image-file"
-            />
-            <Button
-              data-testid="button-admin-attach-image"
-              size="icon"
-              variant="ghost"
-              onClick={() => adminFileInputRef.current?.click()}
-              disabled={adminIsUploading}
-              className="text-white/40 flex-shrink-0"
-            >
-              {adminIsUploading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#BB86FC]" />
-              ) : (
-                <ImagePlus className="w-4 h-4" />
-              )}
-            </Button>
-            <Button
-              data-testid="button-admin-product-search"
-              size="icon"
-              variant="ghost"
-              onClick={() => setShowProductSearch(!showProductSearch)}
-              className={`flex-shrink-0 ${showProductSearch ? "text-[#BB86FC]" : "text-white/40"}`}
-            >
-              <Package className="w-4 h-4" />
-            </Button>
-            <Input
-              ref={replyInputRef}
-              data-testid="input-admin-reply"
-              value={replyText}
-              onChange={handleReplyInputChange}
-              onKeyDown={(e) => {
-                if (e.key === "Escape" && showSlashMenu) { setShowSlashMenu(false); setSlashFilter(""); setSlashSelectedIndex(0); return; }
-                if (showSlashMenu && filteredCanned.length > 0) {
-                  if (e.key === "ArrowDown") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev + 1) % filteredCanned.length); return; }
-                  if (e.key === "ArrowUp") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev - 1 + filteredCanned.length) % filteredCanned.length); return; }
-                }
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (showSlashMenu) { if (filteredCanned.length > 0) selectCannedResponse(filteredCanned[slashSelectedIndex]); } else { handleReplySend(); } }
-              }}
-              placeholder="Escribe tu respuesta... (/ para atajos)"
-              className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
-              inputMode="text"
-            />
-            <Button
-              data-testid="button-admin-send"
-              size="icon"
-              onClick={handleReplySend}
-              disabled={!replyText.trim() || replyMutation.isPending}
-              className="bg-[#6200EA] text-white flex-shrink-0"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
+            <div className="flex-shrink-0 p-3 sm:p-4 border-t border-white/[0.06] bg-[#111] sticky bottom-0 safe-area-bottom">
+              <div className="flex items-center gap-2">
+                <input
+                  ref={adminFileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleAdminImageSelect}
+                  className="hidden"
+                  data-testid="input-admin-image-file"
+                />
+                <Button
+                  data-testid="button-admin-attach-image"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => adminFileInputRef.current?.click()}
+                  disabled={adminIsUploading}
+                  className="text-white/40 flex-shrink-0"
+                >
+                  {adminIsUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-[#BB86FC]" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
+                </Button>
+                <Button
+                  data-testid="button-admin-product-search"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setShowProductSearch(!showProductSearch)}
+                  className={`flex-shrink-0 ${showProductSearch ? "text-[#BB86FC]" : "text-white/40"}`}
+                >
+                  <Package className="w-4 h-4" />
+                </Button>
+                <Input
+                  ref={replyInputRef}
+                  data-testid="input-admin-reply"
+                  value={replyText}
+                  onChange={handleReplyInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape" && showSlashMenu) { setShowSlashMenu(false); setSlashFilter(""); setSlashSelectedIndex(0); return; }
+                    if (showSlashMenu && filteredCanned.length > 0) {
+                      if (e.key === "ArrowDown") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev + 1) % filteredCanned.length); return; }
+                      if (e.key === "ArrowUp") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev - 1 + filteredCanned.length) % filteredCanned.length); return; }
+                    }
+                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (showSlashMenu) { if (filteredCanned.length > 0) selectCannedResponse(filteredCanned[slashSelectedIndex]); } else { handleReplySend(); } }
+                  }}
+                  placeholder="Escribe tu respuesta... (/ para atajos)"
+                  className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
+                  inputMode="text"
+                />
+                <Button
+                  data-testid="button-admin-send"
+                  size="icon"
+                  onClick={handleReplySend}
+                  disabled={!replyText.trim() || replyMutation.isPending}
+                  className="bg-[#6200EA] text-white flex-shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
         </div>
       ) : (
         <div className="flex-shrink-0 z-30 bg-[#111] px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
