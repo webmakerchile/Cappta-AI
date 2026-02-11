@@ -1244,32 +1244,33 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
 
       <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 flex flex-col gap-3">
         {!activeSearch && currentSession && (
-          <div data-testid="client-info-card" className="bg-[#1a1a2e] border border-white/[0.08] rounded-lg p-3 mb-1">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-3.5 h-3.5 text-[#BB86FC]" />
-              <span className="text-[11px] font-semibold text-[#BB86FC] uppercase tracking-wider">Informacion del cliente</span>
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-              <div>
-                <span className="text-[10px] text-white/40">Nombre</span>
-                <p className="text-xs text-white/90 font-medium">{userName || "No proporcionado"}</p>
+          <div data-testid="client-info-card" className="mx-auto w-full max-w-md">
+            <div className="bg-[#1a1a2e] border border-white/[0.08] rounded-lg overflow-hidden">
+              <div className="bg-white/[0.04] border-b border-white/[0.06] px-4 py-2 text-center">
+                <span className="text-xs font-medium text-white/50">Formulario pre-chat</span>
               </div>
-              <div>
-                <span className="text-[10px] text-white/40">Correo</span>
-                <p className="text-xs text-white/90 font-medium truncate">{userEmail || "No proporcionado"}</p>
+              <div className="px-4 py-3 space-y-3">
+                <div>
+                  <p className="text-[11px] text-white/40 mb-0.5">Nombre:</p>
+                  <p className="text-sm text-white/90 font-medium">{userName || "No proporcionado"}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-white/40 mb-0.5">E-mail:</p>
+                  <p className="text-sm text-[#BB86FC] font-medium break-all">{userEmail || "No proporcionado"}</p>
+                </div>
+                {currentSession.problemType && (
+                  <div>
+                    <p className="text-[11px] text-white/40 mb-0.5">En que necesitas ayuda?</p>
+                    <p className="text-sm text-white/90 font-medium">{currentSession.problemType}</p>
+                  </div>
+                )}
+                {currentSession.gameName && (
+                  <div>
+                    <p className="text-[11px] text-white/40 mb-0.5">Necesitas ayuda con un juego en especifico, cual?:</p>
+                    <p className="text-sm text-white/90 font-medium">{currentSession.gameName}</p>
+                  </div>
+                )}
               </div>
-              {currentSession.problemType && (
-                <div>
-                  <span className="text-[10px] text-white/40">Tipo de consulta</span>
-                  <p className="text-xs text-orange-300 font-medium">{currentSession.problemType}</p>
-                </div>
-              )}
-              {currentSession.gameName && (
-                <div>
-                  <span className="text-[10px] text-white/40">Juego / Producto</span>
-                  <p className="text-xs text-cyan-300 font-medium">{currentSession.gameName}</p>
-                </div>
-              )}
             </div>
           </div>
         )}
