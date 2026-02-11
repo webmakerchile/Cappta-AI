@@ -317,13 +317,18 @@ function detectPlatformFromMessage(msg: string): Platform {
 }
 
 function detectIntent(msg: string, history: ConversationEntry[], product: DetectedProduct | null): Intent {
-  const hasPostPurchaseContext = /\bya\s*compre\b|\bya\s*pague\b|\bmi\s*compra\b|\bmi\s*pedido\b|\bmi\s*orden\b|\bno\s*me\s*llego\b|\bno\s*me\s*ha\s*llegado\b/.test(msg);
+  const hasPostPurchaseContext = /\bya\s*compre\b|\bya\s*pague\b|\bcompre\s+un\b|\bpague\s+por\b|\bmi\s*compra\b|\bmi\s*pedido\b|\bmi\s*orden\b|\bno\s*me\s*llego\b|\bno\s*me\s*ha\s*llegado\b|\bque\s*compre\b|\blo\s*compre\b/.test(msg);
   const hasVerificationCode = /\bcodigo\s*de\s*verificacion\b|\bcodigo\s*de\s*activacion\b|\bnuevo\s*codigo\b|\breenviar\s*codigo\b|\bno\s*me\s*llego\s*el\s*codigo\b/.test(msg);
   const hasActivationWithContext = /\b(activar|canjear|redimir)\b/.test(msg) && hasPostPurchaseContext;
+  const hasProblemSignal = /\bno\s*funciona\b|\bno\s*sirve\b|\bproblema\b|\breclamo\b|\bno\s*puedo\b/.test(msg);
   const hasPostPurchaseSupport = hasVerificationCode || hasPostPurchaseContext || hasActivationWithContext;
   const hasFrustration = /\bno\s*te\s*pedi\s*eso\b|\beso\s*no\s*es\s*lo\s*que\b|\bno\s*es\s*eso\b|\bno\s*entendiste\b|\bno\s*era\s*eso\b|\botra\s*cosa\b|\bno\s*eso\b|\bte\s*equivocaste\b/.test(msg);
 
   if (hasPostPurchaseSupport || hasFrustration) {
+    return "support_issue";
+  }
+
+  if (hasProblemSignal && /\bcodigo\b|\bproducto\b|\bjuego\b|\bsuscripcion\b|\bcuenta\b/.test(msg)) {
     return "support_issue";
   }
 
@@ -1167,7 +1172,8 @@ async function getAIResponse(
   userMessage: string,
   conversationHistory: ConversationEntry[],
   sessionData?: SessionData,
-  catalogProducts?: CatalogProduct[]
+  catalogProducts?: CatalogProduct[],
+  aiOptions?: { isOfflineHours?: boolean; offlineTicketUrl?: string; offlineHoursStart?: number; offlineHoursEnd?: number }
 ): Promise<string> {
   try {
     const aiResponse = await getAIReply(
@@ -1183,7 +1189,8 @@ async function getAIResponse(
         wpProductPrice: sessionData.wpProductPrice,
         wpProductUrl: sessionData.wpProductUrl,
       } : undefined,
-      catalogProducts
+      catalogProducts,
+      aiOptions
     );
     return withButtons(aiResponse, [
       {label: "Ver juegos", value: "__qr:category:game"},
@@ -1348,27 +1355,49 @@ export async function getSmartAutoReply(
   sessionData?: SessionData,
   catalogLookup?: CatalogLookup
 ): Promise<string> {
+  let isOfflineHours = false;
+  let offlineTicketUrl = "https://cjmdigitales.zohodesk.com/portal/es/newticket";
+  let offlineHoursStart = 12;
+  let offlineHoursEnd = 21;
   try {
     const bhEnabled = await storage.getSetting("business_hours_enabled");
     if (bhEnabled !== "false") {
-      const bhStart = parseInt(await storage.getSetting("business_hours_start") || "12", 10);
-      const bhEnd = parseInt(await storage.getSetting("business_hours_end") || "21", 10);
-      const ticketUrl = await storage.getSetting("business_hours_ticket_url") || "https://cjmdigitales.zohodesk.com/portal/es/newticket";
+      offlineHoursStart = parseInt(await storage.getSetting("business_hours_start") || "12", 10);
+      offlineHoursEnd = parseInt(await storage.getSetting("business_hours_end") || "21", 10);
+      offlineTicketUrl = await storage.getSetting("business_hours_ticket_url") || offlineTicketUrl;
 
       const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
       const currentHour = nowChile.getHours();
 
-      if (currentHour < bhStart || currentHour >= bhEnd) {
-        const offlineText = `Hola! En este momento estamos fuera de nuestro horario de atencion.\n\nNuestro horario es de ${bhStart}:00 a ${bhEnd}:00 hrs (hora de Chile).\n\nPara una respuesta mas rapida, puedes crear un ticket de soporte y te responderemos a la brevedad:\n\nCrear ticket: ${ticketUrl}\n\nGracias por tu paciencia!`;
-        return withButtons(offlineText, [
-          { label: "Crear ticket de soporte", url: ticketUrl },
-          { label: "Ver catalogo", value: "__qr:category:game" },
-        ]);
+      if (currentHour < offlineHoursStart || currentHour >= offlineHoursEnd) {
+        isOfflineHours = true;
       }
     }
   } catch (e) {
   }
 
+  const rawResult = await _processAutoReply(userMessage, conversationHistory, sessionData, catalogLookup, isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd);
+
+  if (isOfflineHours && rawResult.includes("Contactar ejecutivo")) {
+    return rawResult.replace(
+      /\{"label":"Contactar ejecutivo","value":"__qr:contact"\}/g,
+      `{"label":"Crear ticket de soporte","url":"${offlineTicketUrl}"}`
+    );
+  }
+
+  return rawResult;
+}
+
+async function _processAutoReply(
+  userMessage: string,
+  conversationHistory: Array<{ sender: string; content: string }>,
+  sessionData: SessionData | undefined,
+  catalogLookup: CatalogLookup | undefined,
+  isOfflineHours: boolean,
+  offlineTicketUrl: string,
+  offlineHoursStart: number,
+  offlineHoursEnd: number
+): Promise<string> {
   const msg = normalize(userMessage);
 
   if (msg === "__qr:rate") {
@@ -1469,6 +1498,15 @@ export async function getSmartAutoReply(
     }
 
     if (msg === "__qr:contact") {
+      if (isOfflineHours) {
+        return withButtons(
+          `En este momento nuestros ejecutivos no estan disponibles (horario: ${offlineHoursStart}:00 a ${offlineHoursEnd}:00 hrs, hora de Chile).\n\nPero puedes crear un ticket de soporte y te responderemos a la brevedad. Tambien puedo seguir ayudandote con dudas sobre productos, precios y mas.`,
+          [
+            {label: "Crear ticket de soporte", url: offlineTicketUrl},
+            {label: "Ver productos", value: "__qr:back"},
+          ]
+        );
+      }
       return withButtons(
         "💬 Para hablar con un agente, haz clic en el boton 'Contactar un Ejecutivo' que aparece abajo del chat. Un ejecutivo se pondra en contacto contigo por correo 📧",
         [
@@ -1689,25 +1727,31 @@ export async function getSmartAutoReply(
     state.lastTopicProduct = wpProduct;
   }
 
+  let result: string;
+
   switch (state.intent) {
     case "greeting":
-      return getGreetingResponse(state, sessionData, catalogProduct);
+      result = getGreetingResponse(state, sessionData, catalogProduct);
+      break;
 
     case "product_inquiry": {
       if (state.product) {
         if (state.product.type === "game") {
-          return getGameInquiryResponse(state, catalogProduct);
+          result = getGameInquiryResponse(state, catalogProduct);
+          break;
         }
         if (state.product.type === "subscription") {
-          return getSubscriptionResponse(state);
+          result = getSubscriptionResponse(state);
+          break;
         }
         if (state.product.type === "card") {
-          return getCardResponse(state);
+          result = getCardResponse(state);
+          break;
         }
       }
 
       const durationResp = getDurationResponse(state, msg);
-      if (durationResp) return durationResp;
+      if (durationResp) { result = durationResp; break; }
 
       if (aiAvailable) {
         let relevantProducts: CatalogProduct[] = [];
@@ -1719,24 +1763,40 @@ export async function getSmartAutoReply(
             }
           } catch {}
         }
-        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
       }
-      return getProductInquiryGeneric(state);
+      result = getProductInquiryGeneric(state);
+      break;
     }
 
     case "purchase_intent": {
       const purchaseStage = detectPurchaseStage(conversationHistory);
-      return getPurchaseResponse(state, catalogProduct, purchaseStage);
+      result = getPurchaseResponse(state, catalogProduct, purchaseStage);
+      break;
     }
 
     case "price_inquiry":
-      return getPriceResponse(state, catalogProduct);
+      result = getPriceResponse(state, catalogProduct);
+      break;
 
-    case "payment_question":
-      return getPaymentResponse(state);
+    case "payment_question": {
+      if (aiAvailable) {
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, [], { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
+      }
+      result = getPaymentResponse(state);
+      break;
+    }
 
-    case "delivery_question":
-      return getDeliveryResponse(state);
+    case "delivery_question": {
+      if (aiAvailable) {
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, [], { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
+      }
+      result = getDeliveryResponse(state);
+      break;
+    }
 
     case "support_issue": {
       if (aiAvailable) {
@@ -1754,19 +1814,29 @@ export async function getSmartAutoReply(
             }
           } catch {}
         }
-        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
       }
-      return getSupportResponse(state, sessionData);
+      result = getSupportResponse(state, sessionData);
+      break;
     }
 
-    case "trust_question":
-      return getTrustResponse(state);
+    case "trust_question": {
+      if (aiAvailable) {
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, [], { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
+      }
+      result = getTrustResponse(state);
+      break;
+    }
 
     case "gratitude":
-      return getGratitudeResponse(state);
+      result = getGratitudeResponse(state);
+      break;
 
     case "farewell":
-      return getFarewellResponse(state);
+      result = getFarewellResponse(state);
+      break;
 
     case "followup": {
       if (aiAvailable) {
@@ -1784,9 +1854,11 @@ export async function getSmartAutoReply(
             }
           } catch {}
         }
-        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
       }
-      return getFollowupResponse(state, msg);
+      result = getFollowupResponse(state, msg);
+      break;
     }
 
     case "unknown":
@@ -1801,11 +1873,15 @@ export async function getSmartAutoReply(
             }
           } catch {}
         }
-        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
+        break;
       }
-      return getUnknownResponse(state);
+      result = getUnknownResponse(state);
+      break;
     }
   }
+
+  return result;
 }
 
 export default getSmartAutoReply;
