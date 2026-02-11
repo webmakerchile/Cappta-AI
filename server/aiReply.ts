@@ -150,6 +150,8 @@ function buildSystemPrompt(
 - Solo haz listas cuando sea realmente necesario (ej: métodos de pago)
 - NO abuses de emojis. Máximo 1 por mensaje y solo si es natural
 - Ve al grano, no repitas información que ya dijiste antes en la conversación
+- NUNCA uses formato markdown para links. NO uses [texto](url). Escribe la URL directamente como texto plano: "puedes crear un ticket aquí: https://ejemplo.com" en vez de "[Crear ticket](https://ejemplo.com)". El chat NO soporta markdown
+- Cuando menciones un link de producto o soporte, pégalo directamente sin formato
 
 **Contexto conversacional CRÍTICO:**
 - LEE TODA la conversación anterior antes de responder
@@ -278,7 +280,7 @@ Estamos dentro del horario de atención. Si el cliente necesita ayuda personaliz
       systemPrompt += "\n";
     });
     systemPrompt +=
-      "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiere buscar en la tienda web o preguntar a un ejecutivo.";
+      "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). NO incluyas links de productos en tu respuesta de texto - los links de compra se agregan automáticamente como botones debajo de tu mensaje. Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiere buscar en la tienda web o preguntar a un ejecutivo.";
   }
 
   return systemPrompt;
@@ -328,10 +330,13 @@ export async function getAIReply(
       max_completion_tokens: 500,
     });
 
-    const reply = response.choices[0]?.message?.content;
+    let reply = response.choices[0]?.message?.content;
     if (!reply) {
       return "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo o contacta a un ejecutivo para obtener ayuda personalizada.";
     }
+
+    reply = reply.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$2');
+    reply = reply.replace(/\*\*([^*]+)\*\*/g, '$1');
 
     return reply;
   } catch (error) {

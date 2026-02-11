@@ -55,8 +55,35 @@ function formatTime(timestamp: string | Date) {
   return date.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
 
+function linkifyText(text: string): (string | JSX.Element)[] {
+  const urlRegex = /(https?:\/\/[^\s<>\])"]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (urlRegex.test(part)) {
+      urlRegex.lastIndex = 0;
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid={`message-link-${i}`}
+          className="text-[#BB86FC] underline break-all hover:text-[#E0B0FF]"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
+function renderTextWithLinks(text: string) {
+  return <>{linkifyText(text)}</>;
+}
+
 function highlightText(text: string, query: string) {
-  if (!query || query.length < 2) return <>{text}</>;
+  if (!query || query.length < 2) return renderTextWithLinks(text);
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   const parts = text.split(regex);
   return (
@@ -65,7 +92,7 @@ function highlightText(text: string, query: string) {
         regex.test(part) ? (
           <mark key={i} className="bg-[#6200EA]/50 text-white rounded-sm px-0.5">{part}</mark>
         ) : (
-          <span key={i}>{part}</span>
+          <span key={i}>{linkifyText(part)}</span>
         )
       )}
     </>
@@ -337,7 +364,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
             )}
             {!isImageOnly && (
               <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words whitespace-pre-line">
-                {searchQuery ? highlightText(displayText, searchQuery) : displayText}
+                {searchQuery ? highlightText(displayText, searchQuery) : renderTextWithLinks(displayText)}
               </div>
             )}
           </div>

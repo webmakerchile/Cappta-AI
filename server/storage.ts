@@ -568,6 +568,63 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
+    // Fuzzy search using pg_trgm trigram similarity
+    const normalizedForFuzzy = normalizedQuery.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const fuzzyWords = normalizedForFuzzy.split(/\s+/).filter(w => w.length >= 3 && !stopWords.has(w));
+    
+    if (fuzzyWords.length > 0) {
+      const fuzzyQuery = fuzzyWords.join(" ");
+      const trigramResults = await db
+        .select()
+        .from(products)
+        .where(
+          sql`(
+            similarity(lower(${products.name}), ${fuzzyQuery}) > 0.15
+            OR EXISTS (
+              SELECT 1 FROM unnest(${products.searchAliases}) AS alias 
+              WHERE similarity(lower(alias), ${fuzzyQuery}) > 0.2
+            )
+          )`
+        )
+        .orderBy(sql`similarity(lower(${products.name}), ${fuzzyQuery}) DESC`)
+        .limit(10);
+      
+      if (trigramResults.length > 0) {
+        if (detectedPlatform) {
+          const platformFiltered = trigramResults.filter(p => p.platform === detectedPlatform || p.platform === "all");
+          if (platformFiltered.length > 0) return platformFiltered;
+        }
+        return trigramResults;
+      }
+
+      // Individual word fuzzy matching
+      for (const word of fuzzyWords) {
+        if (word.length < 4) continue;
+        const wordTrigramResults = await db
+          .select()
+          .from(products)
+          .where(
+            sql`(
+              similarity(lower(${products.name}), ${word}) > 0.2
+              OR EXISTS (
+                SELECT 1 FROM unnest(${products.searchAliases}) AS alias 
+                WHERE similarity(lower(alias), ${word}) > 0.3
+              )
+            )`
+          )
+          .orderBy(sql`similarity(lower(${products.name}), ${word}) DESC`)
+          .limit(10);
+        
+        if (wordTrigramResults.length > 0) {
+          if (detectedPlatform) {
+            const platformFiltered = wordTrigramResults.filter(p => p.platform === detectedPlatform || p.platform === "all");
+            if (platformFiltered.length > 0) return platformFiltered;
+          }
+          return wordTrigramResults;
+        }
+      }
+    }
+
     return [];
   }
 

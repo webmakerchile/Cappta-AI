@@ -199,6 +199,37 @@ function normalize(text: string): string {
   return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+function extractProductKeywords(message: string): string | null {
+  const normalized = normalize(message);
+  const conversationalPrefixes = [
+    /^(?:hola\s*,?\s*)?(?:quiero|necesito|busco|me interesa|tienen|tendran|hay|donde encuentro|como consigo|donde esta|ando buscando|estoy buscando|me gustaria|quisiera|dame|mandame|mostrame|pasame)\s+(?:el|la|un|una|los|las|unos|unas|algun|alguna)?\s*/i,
+    /^(?:quiero comprar|quiero ver|quiero saber|me puedes mostrar|me pueden mostrar|tienen disponible|esta disponible|hay stock de|tienen stock de)\s+(?:el|la|un|una|los|las)?\s*/i,
+    /^(?:cuanto (?:cuesta|vale|sale)|que precio tiene|precio de|precio del)\s+(?:el|la|un|una|los|las)?\s*/i,
+    /^(?:info(?:rmacion)? (?:de|del|sobre))\s+(?:el|la|un|una|los|las)?\s*/i,
+  ];
+
+  let cleaned = normalized;
+  for (const prefix of conversationalPrefixes) {
+    cleaned = cleaned.replace(prefix, "");
+  }
+
+  const suffixes = [
+    /\s+(?:para\s+(?:mi|mi hermano|mi hijo|mi amigo|regalo|(?:la\s+)?ps[45]?|(?:el\s+)?xbox|play(?:station)?)\s*.*)?$/i,
+    /\s+(?:porfa(?:vor)?|pls|please|po|wn|ctm|xd|jaja\w*)\s*$/i,
+    /\s*\?\s*$/,
+  ];
+
+  for (const suffix of suffixes) {
+    cleaned = cleaned.replace(suffix, "");
+  }
+
+  cleaned = cleaned.trim();
+  if (cleaned.length >= 3 && cleaned !== normalized) {
+    return cleaned;
+  }
+  return null;
+}
+
 export function extractDuration(msg: string): string | null {
   if (/1\s*mes|\bun\s*mes\b|\bmensual\b/.test(msg)) return "1 mes";
   if (/3\s*mes(?:es)?|\btres\s*mes\b|\btrimestral\b/.test(msg)) return "3 meses";
@@ -1788,21 +1819,29 @@ async function _processAutoReply(
       let relevantProducts: CatalogProduct[] = [];
       if (catalogLookup) {
         try {
-          const results = await catalogLookup.searchByName(userMessage);
-          if (results.length > 0) {
-            relevantProducts = results.slice(0, 5);
+          const searchQueries: string[] = [];
+          if (state.product) {
+            searchQueries.push(state.product.name);
+            if (state.product.version) {
+              searchQueries.push(`${state.product.name} ${state.product.version}`);
+            }
           }
-          if (relevantProducts.length === 0) {
-            const searchTerms: string[] = [];
-            if (state.product) searchTerms.push(state.product.name);
-            if (state.lastTopicProduct) searchTerms.push(state.lastTopicProduct.name);
-            if (sessionData?.wpProductName) searchTerms.push(sessionData.wpProductName);
-            for (const term of searchTerms) {
-              const termResults = await catalogLookup.searchByName(term);
-              if (termResults.length > 0) {
-                relevantProducts = termResults.slice(0, 5);
-                break;
-              }
+          if (state.lastTopicProduct && state.lastTopicProduct.name !== state.product?.name) {
+            searchQueries.push(state.lastTopicProduct.name);
+          }
+          if (sessionData?.wpProductName) searchQueries.push(sessionData.wpProductName);
+          if (sessionData?.gameName) searchQueries.push(sessionData.gameName);
+
+          const extractedFromMsg = extractProductKeywords(userMessage);
+          if (extractedFromMsg) searchQueries.push(extractedFromMsg);
+
+          searchQueries.push(userMessage);
+
+          for (const query of searchQueries) {
+            const results = await catalogLookup.searchByName(query);
+            if (results.length > 0) {
+              relevantProducts = results.slice(0, 5);
+              break;
             }
           }
         } catch {}
