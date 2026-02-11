@@ -1,4 +1,6 @@
 import { containsProfanity } from "./profanityFilter";
+import { getAIReply } from "./aiReply";
+import { storage } from "./storage";
 
 type Intent =
   | "greeting"
@@ -1144,6 +1146,49 @@ function getUnknownResponse(state: ConversationState): string {
   ]);
 }
 
+async function getAIResponse(
+  userMessage: string,
+  conversationHistory: ConversationEntry[],
+  sessionData?: SessionData,
+  catalogProducts?: CatalogProduct[]
+): Promise<string> {
+  try {
+    const aiResponse = await getAIReply(
+      userMessage,
+      conversationHistory,
+      sessionData ? {
+        problemType: sessionData.problemType,
+        gameName: sessionData.gameName,
+        pageTitle: sessionData.pageTitle,
+        pageUrl: sessionData.pageUrl,
+        userName: sessionData.userName,
+        wpProductName: sessionData.wpProductName,
+        wpProductPrice: sessionData.wpProductPrice,
+        wpProductUrl: sessionData.wpProductUrl,
+      } : undefined,
+      catalogProducts
+    );
+    return withButtons(aiResponse, [
+      {label: "Ver juegos", value: "__qr:category:game"},
+      {label: "Suscripciones", value: "__qr:category:subscription"},
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
+    ]);
+  } catch (err) {
+    return getUnknownResponse({
+      intent: "unknown",
+      product: null,
+      platform: "unknown",
+      previousProducts: [],
+      previousIntents: [],
+      usedResponses: new Set(),
+      unknownCount: 0,
+      genericCount: 0,
+      userMessageCount: 0,
+      lastTopicProduct: null,
+    });
+  }
+}
+
 function getDurationResponse(state: ConversationState, msg: string): string | null {
   const duration = extractDuration(msg);
   if (!duration) return null;
@@ -1465,12 +1510,13 @@ export async function getSmartAutoReply(
 
     const isPurchaseConfirmation = state.intent === "purchase_intent" && /^\s*(si|sí)?\s*(quiero|dale|ok|claro|bueno|va|vale|por\s*favor|porfa|listo|de\s*una|obvio|afirmativo)\s*(comprar\w*|adquirir\w*|obtener\w*|llevar\w*|proceder)?\s*$/i.test(msg);
 
+    const aiEnabledSetting = await storage.getSetting("ai_enabled");
+    const aiAvailable = !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY && aiEnabledSetting !== "false";
     const isProductQuery = msg.length >= 3 && !isPurchaseConfirmation && (
       state.intent === "product_inquiry" ||
       state.intent === "price_inquiry" ||
       state.intent === "purchase_intent" ||
-      state.intent === "followup" ||
-      state.intent === "unknown"
+      (!aiAvailable && (state.intent === "followup" || state.intent === "unknown"))
     );
 
     if (isProductQuery) {
@@ -1653,12 +1699,43 @@ export async function getSmartAutoReply(
     case "farewell":
       return getFarewellResponse(state);
 
-    case "followup":
+    case "followup": {
+      if (aiAvailable) {
+        let relevantProducts: CatalogProduct[] = [];
+        if (catalogLookup) {
+          try {
+            const searchTerms = [userMessage];
+            if (state.lastTopicProduct) searchTerms.push(state.lastTopicProduct.name);
+            for (const term of searchTerms) {
+              const results = await catalogLookup.searchByName(term);
+              if (results.length > 0) {
+                relevantProducts = results.slice(0, 5);
+                break;
+              }
+            }
+          } catch {}
+        }
+        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+      }
       return getFollowupResponse(state, msg);
+    }
 
     case "unknown":
-    default:
+    default: {
+      if (aiAvailable) {
+        let relevantProducts: CatalogProduct[] = [];
+        if (catalogLookup) {
+          try {
+            const results = await catalogLookup.searchByName(userMessage);
+            if (results.length > 0) {
+              relevantProducts = results.slice(0, 5);
+            }
+          } catch {}
+        }
+        return getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts);
+      }
       return getUnknownResponse(state);
+    }
   }
 }
 

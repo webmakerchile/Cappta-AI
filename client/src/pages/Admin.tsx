@@ -5,7 +5,7 @@ import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
   Send, ShieldCheck, ShieldOff, ShieldAlert, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
-  UserPlus, UserMinus, Check, ArrowRightLeft
+  UserPlus, UserMinus, Check, ArrowRightLeft, Settings
 } from "lucide-react";
 import {
   Select,
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Message } from "@shared/schema";
@@ -2310,6 +2311,71 @@ function showForegroundNotification(title: string, body: string, sessionId: stri
   } catch {}
 }
 
+function SettingsPanel() {
+  const { data: aiSetting, isLoading } = useQuery<{ value: string | null }>({
+    queryKey: ["/api/settings", "ai_enabled"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/settings/ai_enabled");
+      if (!res.ok) throw new Error("Error al obtener configuracion");
+      return res.json();
+    },
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const res = await adminFetch("/api/settings/ai_enabled", {
+        method: "PUT",
+        body: JSON.stringify({ value: enabled ? "true" : "false" }),
+      });
+      if (!res.ok) throw new Error("Error al guardar configuracion");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", "ai_enabled"] });
+    },
+  });
+
+  const aiEnabled = aiSetting?.value !== "false";
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <h2 className="text-lg font-semibold text-white mb-4">Configuracion</h2>
+      <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg">
+        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <Zap className="w-4 h-4 text-[#BB86FC]" />
+          Configuracion de IA
+        </h3>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white/80">Respuestas con IA</p>
+            <p className="text-xs text-white/40 mt-0.5">
+              Cuando esta activado, el bot utiliza inteligencia artificial para generar respuestas mas naturales y contextuales. Si se desactiva, solo se usaran respuestas predefinidas.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white/30" />
+            ) : (
+              <Switch
+                data-testid="switch-ai-toggle"
+                checked={aiEnabled}
+                disabled={toggleMutation.isPending}
+                onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+              />
+            )}
+          </div>
+        </div>
+        {toggleMutation.isError && (
+          <p data-testid="text-settings-error" className="text-xs text-red-400 mt-2">Error al guardar la configuracion</p>
+        )}
+        {toggleMutation.isSuccess && (
+          <p data-testid="text-settings-success" className="text-xs text-emerald-400 mt-2">Configuracion guardada</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TagsPanel() {
   const [newTag, setNewTag] = useState("");
 
@@ -3359,9 +3425,26 @@ export default function AdminPage() {
             )}
           </button>
         )}
+        {adminUser?.role !== "ejecutivo" && (
+          <button
+            data-testid="tab-settings"
+            onClick={() => setAdminTab("settings")}
+            className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              adminTab === "settings" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            }`}
+          >
+            <Settings className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            Ajustes
+            {adminTab === "settings" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            )}
+          </button>
+        )}
       </div>
 
-      {adminTab === "tags" ? (
+      {adminTab === "settings" ? (
+        <SettingsPanel />
+      ) : adminTab === "tags" ? (
         <TagsPanel />
       ) : adminTab === "users" ? (
         <UsersPanel adminUser={adminUser} />

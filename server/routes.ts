@@ -620,6 +620,34 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/settings/:key", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const value = await storage.getSetting(req.params.key);
+      res.json({ value });
+    } catch (error: any) {
+      log(`Error al obtener setting: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener configuracion" });
+    }
+  });
+
+  app.put("/api/settings/:key", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const { value } = req.body;
+      if (typeof value !== "string") {
+        return res.status(400).json({ message: "Valor requerido" });
+      }
+      await storage.setSetting(req.params.key, value);
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error al guardar setting: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al guardar configuracion" });
+    }
+  });
+
   app.get("/api/push/vapid-public-key", (_req, res) => {
     res.json({ key: VAPID_PUBLIC_KEY });
   });

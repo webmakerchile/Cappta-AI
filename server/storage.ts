@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or } from "drizzle-orm";
 
@@ -57,6 +57,8 @@ export interface IStorage {
   blockSession(sessionId: string): Promise<void>;
   unblockSession(sessionId: string): Promise<void>;
   isSessionBlocked(sessionId: string): Promise<boolean>;
+  getSetting(key: string): Promise<string | null>;
+  setSetting(key: string, value: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -749,6 +751,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(sessions.sessionId, sessionId))
       .limit(1);
     return !!session[0]?.blockedAt;
+  }
+
+  async getSetting(key: string): Promise<string | null> {
+    const [row] = await db
+      .select()
+      .from(appSettings)
+      .where(eq(appSettings.key, key));
+    return row?.value ?? null;
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    await db
+      .insert(appSettings)
+      .values({ key, value })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value },
+      });
   }
 }
 
