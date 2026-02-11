@@ -1,0 +1,96 @@
+Sistema de Inscripción y Gestión de Dominios
+Mis dominios
+Comprobantes
+Avisos
+Carro Compra
+Avanzados
+(*): campos obligatoriosEdicion de dominios
+Modificar Dominio
+ ó 
+Nombre de dominio
+cjmdigitales.cl
+Obtener certificado de Titularidad
+1. Datos del titular
+Nombre del titular:
+LDA ASESORIAS E INVERSIONES SPA (Carla Marin)
+
+2. Información de Contactos (?)
+Contacto administrativo Administrativo
+Javiera Balbontin
+Contacto comercial ComercialDesvincular
+Danilo Cortes Farias  
+Contacto técnico TécnicoDesvincular
+Danilo Cortes Farias  
+3. Facturación
+Datos para emisión de Factura/Boleta:
+Tipo de documento a emitir
+BoletaFactura
+ADMY SPA (Admy SPA)
+Apoquindo 6410 of 605 Las Condes
+Las Condes
+Santiago
+Chile
+
+
+
+
+
+
+
+
+
+
+4. Configuración Técnica (?)
+Tipo de servicio
+ Servidores DNS
+ Redireccionamiento Web
+Nota:
+Las direcciones IP serán solicitadas sólo si son necesarias
+El nombre de servidor no debe terminar con el caracter '.'
+Nombre de Servidor:	
+ns12.digicertdns.com
+Nombre de Servidor:	
+ns10.digicertdns.com
+Nombre de Servidor:	
+ns11.digicertdns.com
+Nombre de Servidor:	
+ns13.digicertdns.net
+Nombre de Servidor:	
+ns15.digicertdns.net
+Nombre de Servidor:	
+ns14.digicertdns.net
+Nombre de Servidor:	
+ Configurar a NIC Chile como servidor secundario.(DNSSec)
+5. Condiciones de contratación
+Autoriza hacer pública la información del nombre de dominio exclusivamente para fines relacionados con la administración del registro de nombres .CL y la operación del DNS. Asimismo, acepta que los datos del registro sean informados a requerimiento formal de cualquier autoridad judicial o administrativa facultada legalmente para requerirla. NIC Chile almacenará la información de los nombres de dominio en una base de datos la cual no se entregará, venderá, cederá o transferirá a ninguna persona o institución y a ningún título, no obstante lo cual podrá proporcionar información a terceros para fines de investigación académica o desarrollo, mediante la suscripción del respectivo acuerdo de confidencialidad.
+
+Las condiciones de contratación de un dominio .CL están constituidas por:
+
+Reglamentación para el funcionamiento del Registro de Nombres del Dominio .CL
+Política de Resolución de Controversias por Nombres de Dominio .CL
+Procedimiento de Gestión para Nombres de Dominio y Contactos en .CL
+ o 
+
+6. Bloquear Dominio
+Usted puede bloquear el dominio para que queden impedidas estas tres operaciones: cambio de titular, eliminación del dominio y modificación de información técnica. Este bloqueo solo lo puede solicitar el contacto administrativo. Para desbloquear un dominio y dejar sin efecto dichos impedimentos, deberán seguirse las instrucciones publicadas en el sitio web, las cuales implementarán un procedimiento de verificación de que quien lo solicite esté debidamente autorizado.
+
+Para confirmar que desea bloquear el dominio, escriba el nombre del dominio y luego presione el botón "Bloquear nombre de dominio": 
+
+Teléfono Móvil(*): 
+56
+ 
+9xxx xxx xx
+
+7. Transferencia de Dominio
+Ud. puede solicitar un Código de Autorización (también conocido como "Auth Info" o "Código EPP") para transferir su nombre de dominio a otro agente registrador (registrar).
+
+Para confirmar que desea transferir el nombre dominio, escríbalo y luego presione el botón "Solicitar Auth Info" : 
+.CL
+
+Eliminar Dominio
+La eliminación de un nombre de dominio es una acción sólo revertible durante un período de tiempo acotado, y requiere del pago de una cuota.
+
+Para confirmar que desea realizar la eliminación, escriba el nombre del dominio y luego presione el botón "Eliminar nombre de dominio": 
+
+FCFM
+Buscar en el sitio Contacto Ayuda
