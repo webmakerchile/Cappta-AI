@@ -1281,9 +1281,31 @@ export async function registerRoutes(
       if (sessionCheck && isLockedToOtherAgent(sessionCheck, adminUser)) {
         return res.status(403).json(lockedResponse(sessionCheck));
       }
-      const updated = await storage.updateSessionAdminActive(req.params.sessionId, adminActive);
+      let updated = await storage.updateSessionAdminActive(req.params.sessionId, adminActive);
       if (!updated) {
         return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+
+      if (adminActive && !sessionCheck?.assignedTo) {
+        const dbAdmin = await storage.getAdminUserById(adminUser.id);
+        const claimed = await storage.claimSession(
+          req.params.sessionId,
+          adminUser.id,
+          adminUser.displayName,
+          dbAdmin?.color || "#6200EA"
+        );
+        if (claimed) {
+          updated = claimed;
+          const currentTags: string[] = updated.tags || [];
+          const hadBot = currentTags.includes("Bot");
+          const hadEjecutivo = currentTags.includes("Ejecutivo");
+          if (hadBot || !hadEjecutivo) {
+            const newTags = currentTags.filter((t: string) => t !== "Bot");
+            if (!hadEjecutivo) newTags.push("Ejecutivo");
+            updated = await storage.updateSessionTags(req.params.sessionId, newTags) || updated;
+          }
+          io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "claimed", session: updated });
+        }
       }
 
       const session = await storage.getSession(req.params.sessionId);

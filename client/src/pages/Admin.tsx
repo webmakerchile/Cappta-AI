@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
+import { useToast } from "@/hooks/use-toast";
 import { io, Socket } from "socket.io-client";
 
 interface SessionSummary {
@@ -698,6 +699,7 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
 }
 
 function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId: string; searchQuery: string; sessions: SessionSummary[]; adminUser: { id: number; email: string; displayName: string; role: string; color?: string } | null }) {
+  const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [localSearch, setLocalSearch] = useState("");
@@ -833,10 +835,11 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
       return { queries };
     },
-    onError: (_err, _val, context) => {
+    onError: (err, _val, context) => {
       context?.queries.forEach(([key, old]) => {
         if (old) queryClient.setQueryData(key, old);
       });
+      toast({ title: "Error", description: (err as Error).message || "Error al cambiar modo admin", variant: "destructive" });
     },
     onSettled: () => {
       invalidateSessionLists();
@@ -882,10 +885,11 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       );
       return { prev, tempId };
     },
-    onError: (_err, _data, context) => {
+    onError: (err, _data, context) => {
       if (context?.prev) {
         queryClient.setQueryData(["/api/admin/sessions", sessionId, "messages"], context.prev);
       }
+      toast({ title: "Error", description: (err as Error).message || "Error al enviar respuesta", variant: "destructive" });
     },
     onSuccess: (serverMsg, _data, context) => {
       setReplyText("");
@@ -971,10 +975,11 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
       return { queries };
     },
-    onError: (_err, _action, context) => {
+    onError: (err, _action, context) => {
       context?.queries.forEach(([key, old]) => {
         if (old) queryClient.setQueryData(key, old);
       });
+      toast({ title: "Error", description: (err as Error).message || "Error en la operacion", variant: "destructive" });
     },
     onSettled: () => {
       invalidateSessionLists();
