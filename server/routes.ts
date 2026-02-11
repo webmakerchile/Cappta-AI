@@ -1566,10 +1566,12 @@ export async function registerRoutes(
         return res.status(400).json({ message: "No se encontro email del usuario" });
       }
 
-      const baseUrl = req.protocol + "://" + req.get("host");
+      const protocol = req.get("x-forwarded-proto") || req.protocol || "https";
+      const host = req.get("host") || "";
+      const baseUrl = `${protocol}://${host}`;
       const chatUrl = `${baseUrl}?email=${encodeURIComponent(userEmail)}&name=${encodeURIComponent(userName || "")}`;
 
-      const sent = await sendChatInviteEmail({
+      const result = await sendChatInviteEmail({
         userName: userName || "Usuario",
         userEmail,
         sessionId: req.params.id,
@@ -1577,8 +1579,8 @@ export async function registerRoutes(
         chatUrl,
       });
 
-      if (!sent) {
-        return res.status(500).json({ message: "Error al enviar el correo" });
+      if (!result.success) {
+        return res.status(500).json({ message: result.error || "Error al enviar el correo" });
       }
 
       res.json({ success: true });

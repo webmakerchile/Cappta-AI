@@ -805,6 +805,9 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       }
       return res.json();
     },
+    onError: (error: Error) => {
+      alert(`Error: ${error.message}`);
+    },
   });
 
   const claimMutation = useMutation({
