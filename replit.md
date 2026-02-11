@@ -36,4 +36,4 @@ Key architectural decisions and features include:
 - **WooCommerce REST API**: Used for syncing product catalog data (consumer key/secret required).
 - **Replit Object Storage**: For storing image uploads, accessed via presigned URLs.
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
-- **OpenAI (via Replit AI Integrations)**: Powers intelligent AI responses for complex/unknown queries using gpt-4o-mini. Uses `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL` environment variables (auto-managed by Replit).
+- **OpenAI**: Powers intelligent AI responses for complex/unknown queries using gpt-4o-mini. Uses `OPENAI_API_KEY` environment variable (user-provided).

@@ -1511,7 +1511,7 @@ export async function getSmartAutoReply(
     const isPurchaseConfirmation = state.intent === "purchase_intent" && /^\s*(si|sí)?\s*(quiero|dale|ok|claro|bueno|va|vale|por\s*favor|porfa|listo|de\s*una|obvio|afirmativo)\s*(comprar\w*|adquirir\w*|obtener\w*|llevar\w*|proceder)?\s*$/i.test(msg);
 
     const aiEnabledSetting = await storage.getSetting("ai_enabled");
-    const aiAvailable = !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY && aiEnabledSetting !== "false";
+    const aiAvailable = !!process.env.OPENAI_API_KEY && aiEnabledSetting !== "false";
     const isProductQuery = msg.length >= 3 && !isPurchaseConfirmation && (
       state.intent === "product_inquiry" ||
       state.intent === "price_inquiry" ||
