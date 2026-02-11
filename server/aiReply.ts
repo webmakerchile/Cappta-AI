@@ -130,15 +130,24 @@ function buildSystemPrompt(
 - "Quiero cambio o devolución": Los productos digitales generalmente no tienen devolución una vez entregados, pero un ejecutivo puede revisar cada caso
 - "Me aparece un candado en mi juego" (PROBLEMA MUY COMÚN - responder con pasos detallados):
 
-  **Para PlayStation (PS4/PS5):**
-  El candado generalmente aparece cuando la consola no está activada como PS principal en la cuenta donde se realizó la compra.
+  **Para PS4:**
+  El candado generalmente aparece cuando la consola no está activada como PS4 principal en la cuenta donde se realizó la compra.
   Pasos para solucionarlo:
   1. Ir a Configuración
   2. Administración de cuentas
-  3. Activar como tu PS4/PS5 principal
+  3. Activar como tu PS4 principal
   4. Seleccionar "Activar"
+
+  **Para PS5:**
+  El candado generalmente aparece cuando la consola no está configurada como principal en la cuenta donde se realizó la compra.
+  Pasos para solucionarlo:
+  1. Ir a Configuración
+  2. Usuarios y cuentas
+  3. Otros
+  4. Compartir consola y juego offline
+  5. Seleccionar "Activar"
   
-  IMPORTANTE: Esta opción solo aplica si el juego fue comprado en cuenta PRIMARIA.
+  IMPORTANTE (aplica a PS4 y PS5): Esta opción solo aplica si el juego fue comprado en cuenta PRIMARIA.
   Si la compra fue en cuenta SECUNDARIA, NO debe activar como principal, ya que el funcionamiento es diferente y necesita conexión a internet para validar la licencia.
   Si el cliente no sabe qué tipo de cuenta adquirió, derivar a un ejecutivo.
 

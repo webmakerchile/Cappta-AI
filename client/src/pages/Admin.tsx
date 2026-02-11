@@ -5,7 +5,7 @@ import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
   Send, ShieldCheck, ShieldOff, ShieldAlert, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
-  UserPlus, UserMinus, Check, ArrowRightLeft, Settings
+  UserPlus, UserMinus, Check, ArrowRightLeft, Settings, FileText
 } from "lucide-react";
 import {
   Select,
@@ -1243,6 +1243,36 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       )}
 
       <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 flex flex-col gap-3">
+        {!activeSearch && currentSession && (
+          <div data-testid="client-info-card" className="bg-[#1a1a2e] border border-white/[0.08] rounded-lg p-3 mb-1">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-3.5 h-3.5 text-[#BB86FC]" />
+              <span className="text-[11px] font-semibold text-[#BB86FC] uppercase tracking-wider">Informacion del cliente</span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              <div>
+                <span className="text-[10px] text-white/40">Nombre</span>
+                <p className="text-xs text-white/90 font-medium">{userName || "No proporcionado"}</p>
+              </div>
+              <div>
+                <span className="text-[10px] text-white/40">Correo</span>
+                <p className="text-xs text-white/90 font-medium truncate">{userEmail || "No proporcionado"}</p>
+              </div>
+              {currentSession.problemType && (
+                <div>
+                  <span className="text-[10px] text-white/40">Tipo de consulta</span>
+                  <p className="text-xs text-orange-300 font-medium">{currentSession.problemType}</p>
+                </div>
+              )}
+              {currentSession.gameName && (
+                <div>
+                  <span className="text-[10px] text-white/40">Juego / Producto</span>
+                  <p className="text-xs text-cyan-300 font-medium">{currentSession.gameName}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {filteredMessages.length === 0 && activeSearch ? (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-sm text-white/30">No se encontraron mensajes con "{activeSearch}"</p>
