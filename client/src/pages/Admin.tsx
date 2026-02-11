@@ -3888,6 +3888,7 @@ export default function AdminPage() {
   const [flashingSessions, setFlashingSessions] = useState<Record<string, boolean>>({});
   const selectedSessionRef = useRef<string | null>(null);
   const soundEnabledRef = useRef(true);
+  const adminUserIdRef = useRef<number | null>(null);
   const [notifBannerVisible, setNotifBannerVisible] = useState(() => {
     try {
       if (typeof Notification === "undefined") return false;
@@ -3898,6 +3899,7 @@ export default function AdminPage() {
 
   useEffect(() => { selectedSessionRef.current = selectedSession; }, [selectedSession]);
   useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+  useEffect(() => { adminUserIdRef.current = adminUser?.id ?? null; }, [adminUser]);
 
   useEffect(() => {
     _notificationSelectCallback = (sessionId: string) => {
@@ -4015,7 +4017,8 @@ export default function AdminPage() {
             return next;
           });
         }, 3000);
-        if (data.message?.sender === "user") {
+        const shouldNotify = !data.assignedTo || data.assignedTo === adminUserIdRef.current;
+        if (data.message?.sender === "user" && shouldNotify) {
           if (soundEnabledRef.current) {
             playNotificationSound();
           }

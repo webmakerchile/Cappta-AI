@@ -113,10 +113,10 @@ export async function registerRoutes(
     webpush.setVapidDetails("mailto:cjmdigitales@gmail.com", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   }
 
-  async function sendPushToAdmins(title: string, body: string, sessionId: string) {
+  async function sendPushToAdmins(title: string, body: string, sessionId: string, assignedTo?: number | null) {
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
     try {
-      const subs = await storage.getAllPushSubscriptions();
+      const subs = assignedTo ? await storage.getPushSubscriptionsByUserId(assignedTo) : await storage.getAllPushSubscriptions();
       const allSessions = await storage.getAllSessions("active");
       const totalUnread = allSessions.reduce((sum, s) => sum + (s.unreadCount || 0), 0);
       for (const sub of subs) {
@@ -357,14 +357,16 @@ export async function registerRoutes(
 
       await storage.touchSession(sessionId);
 
+      const sess = await storage.getSession(sessionId);
       io.to(`session:${sessionId}`).emit("new_message", message);
-      io.to("admin_room").emit("admin_new_message", { sessionId, message });
+      io.to("admin_room").emit("admin_new_message", { sessionId, message, assignedTo: sess?.assignedTo || null });
 
       if (parsed.data.sender === "user") {
         sendPushToAdmins(
           `Nuevo mensaje de ${parsed.data.userName}`,
           parsed.data.content.substring(0, 100),
-          sessionId
+          sessionId,
+          sess?.assignedTo
         );
       }
 
@@ -1418,7 +1420,8 @@ export async function registerRoutes(
       sendPushToAdmins(
         `Chat transferido`,
         `${adminUser.displayName} te ha transferido el chat de ${session.userName || "un usuario"}`,
-        req.params.sessionId
+        req.params.sessionId,
+        targetAgent.id
       );
       res.json(updated);
     } catch (error) {
@@ -1776,12 +1779,14 @@ export async function registerRoutes(
         io.to(`session:${sid}`).emit("new_message", message);
 
         if (parsed.data.sender === "user") {
+          const sessForPush = await storage.getSession(sid);
           sendPushToAdmins(
             `Nuevo mensaje de ${parsed.data.userName}`,
             parsed.data.content.substring(0, 100),
-            sid
+            sid,
+            sessForPush?.assignedTo
           );
-          io.to("admin_room").emit("admin_new_message", { sessionId: sid, userName: parsed.data.userName, content: parsed.data.content, message });
+          io.to("admin_room").emit("admin_new_message", { sessionId: sid, userName: parsed.data.userName, content: parsed.data.content, message, assignedTo: sessForPush?.assignedTo || null });
           setTimeout(async () => {
             try {
               const currentSession = await storage.getSession(sid);
@@ -1908,10 +1913,12 @@ export async function registerRoutes(
           gameName: parsed.data.gameName,
         });
 
+        const sessForContact = await storage.getSession(parsed.data.sessionId);
         sendPushToAdmins(
           `Solicitud de ejecutivo`,
           `${parsed.data.userName} solicita contacto`,
-          parsed.data.sessionId
+          parsed.data.sessionId,
+          sessForContact?.assignedTo
         );
 
         socket.emit("contact_confirmed");
@@ -1950,8 +1957,8 @@ export async function registerRoutes(
 
       setTimeout(async () => {
         try {
-          const activeConns = getActiveSessionConnections(disconnectedSessionId);
-          if (activeConns > 0) {
+          const activeConns = sessionConnections.get(disconnectedSessionId);
+          if (activeConns && activeConns.size > 0) {
             log(`Usuario reconectado a session ${disconnectedSessionId}, no se envia correo automatico`, "auto-email");
             return;
           }
