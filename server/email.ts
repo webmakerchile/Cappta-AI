@@ -3,6 +3,7 @@ import { log } from "./index";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const NOTIFICATION_EMAIL = "ayuda@cjmdigitales.cl";
+const FROM_ADDRESS = "CJM Digitales <noreply@send.cjmdigitales.cl>";
 
 interface ContactEmailData {
   userName: string;
@@ -24,7 +25,7 @@ interface OfflineNotificationData {
 export async function sendOfflineNotification(data: OfflineNotificationData): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
-      from: "Chat Widget <onboarding@resend.dev>",
+      from: FROM_ADDRESS,
       to: data.userEmail,
       subject: `Tienes un nuevo mensaje en el chat`,
       html: `
@@ -66,7 +67,7 @@ interface ChatInviteData {
 }
 
 export async function sendChatInviteEmail(data: ChatInviteData): Promise<{ success: boolean; error?: string }> {
-  const fromAddr = "CJM Digitales <noreply@send.cjmdigitales.cl>";
+  const fromAddr = FROM_ADDRESS;
 
   try {
     log(`Sending chat invite email to ${data.userEmail} from ${fromAddr}`, "resend");
@@ -127,7 +128,7 @@ function getProblemTypeLabel(problemType: string): string {
 export async function sendContactNotification(data: ContactEmailData): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
-      from: "Chat Widget <onboarding@resend.dev>",
+      from: FROM_ADDRESS,
       to: NOTIFICATION_EMAIL,
       subject: `Solicitud de contacto: ${data.userName}`,
       html: `
