@@ -298,13 +298,14 @@ export async function registerRoutes(
 
       const normalizedEmail = parsed.data.userEmail.toLowerCase();
 
-      await storage.upsertSession({
+      const upsertData: { sessionId: string; userEmail: string; userName: string; problemType?: string; gameName?: string } = {
         sessionId,
         userEmail: normalizedEmail,
         userName: parsed.data.userName,
-        problemType: req.body.problemType || null,
-        gameName: req.body.gameName || null,
-      });
+      };
+      if (req.body.problemType) upsertData.problemType = req.body.problemType;
+      if (req.body.gameName) upsertData.gameName = req.body.gameName;
+      await storage.upsertSession(upsertData);
 
       if (parsed.data.sender === "user") {
         const blocked = await storage.isSessionBlocked(sessionId);
