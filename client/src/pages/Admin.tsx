@@ -1448,15 +1448,18 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                 </div>
                 <div>
                   <p className="text-[11px] text-white/40 mb-0.5">En que necesitas ayuda?</p>
-                  <p className="text-sm text-white/90 font-medium">{currentSession.problemType ? ({
-                    compra: "Quiero comprar un producto",
-                    codigo_verificacion: "Necesito un nuevo codigo de verificacion",
-                    candado_juego: "Me aparece un candado en mi juego",
-                    estado_pedido: "Quiero saber el estado de mi pedido",
-                    problema_plus: "Tengo problemas con mi plus",
-                    problema_cuenta: "Problemas con mi cuenta",
-                    otro: "Otro",
-                  } as Record<string, string>)[currentSession.problemType] || currentSession.problemType : "No especificado"}</p>
+                  <p className="text-sm text-white/90 font-medium">
+                    {currentSession.problemType && (({
+                      compra: "Quiero comprar un producto",
+                      codigo_verificacion: "Necesito un nuevo codigo de verificacion",
+                      candado_juego: "Me aparece un candado en mi juego",
+                      estado_pedido: "Quiero saber el estado de mi pedido",
+                      problema_plus: "Tengo problemas con mi plus",
+                      problema_cuenta: "Problemas con mi cuenta",
+                      otro: "Otro",
+                    } as Record<string, string>)[currentSession.problemType] || currentSession.problemType)}
+                    {!currentSession.problemType && "No especificado"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-[11px] text-white/40 mb-0.5">Necesitas ayuda con un juego en especifico, cual?:</p>
@@ -1726,7 +1729,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             <X className="w-6 h-6" />
           </button>
           <img
-            src={lightboxImage}
+            src={lightboxImage || ""}
             alt="Imagen ampliada"
             className="max-w-full max-h-full object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
