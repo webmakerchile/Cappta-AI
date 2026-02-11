@@ -1236,21 +1236,49 @@ async function getAIResponse(
 
     const buttons: Array<{label: string, value?: string, url?: string}> = [];
 
-    const activeProduct = state ? (state.product || state.lastTopicProduct) : null;
-    const hasSpecificProduct = activeProduct && state && (
-      state.intent === "product_inquiry" || 
-      state.intent === "price_inquiry" || 
-      state.intent === "purchase_intent" ||
-      state.intent === "followup"
-    );
+    if (catalogProducts && catalogProducts.length > 0) {
+      const aiLower = aiResponse.toLowerCase();
+      let bestProduct: CatalogProduct | null = null;
+      let bestScore = 0;
 
-    if (hasSpecificProduct && catalogProducts && catalogProducts.length > 0) {
-      const topProduct = catalogProducts[0];
-      if (topProduct.productUrl && (topProduct.availability === "available" || topProduct.availability === "preorder")) {
-        const shortName = topProduct.name.length > 25 
-          ? topProduct.name.substring(0, 22) + "..." 
-          : topProduct.name;
-        buttons.push({label: `Comprar ${shortName}`, url: topProduct.productUrl});
+      for (const product of catalogProducts) {
+        if (!product.productUrl) continue;
+        if (product.availability !== "available" && product.availability !== "preorder") continue;
+
+        const productLower = product.name.toLowerCase();
+        if (aiLower.includes(productLower)) {
+          const score = product.name.length;
+          if (score > bestScore) {
+            bestScore = score;
+            bestProduct = product;
+          }
+        }
+      }
+
+      if (!bestProduct) {
+        for (const product of catalogProducts) {
+          if (!product.productUrl) continue;
+          if (product.availability !== "available" && product.availability !== "preorder") continue;
+
+          const words = product.name.toLowerCase().replace(/[:\-–]/g, " ").split(/\s+/).filter(w => w.length > 2);
+          const significantWords = words.filter(w => !["digital", "ps4", "ps5", "xone", "xseries", "edition", "pre-order"].includes(w));
+          if (significantWords.length === 0) continue;
+
+          const matchCount = significantWords.filter(w => aiLower.includes(w)).length;
+          const matchRatio = matchCount / significantWords.length;
+
+          if (matchRatio >= 0.6 && matchCount > bestScore) {
+            bestScore = matchCount;
+            bestProduct = product;
+          }
+        }
+      }
+
+      if (bestProduct) {
+        const shortName = bestProduct.name.length > 25 
+          ? bestProduct.name.substring(0, 22) + "..." 
+          : bestProduct.name;
+        buttons.push({label: `Comprar ${shortName}`, url: bestProduct.productUrl});
       }
     }
 
@@ -1855,12 +1883,16 @@ async function _processAutoReply(
           if (sessionData?.gameName) searchQueries.push(sessionData.gameName);
           searchQueries.push(userMessage);
 
+          const seenProductNames = new Set<string>();
           for (const query of searchQueries) {
             const results = await catalogLookup.searchByName(query);
-            if (results.length > 0) {
-              relevantProducts = results.slice(0, 5);
-              break;
+            for (const r of results) {
+              if (!seenProductNames.has(r.name.toLowerCase()) && relevantProducts.length < 10) {
+                seenProductNames.add(r.name.toLowerCase());
+                relevantProducts.push(r);
+              }
             }
+            if (relevantProducts.length >= 5) break;
           }
         } catch {}
       }
