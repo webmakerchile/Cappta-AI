@@ -1180,7 +1180,8 @@ async function getAIResponse(
   conversationHistory: ConversationEntry[],
   sessionData?: SessionData,
   catalogProducts?: CatalogProduct[],
-  aiOptions?: { isOfflineHours?: boolean; offlineTicketUrl?: string; offlineHoursStart?: number; offlineHoursEnd?: number }
+  aiOptions?: { isOfflineHours?: boolean; offlineTicketUrl?: string; offlineHoursStart?: number; offlineHoursEnd?: number },
+  state?: ConversationState
 ): Promise<string> {
   try {
     const aiResponse = await getAIReply(
@@ -1199,11 +1200,30 @@ async function getAIResponse(
       catalogProducts,
       aiOptions
     );
-    return withButtons(aiResponse, [
-      {label: "Ver juegos", value: "__qr:category:game"},
-      {label: "Suscripciones", value: "__qr:category:subscription"},
-      {label: "Contactar ejecutivo", value: "__qr:contact"},
-    ]);
+
+    const buttons: Array<{label: string, value?: string, url?: string}> = [];
+
+    const isProductContext = state && (
+      state.intent === "product_inquiry" || 
+      state.intent === "price_inquiry" || 
+      state.intent === "purchase_intent"
+    );
+
+    if (isProductContext && catalogProducts && catalogProducts.length > 0) {
+      const topProduct = catalogProducts[0];
+      if (topProduct.productUrl && (topProduct.availability === "available" || topProduct.availability === "preorder")) {
+        const shortName = topProduct.name.length > 25 
+          ? topProduct.name.substring(0, 22) + "..." 
+          : topProduct.name;
+        buttons.push({label: `Comprar ${shortName}`, url: topProduct.productUrl});
+      }
+    }
+
+    buttons.push({label: "Ver juegos", value: "__qr:category:game"});
+    buttons.push({label: "Suscripciones", value: "__qr:category:subscription"});
+    buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
+
+    return withButtons(aiResponse, buttons);
   } catch (err) {
     return getUnknownResponse({
       intent: "unknown",
@@ -1574,14 +1594,14 @@ async function _processAutoReply(
     return pickUnused(ESCALATION_RESPONSES, state.usedResponses);
   }
 
-  if (state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "support_issue") {
+  if (!aiAvailable && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "support_issue") {
     const durationResponse = getDurationResponse(state, msg);
     if (durationResponse && state.intent !== "product_inquiry") {
       return durationResponse;
     }
   }
 
-  if (catalogLookup && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question" && !(aiAvailable && state.intent === "followup")) {
+  if (catalogLookup && !aiAvailable && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question") {
     const categoryKeywords: Record<string, string> = {
       "suscripcion": "subscription", "suscripciones": "subscription", "subscripcion": "subscription",
       "plus": "subscription", "ps plus": "subscription", "game pass": "subscription", "gamepass": "subscription",
@@ -1761,6 +1781,46 @@ async function _processAutoReply(
 
   let result: string;
 
+  if (aiAvailable) {
+    const isFirstGreeting = state.intent === "greeting" && state.userMessageCount <= 1;
+
+    if (!isFirstGreeting) {
+      let relevantProducts: CatalogProduct[] = [];
+      if (catalogLookup) {
+        try {
+          const results = await catalogLookup.searchByName(userMessage);
+          if (results.length > 0) {
+            relevantProducts = results.slice(0, 5);
+          }
+          if (relevantProducts.length === 0) {
+            const searchTerms: string[] = [];
+            if (state.product) searchTerms.push(state.product.name);
+            if (state.lastTopicProduct) searchTerms.push(state.lastTopicProduct.name);
+            if (sessionData?.wpProductName) searchTerms.push(sessionData.wpProductName);
+            for (const term of searchTerms) {
+              const termResults = await catalogLookup.searchByName(term);
+              if (termResults.length > 0) {
+                relevantProducts = termResults.slice(0, 5);
+                break;
+              }
+            }
+          }
+        } catch {}
+      }
+
+      if (catalogProduct && !relevantProducts.find(p => p.name === catalogProduct.name)) {
+        relevantProducts.unshift(catalogProduct);
+        if (relevantProducts.length > 5) relevantProducts = relevantProducts.slice(0, 5);
+      }
+
+      result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd }, state);
+      return result;
+    }
+
+    result = getGreetingResponse(state, sessionData, catalogProduct);
+    return result;
+  }
+
   switch (state.intent) {
     case "greeting":
       result = getGreetingResponse(state, sessionData, catalogProduct);
@@ -1785,19 +1845,6 @@ async function _processAutoReply(
       const durationResp = getDurationResponse(state, msg);
       if (durationResp) { result = durationResp; break; }
 
-      if (aiAvailable) {
-        let relevantProducts: CatalogProduct[] = [];
-        if (catalogLookup) {
-          try {
-            const results = await catalogLookup.searchByName(userMessage);
-            if (results.length > 0) {
-              relevantProducts = results.slice(0, 5);
-            }
-          } catch {}
-        }
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
       result = getProductInquiryGeneric(state);
       break;
     }
@@ -1812,55 +1859,21 @@ async function _processAutoReply(
       result = getPriceResponse(state, catalogProduct);
       break;
 
-    case "payment_question": {
-      if (aiAvailable) {
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, [], { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
+    case "payment_question":
       result = getPaymentResponse(state);
       break;
-    }
 
-    case "delivery_question": {
-      if (aiAvailable) {
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, [], { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
+    case "delivery_question":
       result = getDeliveryResponse(state);
       break;
-    }
 
-    case "support_issue": {
-      if (aiAvailable) {
-        let relevantProducts: CatalogProduct[] = [];
-        if (catalogLookup) {
-          try {
-            const searchTerms = [userMessage];
-            if (state.lastTopicProduct) searchTerms.push(state.lastTopicProduct.name);
-            for (const term of searchTerms) {
-              const results = await catalogLookup.searchByName(term);
-              if (results.length > 0) {
-                relevantProducts = results.slice(0, 5);
-                break;
-              }
-            }
-          } catch {}
-        }
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
+    case "support_issue":
       result = getSupportResponse(state, sessionData);
       break;
-    }
 
-    case "trust_question": {
-      if (aiAvailable) {
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, [], { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
+    case "trust_question":
       result = getTrustResponse(state);
       break;
-    }
 
     case "gratitude":
       result = getGratitudeResponse(state);
@@ -1870,47 +1883,14 @@ async function _processAutoReply(
       result = getFarewellResponse(state);
       break;
 
-    case "followup": {
-      if (aiAvailable) {
-        let relevantProducts: CatalogProduct[] = [];
-        if (catalogLookup) {
-          try {
-            const searchTerms = [userMessage];
-            if (state.lastTopicProduct) searchTerms.push(state.lastTopicProduct.name);
-            for (const term of searchTerms) {
-              const results = await catalogLookup.searchByName(term);
-              if (results.length > 0) {
-                relevantProducts = results.slice(0, 5);
-                break;
-              }
-            }
-          } catch {}
-        }
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
+    case "followup":
       result = getFollowupResponse(state, msg);
       break;
-    }
 
     case "unknown":
-    default: {
-      if (aiAvailable) {
-        let relevantProducts: CatalogProduct[] = [];
-        if (catalogLookup) {
-          try {
-            const results = await catalogLookup.searchByName(userMessage);
-            if (results.length > 0) {
-              relevantProducts = results.slice(0, 5);
-            }
-          } catch {}
-        }
-        result = await getAIResponse(userMessage, conversationHistory, sessionData, relevantProducts, { isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd });
-        break;
-      }
+    default:
       result = getUnknownResponse(state);
       break;
-    }
   }
 
   return result;
