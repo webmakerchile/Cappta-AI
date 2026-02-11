@@ -622,9 +622,9 @@ function formatProductDetail(product: { name: string; price: string | null; avai
 }
 
 const ESCALATION_RESPONSES = [
-  "💬 Entiendo que es dificil explicar lo que buscas por chat. Si prefieres atencion personalizada, puedes hacer clic en 'Contactar un Ejecutivo' y un agente te atendera directamente. Tambien puedes escribirnos a cjmdigitales@gmail.com 📧",
-  "💬 Parece que no estoy pudiendo ayudarte como necesitas. Te recomiendo hacer clic en 'Contactar un Ejecutivo' para que un agente real pueda asistirte de forma personalizada.",
-  "💬 Para brindarte la mejor atencion, te sugiero contactar a uno de nuestros ejecutivos. Haz clic en 'Contactar un Ejecutivo' y recibiras ayuda directa por correo 📧",
+  "💬 Entiendo que es dificil explicar lo que buscas por chat. No te preocupes, un ejecutivo te atendera directamente aqui en este mismo chat. Por favor, quedate conectado y recibiras una notificacion con sonido cuando te respondan.",
+  "💬 Parece que necesitas atencion personalizada. Un ejecutivo te va a atender directamente por este chat. Quedate conectado para recibir la respuesta al instante.",
+  "💬 Para brindarte la mejor atencion, un ejecutivo se conectara contigo por este mismo chat. Solo quedate aqui, recibiras un sonido de notificacion cuando te escriban.",
 ];
 
 const PERSISTENCE_NOTICE = "\n\n💡 Puedes salir y volver cuando quieras, tu conversacion no se pierde. Si un agente te responde mientras no estas conectado, la respuesta te estara esperando aqui.";
@@ -772,7 +772,7 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
     const priceInfo = catalogProduct.price ? ` Precio: ${catalogProduct.price}.` : "";
 
     if (catalogProduct.availability !== "available" && catalogProduct.availability !== "preorder") {
-      const text = `🎮 ${displayName}${platSuffix}.${priceInfo}\n\n❌ Este producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, te recomendamos contactar a uno de nuestros ejecutivos 💬`;
+      const text = `🎮 ${displayName}${platSuffix}.${priceInfo}\n\n❌ Este producto no esta disponible actualmente. Un ejecutivo puede verificar disponibilidad o buscarte una alternativa directamente aqui en el chat 💬`;
       return withButtons(text, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
         {label: "Buscar en catalogo", value: "__qr:browse"},
@@ -1016,7 +1016,7 @@ function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogP
 
     const text = pickUnused([
       `🛒 ¡Perfecto! Para comprar ${productName}${platSuffix}, realizas el pago y recibiras tu cuenta con el juego por correo de forma inmediata ⚡📧 ¿Te gustaria saber los metodos de pago?`,
-      `🛒 ¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantanea a tu email ⚡ Contacta a un ejecutivo para completar la compra 💬`,
+      `🛒 ¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantanea ⚡ Un ejecutivo te puede asistir aqui en el chat para completar la compra 💬`,
     ], state.usedResponses);
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1056,8 +1056,8 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
     }
 
     const text = pickUnused([
-      `💰 Para el precio exacto de ${productName}${platSuffix}, te recomiendo contactar a un ejecutivo. Los precios pueden variar y un agente te dara la info actualizada 💬`,
-      `💰 El precio de ${productName}${platSuffix} puede variar. Contacta a un ejecutivo para el precio actual y ofertas disponibles 💬`,
+      `💰 Para el precio exacto de ${productName}${platSuffix}, un ejecutivo te puede ayudar directamente aqui en el chat con la info actualizada 💬`,
+      `💰 El precio de ${productName}${platSuffix} puede variar. Un ejecutivo te atendera por este mismo chat con el precio actual y ofertas disponibles 💬`,
     ], state.usedResponses);
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1114,8 +1114,8 @@ function getSupportResponse(state: ConversationState, sessionData?: SessionData)
   const problemContext = sessionData?.problemType ? ` Veo que tu consulta es sobre: ${sessionData.problemType}.` : "";
 
   const text = pickUnused([
-    `🔧 Lamentamos si tienes algun inconveniente.${problemContext} Todos nuestros productos tienen garantia ✅ Te recomiendo contactar a un ejecutivo para asistencia personalizada 💬`,
-    `🔧 Sentimos los problemas.${problemContext} Queremos resolverlo lo antes posible. Contacta a un ejecutivo para que revise tu caso 💬`,
+    `🔧 Lamentamos si tienes algun inconveniente.${problemContext} Todos nuestros productos tienen garantia ✅ Un ejecutivo te atendera directamente aqui en el chat para resolver tu caso 💬`,
+    `🔧 Sentimos los problemas.${problemContext} Queremos resolverlo lo antes posible. Un ejecutivo revisara tu caso por este mismo chat 💬`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1618,7 +1618,7 @@ async function _processAutoReply(
         );
       }
       return withButtons(
-        "💬 Para hablar con un agente, haz clic en el boton 'Contactar un Ejecutivo' que aparece abajo del chat. Un ejecutivo se pondra en contacto contigo por correo 📧",
+        "💬 Un ejecutivo te atendera directamente aqui en este chat. Solo quedate conectado y recibiras una notificacion con sonido cuando te respondan. Si no puedes esperar, tambien podemos contactarte por correo como respaldo.",
         [
           {label: "Ver productos", value: "__qr:back"},
         ]
@@ -1805,7 +1805,7 @@ async function _processAutoReply(
           }
           if (catalogResults.length === 0 && searchQuery.length >= 3) {
             return withButtons(
-              `🎯 No encontre "${searchQuery}" en nuestro catalogo. Puedes buscar directamente en nuestro catalogo completo o contactar a un ejecutivo para asistencia personalizada 💬`,
+              `🎯 No encontre "${searchQuery}" en nuestro catalogo. Puedes buscar en nuestro catalogo completo, o un ejecutivo te puede ayudar directamente aqui en el chat 💬`,
               [
                 {label: "Buscar en catalogo", value: "__qr:browse"},
                 {label: "Ver categorias", value: "__qr:back"},
@@ -1919,6 +1919,7 @@ async function _processAutoReply(
               platform: r.platform,
               description: r.description,
               category: r.category,
+              accountType: (r as any).accountType || "No especificado",
             }));
           }
         } catch {}
