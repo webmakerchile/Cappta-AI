@@ -1191,8 +1191,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   return (
     <div ref={chatContainerRef} className="flex flex-col h-full" style={{ minHeight: 0 }}>
       <div className="flex-shrink-0 z-30 bg-[#111] border-b border-white/[0.06] sticky top-0 shadow-md">
-        <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap">
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 mr-2">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
               <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#BB86FC]" />
               <span
@@ -1207,34 +1207,34 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {currentSession?.assignedTo === adminUser?.id ? (
               <>
                 <Button
                   data-testid="button-unclaim-session"
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => claimMutation.mutate("unclaim")}
                   disabled={claimMutation.isPending}
-                  className="text-[10px] sm:text-xs px-2 text-[#BB86FC] h-8 flex-shrink-0"
+                  className="text-[#BB86FC] h-8 w-8"
+                  title="Liberar"
                 >
-                  <UserMinus className="w-3.5 h-3.5 mr-1" />
-                  Liberar
+                  <UserMinus className="w-3.5 h-3.5" />
                 </Button>
                 <div className="relative">
                   <Button
                     data-testid="button-transfer-session"
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => setShowTransferMenu(!showTransferMenu)}
-                    className="text-[10px] sm:text-xs px-2 text-amber-400 h-8 flex-shrink-0"
+                    className="text-amber-400 h-8 w-8"
                     disabled={transferMutation.isPending}
+                    title="Transferir"
                   >
-                    <ArrowRightLeft className="w-3.5 h-3.5 mr-1" />
-                    Transferir
+                    <ArrowRightLeft className="w-3.5 h-3.5" />
                   </Button>
                   {showTransferMenu && (
-                    <div className="transfer-dropdown absolute top-full left-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
+                    <div className="transfer-dropdown absolute top-full right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
                       <p className="text-[10px] text-white/40 px-3 py-1 border-b border-white/[0.06]">Transferir a:</p>
                       {adminUsersList
                         .filter(u => u.id !== adminUser?.id)
@@ -1265,13 +1265,13 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               <Button
                 data-testid="button-claim-session"
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => claimMutation.mutate("claim")}
                 disabled={claimMutation.isPending}
-                className="text-[10px] sm:text-xs px-2 text-[#BB86FC] h-8 flex-shrink-0"
+                className="text-[#BB86FC] h-8 w-8"
+                title="Reclamar"
               >
-                <UserPlus className="w-3.5 h-3.5 mr-1" />
-                Reclamar
+                <UserPlus className="w-3.5 h-3.5" />
               </Button>
             ) : null}
 
@@ -1286,59 +1286,61 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               {isAdminActive ? <ShieldOff className="w-3.5 h-3.5 mr-1" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1" />}
               {isAdminActive ? "Salir" : "Entrar"}
             </Button>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-1 border-l border-white/10 pl-1">
-              <Select
-                value={sessionStatus}
-                onValueChange={(val) => statusMutation.mutate(val)}
-              >
-                <SelectTrigger
-                  data-testid="select-session-status"
-                  className="h-8 w-[100px] bg-transparent border-white/10 text-[10px] sm:text-xs text-white/70 flex-shrink-0"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1a2e] border-white/10">
-                  <SelectItem value="active" className="text-xs">Activo</SelectItem>
-                  <SelectItem value="closed" className="text-xs">Cerrar</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="flex items-center justify-between px-3 sm:px-4 py-1 border-t border-white/[0.04] gap-2">
+          <Select
+            value={sessionStatus}
+            onValueChange={(val) => statusMutation.mutate(val)}
+          >
+            <SelectTrigger
+              data-testid="select-session-status"
+              className="h-7 w-[90px] bg-transparent border-white/10 text-[10px] sm:text-xs text-white/70 flex-shrink-0"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1a2e] border-white/10">
+              <SelectItem value="active" className="text-xs">Activo</SelectItem>
+              <SelectItem value="closed" className="text-xs">Cerrar</SelectItem>
+            </SelectContent>
+          </Select>
 
-              <Button
-                data-testid="button-send-rating"
-                variant="ghost"
-                size="icon"
-                onClick={() => { if (confirm("¿Enviar encuesta de satisfaccion?")) sendRatingMutation.mutate(); }}
-                disabled={sendRatingMutation.isPending || !!sessionRating}
-                title="Enviar encuesta"
-                className={`h-8 w-8 flex-shrink-0 ${sessionRating ? "text-yellow-400" : "text-white/40"}`}
-              >
-                <Star className={`w-3.5 h-3.5 ${sessionRating ? "fill-yellow-400" : ""}`} />
-              </Button>
+          <div className="flex items-center gap-0.5">
+            <Button
+              data-testid="button-send-rating"
+              variant="ghost"
+              size="icon"
+              onClick={() => { if (confirm("¿Enviar encuesta de satisfaccion?")) sendRatingMutation.mutate(); }}
+              disabled={sendRatingMutation.isPending || !!sessionRating}
+              title="Enviar encuesta"
+              className={`h-7 w-7 flex-shrink-0 ${sessionRating ? "text-yellow-400" : "text-white/40"}`}
+            >
+              <Star className={`w-3.5 h-3.5 ${sessionRating ? "fill-yellow-400" : ""}`} />
+            </Button>
 
-              <Button
-                data-testid="button-manual-email"
-                variant="ghost"
-                size="icon"
-                onClick={() => { if (confirm("¿Enviar notificacion por correo ahora?")) sendEmailMutation.mutate(); }}
-                disabled={sendEmailMutation.isPending}
-                title="Notificar por correo"
-                className="h-8 w-8 text-[#BB86FC] flex-shrink-0"
-              >
-                <Mail className="w-3.5 h-3.5" />
-              </Button>
+            <Button
+              data-testid="button-manual-email"
+              variant="ghost"
+              size="icon"
+              onClick={() => { if (confirm("¿Enviar notificacion por correo ahora?")) sendEmailMutation.mutate(); }}
+              disabled={sendEmailMutation.isPending}
+              title="Notificar por correo"
+              className="h-7 w-7 text-[#BB86FC] flex-shrink-0"
+            >
+              <Mail className="w-3.5 h-3.5" />
+            </Button>
 
-              <Button
-                data-testid="button-local-search"
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowLocalSearch(!showLocalSearch)}
-                title="Buscar en chat"
-                className={`h-8 w-8 flex-shrink-0 ${showLocalSearch ? "text-[#BB86FC]" : "text-white/40"}`}
-              >
-                <Search className="w-3.5 h-3.5" />
-              </Button>
-            </div>
+            <Button
+              data-testid="button-local-search"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowLocalSearch(!showLocalSearch)}
+              title="Buscar en chat"
+              className={`h-7 w-7 flex-shrink-0 ${showLocalSearch ? "text-[#BB86FC]" : "text-white/40"}`}
+            >
+              <Search className="w-3.5 h-3.5" />
+            </Button>
           </div>
         </div>
 
