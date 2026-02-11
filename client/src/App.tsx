@@ -179,24 +179,8 @@ function ContactChat() {
     logout,
   } = useChat();
 
-  const [isEmbedded, setIsEmbedded] = useState<boolean | null>(null);
-
   useEffect(() => {
     document.documentElement.classList.add("dark");
-  }, []);
-
-  useEffect(() => {
-    try {
-      setIsEmbedded(window.self !== window.top);
-    } catch {
-      setIsEmbedded(true);
-    }
-  }, []);
-
-  const postToParent = useCallback((type: string) => {
-    try {
-      window.parent.postMessage({ type }, "*");
-    } catch {}
   }, []);
 
   const handleRatingComplete = useCallback(() => {
@@ -204,7 +188,7 @@ function ContactChat() {
     queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
   }, [user?.email]);
 
-  if (isEmbedded === null || isLoading) {
+  if (isLoading) {
     return (
       <div
         className="w-full h-screen flex items-center justify-center"
@@ -216,33 +200,6 @@ function ContactChat() {
           </div>
           <Loader2 className="w-6 h-6 text-[#6200EA] animate-spin" />
           <p className="text-white/50 text-sm">Conectando al chat...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isEmbedded) {
-    return (
-      <div
-        className="w-full h-screen flex items-center justify-center"
-        style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
-      >
-        <div className="flex flex-col items-center gap-6 max-w-md px-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-[#6200EA]/20 flex items-center justify-center border border-[#6200EA]/30">
-            <Headphones className="w-10 h-10 text-[#6200EA]" />
-          </div>
-          <h1 data-testid="text-contact-restricted-title" className="text-xl font-bold text-white">Chat de Contacto</h1>
-          <p data-testid="text-contact-restricted-message" className="text-white/60 text-sm leading-relaxed">
-            Para acceder al chat de soporte, visita nuestra pagina de contacto en CJM Digitales.
-          </p>
-          <a
-            href="https://cjmdigitales.cl/"
-            data-testid="link-contact-restricted-back"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#6200EA] text-white text-sm font-semibold transition-opacity hover:opacity-90"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Ir a CJM Digitales
-          </a>
         </div>
       </div>
     );
