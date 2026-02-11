@@ -1203,7 +1203,7 @@ function getUnknownResponse(state: ConversationState): string {
   return withButtons(text, [
     {label: "Ver juegos", value: "__qr:category:game"},
     {label: "Suscripciones", value: "__qr:category:subscription"},
-    {label: "Buscar en catálogo", value: "__qr:manual_search"},
+    {label: "Buscar en catálogo", value: "__qr:browse"},
     {label: "Contactar ejecutivo", value: "__qr:contact"},
   ]);
 }
@@ -1254,7 +1254,7 @@ async function getAIResponse(
 
     buttons.push({label: "Ver juegos", value: "__qr:category:game"});
     buttons.push({label: "Suscripciones", value: "__qr:category:subscription"});
-    buttons.push({label: "Buscar en catálogo", value: "__qr:manual_search"});
+    buttons.push({label: "Buscar en catálogo", value: "__qr:browse"});
     buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
 
     return withButtons(aiResponse, buttons);
@@ -1469,11 +1469,10 @@ async function _processAutoReply(
     return "👋 ¡Hasta pronto! Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia! 💜";
   }
 
-  if (msg === "__qr:manual_search") {
-    const text = "Escribe el nombre del juego, suscripcion o producto que buscas y lo buscare en nuestro catalogo completo.";
+  if (/\bcodigo\s*de\s*verificacion\b|\bcodigo\s*de\s*activacion\b|\bverificar\s*codigo\b|\bcanjear\s*codigo\b|\bredeem\b|\bverificacion\b|\bcodigo\s*de\s*canje\b|\breenviar\s*codigo\b|\bnuevo\s*codigo\b|\bno\s*me\s*llego\s*el\s*codigo\b/.test(msg)) {
+    const text = "Para obtener tu codigo de verificacion, ingresa a https://cjm-codes.cl/ y escribe tu correo electronico. El sistema te enviara tu codigo automaticamente.\n\nSi el sistema no te funciona o tienes algun problema, puedes contactar a un ejecutivo para asistencia personalizada.";
     return withButtons(text, [
-      {label: "Ver juegos", value: "__qr:category:game"},
-      {label: "Suscripciones", value: "__qr:category:subscription"},
+      {label: "Contactar ejecutivo", value: "__qr:contact"},
     ]);
   }
 

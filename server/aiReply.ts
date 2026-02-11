@@ -127,7 +127,7 @@ function buildSystemPrompt(
 **Soporte post-venta - Problemas comunes y cómo manejarlos:**
 - "No me llegó el código": Verificar correo, spam, y tiempo transcurrido. Si ha pasado más de 30 minutos, un ejecutivo puede revisar
 - "El código no funciona": Puede ser error de tipeo, región de la cuenta, o problema con el código. Un ejecutivo verificará
-- "Código de verificación": Generalmente necesitan que un ejecutivo reenvíe o verifique un código de compra anterior
+- "Código de verificación": Dirígelos a https://cjm-codes.cl/ donde pueden ingresar su correo electrónico y el sistema les enviará su código de verificación automáticamente. Solo escala a un ejecutivo si el sistema de cjm-codes.cl no les funciona
 - "Quiero cambio o devolución": Los códigos digitales generalmente no tienen devolución una vez entregados, pero un ejecutivo puede revisar cada caso
 - "Problema con activación": Guiar en el proceso general, pero si persiste, un ejecutivo asistirá
 - "Quiero hacer un reclamo": Mostrar empatía total, asegurar que se tomará en serio, y conectar con ejecutivo
@@ -290,11 +290,11 @@ Estamos dentro del horario de atención. Si el cliente necesita ayuda personaliz
       systemPrompt += "\n";
     });
     systemPrompt +=
-      "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). NO incluyas links de productos en tu respuesta de texto - los links de compra se agregan automáticamente como botones debajo de tu mensaje. Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiérele que pruebe escribir el nombre exacto del producto para buscarlo, o que revise directamente en la tienda web cjmdigitales.cl.";
+      "\nSi el cliente pregunta por un producto listado arriba, proporciona toda la información disponible (nombre, precio, plataforma). NO incluyas links de productos en tu respuesta de texto - los links de compra se agregan automáticamente como botones debajo de tu mensaje. Si pregunta por algo que NO está en esta lista, dile honestamente que no lo encuentras en el catálogo y sugiérele que use el botón 'Buscar en catálogo' para abrir el buscador interactivo de productos donde puede buscar y explorar visualmente todo nuestro catálogo, o que revise directamente en la tienda web cjmdigitales.cl.";
   }
 
   if (!catalogProducts || catalogProducts.length === 0) {
-    systemPrompt += "\n\n===== BÚSQUEDA DE PRODUCTOS =====\nNo se encontraron productos del catálogo que coincidan con la consulta del cliente. Si el cliente busca un producto específico, sugiérele que escriba el nombre exacto del juego o producto para buscarlo nuevamente, o que revise directamente en nuestra tienda web cjmdigitales.cl. Hay un botón de 'Buscar en catálogo' debajo de tu mensaje que el cliente puede usar.";
+    systemPrompt += "\n\n===== BÚSQUEDA DE PRODUCTOS =====\nNo se encontraron productos del catálogo que coincidan con la consulta del cliente. Si el cliente busca un producto específico, sugiérele que use el botón 'Buscar en catálogo' para abrir el buscador interactivo de productos donde puede buscar y explorar visualmente todo nuestro catálogo. También puede escribir el nombre exacto del juego o producto para buscarlo nuevamente, o revisar directamente en nuestra tienda web cjmdigitales.cl.";
   }
 
   if (options?.knowledgeEntries && options.knowledgeEntries.length > 0) {
