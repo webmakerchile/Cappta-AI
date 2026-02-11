@@ -1082,10 +1082,11 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
 
 function getPaymentResponse(state: ConversationState): string {
   const text = pickUnused([
-    `💳 Aceptamos varios metodos de pago. Para conocer las opciones disponibles y proceder con tu compra, te recomiendo contactar a un ejecutivo 💬`,
-    `💳 Los metodos de pago los gestiona nuestro equipo. Contacta a un ejecutivo para que te den todas las opciones disponibles 💬`,
+    `💳 Puedes pagar de dos formas: directamente por nuestra web en cjmdigitales.com al hacer tu pedido, o por transferencia bancaria. Los pagos se procesan en horario de atencion.`,
+    `💳 Aceptamos pago por la web (cjmdigitales.com) y transferencia bancaria. Solo se procesan en horario de atencion.`,
   ], state.usedResponses);
   return withButtons(text, [
+    {label: "Ir a la tienda", value: "__qr:link:https://cjmdigitales.com"},
     {label: "Contactar ejecutivo", value: "__qr:contact"},
   ]);
 }
@@ -1278,7 +1279,7 @@ async function getAIResponse(
         const shortName = bestProduct.name.length > 25 
           ? bestProduct.name.substring(0, 22) + "..." 
           : bestProduct.name;
-        buttons.push({label: `Comprar ${shortName}`, url: bestProduct.productUrl});
+        buttons.push({label: `Comprar ${shortName}`, url: bestProduct.productUrl || undefined});
       }
     }
 
