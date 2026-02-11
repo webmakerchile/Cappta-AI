@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message, Session } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
@@ -553,6 +553,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showProductBrowser, setShowProductBrowser] = useState(false);
+  const [isOfflineHours, setIsOfflineHours] = useState(false);
+  const [ticketUrl, setTicketUrl] = useState("");
   const [productSearchQuery, setProductSearchQuery] = useState("");
   const [browseProducts, setBrowseProducts] = useState<BrowseProduct[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -563,6 +565,20 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const productBrowserRef = useRef<HTMLDivElement>(null);
   const productSearchInputRef = useRef<HTMLInputElement>(null);
   const productDebounceRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    const checkBusinessHours = async () => {
+      try {
+        const res = await fetch("/api/business-hours-status");
+        const data = await res.json();
+        setIsOfflineHours(data.isOffline);
+        setTicketUrl(data.ticketUrl);
+      } catch {}
+    };
+    checkBusinessHours();
+    const interval = setInterval(checkBusinessHours, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { uploadFile, isUploading } = useUpload({
     onSuccess: (response) => {
@@ -875,22 +891,35 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
       </div>
 
       <div className="px-3 pt-2 pb-1 border-t border-white/10">
-        <Button
-          data-testid="button-contact-executive"
-          variant="outline"
-          onClick={onContactExecutive}
-          disabled={contactRequested}
-          className={`
-            w-full mb-2 font-semibold text-sm
-            ${contactRequested
-              ? "opacity-50 cursor-not-allowed bg-[#6200EA]/10 border-[#6200EA]/30 text-white/50"
-              : "bg-[#6200EA] border-[#6200EA] text-white shadow-[0_0_12px_rgba(98,0,234,0.4)]"
-            }
-          `}
-        >
-          <UserRound className="w-4 h-4 mr-2" />
-          {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
-        </Button>
+        {isOfflineHours ? (
+          <a
+            href={ticketUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="button-create-ticket"
+            className="w-full mb-2 font-semibold text-sm flex items-center justify-center gap-2 rounded-md px-4 py-2 bg-[#6200EA] border border-[#6200EA] text-white shadow-[0_0_12px_rgba(98,0,234,0.4)]"
+          >
+            <Ticket className="w-4 h-4" />
+            Crear ticket de soporte
+          </a>
+        ) : (
+          <Button
+            data-testid="button-contact-executive"
+            variant="outline"
+            onClick={onContactExecutive}
+            disabled={contactRequested}
+            className={`
+              w-full mb-2 font-semibold text-sm
+              ${contactRequested
+                ? "opacity-50 cursor-not-allowed bg-[#6200EA]/10 border-[#6200EA]/30 text-white/50"
+                : "bg-[#6200EA] border-[#6200EA] text-white shadow-[0_0_12px_rgba(98,0,234,0.4)]"
+              }
+            `}
+          >
+            <UserRound className="w-4 h-4 mr-2" />
+            {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
+          </Button>
+        )}
         <FinalizeRateButton sessionId={latestSession?.sessionId || sessionId} />
       </div>
 

@@ -396,7 +396,7 @@ function detectIntent(msg: string, history: ConversationEntry[], product: Detect
   }
 
   const userMsgs = history.filter(h => h.sender === "user");
-  if (userMsgs.length > 1 && msg.length < 30) {
+  if (userMsgs.length > 1 && msg.length < 80) {
     return "followup";
   }
 
@@ -480,9 +480,16 @@ function buildConversationState(
   }
 
   if (!product && lastTopicProduct) {
-    const intent = detectIntent(msg, history, null);
-    if (intent === "price_inquiry" || intent === "purchase_intent" || intent === "followup" || intent === "delivery_question") {
+    const tempIntent = detectIntent(msg, history, null);
+    if (tempIntent === "price_inquiry" || tempIntent === "purchase_intent" || tempIntent === "delivery_question") {
       product = lastTopicProduct;
+    }
+    if (tempIntent === "followup") {
+      const stripped = msg.replace(/[?!.,;:\s¿¡]/g, "");
+      const isSubstantive = stripped.length > 8 && !/^(hola|hey|oye|alo|buenas|que|y|ok|dale|si|no|ya|mhh+|ah+|oh+|em+|mmm+)$/i.test(stripped);
+      if (isSubstantive && /\b(precio|cuanto|comprar|quiero|vale|cuesta|disponible)\b/.test(msg)) {
+        product = lastTopicProduct;
+      }
     }
   }
 
@@ -1530,12 +1537,40 @@ async function _processAutoReply(
 
   const profanityResult = containsProfanity(msg);
   if (profanityResult.hasProfanity) {
-    return "Por favor, mantengamos una conversacion respetuosa. Estoy aqui para ayudarte con tus consultas sobre nuestros productos y servicios. ¿En que puedo asistirte?";
+    const previousWarnings = conversationHistory.filter(h => 
+      h.sender === "support" && (
+        h.content.includes("mantengamos una conversacion respetuosa") ||
+        h.content.includes("lenguaje inapropiado") ||
+        h.content.includes("vocabulario ofensivo") ||
+        h.content.includes("Segundo aviso") ||
+        h.content.includes("chat sera limitado")
+      )
+    ).length;
+
+    if (previousWarnings === 0) {
+      return withButtons(
+        "Oye, te pido que mantengamos una conversacion respetuosa. Estoy aqui para ayudarte de verdad, pero con vocabulario ofensivo no podemos avanzar. Dime tranqui en que te puedo ayudar.",
+        [{label: "Ver productos", value: "__qr:back"}, {label: "Contactar ejecutivo", value: "__qr:contact"}]
+      );
+    }
+    if (previousWarnings === 1) {
+      return withButtons(
+        "Segundo aviso: necesito que me hables con respeto para poder seguir ayudandote. Si sigues con lenguaje inapropiado, tu chat sera limitado. Dale, partamos de nuevo, ¿en que te puedo ayudar?",
+        [{label: "Ver productos", value: "__qr:back"}, {label: "Contactar ejecutivo", value: "__qr:contact"}]
+      );
+    }
+    return withButtons(
+      "Tu chat ha sido limitado por uso reiterado de lenguaje inapropiado. Si necesitas ayuda, puedes escribirnos a cjmdigitales@gmail.com o crear un ticket de soporte.",
+      [{label: "Crear ticket de soporte", url: offlineTicketUrl}]
+    );
   }
 
   const state = buildConversationState(msg, conversationHistory, sessionData);
 
-  if (shouldEscalate(state) && state.intent === "unknown") {
+  const aiEnabledSetting = await storage.getSetting("ai_enabled");
+  const aiAvailable = !!process.env.OPENAI_API_KEY && aiEnabledSetting !== "false";
+
+  if (shouldEscalate(state) && state.intent === "unknown" && !aiAvailable) {
     return pickUnused(ESCALATION_RESPONSES, state.usedResponses);
   }
 
@@ -1546,10 +1581,7 @@ async function _processAutoReply(
     }
   }
 
-  const aiEnabledSetting = await storage.getSetting("ai_enabled");
-  const aiAvailable = !!process.env.OPENAI_API_KEY && aiEnabledSetting !== "false";
-
-  if (catalogLookup && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question") {
+  if (catalogLookup && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question" && !(aiAvailable && state.intent === "followup")) {
     const categoryKeywords: Record<string, string> = {
       "suscripcion": "subscription", "suscripciones": "subscription", "subscripcion": "subscription",
       "plus": "subscription", "ps plus": "subscription", "game pass": "subscription", "gamepass": "subscription",
@@ -1605,7 +1637,7 @@ async function _processAutoReply(
         "playstation", "play", "comprar", "comprarlo", "compralo", "comprarle", "adquirir", "adquirirlo",
         "obtener", "obtenerlo", "llevar", "llevarlo", "proceder",
         "precio", "cuanto", "cuesta", "donde", "esta"]);
-      const queryWords = msg.split(/\s+/).filter(w => w.length >= 2 && !skipWords.has(w));
+      const queryWords = msg.split(/\s+/).map(w => w.replace(/[?!.,;:¿¡'"()]/g, "")).filter(w => w.length >= 2 && !skipWords.has(w));
       const searchQuery = queryWords.join(" ");
 
       if (searchQuery.length >= 2) {

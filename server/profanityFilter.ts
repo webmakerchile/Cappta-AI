@@ -19,6 +19,11 @@ export const PROFANITY_LIST: string[] = [
   "ctm",
   "conchetumare", "conchetumadre", "conchasumadre", "conchesumadre",
   "weon", "weón", "wea", "weona", "weonas", "weones",
+  "culiao", "culiao", "culiado", "culiada", "culiaos", "culia",
+  "aweonao", "aweonado", "aweonada", "aweona", "aweonaos",
+  "sacowea", "sacoewea", "saco de wea",
+  "la wea", "que wea", "weon ql", "ql",
+  "chucha", "chuchetumare", "chuchasumadre",
   "huevon", "huevona", "huevones",
   "maricon", "maricón", "marica", "maricas", "maricones",
   "zorra", "zorras",
@@ -121,14 +126,18 @@ const PARTIAL_MATCH_TERMS = [
   "cabron",
   "pendej",
   "culer",
+  "culiao", "culia",
+  "aweonao", "aweona",
   "hijueputa",
   "malparid",
   "gonorre",
   "conchetuma",
+  "chuchetuma",
   "maricon",
   "gilipollas",
   "pelotud",
   "bolud",
+  "sacowea", "sacoewea",
 ];
 
 export function containsProfanity(text: string): { hasProfanity: boolean; words: string[] } {
@@ -181,10 +190,10 @@ export function containsProfanity(text: string): { hasProfanity: boolean; words:
 
 export function getProfanityWarningMessage(warningCount: number): string {
   if (warningCount <= 1) {
-    return "Tu mensaje contiene lenguaje inapropiado. Por favor, se respetuoso.";
+    return "Oye, te pido que mantengamos una conversacion respetuosa. Estoy aqui para ayudarte de verdad, pero con vocabulario ofensivo no podemos avanzar. Dime tranqui en que te puedo ayudar.";
   }
   if (warningCount === 2) {
-    return "Segundo aviso: el uso de lenguaje ofensivo no esta permitido. Al tercer aviso tu chat sera bloqueado.";
+    return "Segundo aviso: necesito que me hables con respeto para poder seguir ayudandote. Si sigues con lenguaje inapropiado, tu chat sera bloqueado. Dale, partamos de nuevo, ¿en que te puedo ayudar?";
   }
-  return "Tu chat ha sido bloqueado por uso reiterado de lenguaje inapropiado. Contacta a soporte si crees que fue un error.";
+  return "Tu chat ha sido bloqueado por uso reiterado de lenguaje inapropiado. Si necesitas ayuda, puedes escribirnos a cjmdigitales@gmail.com o crear un ticket de soporte en cjmdigitales.zohodesk.com";
 }

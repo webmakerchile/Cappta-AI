@@ -620,6 +620,24 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/business-hours-status", async (_req, res) => {
+    try {
+      const bhEnabled = await storage.getSetting("business_hours_enabled");
+      if (bhEnabled === "false") {
+        return res.json({ isOffline: false, ticketUrl: "", hoursStart: 0, hoursEnd: 0 });
+      }
+      const hoursStart = parseInt(await storage.getSetting("business_hours_start") || "12", 10);
+      const hoursEnd = parseInt(await storage.getSetting("business_hours_end") || "21", 10);
+      const ticketUrl = await storage.getSetting("business_hours_ticket_url") || "https://cjmdigitales.zohodesk.com/portal/es/newticket";
+      const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
+      const currentHour = nowChile.getHours();
+      const isOffline = currentHour < hoursStart || currentHour >= hoursEnd;
+      res.json({ isOffline, ticketUrl, hoursStart, hoursEnd });
+    } catch (e) {
+      res.json({ isOffline: false, ticketUrl: "", hoursStart: 0, hoursEnd: 0 });
+    }
+  });
+
   app.get("/api/settings/:key", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
