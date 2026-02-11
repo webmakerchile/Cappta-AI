@@ -15,6 +15,44 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const SESSION_CREATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
+
+function checkMessageRateLimit(ip: string, email: string): boolean {
+  const key = `${ip}:${email}`;
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + 60000 });
+    return true;
+  }
+  entry.count++;
+  if (entry.count > 30) return false;
+  return true;
+}
+
+function checkSessionCreateRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = SESSION_CREATE_LIMIT.get(ip);
+  if (!entry || now > entry.resetAt) {
+    SESSION_CREATE_LIMIT.set(ip, { count: 1, resetAt: now + 3600000 });
+    return true;
+  }
+  entry.count++;
+  if (entry.count > 10) return false;
+  return true;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  rateLimitMap.forEach((_entry, key) => {
+    if (now > rateLimitMap.get(key)!.resetAt) rateLimitMap.delete(key);
+  });
+  SESSION_CREATE_LIMIT.forEach((_entry, key) => {
+    if (now > SESSION_CREATE_LIMIT.get(key)!.resetAt) SESSION_CREATE_LIMIT.delete(key);
+  });
+}, 300000);
+
 const socketMessageSchema = insertMessageSchema.extend({
   content: z.string().max(2000),
   userEmail: z.string().email().max(200),
@@ -280,6 +318,14 @@ export async function registerRoutes(
 
   app.post("/api/messages", async (req, res) => {
     try {
+      const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "unknown";
+
+      if (req.body.sender === "user") {
+        if (!checkMessageRateLimit(clientIp, req.body.userEmail || "")) {
+          return res.status(429).json({ message: "Demasiados mensajes. Espera un momento antes de enviar otro." });
+        }
+      }
+
       const hasImage = !!req.body.imageUrl;
       const bodyForValidation = { ...req.body };
       if (hasImage && (!bodyForValidation.content || bodyForValidation.content.trim() === "")) {

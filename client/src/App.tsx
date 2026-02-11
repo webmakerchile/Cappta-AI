@@ -211,6 +211,33 @@ function ContactChat() {
       style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
       data-testid="contact-chat-container"
     >
+      <div
+        className="flex items-center justify-between px-4 py-2.5 flex-shrink-0"
+        style={{ background: "#111111", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <div className="flex items-center gap-3">
+          <img
+            src="/cjm-logo.webp"
+            alt="CJM Digitales"
+            className="w-8 h-8 rounded-full object-cover"
+            data-testid="img-contact-logo"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+          <span className="text-white font-semibold text-sm" data-testid="text-contact-brand">CJM Digitales - Contacto</span>
+        </div>
+        <a
+          href="https://cjmdigitales.cl/"
+          data-testid="link-contact-back"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-[#6200EA]/20 border border-[#6200EA]/30 text-[#BB86FC] text-xs font-semibold transition-opacity hover:opacity-80"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Volver a CJM Digitales</span>
+          <span className="sm:hidden">Volver</span>
+        </a>
+      </div>
+
       <div className="flex-1 flex flex-col min-h-0">
         {user ? (
           <ChatWindow
@@ -222,23 +249,21 @@ function ContactChat() {
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
-            onClose={() => { postToParent("close_contact_chat"); }}
+            onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
             onExitChat={() => {
               logout();
-              postToParent("close_contact_chat");
+              window.location.href = "https://cjmdigitales.cl/";
             }}
             sessionId={user.sessionId}
             onRatingComplete={handleRatingComplete}
             onStartNewSession={startNewSession}
           />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center px-4">
-            <div className="w-full max-w-md">
-              <WelcomeForm
-                onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
-                onClose={() => { postToParent("close_contact_chat"); }}
-              />
-            </div>
+          <div className="flex-1 flex flex-col">
+            <WelcomeForm
+              onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
+              onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
+            />
           </div>
         )}
       </div>
