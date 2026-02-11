@@ -1236,10 +1236,12 @@ async function getAIResponse(
 
     const buttons: Array<{label: string, value?: string, url?: string}> = [];
 
-    const hasSpecificProduct = state && state.product && (
+    const activeProduct = state ? (state.product || state.lastTopicProduct) : null;
+    const hasSpecificProduct = activeProduct && state && (
       state.intent === "product_inquiry" || 
       state.intent === "price_inquiry" || 
-      state.intent === "purchase_intent"
+      state.intent === "purchase_intent" ||
+      state.intent === "followup"
     );
 
     if (hasSpecificProduct && catalogProducts && catalogProducts.length > 0) {
