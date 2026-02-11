@@ -249,9 +249,10 @@ interface MessageBubbleProps {
   isLastSupport: boolean;
   onQuickReply: (btn: QuickReplyButton) => void;
   onRatingComplete?: () => void;
+  onImageClick?: (url: string) => void;
 }
 
-function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete }: MessageBubbleProps) {
+function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
@@ -350,7 +351,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
                   );
                 }
                 return (
-                  <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                  <div className="block p-1.5 cursor-pointer" onClick={() => onImageClick?.(imageUrl)}>
                     <img
                       src={imageUrl}
                       alt="Imagen compartida"
@@ -358,7 +359,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
                       className="max-w-full max-h-52 object-contain cursor-pointer rounded-md"
                       loading="lazy"
                     />
-                  </a>
+                  </div>
                 );
               })()
             )}
@@ -580,6 +581,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showProductBrowser, setShowProductBrowser] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [isOfflineHours, setIsOfflineHours] = useState(false);
   const [ticketUrl, setTicketUrl] = useState("");
   const [productSearchQuery, setProductSearchQuery] = useState("");
@@ -897,6 +899,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                   isLastSupport={idx === lastSupportIdx}
                   onQuickReply={handleQuickReply}
                   onRatingComplete={onRatingComplete}
+                  onImageClick={setLightboxImage}
                 />
               );
             });
@@ -1105,6 +1108,29 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           <span className="font-medium">webmakerchile.com</span>
         </a>
       </div>
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+          data-testid="image-lightbox-overlay"
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+            className="absolute top-4 right-4 z-[10000] w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+            data-testid="button-close-lightbox"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={lightboxImage}
+            alt="Imagen ampliada"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+            data-testid="lightbox-image"
+          />
+        </div>
+      )}
     </div>
   );
 }

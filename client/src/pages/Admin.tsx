@@ -711,6 +711,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashFilter, setSlashFilter] = useState("");
   const [slashSelectedIndex, setSlashSelectedIndex] = useState(0);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -1492,7 +1493,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                             );
                           }
                           return (
-                            <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block p-1.5">
+                            <div className="block p-1.5 cursor-pointer" onClick={() => setLightboxImage(imageUrl)}>
                               <img
                                 src={imageUrl}
                                 alt="Imagen compartida"
@@ -1500,7 +1501,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                                 className="max-w-full max-h-48 object-contain cursor-pointer rounded-md"
                                 loading="lazy"
                               />
-                            </a>
+                            </div>
                           );
                         })()
                       )}
@@ -1666,6 +1667,29 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       ) : (
         <div className="flex-shrink-0 z-30 bg-[#111] px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
           {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
+        </div>
+      )}
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+          data-testid="admin-image-lightbox-overlay"
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+            className="absolute top-4 right-4 z-[10000] w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+            data-testid="button-admin-close-lightbox"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={lightboxImage}
+            alt="Imagen ampliada"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+            data-testid="admin-lightbox-image"
+          />
         </div>
       )}
     </div>
