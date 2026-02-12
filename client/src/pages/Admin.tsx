@@ -1263,17 +1263,6 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               </>
             ) : null}
 
-            <Button
-              data-testid="button-toggle-admin-active"
-              variant="ghost"
-              size="sm"
-              onClick={() => adminActiveMutation.mutate(!isAdminActive)}
-              disabled={adminActiveMutation.isPending}
-              className={`text-[10px] sm:text-xs px-2 h-8 flex-shrink-0 ${isAdminActive ? "text-orange-400" : "text-emerald-400"}`}
-            >
-              {isAdminActive ? <ShieldOff className="w-3.5 h-3.5 mr-1" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1" />}
-              {isAdminActive ? "Salir" : "Entrar"}
-            </Button>
           </div>
         </div>
 
@@ -1350,10 +1339,10 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         )}
       </div>
 
-        {isAdminActive && (
+        {currentSession?.assignedTo === adminUser?.id && (
           <div className="mt-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-            <span className="text-[11px] text-emerald-300">Modo administrador activo — El bot esta pausado. Tus respuestas se envian directamente al usuario.</span>
+            <span className="text-[11px] text-emerald-300">Chat asignado a ti — El bot esta pausado. Tus respuestas se envian directamente al usuario.</span>
           </div>
         )}
 

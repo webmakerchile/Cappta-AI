@@ -1439,6 +1439,7 @@ export async function registerRoutes(
       if (sessionCheck && sessionCheck.assignedTo && sessionCheck.assignedTo !== adminUser.id && adminUser.role !== "superadmin") {
         return res.status(403).json(lockedResponse(sessionCheck));
       }
+      await storage.updateSessionAdminActive(req.params.sessionId, false);
       const unclaimed = await storage.unclaimSession(req.params.sessionId);
       let updated = unclaimed;
       if (updated && updated.tags) {
@@ -1448,6 +1449,17 @@ export async function registerRoutes(
       } else if (updated) {
         updated = await storage.updateSessionTags(req.params.sessionId, ["Bot"]) || updated;
       }
+
+      const notifyMsg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: sessionCheck?.userEmail || "support@system",
+        userName: "Soporte",
+        sender: "support",
+        content: "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.",
+      });
+      io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
+
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "unclaim", session: updated });
       res.json(updated);
     } catch (error: any) {
