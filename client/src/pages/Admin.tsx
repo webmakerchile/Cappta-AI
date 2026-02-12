@@ -1208,59 +1208,72 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            {currentSession?.assignedTo === adminUser?.id ? (
-              <>
+            {currentSession?.assignedTo === adminUser?.id && (
+              <div className="relative">
                 <Button
-                  data-testid="button-unclaim-session"
+                  data-testid="button-transfer-session"
                   variant="ghost"
                   size="icon"
-                  onClick={() => claimMutation.mutate("unclaim")}
-                  disabled={claimMutation.isPending}
-                  className="text-[#BB86FC] h-8 w-8"
-                  title="Liberar"
+                  onClick={() => setShowTransferMenu(!showTransferMenu)}
+                  className="text-amber-400 h-8 w-8"
+                  disabled={transferMutation.isPending}
+                  title="Transferir"
                 >
-                  <UserMinus className="w-3.5 h-3.5" />
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
                 </Button>
-                <div className="relative">
-                  <Button
-                    data-testid="button-transfer-session"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowTransferMenu(!showTransferMenu)}
-                    className="text-amber-400 h-8 w-8"
-                    disabled={transferMutation.isPending}
-                    title="Transferir"
-                  >
-                    <ArrowRightLeft className="w-3.5 h-3.5" />
-                  </Button>
-                  {showTransferMenu && (
-                    <div className="transfer-dropdown absolute top-full right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
-                      <p className="text-[10px] text-white/40 px-3 py-1 border-b border-white/[0.06]">Transferir a:</p>
-                      {adminUsersList
-                        .filter(u => u.id !== adminUser?.id)
-                        .map(agent => (
-                          <button
-                            key={agent.id}
-                            data-testid={`transfer-to-${agent.id}`}
-                            onClick={() => {
-                              if (confirm(`¿Transferir este chat a ${agent.displayName}?`)) {
-                                transferMutation.mutate(agent.id);
-                              }
-                            }}
-                            className="w-full text-left px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.06] flex items-center gap-2"
-                          >
-                            <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: agent.color || '#6200EA' }} />
-                            <span>{agent.displayName}</span>
-                            <span className="text-[10px] text-white/30 ml-auto">{agent.role === "admin" ? "Admin" : "Ejecutivo"}</span>
-                          </button>
-                        ))}
-                      {adminUsersList.filter(u => u.id !== adminUser?.id).length === 0 && (
-                        <p className="text-[10px] text-white/30 px-3 py-2">No hay otros agentes disponibles</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
+                {showTransferMenu && (
+                  <div className="transfer-dropdown absolute top-full right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-md shadow-xl z-50 min-w-[180px] py-1">
+                    <p className="text-[10px] text-white/40 px-3 py-1 border-b border-white/[0.06]">Transferir a:</p>
+                    {adminUsersList
+                      .filter(u => u.id !== adminUser?.id)
+                      .map(agent => (
+                        <button
+                          key={agent.id}
+                          data-testid={`transfer-to-${agent.id}`}
+                          onClick={() => {
+                            if (confirm(`¿Transferir este chat a ${agent.displayName}?`)) {
+                              transferMutation.mutate(agent.id);
+                            }
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.06] flex items-center gap-2"
+                        >
+                          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: agent.color || '#6200EA' }} />
+                          <span>{agent.displayName}</span>
+                          <span className="text-[10px] text-white/30 ml-auto">{agent.role === "admin" ? "Admin" : "Ejecutivo"}</span>
+                        </button>
+                      ))}
+                    {adminUsersList.filter(u => u.id !== adminUser?.id).length === 0 && (
+                      <p className="text-[10px] text-white/30 px-3 py-2">No hay otros agentes disponibles</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentSession?.assignedTo === adminUser?.id ? (
+              <Button
+                data-testid="button-exit-chat"
+                variant="ghost"
+                size="sm"
+                onClick={() => claimMutation.mutate("unclaim")}
+                disabled={claimMutation.isPending}
+                className="text-[10px] sm:text-xs px-2 h-8 flex-shrink-0 text-orange-400"
+              >
+                <ShieldOff className="w-3.5 h-3.5 mr-1" />
+                Salir
+              </Button>
+            ) : !currentSession?.assignedTo ? (
+              <Button
+                data-testid="button-enter-chat"
+                variant="ghost"
+                size="sm"
+                onClick={() => adminActiveMutation.mutate(true)}
+                disabled={adminActiveMutation.isPending}
+                className="text-[10px] sm:text-xs px-2 h-8 flex-shrink-0 text-emerald-400"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                Entrar
+              </Button>
             ) : null}
 
           </div>
