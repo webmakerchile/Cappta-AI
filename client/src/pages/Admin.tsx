@@ -1261,18 +1261,6 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   )}
                 </div>
               </>
-            ) : !currentSession?.assignedTo ? (
-              <Button
-                data-testid="button-claim-session"
-                variant="ghost"
-                size="icon"
-                onClick={() => claimMutation.mutate("claim")}
-                disabled={claimMutation.isPending}
-                className="text-[#BB86FC] h-8 w-8"
-                title="Reclamar"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-              </Button>
             ) : null}
 
             <Button

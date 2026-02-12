@@ -172,7 +172,8 @@ export async function registerRoutes(
     } catch {}
   }
 
-  function isLockedToOtherAgent(session: any, adminUser: { id: number }): boolean {
+  function isLockedToOtherAgent(session: any, adminUser: { id: number; role?: string }): boolean {
+    if (adminUser.role === "superadmin") return false;
     return !!(session.assignedTo && session.assignedTo !== adminUser.id);
   }
 
@@ -1566,6 +1567,30 @@ export async function registerRoutes(
       }
 
       const dbAdmin = await storage.getAdminUserById(adminUser.id);
+
+      if (!session.assignedTo) {
+        const claimed = await storage.claimSession(
+          req.params.sessionId,
+          adminUser.id,
+          adminUser.displayName,
+          dbAdmin?.color || "#6200EA"
+        );
+        if (claimed) {
+          const currentTags: string[] = claimed.tags || [];
+          const hadBot = currentTags.includes("Bot");
+          const hadEjecutivo = currentTags.includes("Ejecutivo");
+          if (hadBot || !hadEjecutivo) {
+            const newTags = currentTags.filter((t: string) => t !== "Bot");
+            if (!hadEjecutivo) newTags.push("Ejecutivo");
+            await storage.updateSessionTags(req.params.sessionId, newTags);
+          }
+          io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "claimed", session: claimed });
+        }
+        if (!session.adminActive) {
+          await storage.updateSessionAdminActive(req.params.sessionId, true);
+        }
+      }
+
       const message = await storage.createMessage({
         sessionId: req.params.sessionId,
         userEmail: session.userEmail,
