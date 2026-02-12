@@ -1356,6 +1356,18 @@ export async function registerRoutes(
         }
       }
 
+      if (!adminActive && sessionCheck?.assignedTo === adminUser.id) {
+        const unclaimed = await storage.unclaimSession(req.params.sessionId);
+        if (unclaimed) {
+          updated = unclaimed;
+          const currentTags: string[] = unclaimed.tags || [];
+          const newTags = currentTags.filter((t: string) => t !== "Ejecutivo");
+          if (!newTags.includes("Bot")) newTags.push("Bot");
+          updated = await storage.updateSessionTags(req.params.sessionId, newTags) || updated;
+          io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "unclaimed", session: updated });
+        }
+      }
+
       const session = await storage.getSession(req.params.sessionId);
       const notifyContent = adminActive
         ? "Un agente de soporte se ha unido a la conversacion. A partir de ahora seras atendido personalmente."
