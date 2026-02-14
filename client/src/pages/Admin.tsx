@@ -1584,7 +1584,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                             const prevUserMsg = messages.slice(0, messages.indexOf(msg)).reverse().find(m => m.sender === "user");
                             setCorrectingMessageId(msg.id);
                             setCorrectingQuestion(prevUserMsg?.content || "");
-                            setCorrectingAnswer("");
+                            const originalContent = (msg.content || "").replace(/\{\{QUICK_REPLIES:[\s\S]*?\}\}/g, "").trim();
+                            setCorrectingAnswer(originalContent);
                           }}
                           className="text-[10px] text-amber-400/60 hover:text-amber-400 transition-colors"
                           title="Corregir respuesta del bot"
