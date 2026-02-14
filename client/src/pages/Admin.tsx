@@ -1595,26 +1595,27 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                       )}
                     </div>
                     {correctingMessageId === msg.id && (
-                      <div className="mt-1.5 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-md space-y-2">
-                        <p className="text-[10px] text-amber-300/80 font-medium">Corregir respuesta del bot</p>
+                      <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-md space-y-3">
+                        <p className="text-xs text-amber-300/80 font-medium">Corregir respuesta del bot</p>
                         <div>
-                          <label className="text-[10px] text-white/40 block mb-0.5">Pregunta del usuario:</label>
-                          <input
+                          <label className="text-[11px] text-white/40 block mb-1">Pregunta del usuario:</label>
+                          <textarea
                             data-testid="input-correct-question"
                             value={correctingQuestion}
                             onChange={(e) => setCorrectingQuestion(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+                            rows={2}
+                            className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-y min-h-[40px]"
                             placeholder="¿Que pregunto el usuario?"
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] text-white/40 block mb-0.5">Respuesta correcta:</label>
+                          <label className="text-[11px] text-white/40 block mb-1">Respuesta correcta:</label>
                           <textarea
                             data-testid="input-correct-answer"
                             value={correctingAnswer}
                             onChange={(e) => setCorrectingAnswer(e.target.value)}
-                            rows={3}
-                            className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-none"
+                            rows={6}
+                            className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-y min-h-[120px]"
                             placeholder="¿Que deberia responder el bot?"
                           />
                         </div>
@@ -1624,7 +1625,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                             size="sm"
                             variant="ghost"
                             onClick={() => { setCorrectingMessageId(null); setCorrectingQuestion(""); setCorrectingAnswer(""); }}
-                            className="text-[10px] h-7 text-white/50"
+                            className="text-xs text-white/50"
                           >
                             Cancelar
                           </Button>
@@ -1633,7 +1634,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                             size="sm"
                             onClick={() => correctBotMutation.mutate({ question: correctingQuestion, answer: correctingAnswer, sourceSessionId: sessionId })}
                             disabled={!correctingQuestion.trim() || !correctingAnswer.trim() || correctBotMutation.isPending}
-                            className="text-[10px] h-7 bg-amber-600 text-white"
+                            className="text-xs bg-amber-600 text-white"
                           >
                             {correctBotMutation.isPending ? "Guardando..." : "Guardar y ensenar al bot"}
                           </Button>
