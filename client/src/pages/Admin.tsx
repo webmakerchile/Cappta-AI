@@ -714,6 +714,10 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   const [slashFilter, setSlashFilter] = useState("");
   const [slashSelectedIndex, setSlashSelectedIndex] = useState(0);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [correctingMessageId, setCorrectingMessageId] = useState<number | null>(null);
+  const [correctingQuestion, setCorrectingQuestion] = useState("");
+  const [correctingAnswer, setCorrectingAnswer] = useState("");
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -726,8 +730,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         const availableHeight = vv.height - Math.max(rect.top, 0);
         chatContainerRef.current.style.height = `${Math.max(availableHeight, 200)}px`;
         setTimeout(() => {
-          if (replyInputRef.current && document.activeElement === replyInputRef.current) {
-            replyInputRef.current.scrollIntoView({ block: "nearest" });
+          if (replyTextareaRef.current && document.activeElement === replyTextareaRef.current) {
+            replyTextareaRef.current.scrollIntoView({ block: "nearest" });
           }
         }, 100);
       } else {
@@ -814,8 +818,18 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         if (old) queryClient.setQueryData(key, old);
       });
     },
+    onSuccess: (serverData) => {
+      const allQueries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
+        .filter(([key]) => (key as string[]).length <= 2);
+      allQueries.forEach(([key, old]) => {
+        if (!old || !Array.isArray(old)) return;
+        queryClient.setQueryData(key, old.map(s =>
+          s.sessionId === sessionId ? { ...s, ...serverData } : s
+        ));
+      });
+    },
     onSettled: () => {
-      invalidateSessionLists();
+      setTimeout(() => invalidateSessionLists(), 500);
     },
   });
 
@@ -927,7 +941,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         }
       );
       invalidateSessionLists();
-      setTimeout(() => replyInputRef.current?.focus(), 100);
+      setTimeout(() => replyTextareaRef.current?.focus(), 100);
     },
   });
 
@@ -950,6 +964,36 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "rating"] });
       invalidateSessionLists();
+    },
+  });
+
+  const correctBotMutation = useMutation({
+    mutationFn: async (data: { question: string; answer: string; sourceSessionId: string }) => {
+      const res = await fetch("/api/admin/knowledge", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: "faq",
+          question: data.question,
+          answer: data.answer,
+          keywords: data.question.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2),
+          confidence: 95,
+          status: "approved",
+          sourceSessionId: data.sourceSessionId,
+        }),
+      });
+      if (!res.ok) throw new Error("Error al guardar correccion");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Correccion guardada", description: "El bot aprendera de esta correccion." });
+      setCorrectingMessageId(null);
+      setCorrectingQuestion("");
+      setCorrectingAnswer("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     },
   });
 
@@ -1006,14 +1050,19 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       });
       toast({ title: "Error", description: (err as Error).message || "Error en la operacion", variant: "destructive" });
     },
-    onSuccess: (data) => {
-      if (data.action === "claim") {
-        adminActiveMutation.mutate(true);
-      }
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions"] });
+    onSuccess: (result) => {
+      const allQueries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
+        .filter(([key]) => (key as string[]).length <= 2);
+      allQueries.forEach(([key, old]) => {
+        if (!old || !Array.isArray(old)) return;
+        queryClient.setQueryData(key, old.map(s =>
+          s.sessionId === sessionId ? { ...s, ...result.data } : s
+        ));
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sessions", sessionId, "messages"] });
     },
     onSettled: () => {
-      invalidateSessionLists();
+      setTimeout(() => invalidateSessionLists(), 500);
     },
   });
 
@@ -1105,7 +1154,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     !slashFilter || r.shortcut.toLowerCase().includes(slashFilter.toLowerCase()) || r.content.toLowerCase().includes(slashFilter.toLowerCase())
   );
 
-  const handleReplyInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReplyInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const val = e.target.value;
     setReplyText(val);
     if (val === "/") {
@@ -1128,7 +1177,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     setShowSlashMenu(false);
     setSlashFilter("");
     setSlashSelectedIndex(0);
-    setTimeout(() => replyInputRef.current?.focus(), 50);
+    setTimeout(() => replyTextareaRef.current?.focus(), 50);
   };
 
   useEffect(() => {
@@ -1167,6 +1216,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   const handleReplySend = () => {
     if (!replyText.trim() || replyMutation.isPending) return;
     replyMutation.mutate({ content: replyText.trim() });
+    if (replyTextareaRef.current) replyTextareaRef.current.style.height = "auto";
   };
 
   const activeSearch = showLocalSearch ? localSearch : searchQuery;
@@ -1523,9 +1573,72 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                         </div>
                       )}
                     </div>
-                    <span className={`text-[10px] text-white/25 ${isUser ? "text-right" : "text-left"}`}>
-                      {formatDateTime(msg.timestamp)}
-                    </span>
+                    <div className={`flex items-center gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
+                      <span className="text-[10px] text-white/25">
+                        {formatDateTime(msg.timestamp)}
+                      </span>
+                      {!isUser && !msgAdminName && msg.content && !msg.content.startsWith("{{") && !msg.content.includes("se ha unido") && !msg.content.includes("ha salido") && (
+                        <button
+                          data-testid={`button-correct-bot-${msg.id}`}
+                          onClick={() => {
+                            const prevUserMsg = messages.slice(0, messages.indexOf(msg)).reverse().find(m => m.sender === "user");
+                            setCorrectingMessageId(msg.id);
+                            setCorrectingQuestion(prevUserMsg?.content || "");
+                            setCorrectingAnswer("");
+                          }}
+                          className="text-[10px] text-amber-400/60 hover:text-amber-400 transition-colors"
+                          title="Corregir respuesta del bot"
+                        >
+                          Corregir bot
+                        </button>
+                      )}
+                    </div>
+                    {correctingMessageId === msg.id && (
+                      <div className="mt-1.5 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-md space-y-2">
+                        <p className="text-[10px] text-amber-300/80 font-medium">Corregir respuesta del bot</p>
+                        <div>
+                          <label className="text-[10px] text-white/40 block mb-0.5">Pregunta del usuario:</label>
+                          <input
+                            data-testid="input-correct-question"
+                            value={correctingQuestion}
+                            onChange={(e) => setCorrectingQuestion(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+                            placeholder="¿Que pregunto el usuario?"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-white/40 block mb-0.5">Respuesta correcta:</label>
+                          <textarea
+                            data-testid="input-correct-answer"
+                            value={correctingAnswer}
+                            onChange={(e) => setCorrectingAnswer(e.target.value)}
+                            rows={3}
+                            className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-none"
+                            placeholder="¿Que deberia responder el bot?"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            data-testid="button-cancel-correction"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => { setCorrectingMessageId(null); setCorrectingQuestion(""); setCorrectingAnswer(""); }}
+                            className="text-[10px] h-7 text-white/50"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            data-testid="button-save-correction"
+                            size="sm"
+                            onClick={() => correctBotMutation.mutate({ question: correctingQuestion, answer: correctingAnswer, sourceSessionId: sessionId })}
+                            disabled={!correctingQuestion.trim() || !correctingAnswer.trim() || correctBotMutation.isPending}
+                            className="text-[10px] h-7 bg-amber-600 text-white"
+                          >
+                            {correctBotMutation.isPending ? "Guardando..." : "Guardar y ensenar al bot"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1544,7 +1657,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             </p>
           </div>
         </div>
-      ) : isAdminActive ? (
+      ) : (
         <div className="flex-shrink-0 z-30 bg-[#111] relative">
           {showSlashMenu && (
             <div data-testid="slash-command-menu" className="absolute bottom-full left-0 right-0 bg-[#1a1a2e] border border-white/10 rounded-t-md max-h-48 overflow-y-auto z-20">
@@ -1617,7 +1730,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             </div>
           )}
             <div className="flex-shrink-0 p-3 sm:p-4 border-t border-white/[0.06] bg-[#111] sticky bottom-0 safe-area-bottom">
-              <div className="flex items-center gap-2">
+              <div className="flex items-end gap-2">
                 <input
                   ref={adminFileInputRef}
                   type="file"
@@ -1649,22 +1762,27 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                 >
                   <Package className="w-4 h-4" />
                 </Button>
-                <Input
-                  ref={replyInputRef}
+                <textarea
+                  ref={replyTextareaRef}
                   data-testid="input-admin-reply"
                   value={replyText}
-                  onChange={handleReplyInputChange}
+                  onChange={(e) => {
+                    handleReplyInputChange(e);
+                    e.target.style.height = "auto";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Escape" && showSlashMenu) { setShowSlashMenu(false); setSlashFilter(""); setSlashSelectedIndex(0); return; }
                     if (showSlashMenu && filteredCanned.length > 0) {
                       if (e.key === "ArrowDown") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev + 1) % filteredCanned.length); return; }
                       if (e.key === "ArrowUp") { e.preventDefault(); setSlashSelectedIndex((prev) => (prev - 1 + filteredCanned.length) % filteredCanned.length); return; }
                     }
-                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (showSlashMenu) { if (filteredCanned.length > 0) selectCannedResponse(filteredCanned[slashSelectedIndex]); } else { handleReplySend(); } }
+                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (showSlashMenu) { if (filteredCanned.length > 0) selectCannedResponse(filteredCanned[slashSelectedIndex]); } else { handleReplySend(); (e.target as HTMLTextAreaElement).style.height = "auto"; } }
                   }}
                   placeholder="Escribe tu respuesta... (/ para atajos)"
-                  className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/30 focus-visible:ring-[#6200EA]/30"
-                  inputMode="text"
+                  rows={1}
+                  className="flex-1 bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#6200EA]/30 rounded-md px-3 py-2 resize-none overflow-y-auto"
+                  style={{ maxHeight: "120px" }}
                 />
                 <Button
                   data-testid="button-admin-send"
@@ -1677,10 +1795,6 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                 </Button>
               </div>
             </div>
-        </div>
-      ) : (
-        <div className="flex-shrink-0 z-30 bg-[#111] px-4 py-2 border-t border-white/[0.06] text-[11px] text-white/25 text-center">
-          {messages.length} mensaje{messages.length !== 1 ? "s" : ""} en esta conversacion
         </div>
       )}
 

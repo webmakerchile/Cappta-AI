@@ -588,7 +588,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const [browseProducts, setBrowseProducts] = useState<BrowseProduct[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const productBrowserRef = useRef<HTMLDivElement>(null);
@@ -711,8 +711,11 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     }
   }, [showSearch]);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1041,7 +1044,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
         />
         <form
           onSubmit={handleSubmit}
-          className="flex items-center gap-2"
+          className="flex items-end gap-2"
         >
           <Button
             data-testid="button-attach-image"
@@ -1068,21 +1071,34 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           >
             <ShoppingBag className="w-4 h-4" />
           </Button>
-          <input
+          <textarea
             ref={inputRef}
             data-testid="input-message"
-            type="text"
             value={input}
             onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim()) {
+                  onSend(input);
+                  setInput("");
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = "auto";
+                }
+              }
+            }}
             placeholder={isSessionClosed ? "Inicia una nueva consulta para escribir..." : "Escribe un mensaje..."}
             disabled={isSessionClosed}
+            rows={1}
             className="
               flex-1 py-2.5 px-3.5 rounded-md
               bg-white/5 border border-white/10
               text-white text-sm placeholder:text-white/25
               focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]
               transition-colors disabled:opacity-50
+              resize-none overflow-y-auto
             "
+            style={{ maxHeight: "120px" }}
           />
           <Button
             data-testid="button-send"
