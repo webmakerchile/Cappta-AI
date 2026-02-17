@@ -1219,7 +1219,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     if (replyTextareaRef.current) replyTextareaRef.current.style.height = "auto";
   };
 
-  const activeSearch = showLocalSearch ? localSearch : searchQuery;
+  const activeSearch = showLocalSearch ? localSearch : "";
 
   const filteredMessages = activeSearch && activeSearch.length >= 2
     ? messages.filter(m => m.content.toLowerCase().includes(activeSearch.toLowerCase()))
