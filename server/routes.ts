@@ -656,8 +656,8 @@ export async function registerRoutes(
       if (!["admin", "ejecutivo"].includes(role)) {
         return res.status(403).json({ message: "Rol no permitido" });
       }
-      if (user.role === "admin" && role !== "ejecutivo") {
-        return res.status(403).json({ message: "Solo el superadmin puede crear administradores" });
+      if (user.role === "admin" && role === "superadmin") {
+        return res.status(403).json({ message: "No se puede crear usuarios superadmin" });
       }
       if (!email || !password || !displayName) {
         return res.status(400).json({ message: "Email, contraseña y nombre requeridos" });
@@ -697,8 +697,8 @@ export async function registerRoutes(
     if (target.role === "superadmin") {
       return res.status(403).json({ message: "No se puede eliminar al superadmin" });
     }
-    if (user.role === "admin" && target.role === "admin") {
-      return res.status(403).json({ message: "No puedes eliminar a otro administrador" });
+    if (user.role !== "superadmin" && user.role !== "admin") {
+      return res.status(403).json({ message: "No tienes permisos para eliminar usuarios" });
     }
     await storage.deleteAdminUser(id);
     res.json({ success: true });

@@ -3810,7 +3810,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
               <div className="flex items-center gap-2">
                 <label className="text-xs text-white/60 whitespace-nowrap">Rol:</label>
                 <div className="flex items-center gap-1.5">
-                  {(adminUser?.role === "superadmin" ? ["admin", "ejecutivo"] : ["ejecutivo"]).map((r) => (
+                  {(adminUser?.role === "superadmin" || adminUser?.role === "admin" ? ["admin", "ejecutivo"] : ["ejecutivo"]).map((r) => (
                     <button
                       key={r}
                       type="button"
@@ -3870,7 +3870,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
               </div>
               <p className="text-xs text-white/40">{u.email}</p>
             </div>
-            {u.role !== "superadmin" && adminUser?.role !== "ejecutivo" && !(adminUser?.role === "admin" && u.role === "admin") && (
+            {u.role !== "superadmin" && adminUser?.role !== "ejecutivo" && u.id !== adminUser?.id && (
               <Button
                 data-testid={`button-delete-user-${u.id}`}
                 size="icon"
