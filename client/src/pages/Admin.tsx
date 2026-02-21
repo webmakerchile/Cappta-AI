@@ -298,7 +298,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
       : { backgroundColor: `${agentColor}30`, borderColor: `${agentColor}55` }
     : {};
   return (
-    <div className="relative">
+    <div>
     <button
       data-testid={`session-card-${session.sessionId}`}
       onClick={onClick}
@@ -470,7 +470,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
     {showPreview && (
       <div
         data-testid={`preview-popup-${session.sessionId}`}
-        className="absolute left-0 right-0 top-full mt-1 z-50 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-xl shadow-black/40 overflow-hidden"
+        className="mt-1 z-50 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-xl shadow-black/40 overflow-hidden"
       >
         <div className="bg-white/[0.04] border-b border-white/[0.06] px-4 py-2 flex items-center justify-between">
           <span className="text-xs font-medium text-white/50">Formulario pre-chat</span>
@@ -4783,7 +4783,7 @@ export default function AdminPage() {
                   overscan={200}
                   style={{ height: "100%" }}
                   itemContent={(index, session) => (
-                    <div className="px-2 pt-1.5" style={{ contain: "layout style" }}>
+                    <div className="px-2 pt-1.5">
                       <SessionCard
                         key={session.sessionId}
                         session={session}
