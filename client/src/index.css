@@ -255,6 +255,13 @@
   background: rgba(98, 0, 234, 0.5);
 }
 
+@media (pointer: coarse) {
+  .chat-scrollbar {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
 /**
  * Using the elevate system.
  * Automatic contrast adjustment.

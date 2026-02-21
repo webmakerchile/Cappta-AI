@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message, Session } from "@shared/schema";
@@ -252,7 +252,7 @@ interface MessageBubbleProps {
   onImageClick?: (url: string) => void;
 }
 
-function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick }: MessageBubbleProps) {
+const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
@@ -406,7 +406,7 @@ function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRa
       </div>
     </div>
   );
-}
+});
 
 function FinalizeRateButton({ sessionId }: { sessionId: string }) {
   const [confirmState, setConfirmState] = useState<"idle" | "confirming" | "sent">("idle");
@@ -696,7 +696,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   }, [showProductBrowser]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
   useEffect(() => {
@@ -864,7 +864,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 chat-scrollbar">
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 chat-scrollbar" style={{ contain: "content", WebkitOverflowScrolling: "touch" } as any}>
         {filteredMessages.length === 0 && searchQuery.length >= 2 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <p className="text-sm text-white/40">No se encontraron mensajes con "{searchQuery}"</p>

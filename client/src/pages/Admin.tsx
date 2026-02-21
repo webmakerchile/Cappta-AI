@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { Virtuoso } from "react-virtuoso";
 import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
@@ -286,7 +287,7 @@ function getInitial(name: string): string {
   return (name || '?').charAt(0).toUpperCase();
 }
 
-function SessionCard({ session, onClick, isSelected, rating, localUnread, isRecentlyUpdated, onDelete, isAdmin }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData; localUnread?: number; isRecentlyUpdated?: boolean; onDelete?: (sessionId: string) => void; isAdmin?: boolean }) {
+const SessionCard = memo(function SessionCard({ session, onClick, isSelected, rating, localUnread, isRecentlyUpdated, onDelete, isAdmin }: { session: SessionSummary; onClick: () => void; isSelected: boolean; rating?: RatingData; localUnread?: number; isRecentlyUpdated?: boolean; onDelete?: (sessionId: string) => void; isAdmin?: boolean }) {
   const totalUnread = (session.unreadCount || 0) + (localUnread || 0);
   const agentColor = session.assignedToColor;
   const hasAgent = !!agentColor;
@@ -525,7 +526,7 @@ function SessionCard({ session, onClick, isSelected, rating, localUnread, isRece
     )}
     </div>
   );
-}
+});
 
 function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) {
   const [showInput, setShowInput] = useState(false);
@@ -1181,7 +1182,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
   useEffect(() => {
@@ -1449,7 +1450,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
           </div>
         )}
 
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 flex flex-col gap-3" style={{ contain: "content", WebkitOverflowScrolling: "touch" } as any}>
         {!activeSearch && currentSession && (
           <div data-testid="client-info-card" className="mx-auto w-full max-w-md">
             <div className="bg-[#1a1a2e] border border-white/[0.08] rounded-lg overflow-hidden">
@@ -4246,8 +4247,8 @@ export default function AdminPage() {
     refetchInterval: 30000,
   });
 
-  const ratingsMap = new Map(allRatings.map(r => [r.sessionId, r]));
-  const avgRating = allRatings.length > 0 ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length : 0;
+  const ratingsMap = useMemo(() => new Map(allRatings.map(r => [r.sessionId, r])), [allRatings]);
+  const avgRating = useMemo(() => allRatings.length > 0 ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length : 0, [allRatings]);
 
   useEffect(() => {
     if (!authenticated) return;
@@ -4323,7 +4324,7 @@ export default function AdminPage() {
   }, [authenticated]);
 
   const isSearching = debouncedSearch.length >= 2;
-  const baseSessions = isSearching
+  const baseSessions = useMemo(() => isSearching
     ? searchResults.map((r) => ({
         sessionId: r.sessionId,
         userName: r.userName,
@@ -4332,8 +4333,8 @@ export default function AdminPage() {
         unreadCount: 0,
         lastMessage: r.messages[0]?.timestamp ? String(r.messages[0].timestamp) : null,
         firstMessage: null,
-        status: "active",
-        tags: [],
+        status: "active" as const,
+        tags: [] as string[],
         problemType: null,
         gameName: null,
         adminActive: false,
@@ -4347,9 +4348,9 @@ export default function AdminPage() {
         lastAutoEmailAt: null,
         lastManualEmailAt: null,
       }))
-    : sessions;
+    : sessions, [isSearching, searchResults, sessions]);
 
-  const displaySessions = (() => {
+  const displaySessions = useMemo(() => {
     let filtered = agentFilter === "all"
       ? baseSessions
       : baseSessions.filter((s) => {
@@ -4366,7 +4367,7 @@ export default function AdminPage() {
     }
 
     return filtered;
-  })();
+  }, [baseSessions, agentFilter, assignmentFilter, adminUser?.id]);
 
   const selectSession = useCallback((sid: string) => {
     setSelectedSession(sid);
@@ -4764,32 +4765,39 @@ export default function AdminPage() {
               </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+            <div className="flex-1 overflow-hidden">
               {sessionsLoading && !isSearching ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="h-full flex items-center justify-center">
                   <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : displaySessions.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+                <div className="h-full flex flex-col items-center justify-center text-center px-4">
                   <MessageSquare className="w-10 h-10 text-white/10 mb-3" />
                   <p className="text-sm text-white/30">
                     {isSearching ? "No se encontraron resultados" : "No hay conversaciones aun"}
                   </p>
                 </div>
               ) : (
-                displaySessions.map((session) => (
-                  <SessionCard
-                    key={session.sessionId}
-                    session={session}
-                    onClick={() => selectSession(session.sessionId)}
-                    isSelected={selectedSession === session.sessionId}
-                    rating={ratingsMap.get(session.sessionId)}
-                    localUnread={localUnreads[session.sessionId] || 0}
-                    isRecentlyUpdated={!!flashingSessions[session.sessionId]}
-                    onDelete={handleDeleteSession}
-                    isAdmin={adminUser?.role !== "ejecutivo"}
-                  />
-                ))
+                <Virtuoso
+                  data={displaySessions}
+                  overscan={200}
+                  style={{ height: "100%" }}
+                  itemContent={(index, session) => (
+                    <div className="px-2 pt-1.5" style={{ contain: "layout style" }}>
+                      <SessionCard
+                        key={session.sessionId}
+                        session={session}
+                        onClick={() => selectSession(session.sessionId)}
+                        isSelected={selectedSession === session.sessionId}
+                        rating={ratingsMap.get(session.sessionId)}
+                        localUnread={localUnreads[session.sessionId] || 0}
+                        isRecentlyUpdated={!!flashingSessions[session.sessionId]}
+                        onDelete={handleDeleteSession}
+                        isAdmin={adminUser?.role !== "ejecutivo"}
+                      />
+                    </div>
+                  )}
+                />
               )}
             </div>
           </div>
