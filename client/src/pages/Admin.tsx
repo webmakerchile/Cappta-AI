@@ -298,7 +298,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
       : { backgroundColor: `${agentColor}30`, borderColor: `${agentColor}55` }
     : {};
   return (
-    <div>
+    <div className="relative">
     <button
       data-testid={`session-card-${session.sessionId}`}
       onClick={onClick}
@@ -470,9 +470,10 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
     {showPreview && (
       <div
         data-testid={`preview-popup-${session.sessionId}`}
-        className="mt-1 z-50 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-xl shadow-black/40 overflow-hidden"
+        className="mt-1 border border-white/[0.12] rounded-lg shadow-xl shadow-black/60 overflow-hidden"
+        style={{ backgroundColor: "#1a1a2e", opacity: 1 }}
       >
-        <div className="bg-white/[0.04] border-b border-white/[0.06] px-4 py-2 flex items-center justify-between">
+        <div className="border-b border-white/[0.06] px-4 py-2 flex items-center justify-between" style={{ backgroundColor: "#1f1f38" }}>
           <span className="text-xs font-medium text-white/50">Formulario pre-chat</span>
           <button onClick={(e) => { e.stopPropagation(); setShowPreview(false); }} className="text-white/30 hover:text-white/60">
             <X className="w-3.5 h-3.5" />
