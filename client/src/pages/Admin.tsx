@@ -771,8 +771,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       return data;
     },
     enabled: !!sessionId,
-    refetchInterval: isAdminActive ? 3000 : 8000,
-    staleTime: 2000,
+    refetchInterval: isAdminActive ? 5000 : 10000,
+    staleTime: 3000,
   });
 
   const { data: sessionRating } = useQuery<RatingData>({

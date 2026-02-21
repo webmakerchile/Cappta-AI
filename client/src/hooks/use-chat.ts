@@ -230,8 +230,8 @@ export function useChat() {
       return res.json();
     },
     enabled: !!user,
-    refetchInterval: 2000,
-    staleTime: 2000,
+    refetchInterval: 4000,
+    staleTime: 3000,
   });
 
   const { data: sessions = [] } = useQuery<Session[]>({

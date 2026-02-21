@@ -246,8 +246,8 @@ export class DatabaseStorage implements IStorage {
         ms.first_msg AS "firstMessage",
         COALESCE(ms.unread_after, 0)::int AS "unreadAfterRead",
         CASE WHEN cr.user_email IS NOT NULL THEN true ELSE false END AS "contactRequested",
-        (SELECT m2.content FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS "lastMessageContent",
-        (SELECT m2.sender FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS "lastMessageSender"
+        ms.last_content AS "lastMessageContent",
+        ms.last_sender AS "lastMessageSender"
       FROM sessions s
       LEFT JOIN LATERAL (
         SELECT
@@ -255,7 +255,9 @@ export class DatabaseStorage implements IStorage {
           MAX(m.timestamp) AS last_msg,
           MIN(m.timestamp) AS first_msg,
           COUNT(*) FILTER (WHERE m.sender = 'user')::int AS unread_user,
-          COUNT(*) FILTER (WHERE m.sender = 'user' AND m.timestamp > COALESCE(s.last_read_at, '1970-01-01'))::int AS unread_after
+          COUNT(*) FILTER (WHERE m.sender = 'user' AND m.timestamp > COALESCE(s.last_read_at, '1970-01-01'))::int AS unread_after,
+          (SELECT m2.content FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS last_content,
+          (SELECT m2.sender FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS last_sender
         FROM messages m
         WHERE m.session_id = s.session_id
       ) ms ON true
@@ -288,7 +290,7 @@ export class DatabaseStorage implements IStorage {
         assignedToName: r.assignedToName ?? null,
         assignedToColor: r.assignedToColor ?? null,
         blockedAt: r.blockedAt || null,
-        lastMessageContent: r.lastMessageContent || null,
+        lastMessageContent: r.lastMessageContent ? r.lastMessageContent.replace(/\{\{QUICK_REPLIES:[\s\S]*?\}\}/g, "").trim().slice(0, 200) : null,
         lastMessageSender: r.lastMessageSender || null,
         lastAutoEmailAt: r.lastAutoEmailAt || null,
         lastManualEmailAt: r.lastManualEmailAt || null,

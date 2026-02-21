@@ -47,3 +47,6 @@ integrations = ["javascript_object_storage:2.0.0", "javascript_openai_ai_integra
 WC_STORE_URL = "https://cjmdigitales.cl"
 VAPID_PUBLIC_KEY = "BNKX0m1pMXXOgCrS-vN30q3VOEwVsD5Y1Ec9XVn3ZeQI2zdXp8nJRcjbU4GG0ByhO38qub80_4dLpuxMm8-AK40"
 VAPID_PRIVATE_KEY = "TsT9A7CUJ7dMfoq88qTHZBgwuCARVXdgAT_kspg6ilY"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-3510e5c1-b2e5-456d-9500-dd432c78c57c"

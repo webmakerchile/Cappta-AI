@@ -5,6 +5,13 @@ import { log } from "./index";
 
 export async function seedDatabase() {
   try {
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_sessions_user_email ON sessions(user_email)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_sessions_last_message_at ON sessions(last_message_at DESC)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_messages_session_timestamp ON messages(session_id, timestamp DESC)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_contact_requests_email ON contact_requests(LOWER(user_email))`);
+
     const existing = await db.select({ count: sql<number>`count(*)` }).from(messages);
     if (Number(existing[0].count) > 0) {
       return;
