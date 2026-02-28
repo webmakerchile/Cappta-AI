@@ -1841,7 +1841,7 @@ async function _processAutoReply(
 
   if (catalogLookup && !aiAvailable && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question") {
     const categoryKeywords: Record<string, string> = {
-      "suscripción": "subscription", "suscripciones": "subscription", "suscripción": "subscription",
+      "suscripción": "subscription", "suscripciones": "subscription",
       "plus": "subscription", "ps plus": "subscription", "game pass": "subscription", "gamepass": "subscription",
       "membresia": "subscription", "membresias": "subscription",
       "tarjeta": "card", "tarjetas": "card", "gift card": "card", "giftcard": "card",
