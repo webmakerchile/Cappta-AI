@@ -2125,20 +2125,22 @@ FORMATO DE SALIDA (usar exactamente estas secciones con emojis, omitir las que n
 ℹ️ INFORMACION ADICIONAL:
 • [dato relevante]
 
-Reglas:
+Reglas CRITICAS:
 - Mantener TODOS los precios exactos del texto original
 - Mantener TODOS los nombres de productos/tonos/variantes exactos
 - Si hay ofertas o descuentos, indicarlos claramente con el emoji 🏷️
 - Si hay categorias, agrupar productos por categoria
 - Escribir en español
-- No inventar informacion que no este en el texto
-- Ser conciso pero completo
+- NUNCA inventar informacion que no este en el texto
+- NUNCA usar placeholders como [precio], [numero], [correo], [direccion], [horario], [detalles si aplica], etc. Si no tienes un dato, OMITE esa linea por completo. No pongas corchetes ni texto generico.
+- Si no hay informacion suficiente para una seccion completa, OMITE la seccion entera
+- Ser conciso pero completo con la info REAL disponible
 - Usar las lineas separadoras ━━━ entre cada seccion para facilitar la lectura
 - Los emojis son obligatorios para cada seccion`
           },
           {
             role: "user",
-            content: `Organiza la siguiente informacion de negocio:\n\n${text.substring(0, 15000)}`
+            content: `Organiza la siguiente informacion de negocio. IMPORTANTE: Solo incluye datos reales que aparezcan en el texto, nunca pongas valores entre corchetes como placeholders:\n\n${text.substring(0, 15000)}`
           }
         ],
         temperature: 0.3,
@@ -2313,20 +2315,23 @@ FORMATO DE SALIDA (usar exactamente estas secciones con emojis, omitir las que n
 ℹ️ INFORMACION ADICIONAL:
 • [dato relevante]
 
-Reglas:
+Reglas CRITICAS:
 - Extraer TODOS los productos con sus precios exactos
 - Mantener nombres exactos de productos/servicios
 - Si hay ofertas o descuentos, indicarlos claramente con el emoji 🏷️
 - Agrupar por categorias cuando sea posible
 - Escribir en español
-- No inventar informacion
-- Ser conciso pero completo
+- NUNCA inventar informacion que no este en la pagina
+- NUNCA usar placeholders como [precio], [numero], [correo], [direccion], [horario], [detalles si aplica], etc. Si no tienes un dato especifico, OMITE esa linea por completo. No pongas corchetes ni texto generico.
+- Si no hay informacion suficiente para una seccion completa, OMITE la seccion entera
+- Si un producto no tiene precio visible, solo pon el nombre y descripcion sin linea de precio
+- Ser conciso pero completo con la info REAL disponible
 - Usar las lineas separadoras ━━━ entre cada seccion para facilitar la lectura
 - Los emojis son obligatorios para cada seccion`
           },
           {
             role: "user",
-            content: `Analiza el contenido de esta pagina web (${cleanUrl}) y extrae toda la informacion del negocio. Usa todos los datos disponibles (metadatos, JSON-LD, texto visible) para construir el perfil mas completo posible:\n\n${truncatedText}`
+            content: `Analiza el contenido de esta pagina web (${cleanUrl}) y extrae toda la informacion del negocio. Usa todos los datos disponibles (metadatos, JSON-LD, texto visible) para construir el perfil mas completo posible. IMPORTANTE: Solo incluye datos reales, nunca pongas valores entre corchetes como placeholders:\n\n${truncatedText}`
           }
         ],
         temperature: 0.3,
