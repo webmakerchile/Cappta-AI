@@ -49,6 +49,9 @@ import {
   Smartphone,
   Download,
   Crown,
+  Infinity,
+  Handshake,
+  CircleCheck,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -119,28 +122,35 @@ const features = [
   },
 ];
 
+const sharedFeatures = [
+  { text: "Chat en vivo con IA + intervencion humana", icon: Bot },
+  { text: "Widget 100% personalizable en tu sitio", icon: Palette },
+  { text: "Configuracion automatica desde tu URL", icon: Globe },
+  { text: "App descargable (PWA) + notificaciones push", icon: Smartphone },
+  { text: "Base de conocimiento y entrenamiento con docs", icon: Brain },
+  { text: "Catalogo de productos en el chat", icon: ShoppingBag },
+  { text: "Atajos, etiquetas y horario comercial", icon: Tag },
+  { text: "Multi-agente con asignacion y colores", icon: Users },
+  { text: "Conecta WooCommerce, Shopify o tu API", icon: Plug },
+  { text: "Nuestro equipo te ayuda a instalarlo", icon: Handshake },
+];
+
 const pricingPlans = [
   {
     name: "Fox Free",
     price: "$0",
     period: "",
     description: "Ideal para probar FoxBot en tu negocio",
-    features: [
-      "10 sesiones / mes",
-      "100 mensajes / mes",
-      "1 ejecutivo incluido",
-      "Todas las funcionalidades incluidas",
-      "Chat en vivo con IA + intervencion humana",
-      "Widget personalizable en tu sitio web",
-      "Configuracion automatica desde tu URL",
-      "App descargable (PWA) + notificaciones push",
-      "Base de conocimiento y entrenamiento con docs",
-      "Catalogo de productos en el chat",
-      "Atajos, etiquetas y horario comercial",
-      "Conecta WooCommerce, Shopify o tu API",
-      "Multi-agente con asignacion y colores",
-      "Nuestro equipo te ayuda a instalarlo gratis",
+    highlights: [
+      { text: "10 sesiones / mes", bold: true },
+      { text: "100 mensajes / mes", bold: true },
+      { text: "1 ejecutivo incluido", bold: true },
     ],
+    extras: [
+      "Todas las funcionalidades incluidas",
+      "Soporte por email",
+    ],
+    supportLine: "Nuestro equipo te ayuda a instalarlo gratis",
     cta: "Comenzar Gratis",
     highlighted: false,
     tier: "free" as const,
@@ -155,22 +165,16 @@ const pricingPlans = [
     price: "$19.990",
     period: " CLP/mes",
     description: "Para negocios que necesitan mas volumen",
-    features: [
-      "500 sesiones / mes",
-      "5.000 mensajes / mes",
-      "Hasta 3 ejecutivos con roles",
-      "Todas las funcionalidades incluidas",
-      "Chat en vivo con IA + intervencion humana",
-      "Widget personalizable en tu sitio web",
-      "Configuracion automatica desde tu URL",
-      "App descargable (PWA) + notificaciones push",
-      "Base de conocimiento y entrenamiento con docs",
-      "Catalogo de productos en el chat",
-      "Atajos, etiquetas y horario comercial",
-      "Conecta WooCommerce, Shopify o tu API",
-      "Multi-agente con asignacion y colores",
-      "Un ejecutivo de FoxBot te ayuda a configurarlo",
+    highlights: [
+      { text: "500 sesiones / mes", bold: true },
+      { text: "5.000 mensajes / mes", bold: true },
+      { text: "Hasta 3 ejecutivos con roles", bold: true },
     ],
+    extras: [
+      "Todas las funcionalidades incluidas",
+      "Soporte prioritario",
+    ],
+    supportLine: "Un ejecutivo de FoxBot te ayuda a configurarlo",
     cta: "Elegir Fox Pro",
     highlighted: true,
     tier: "pro" as const,
@@ -185,24 +189,19 @@ const pricingPlans = [
     price: "$49.990",
     period: " CLP/mes",
     description: "Para empresas con alto volumen de atencion",
-    features: [
-      "Sesiones ilimitadas",
-      "Mensajes ilimitados",
-      "Hasta 10 ejecutivos con roles",
+    highlights: [
+      { text: "Sesiones ilimitadas", bold: true },
+      { text: "Mensajes ilimitados", bold: true },
+      { text: "Hasta 10 ejecutivos con roles", bold: true },
+    ],
+    extras: [
       "Todas las funcionalidades incluidas",
-      "Chat en vivo con IA + intervencion humana",
-      "Widget personalizable en tu sitio web",
-      "Configuracion automatica desde tu URL",
-      "App descargable (PWA) + notificaciones push",
-      "Base de conocimiento y entrenamiento con docs",
-      "Catalogo de productos en el chat",
-      "Atajos, etiquetas y horario comercial",
-      "Conecta WooCommerce, Shopify o tu API",
-      "Multi-agente con asignacion y colores",
       "Analiticas avanzadas y calificaciones",
       "Onboarding personalizado 1 a 1",
-      "Un ejecutivo dedicado te acompana siempre",
+      "Ejecutivo dedicado que te acompana siempre",
+      "Soporte prioritario 24/7",
     ],
+    supportLine: "Tu ejecutivo dedicado se encarga de todo",
     cta: "Elegir Fox Enterprise",
     highlighted: false,
     tier: "enterprise" as const,
@@ -1532,6 +1531,31 @@ export default function Landing() {
             </p>
           </div>
 
+          <div className={`mb-14 transition-all duration-700 ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"}`} data-testid="shared-features-block">
+            <div className="relative rounded-2xl overflow-hidden">
+              <div className="absolute -inset-[1px] rounded-2xl" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 40%, 0.2) 0%, hsl(160, 60%, 35%, 0.1) 50%, hsl(142, 72%, 40%, 0.2) 100%)" }} />
+              <div className="relative glass-card rounded-2xl p-6 sm:p-8" style={{ border: "none" }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10">
+                    <CircleCheck className="w-4.5 h-4.5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white/90">Todos los planes incluyen</h3>
+                    <p className="text-xs text-white/35">Sin importar el plan que elijas, tienes acceso a todo</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  {sharedFeatures.map((feat) => (
+                    <div key={feat.text} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                      <feat.icon className="w-4 h-4 text-emerald-400/70 shrink-0" />
+                      <span className="text-xs text-white/55 leading-tight">{feat.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             {pricingPlans.map((plan, index) => (
               <div
@@ -1579,17 +1603,40 @@ export default function Landing() {
                   </div>
 
                   <div className="px-7 pb-4 flex-1">
-                    <div className="h-px mb-6" style={{ background: `linear-gradient(90deg, transparent, ${plan.accentColor}33, transparent)` }} />
-                    <ul className="space-y-4">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-3 text-sm">
+                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${plan.accentColor}33, transparent)` }} />
+
+                    <div className="space-y-3 mb-5">
+                      {plan.highlights.map((h) => (
+                        <div key={h.text} className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-6 h-6 rounded-lg" style={{ backgroundColor: `${plan.accentColor}18` }}>
+                            {h.text.includes("ilimitad") ? (
+                              <Infinity className="w-3.5 h-3.5" style={{ color: plan.accentColor }} />
+                            ) : (
+                              <TrendingUp className="w-3.5 h-3.5" style={{ color: plan.accentColor }} />
+                            )}
+                          </div>
+                          <span className="text-sm font-semibold text-white/80">{h.text}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${plan.accentColor}15, transparent)` }} />
+
+                    <ul className="space-y-3">
+                      {plan.extras.map((extra) => (
+                        <li key={extra} className="flex items-start gap-3 text-sm">
                           <div className={`flex items-center justify-center w-5 h-5 rounded-full ${plan.checkBg} shrink-0 mt-0.5`}>
                             <Check className={`w-3 h-3 ${plan.checkColor}`} />
                           </div>
-                          <span className="text-white/60">{feature}</span>
+                          <span className="text-white/55">{extra}</span>
                         </li>
                       ))}
                     </ul>
+
+                    <div className="mt-5 flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-dashed" style={{ borderColor: `${plan.accentColor}25`, backgroundColor: `${plan.accentColor}06` }}>
+                      <Handshake className="w-4 h-4 shrink-0" style={{ color: plan.accentColor }} />
+                      <span className="text-xs font-medium" style={{ color: `${plan.accentColor}cc` }}>{plan.supportLine}</span>
+                    </div>
                   </div>
 
                   <div className="px-7 pb-7 pt-4">
@@ -1630,7 +1677,7 @@ export default function Landing() {
           </div>
 
           <p className="text-center text-sm text-white/25 mt-12">
-            Todos los planes incluyen soporte tecnico, actualizaciones gratuitas y sin contratos de permanencia.
+            Todas las funcionalidades incluidas en cada plan. Solo cambia la cantidad. Sin contratos de permanencia.
           </p>
         </div>
       </section>
