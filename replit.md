@@ -104,6 +104,14 @@ Key architectural decisions and features include:
 - `GET /api/flow/return` - Post-payment redirect (redirects to dashboard with status)
 - `GET /api/tenants/me/plan-prices` - Public plan pricing info
 
+## Demo/Test Accounts (Development Only)
+Created automatically on server startup (skipped in production):
+- **Admin**: admin@foxbot.cl / admin123 (superadmin, full access to /admin panel)
+- **Free Plan Tenant**: demo-free@foxbot.cl / demo123 (Tienda Gratis Ltda.)
+- **Pro Plan Tenant**: demo-pro@foxbot.cl / demo123 (Negocio Pro SpA)
+- **Enterprise Plan Tenant**: demo-enterprise@foxbot.cl / demo123 (Empresa Premium S.A.)
+- **Original Superadmin**: webmakerchile@gmail.com / peseta832 (always created)
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all data persistence.
 - **Resend**: Email API for sending notifications.

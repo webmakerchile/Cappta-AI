@@ -205,6 +205,47 @@ export async function registerRoutes(
     }
   })();
 
+  (async () => {
+    if (process.env.NODE_ENV === "production") return;
+    try {
+      const demoAdmin = await storage.getAdminUserByEmail("admin@foxbot.cl");
+      if (!demoAdmin) {
+        const hash = await bcrypt.hash("admin123", 12);
+        await storage.createAdminUser({
+          email: "admin@foxbot.cl",
+          passwordHash: hash,
+          displayName: "Admin Demo",
+          role: "superadmin",
+          color: "#10b981",
+        });
+        log("Admin demo creado: admin@foxbot.cl", "auth");
+      }
+
+      const demoTenants = [
+        { email: "demo-free@foxbot.cl", name: "Demo Free", company: "Tienda Gratis Ltda.", plan: "free" as const },
+        { email: "demo-pro@foxbot.cl", name: "Demo Pro", company: "Negocio Pro SpA", plan: "basic" as const },
+        { email: "demo-enterprise@foxbot.cl", name: "Demo Enterprise", company: "Empresa Premium S.A.", plan: "pro" as const },
+      ];
+
+      for (const dt of demoTenants) {
+        const exists = await storage.getTenantByEmail(dt.email);
+        if (!exists) {
+          const hash = await bcrypt.hash("demo123", 10);
+          await storage.createTenant({
+            name: dt.name,
+            email: dt.email,
+            passwordHash: hash,
+            companyName: dt.company,
+            plan: dt.plan,
+          });
+          log(`Tenant demo creado: ${dt.email} (${dt.plan})`, "auth");
+        }
+      }
+    } catch (e: any) {
+      log(`Error al crear cuentas demo: ${e.message}`, "auth");
+    }
+  })();
+
   const savedCustomWords = await storage.getSetting("custom_profanity_words");
   if (savedCustomWords) {
     try { setCustomWords(JSON.parse(savedCustomWords)); } catch {}
