@@ -1,12 +1,60 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense, Component } from "react";
+import type { ReactNode, ErrorInfo } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Launcher } from "@/components/Launcher";
 import { ChatWindow } from "@/components/ChatWindow";
 import { WelcomeForm } from "@/components/WelcomeForm";
 import { useChat } from "@/hooks/use-chat";
-import { MessageCircle, ArrowLeft, Headphones, Loader2 } from "lucide-react";
+import { MessageCircle, ArrowLeft, Headphones, Loader2, AlertTriangle } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[ErrorBoundary]", error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-[#111111]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+          <div className="flex flex-col items-center gap-4 max-w-md px-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
+              <AlertTriangle className="w-8 h-8 text-red-400" />
+            </div>
+            <h1 className="text-xl font-bold text-white" data-testid="text-error-title">Algo salió mal</h1>
+            <p className="text-white/60 text-sm" data-testid="text-error-description">
+              Ocurrió un error inesperado. Por favor, recarga la página o vuelve al inicio.
+            </p>
+            <div className="flex gap-3">
+              <button
+                data-testid="button-reload"
+                onClick={() => window.location.reload()}
+                className="px-5 py-2.5 rounded-md bg-[#10b981] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                Recargar página
+              </button>
+              <button
+                data-testid="button-go-home"
+                onClick={() => { window.location.href = "/"; }}
+                className="px-5 py-2.5 rounded-md bg-white/10 text-white text-sm font-semibold hover:bg-white/20 transition-colors"
+              >
+                Volver al inicio
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const AdminPage = lazy(() => import("@/pages/Admin"));
 const LandingPage = lazy(() => import("@/pages/Landing"));
@@ -526,6 +574,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
       {isAdmin ? (
         <Suspense fallback={<SuspenseLoader />}>
           <AdminPage />
@@ -569,6 +618,7 @@ function App() {
           <LandingPage />
         </Suspense>
       )}
+      </ErrorBoundary>
       <Toaster />
     </QueryClientProvider>
   );

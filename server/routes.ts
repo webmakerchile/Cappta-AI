@@ -3303,6 +3303,91 @@ Reglas CRITICAS:
     }
   });
 
+  app.get("/api/admin/dashboard-metrics", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo superadmin" });
+    }
+    try {
+      const { pool } = await import("./db");
+
+      const tenantsResult = await pool.query(`
+        SELECT COUNT(*) as total,
+               COUNT(CASE WHEN plan = 'free' THEN 1 END) as free_count,
+               COUNT(CASE WHEN plan = 'basic' THEN 1 END) as basic_count,
+               COUNT(CASE WHEN plan = 'pro' THEN 1 END) as pro_count
+        FROM tenants
+      `);
+      const tenantStats = tenantsResult.rows[0];
+
+      const activeTenantsResult = await pool.query(`
+        SELECT COUNT(DISTINCT tenant_id) as active
+        FROM sessions
+        WHERE tenant_id IS NOT NULL
+          AND created_at >= NOW() - INTERVAL '30 days'
+      `);
+
+      const revenueResult = await pool.query(`
+        SELECT COALESCE(SUM(amount), 0) as total_revenue
+        FROM payment_orders
+        WHERE status = 'paid'
+      `);
+
+      const monthlyRevenueResult = await pool.query(`
+        SELECT TO_CHAR(paid_at, 'YYYY-MM') as month,
+               COALESCE(SUM(amount), 0) as revenue
+        FROM payment_orders
+        WHERE status = 'paid' AND paid_at IS NOT NULL
+          AND paid_at >= NOW() - INTERVAL '6 months'
+        GROUP BY TO_CHAR(paid_at, 'YYYY-MM')
+        ORDER BY month ASC
+      `);
+
+      const sessionsResult = await pool.query(`SELECT COUNT(*) as total FROM sessions`);
+      const messagesResult = await pool.query(`SELECT COUNT(*) as total FROM messages`);
+
+      const newTenantsResult = await pool.query(`
+        SELECT TO_CHAR(created_at, 'YYYY-MM') as month,
+               COUNT(*) as count
+        FROM tenants
+        WHERE created_at >= NOW() - INTERVAL '6 months'
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+        ORDER BY month ASC
+      `);
+
+      const mrrResult = await pool.query(`
+        SELECT COALESCE(SUM(CASE WHEN plan = 'basic' THEN 19990 WHEN plan = 'pro' THEN 49990 ELSE 0 END), 0) as mrr
+        FROM tenants
+      `);
+
+      res.json({
+        totalTenants: parseInt(tenantStats.total),
+        activeTenants: parseInt(activeTenantsResult.rows[0]?.active || "0"),
+        totalRevenue: parseInt(revenueResult.rows[0]?.total_revenue || "0"),
+        mrr: parseInt(mrrResult.rows[0]?.mrr || "0"),
+        totalSessions: parseInt(sessionsResult.rows[0]?.total || "0"),
+        totalMessages: parseInt(messagesResult.rows[0]?.total || "0"),
+        planDistribution: {
+          free: parseInt(tenantStats.free_count),
+          basic: parseInt(tenantStats.basic_count),
+          pro: parseInt(tenantStats.pro_count),
+        },
+        monthlyRevenue: monthlyRevenueResult.rows.map((r: any) => ({
+          month: r.month,
+          revenue: parseInt(r.revenue),
+        })),
+        newTenantsPerMonth: newTenantsResult.rows.map((r: any) => ({
+          month: r.month,
+          count: parseInt(r.count),
+        })),
+      });
+    } catch (error: any) {
+      log(`Error al obtener métricas: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener métricas" });
+    }
+  });
+
   app.get("/api/admin/tenants", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;

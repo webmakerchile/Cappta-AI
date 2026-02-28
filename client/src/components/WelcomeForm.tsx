@@ -59,13 +59,13 @@ export function WelcomeForm({
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Ingresa un correo valido";
+      newErrors.email = "Ingresa un correo válido";
     }
     if (!name.trim()) {
       newErrors.name = "El nombre es obligatorio";
     }
     if (hasConsultationField && !problemType) {
-      newErrors.problemType = "Selecciona una opcion";
+      newErrors.problemType = "Selecciona una opción";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -99,17 +99,17 @@ export function WelcomeForm({
           <Headphones className="w-6 h-6 sm:w-7 sm:h-7" style={{ color }} />
         </div>
         <h2 data-testid="text-welcome-title" className="text-base sm:text-lg font-bold text-white mb-0.5 sm:mb-1">
-          {welcomeMessage || "Hola, ¿en que podemos ayudarte?"}
+          {welcomeMessage || "Hola, ¿en qué podemos ayudarte?"}
         </h2>
         <p data-testid="text-welcome-subtitle" className="text-[11px] sm:text-xs text-white/50 text-center">
-          {welcomeSubtitle || "Completa tus datos para iniciar la conversacion"}
+          {welcomeSubtitle || "Completa tus datos para iniciar la conversación"}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 sm:gap-3 px-4 sm:px-6 pb-3 sm:pb-4 flex-1 overflow-y-auto chat-scrollbar">
         <div className="flex flex-col gap-1">
           <label className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
-            Correo electronico
+            Correo electrónico
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
@@ -136,7 +136,7 @@ export function WelcomeForm({
                 data-testid="select-problem-type"
                 className="bg-white/5 border-white/10 text-white [&>span]:text-white/25 [&[data-state=closed]>span:not(:empty)]:text-white"
               >
-                <SelectValue placeholder="Selecciona una opcion" />
+                <SelectValue placeholder="Selecciona una opción" />
               </SelectTrigger>
               <SelectContent className="bg-[#2a2a2a] border-white/10">
                 {parsedOptions.map((opt) => (

@@ -7,7 +7,8 @@ import {
   Search, MessageSquare, Mail, Clock, User, Headphones, ArrowLeft, X, Lock, LogOut,
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
   Send, ShieldCheck, ShieldOff, ShieldAlert, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
-  UserPlus, UserMinus, Check, ArrowRightLeft, Settings, FileText, BookOpen
+  UserPlus, UserMinus, Check, ArrowRightLeft, Settings, FileText, BookOpen,
+  DollarSign, Activity, TrendingUp, BarChart3, Globe
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import {
@@ -25,6 +26,11 @@ import type { Message } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
 import { useToast } from "@/hooks/use-toast";
 import { io, Socket } from "socket.io-client";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid,
+  PieChart, Pie, Cell, Legend,
+  AreaChart, Area,
+} from "recharts";
 
 interface SessionSummary {
   sessionId: string;
@@ -3878,6 +3884,7 @@ interface TenantRow {
   email: string;
   companyName: string;
   plan: string;
+  domain: string | null;
   createdAt: string;
   sessionsCount: number;
   messagesCount: number;
@@ -3894,9 +3901,162 @@ interface PaymentRow {
   paidAt: string | null;
 }
 
+interface DashboardMetrics {
+  totalTenants: number;
+  activeTenants: number;
+  totalRevenue: number;
+  mrr: number;
+  totalSessions: number;
+  totalMessages: number;
+  planDistribution: { free: number; basic: number; pro: number };
+  monthlyRevenue: { month: string; revenue: number }[];
+  newTenantsPerMonth: { month: string; count: number }[];
+}
+
+function SaasDashboard() {
+  const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
+    queryKey: ["/api/admin/dashboard-metrics"],
+    queryFn: async () => {
+      const token = getAuthToken();
+      const res = await fetch("/api/admin/dashboard-metrics", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    refetchInterval: 60000,
+  });
+
+  const formatCLP = (v: number) => `$${v.toLocaleString("es-CL")}`;
+  const monthLabel = (m: string) => {
+    const [, mm] = m.split("-");
+    const names = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    return names[parseInt(mm) - 1] || mm;
+  };
+
+  if (isLoading || !metrics) {
+    return (
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="text-white/40 text-sm flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" /> Cargando métricas...
+        </div>
+      </div>
+    );
+  }
+
+  const kpis = [
+    { label: "Total Tenants", value: metrics.totalTenants.toString(), icon: Users, color: "#10b981" },
+    { label: "Tenants Activos", value: metrics.activeTenants.toString(), icon: Activity, color: "#3b82f6" },
+    { label: "Ingresos Totales", value: formatCLP(metrics.totalRevenue), icon: DollarSign, color: "#f59e0b" },
+    { label: "MRR Estimado", value: formatCLP(metrics.mrr), icon: TrendingUp, color: "#8b5cf6" },
+    { label: "Total Sesiones", value: metrics.totalSessions.toLocaleString("es-CL"), icon: MessageSquare, color: "#06b6d4" },
+    { label: "Total Mensajes", value: metrics.totalMessages.toLocaleString("es-CL"), icon: Send, color: "#ec4899" },
+  ];
+
+  const planData = [
+    { name: "Fox Free", value: metrics.planDistribution.free, fill: "#6b7280" },
+    { name: "Fox Pro", value: metrics.planDistribution.basic, fill: "#10b981" },
+    { name: "Fox Enterprise", value: metrics.planDistribution.pro, fill: "#f59e0b" },
+  ].filter(d => d.value > 0);
+
+  return (
+    <div className="flex-1 overflow-auto p-4 sm:p-6" data-testid="saas-dashboard">
+      <h2 className="text-lg font-semibold text-white mb-4">Dashboard SaaS</h2>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        {kpis.map((kpi) => (
+          <div key={kpi.label} className="bg-white/[0.04] border border-white/[0.06] rounded-lg p-3" data-testid={`kpi-${kpi.label.toLowerCase().replace(/\s/g, "-")}`}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <kpi.icon className="w-3.5 h-3.5" style={{ color: kpi.color }} />
+              <span className="text-[10px] text-white/40 uppercase tracking-wider font-medium">{kpi.label}</span>
+            </div>
+            <div className="text-lg font-bold text-white">{kpi.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-white/[0.04] border border-white/[0.06] rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-white/70 mb-3">Ingresos Mensuales (últimos 6 meses)</h3>
+          {metrics.monthlyRevenue.length > 0 ? (
+            <div className="h-48">
+              <RevenueChart data={metrics.monthlyRevenue} formatCLP={formatCLP} monthLabel={monthLabel} />
+            </div>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-white/30 text-sm">Sin datos de ingresos aún</div>
+          )}
+        </div>
+
+        <div className="bg-white/[0.04] border border-white/[0.06] rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-white/70 mb-3">Distribución de Planes</h3>
+          {planData.length > 0 ? (
+            <div className="h-48 flex flex-col items-center justify-center">
+              <PlanChart data={planData} />
+            </div>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-white/30 text-sm">Sin datos</div>
+          )}
+        </div>
+
+        <div className="lg:col-span-3 bg-white/[0.04] border border-white/[0.06] rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-white/70 mb-3">Nuevos Tenants por Mes</h3>
+          {metrics.newTenantsPerMonth.length > 0 ? (
+            <div className="h-40">
+              <TenantsLineChart data={metrics.newTenantsPerMonth} monthLabel={monthLabel} />
+            </div>
+          ) : (
+            <div className="h-40 flex items-center justify-center text-white/30 text-sm">Sin datos aún</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const RevenueChart = memo(({ data, formatCLP, monthLabel }: { data: { month: string; revenue: number }[]; formatCLP: (v: number) => string; monthLabel: (m: string) => string }) => (
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+      <XAxis dataKey="month" tickFormatter={monthLabel} tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
+      <YAxis tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} width={50} />
+      <RTooltip formatter={(v: number) => [formatCLP(v), "Ingresos"]} contentStyle={{ background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelFormatter={monthLabel} />
+      <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
+    </BarChart>
+  </ResponsiveContainer>
+));
+
+const PlanChart = memo(({ data }: { data: { name: string; value: number; fill: string }[] }) => (
+  <ResponsiveContainer width="100%" height={180}>
+    <PieChart>
+      <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={65} strokeWidth={0}>
+        {data.map((entry, i) => (
+          <Cell key={i} fill={entry.fill} />
+        ))}
+      </Pie>
+      <Legend
+        verticalAlign="bottom"
+        iconType="circle"
+        iconSize={8}
+        formatter={(value: string) => <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{value}</span>}
+      />
+    </PieChart>
+  </ResponsiveContainer>
+));
+
+const TenantsLineChart = memo(({ data, monthLabel }: { data: { month: string; count: number }[]; monthLabel: (m: string) => string }) => (
+  <ResponsiveContainer width="100%" height="100%">
+    <AreaChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+      <XAxis dataKey="month" tickFormatter={monthLabel} tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
+      <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} width={30} allowDecimals={false} />
+      <RTooltip contentStyle={{ background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelFormatter={monthLabel} />
+      <Area type="monotone" dataKey="count" stroke="#3b82f6" fill="rgba(59,130,246,0.2)" strokeWidth={2} name="Nuevos tenants" />
+    </AreaChart>
+  </ResponsiveContainer>
+));
+
 function TenantsPanel() {
   const { toast } = useToast();
   const [paymentsView, setPaymentsView] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: tenantsList = [], isLoading: tenantsLoading } = useQuery<TenantRow[]>({
     queryKey: ["/api/admin/tenants"],
@@ -3946,61 +4106,104 @@ function TenantsPanel() {
     pro: "bg-yellow-500/20 text-yellow-400",
   };
 
+  const statusColors: Record<string, string> = {
+    paid: "bg-green-500/20 text-green-400 border-green-500/30",
+    rejected: "bg-red-500/20 text-red-400 border-red-500/30",
+    cancelled: "bg-white/10 text-white/40 border-white/10",
+    pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  };
+  const statusLabels: Record<string, string> = { paid: "Pagado", rejected: "Rechazado", cancelled: "Cancelado", pending: "Pendiente" };
+
+  const filteredTenants = useMemo(() => {
+    if (!searchTerm.trim()) return tenantsList;
+    const q = searchTerm.toLowerCase();
+    return tenantsList.filter(t =>
+      t.companyName.toLowerCase().includes(q) ||
+      t.email.toLowerCase().includes(q) ||
+      t.id.toString().includes(q) ||
+      (t.domain && t.domain.toLowerCase().includes(q))
+    );
+  }, [tenantsList, searchTerm]);
+
   return (
     <div className="flex-1 overflow-auto p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-lg font-semibold text-white">
           {paymentsView ? "Historial de Pagos" : "Gestión de Tenants"}
         </h2>
-        <button
-          data-testid="button-toggle-payments"
-          onClick={() => setPaymentsView(!paymentsView)}
-          className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-md transition-colors"
-        >
-          {paymentsView ? "Ver Tenants" : "Ver Pagos"}
-        </button>
+        <div className="flex items-center gap-2">
+          {!paymentsView && (
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+              <input
+                data-testid="input-tenant-search"
+                type="text"
+                placeholder="Buscar tenant..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 pr-3 py-1.5 text-xs bg-white/5 border border-white/10 rounded-md text-white placeholder:text-white/30 focus:outline-none focus:border-[#34d399]/50 w-48"
+              />
+            </div>
+          )}
+          <button
+            data-testid="button-toggle-payments"
+            onClick={() => setPaymentsView(!paymentsView)}
+            className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-md transition-colors border border-white/10"
+          >
+            {paymentsView ? "Ver Tenants" : "Ver Pagos"}
+          </button>
+        </div>
       </div>
 
       {!paymentsView ? (
         tenantsLoading ? (
-          <div className="text-white/40 text-sm">Cargando tenants...</div>
+          <div className="text-white/40 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Cargando tenants...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-left text-white/40">
-                  <th className="pb-2 pr-4">ID</th>
-                  <th className="pb-2 pr-4">Empresa</th>
-                  <th className="pb-2 pr-4">Email</th>
-                  <th className="pb-2 pr-4">Plan</th>
-                  <th className="pb-2 pr-4">Sesiones</th>
-                  <th className="pb-2 pr-4">Mensajes</th>
-                  <th className="pb-2 pr-4">Registrado</th>
-                  <th className="pb-2">Acciones</th>
+                <tr className="border-b border-white/10 text-left text-white/40 text-xs uppercase tracking-wider">
+                  <th className="pb-2.5 pr-4">ID</th>
+                  <th className="pb-2.5 pr-4">Empresa</th>
+                  <th className="pb-2.5 pr-4">Email</th>
+                  <th className="pb-2.5 pr-4">Plan</th>
+                  <th className="pb-2.5 pr-4">Dominio</th>
+                  <th className="pb-2.5 pr-4">Sesiones</th>
+                  <th className="pb-2.5 pr-4">Mensajes</th>
+                  <th className="pb-2.5 pr-4">Registrado</th>
+                  <th className="pb-2.5">Cambiar Plan</th>
                 </tr>
               </thead>
               <tbody>
-                {tenantsList.map((t) => (
-                  <tr key={t.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]" data-testid={`row-tenant-${t.id}`}>
-                    <td className="py-2.5 pr-4 text-white/50">{t.id}</td>
-                    <td className="py-2.5 pr-4 text-white font-medium">{t.companyName}</td>
-                    <td className="py-2.5 pr-4 text-white/60">{t.email}</td>
-                    <td className="py-2.5 pr-4">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${planColors[t.plan] || planColors.free}`}>
+                {filteredTenants.map((t) => (
+                  <tr key={t.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors" data-testid={`row-tenant-${t.id}`}>
+                    <td className="py-3 pr-4 text-white/40 text-xs font-mono">{t.id}</td>
+                    <td className="py-3 pr-4 text-white font-medium">{t.companyName}</td>
+                    <td className="py-3 pr-4 text-white/60 text-xs">{t.email}</td>
+                    <td className="py-3 pr-4">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${planColors[t.plan] || planColors.free} ${t.plan === "basic" ? "border-[#34d399]/30" : t.plan === "pro" ? "border-yellow-500/30" : "border-white/10"}`}>
                         {planLabels[t.plan] || t.plan}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-4 text-white/60">{t.sessionsCount}</td>
-                    <td className="py-2.5 pr-4 text-white/60">{t.messagesCount}</td>
-                    <td className="py-2.5 pr-4 text-white/40 text-xs">
+                    <td className="py-3 pr-4 text-white/40 text-xs">
+                      {t.domain ? (
+                        <span className="flex items-center gap-1">
+                          <Globe className="w-3 h-3" />
+                          {t.domain}
+                        </span>
+                      ) : "-"}
+                    </td>
+                    <td className="py-3 pr-4 text-white/60 text-center">{t.sessionsCount}</td>
+                    <td className="py-3 pr-4 text-white/60 text-center">{t.messagesCount}</td>
+                    <td className="py-3 pr-4 text-white/40 text-xs">
                       {new Date(t.createdAt).toLocaleDateString("es-CL")}
                     </td>
-                    <td className="py-2.5">
+                    <td className="py-3">
                       <Select
                         value={t.plan}
                         onValueChange={(val) => changePlanMutation.mutate({ tenantId: t.id, plan: val })}
                       >
-                        <SelectTrigger className="h-7 w-28 bg-white/5 border-white/10 text-white text-xs" data-testid={`select-plan-${t.id}`}>
+                        <SelectTrigger className="h-7 w-32 bg-white/5 border-white/10 text-white text-xs" data-testid={`select-plan-${t.id}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -4014,52 +4217,52 @@ function TenantsPanel() {
                 ))}
               </tbody>
             </table>
-            {tenantsList.length === 0 && (
+            {filteredTenants.length === 0 && searchTerm && (
+              <p className="text-white/30 text-sm text-center py-8">No se encontraron tenants que coincidan con "{searchTerm}"</p>
+            )}
+            {tenantsList.length === 0 && !searchTerm && (
               <p className="text-white/30 text-sm text-center py-8">No hay tenants registrados aún.</p>
             )}
+            <div className="mt-3 text-xs text-white/30">{filteredTenants.length} de {tenantsList.length} tenants</div>
           </div>
         )
       ) : (
         paymentsLoading ? (
-          <div className="text-white/40 text-sm">Cargando pagos...</div>
+          <div className="text-white/40 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Cargando pagos...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-left text-white/40">
-                  <th className="pb-2 pr-4">Orden</th>
-                  <th className="pb-2 pr-4">Tenant</th>
-                  <th className="pb-2 pr-4">Plan</th>
-                  <th className="pb-2 pr-4">Monto</th>
-                  <th className="pb-2 pr-4">Estado</th>
-                  <th className="pb-2 pr-4">Fecha</th>
-                  <th className="pb-2">Pagado</th>
+                <tr className="border-b border-white/10 text-left text-white/40 text-xs uppercase tracking-wider">
+                  <th className="pb-2.5 pr-4">Orden</th>
+                  <th className="pb-2.5 pr-4">Tenant</th>
+                  <th className="pb-2.5 pr-4">Plan</th>
+                  <th className="pb-2.5 pr-4">Monto</th>
+                  <th className="pb-2.5 pr-4">Estado</th>
+                  <th className="pb-2.5 pr-4">Fecha</th>
+                  <th className="pb-2.5">Pagado</th>
                 </tr>
               </thead>
               <tbody>
                 {paymentsList.map((p) => (
-                  <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]" data-testid={`row-payment-${p.id}`}>
-                    <td className="py-2.5 pr-4 text-white/50 text-xs font-mono">{p.commerceOrder.slice(0, 25)}...</td>
-                    <td className="py-2.5 pr-4 text-white/60">{p.tenantId}</td>
-                    <td className="py-2.5 pr-4">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${planColors[p.targetPlan] || planColors.free}`}>
+                  <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors" data-testid={`row-payment-${p.id}`}>
+                    <td className="py-3 pr-4 text-white/50 text-xs font-mono">{p.commerceOrder.slice(0, 20)}...</td>
+                    <td className="py-3 pr-4 text-white/60">{p.tenantId}</td>
+                    <td className="py-3 pr-4">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${planColors[p.targetPlan] || planColors.free} ${p.targetPlan === "basic" ? "border-[#34d399]/30" : p.targetPlan === "pro" ? "border-yellow-500/30" : "border-white/10"}`}>
                         {planLabels[p.targetPlan] || p.targetPlan}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-4 text-white/80">${p.amount.toLocaleString("es-CL")}</td>
-                    <td className="py-2.5 pr-4">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        p.status === "paid" ? "bg-green-500/20 text-green-400" :
-                        p.status === "rejected" ? "bg-red-500/20 text-red-400" :
-                        "bg-yellow-500/20 text-yellow-400"
-                      }`}>
-                        {p.status === "paid" ? "Pagado" : p.status === "rejected" ? "Rechazado" : p.status === "cancelled" ? "Cancelado" : "Pendiente"}
+                    <td className="py-3 pr-4 text-white/80 font-medium">${p.amount.toLocaleString("es-CL")}</td>
+                    <td className="py-3 pr-4">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[p.status] || statusColors.pending}`}>
+                        {statusLabels[p.status] || p.status}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-4 text-white/40 text-xs">
+                    <td className="py-3 pr-4 text-white/40 text-xs">
                       {new Date(p.createdAt).toLocaleDateString("es-CL")}
                     </td>
-                    <td className="py-2.5 text-white/40 text-xs">
+                    <td className="py-3 text-white/40 text-xs">
                       {p.paidAt ? new Date(p.paidAt).toLocaleDateString("es-CL") : "-"}
                     </td>
                   </tr>
@@ -4069,6 +4272,7 @@ function TenantsPanel() {
             {paymentsList.length === 0 && (
               <p className="text-white/30 text-sm text-center py-8">No hay pagos registrados aún.</p>
             )}
+            <div className="mt-3 text-xs text-white/30">{paymentsList.length} pagos</div>
           </div>
         )
       )}
@@ -4086,7 +4290,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "pendientes" | "mis_chats">("all");
-  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge" | "tenants" | "guides">("conversations");
+  const [adminTab, setAdminTab] = useState<"dashboard" | "conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge" | "tenants" | "guides">("conversations");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -4622,6 +4826,21 @@ export default function AdminPage() {
       {showPasswordChange && <PasswordChangeModal onClose={() => setShowPasswordChange(false)} />}
 
       <div className="border-b border-white/[0.06] flex items-center gap-0 px-1 sm:px-2 overflow-x-auto scrollbar-hide">
+        {adminUser?.role === "superadmin" && (
+          <button
+            data-testid="tab-dashboard"
+            onClick={() => setAdminTab("dashboard")}
+            className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              adminTab === "dashboard" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
+            }`}
+          >
+            <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            Dashboard
+            {adminTab === "dashboard" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
+            )}
+          </button>
+        )}
         <button
           data-testid="tab-conversations"
           onClick={() => setAdminTab("conversations")}
@@ -4745,7 +4964,9 @@ export default function AdminPage() {
         )}
       </div>
 
-      {adminTab === "settings" ? (
+      {adminTab === "dashboard" ? (
+        <SaasDashboard />
+      ) : adminTab === "settings" ? (
         <SettingsPanel />
       ) : adminTab === "tags" ? (
         <TagsPanel />

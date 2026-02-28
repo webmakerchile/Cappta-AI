@@ -110,10 +110,12 @@ Key architectural decisions and features include:
 - Monthly usage tracked via `getTenantMonthlyUsage()` storage method (counts from 1st of current month)
 
 ## Admin Tenant Management
-- `GET /api/admin/tenants` - List all tenants with session/message counts (superadmin only)
+- `GET /api/admin/dashboard-metrics` - SaaS dashboard KPIs: total/active tenants, revenue, MRR, sessions, messages, plan distribution, monthly revenue chart, new tenants per month (superadmin only)
+- `GET /api/admin/tenants` - List all tenants with session/message counts and domain (superadmin only)
 - `PATCH /api/admin/tenants/:id` - Change tenant plan manually (superadmin only)
 - `GET /api/admin/payments` - List recent payment orders (superadmin only)
-- Admin.tsx: "Tenants" tab (superadmin only) shows tenant table with plan selector and payments history toggle
+- Admin.tsx: "Dashboard" tab (superadmin only) shows KPI cards + revenue/plan/tenant growth charts using recharts
+- Admin.tsx: "Tenants" tab (superadmin only) shows searchable tenant table with plan badges, domain column, and payments history with status badges
 
 ## Payment Integration (Flow.cl)
 - **Provider**: Flow.cl (Chilean payment gateway, used instead of Stripe)
@@ -145,6 +147,10 @@ Created automatically on server startup (skipped in production):
 - **Pro Plan Tenant**: demo-pro@foxbot.cl / demo123 (Negocio Pro SpA)
 - **Enterprise Plan Tenant**: demo-enterprise@foxbot.cl / demo123 (Empresa Premium S.A.)
 - **Original Superadmin**: webmakerchile@gmail.com / peseta832 (always created)
+
+## Error Handling
+- **React Error Boundary**: Global `ErrorBoundary` component in `App.tsx` catches all render crashes. Shows Spanish-language error screen with "Recargar página" and "Volver al inicio" buttons instead of white screen.
+- **i18n**: All user-facing strings are in Spanish. No English strings visible to end users.
 
 ## Security Hardening
 - **Helmet**: Enabled in `server/index.ts` with CSP disabled (for iframe embeds), cross-origin resource policy set to "cross-origin"

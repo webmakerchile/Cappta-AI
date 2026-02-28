@@ -76,7 +76,7 @@ function useAuth() {
       const res = await fetch("/api/tenants/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) throw new Error("No autorizado");
       return res.json();
     },
   });
@@ -385,7 +385,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
       setLogoUrl(objectPath);
       toast({ title: "Logo subido correctamente" });
@@ -397,7 +397,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
 
   const handleAvatarUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Solo se permiten imagenes", variant: "destructive" });
+      toast({ title: "Solo se permiten imágenes", variant: "destructive" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -409,7 +409,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
       setAvatarUrl(objectPath);
       toast({ title: "Avatar subido correctamente" });
