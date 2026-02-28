@@ -67,9 +67,9 @@ const features = [
     glow: "rgba(239, 68, 68, 0.15)",
   },
   {
-    icon: Shield,
-    title: "Seguro y Confiable",
-    description: "Filtro de contenido, proteccion anti-spam, aislamiento total de datos entre clientes.",
+    icon: Headphones,
+    title: "Intervencion de Ejecutivos",
+    description: "Cuando el cliente necesita atencion humana, un ejecutivo toma el control del chat en tiempo real sin interrupciones.",
     iconColor: "#6366f1",
     glow: "rgba(99, 102, 241, 0.15)",
   },
@@ -85,7 +85,7 @@ const pricingPlans = [
       "50 sesiones / mes",
       "500 mensajes / mes",
       "Chat en vivo con tus clientes",
-      "Respuestas automaticas basicas",
+      "Intervencion de ejecutivos",
       "Widget personalizable",
       "Soporte por email",
     ],
@@ -101,6 +101,7 @@ const pricingPlans = [
       "500 sesiones / mes",
       "5.000 mensajes / mes",
       "IA avanzada con GPT",
+      "Intervencion de ejecutivos en tiempo real",
       "Conecta WooCommerce, Shopify o tu API",
       "Base de conocimiento ilimitada",
       "Catalogo de productos en el chat",
@@ -119,9 +120,10 @@ const pricingPlans = [
       "Sesiones ilimitadas",
       "Mensajes ilimitados",
       "IA personalizada para tu marca",
+      "Multi-agente con asignacion automatica",
+      "Panel de ejecutivos con takeover en vivo",
       "Integraciones a medida",
       "API dedicada",
-      "Multi-agente con asignacion",
       "Soporte 24/7 dedicado",
       "Onboarding personalizado",
     ],
@@ -408,6 +410,7 @@ function CountUp({ target }: { target: string }) {
 export default function Landing() {
   const statsSection = useInView(0.2);
   const featuresSection = useInView(0.1);
+  const handoffSection = useInView(0.15);
   const stepsSection = useInView(0.1);
   const pricingSection = useInView(0.1);
 
@@ -471,7 +474,8 @@ export default function Landing() {
 
             <p className="text-lg text-white/50 max-w-lg mb-10 leading-relaxed" data-testid="text-hero-description">
               <span className="text-white/80 font-medium">FoxBot</span> es un asistente con inteligencia artificial que atiende, recomienda y cierra ventas.
-              Se conecta a tu tienda en minutos. Funciona con <span className="text-white/80 font-medium">cualquier plataforma</span>.
+              Y cuando el cliente necesita atencion humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
+              Funciona con <span className="text-white/80 font-medium">cualquier plataforma</span>.
             </p>
 
             <div className="flex items-center gap-4 flex-wrap mb-10">
@@ -613,6 +617,102 @@ export default function Landing() {
                 <p className="text-white/40 text-sm leading-relaxed">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-28 px-6 relative overflow-hidden" ref={handoffSection.ref as any} data-testid="section-handoff">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.15) 50%, transparent 100%)" }} />
+        </div>
+        <div className="relative max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+              <Headphones className="w-3.5 h-3.5 text-[#6366f1]" />
+              <span className="text-xs font-semibold text-[#6366f1] tracking-wide">IA + EJECUTIVOS HUMANOS</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-handoff-title">
+              La IA atiende, el ejecutivo
+              <br />
+              <span className="text-gradient-green">cierra la venta</span>
+            </h2>
+            <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
+              FoxBot resuelve el 90% de las consultas automaticamente. Pero cuando tu cliente necesita atencion humana,
+              un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente se de cuenta del cambio.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[
+              {
+                step: "1",
+                title: "El bot atiende",
+                desc: "FoxBot responde al instante con IA: resuelve dudas, muestra productos y guia al cliente las 24 horas.",
+                icon: Bot,
+                color: "#10b981",
+                gradient: "linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%)",
+              },
+              {
+                step: "2",
+                title: "El cliente pide ayuda",
+                desc: "Si necesita algo mas complejo, el cliente solicita hablar con un ejecutivo con un solo clic.",
+                icon: MessageSquare,
+                color: "#f59e0b",
+                gradient: "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.02) 100%)",
+              },
+              {
+                step: "3",
+                title: "El ejecutivo toma el control",
+                desc: "Un agente humano entra al chat en vivo, ve todo el historial y continua la conversacion sin interrupciones.",
+                icon: Headphones,
+                color: "#6366f1",
+                gradient: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%)",
+              },
+            ].map((item, index) => (
+              <div
+                key={item.step}
+                className={`group relative ${handoffSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
+                style={{ animationDelay: `${index * 150}ms` }}
+                data-testid={`card-handoff-${index}`}
+              >
+                <div className="rounded-2xl glass-card glass-card-hover p-7 h-full transition-all duration-500 relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: item.gradient }} />
+                  <div className="relative">
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundColor: `${item.color}15` }}>
+                        <item.icon className="w-5 h-5" style={{ color: item.color }} />
+                      </div>
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ color: item.color, backgroundColor: `${item.color}10`, border: `1px solid ${item.color}25` }}>
+                        {item.step}
+                      </div>
+                    </div>
+                    <h3 className="text-base font-bold mb-2.5 text-white/90">{item.title}</h3>
+                    <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+                {index < 2 && (
+                  <div className="hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 z-10">
+                    <ChevronRight className="w-5 h-5 text-white/15" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl glass-card p-8 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+              {[
+                { value: "90%", label: "Consultas resueltas por IA", desc: "Sin intervencion humana", color: "#10b981" },
+                { value: "0s", label: "Tiempo de traspaso", desc: "El ejecutivo entra al instante", color: "#6366f1" },
+                { value: "100%", label: "Historial visible", desc: "El agente ve toda la conversacion", color: "#f59e0b" },
+              ].map(({ value, label, desc, color }) => (
+                <div key={label}>
+                  <p className="text-3xl font-black mb-1" style={{ color }}>{value}</p>
+                  <p className="text-sm font-semibold text-white/70">{label}</p>
+                  <p className="text-xs text-white/30 mt-0.5">{desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
