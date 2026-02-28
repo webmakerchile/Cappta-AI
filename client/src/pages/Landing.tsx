@@ -52,6 +52,8 @@ import {
   Infinity,
   Handshake,
   CircleCheck,
+  Gift,
+  UserPlus,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -878,6 +880,7 @@ function MobileNav() {
         <div className="hidden md:flex items-center gap-1.5">
           <a href="#features"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button></a>
           <a href="#pricing"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button></a>
+          <a href="#referidos"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-referidos-nav">Referidos</Button></a>
           <a href="/demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button></a>
           <a href="/guias"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guías</Button></a>
           <div className="w-px h-5 bg-white/10 mx-1" />
@@ -892,6 +895,7 @@ function MobileNav() {
         <div className="md:hidden border-t border-white/[0.06] bg-background/95 backdrop-blur-xl px-6 py-4 space-y-1 animate-dash-fade-up">
           <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Funciones</a>
           <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
+          <a href="#referidos" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Referidos</a>
           <a href="/demo" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Demo</a>
           <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guías</a>
           <div className="h-px bg-white/[0.06] my-2" />
@@ -1154,6 +1158,7 @@ export default function Landing() {
   const handoffSection = useInView(0.15);
   const stepsSection = useInView(0.1);
   const pricingSection = useInView(0.1);
+  const referralSection = useInView(0.15);
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
@@ -1688,6 +1693,103 @@ export default function Landing() {
           <p className="text-center text-sm text-white/25 mt-12">
             Todas las funcionalidades incluidas en cada plan. Solo cambia la cantidad. Sin contratos de permanencia.
           </p>
+        </div>
+      </section>
+
+      <section id="referidos" className="py-28 px-6 relative overflow-hidden" ref={referralSection.ref as any} data-testid="section-referral">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.2) 50%, transparent 100%)" }} />
+          <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(245,158,11,0.04) 0%, transparent 50%)", animationDelay: "-5s" }} />
+          <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 50%)", animationDelay: "-15s" }} />
+        </div>
+        <div className="relative max-w-5xl mx-auto">
+          <div className={`text-center mb-16 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+              <Gift className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-xs font-semibold text-amber-400 tracking-wide">PROGRAMA DE REFERIDOS</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-referral-title">
+              Invita amigos,
+              <br />
+              <span className="text-gradient-green">gana meses gratis</span>
+            </h2>
+            <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
+              Comparte FoxBot con otros negocios. Cuando tu referido se registra y tú confirmas la invitación, ambos ganan.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "100ms" }} data-testid="referral-step-1">
+              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))" }}>
+                <UserPlus className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
+                <span className="text-sm font-black text-amber-400">1</span>
+              </div>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Comparte tu enlace</h3>
+              <p className="text-sm text-white/40 leading-relaxed">
+                Desde tu dashboard, copia tu enlace de referido único y envíalo a otros negocios que necesiten un chatbot.
+              </p>
+            </div>
+
+            <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "250ms" }} data-testid="referral-step-2">
+              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))" }}>
+                <CircleCheck className="w-6 h-6 text-primary" />
+              </div>
+              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-black text-primary">2</span>
+              </div>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Confirma el registro</h3>
+              <p className="text-sm text-white/40 leading-relaxed">
+                Cuando tu referido se registra con tu enlace, aparecerá en tu lista de referidos. Confirma que lo conoces y listo.
+              </p>
+            </div>
+
+            <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "400ms" }} data-testid="referral-step-3">
+              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))" }}>
+                <Crown className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
+                <span className="text-sm font-black text-amber-400">3</span>
+              </div>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Recibe tu recompensa</h3>
+              <p className="text-sm text-white/40 leading-relaxed">
+                Por cada referido confirmado recibes meses gratis de FoxBot. ¡Mientras más invites, más ganas!
+              </p>
+            </div>
+          </div>
+
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto mb-12 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "550ms" }}>
+            <div className="rounded-2xl p-6 text-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.15)" }} data-testid="referral-reward-1">
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))" }}>
+                <Gift className="w-7 h-7 text-primary" />
+              </div>
+              <p className="text-3xl font-black text-primary mb-1">1 referido</p>
+              <p className="text-white/60 font-semibold mb-2">1 mes de Fox Pro gratis</p>
+              <p className="text-xs text-white/30">500 sesiones, 5.000 mensajes, 3 ejecutivos</p>
+            </div>
+
+            <div className="rounded-2xl p-6 text-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02))", border: "1px solid rgba(245,158,11,0.15)" }} data-testid="referral-reward-2">
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05))" }}>
+                <Trophy className="w-7 h-7 text-amber-400" />
+              </div>
+              <p className="text-3xl font-black text-amber-400 mb-1">5 referidos</p>
+              <p className="text-white/60 font-semibold mb-2">3 meses de Fox Enterprise gratis</p>
+              <p className="text-xs text-white/30">Sesiones y mensajes ilimitados, 10 ejecutivos</p>
+            </div>
+          </div>
+
+          <div className={`text-center transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "700ms" }}>
+            <a href="/register">
+              <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-referral-register">
+                Registrarme y obtener mi enlace
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </a>
+            <p className="text-sm text-white/20 mt-4">
+              El enlace de referido está disponible en tu dashboard desde el primer día.
+            </p>
+          </div>
         </div>
       </section>
 
