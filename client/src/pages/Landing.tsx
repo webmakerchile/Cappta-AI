@@ -856,6 +856,14 @@ function AnimatedChat() {
     }
   }, [visibleMessages, theme.messages.length, transitioning, themeIndex]);
 
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+  }, [visibleMessages, themeIndex]);
+
   return (
     <div className="w-full max-w-[340px] sm:max-w-sm mx-auto" data-testid="chat-demo">
       <div className="relative">
@@ -888,7 +896,7 @@ function AnimatedChat() {
               <span className="w-2 h-2 rounded-full bg-white/20" />
             </div>
           </div>
-          <div className="relative p-4 space-y-3 h-[280px] overflow-hidden">
+          <div ref={chatScrollRef} className="relative p-4 space-y-3 h-[280px] overflow-y-auto chat-scrollbar">
             {theme.messages.slice(0, visibleMessages).map((msg, i) => (
               <div key={`${themeIndex}-${i}`} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`} style={{ animation: "count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
                 <div className={`max-w-[82%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.sender === "user" ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-white/90"}`} style={{ background: msg.sender === "user" ? theme.userBubble : "rgba(255,255,255,0.07)" }}>
