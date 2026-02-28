@@ -37,6 +37,9 @@ import {
   Send,
   UserRound,
   Headphones,
+  Upload,
+  Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -184,6 +187,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage);
   const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [showProductSearch, setShowProductSearch] = useState(tenant.showProductSearch === 1);
   const [productSearchLabel, setProductSearchLabel] = useState(tenant.productSearchLabel || "Buscar producto");
   const [productApiUrl, setProductApiUrl] = useState(tenant.productApiUrl || "");
@@ -233,6 +238,30 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
     },
   });
+
+  const handleLogoUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Solo se permiten imagenes", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "La imagen no puede superar 5MB", variant: "destructive" });
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { objectPath } = await res.json();
+      setLogoUrl(objectPath);
+      toast({ title: "Logo subido correctamente" });
+    } catch {
+      toast({ title: "Error al subir la imagen", variant: "destructive" });
+    }
+    setUploadingLogo(false);
+  };
 
   const addOption = () => {
     const label = newOption.trim();
@@ -338,19 +367,66 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
         </div>
 
         <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
-          <label className="text-sm font-medium text-white/60">URL del Logo (opcional)</label>
+          <label className="text-sm font-medium text-white/60">Logo del Widget (opcional)</label>
           <div className="flex items-center gap-3">
-            <Input
-              data-testid="input-logo-url"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://ejemplo.com/logo.png"
-              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
-            />
-            {logoUrl && (
-              <img src={logoUrl} alt="Preview" className="h-11 w-11 rounded-xl object-cover border border-white/[0.08] animate-dash-scale-in" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            {logoUrl ? (
+              <div className="relative group">
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="h-16 w-16 rounded-xl object-cover border border-white/[0.08]"
+                  data-testid="img-logo-preview"
+                  onError={(e) => { (e.target as HTMLImageElement).src = ""; setLogoUrl(""); }}
+                />
+                <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                  <button
+                    data-testid="button-change-logo"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                    title="Cambiar logo"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-white" />
+                  </button>
+                  <button
+                    data-testid="button-remove-logo"
+                    onClick={() => setLogoUrl("")}
+                    className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors"
+                    title="Eliminar logo"
+                  >
+                    <X className="w-3.5 h-3.5 text-red-400" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                data-testid="button-upload-logo"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="h-16 w-full max-w-xs rounded-xl border-2 border-dashed border-white/[0.1] hover:border-primary/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 flex items-center justify-center gap-2 text-white/40 hover:text-white/60"
+              >
+                {uploadingLogo ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5" />
+                    <span className="text-sm">Subir logo</span>
+                  </>
+                )}
+              </button>
             )}
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleLogoUpload(file);
+                e.target.value = "";
+              }}
+            />
           </div>
+          <p className="text-xs text-white/30">Formato: PNG, JPG, SVG. Maximo 5MB.</p>
         </div>
       </div>
 
