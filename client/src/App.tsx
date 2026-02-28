@@ -427,6 +427,7 @@ function ChatWidget() {
                 brandColor={widgetColor}
                 brandName={widgetName}
                 brandLogo={widgetLogo}
+                tenantId={tenantId ?? undefined}
               />
             ) : (
               <WelcomeForm
@@ -439,6 +440,7 @@ function ChatWidget() {
                 consultationOptions={widgetConsultationOptions}
                 showProductSearch={widgetShowProductSearch}
                 productSearchLabel={widgetProductSearchLabel}
+                tenantId={tenantId ?? undefined}
               />
             )}
           </div>

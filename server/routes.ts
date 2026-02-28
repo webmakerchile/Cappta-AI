@@ -1988,10 +1988,17 @@ ${DEMO_BASE_RULES}`,
       const search = (req.query.q as string || "").trim().toLowerCase();
       const category = req.query.category as string || "";
       const platform = req.query.platform as string || "";
+      const tenantIdParam = req.query.tenantId as string || "";
       const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
       const offset = parseInt(req.query.offset as string) || 0;
 
       let allProducts = await storage.getProducts();
+      if (tenantIdParam) {
+        const tid = parseInt(tenantIdParam, 10);
+        if (!isNaN(tid)) {
+          allProducts = allProducts.filter(p => p.tenantId === tid);
+        }
+      }
 
       if (category) {
         allProducts = allProducts.filter(p => p.category === category);
@@ -2120,7 +2127,9 @@ ${DEMO_BASE_RULES}`,
       if (existing) {
         return res.status(409).json({ message: "Ya existe una calificacion para esta sesion", rating: existing });
       }
-      const created = await storage.createRating(parsed.data);
+      const ratingSession = await storage.getSession(parsed.data.sessionId);
+      const ratingData = { ...parsed.data, tenantId: ratingSession?.tenantId ?? null };
+      const created = await storage.createRating(ratingData);
       await storage.updateSessionStatus(parsed.data.sessionId, "closed");
       io.to("admin_room").emit("session_updated", { sessionId: parsed.data.sessionId, type: "status", session: { status: "closed" } });
       res.status(201).json(created);
@@ -2271,6 +2280,7 @@ ${DEMO_BASE_RULES}`,
         userName: "Soporte",
         sender: "support",
         content: notifyContent,
+        tenantId: session?.tenantId ?? null,
       });
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
@@ -2348,6 +2358,7 @@ ${DEMO_BASE_RULES}`,
         userName: "Soporte",
         sender: "support",
         content: "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.",
+        tenantId: sessionCheck?.tenantId ?? null,
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
@@ -2401,6 +2412,7 @@ ${DEMO_BASE_RULES}`,
         sender: "support" as const,
         userEmail: session.userEmail || "",
         userName: session.userName || "",
+        tenantId: session.tenantId ?? null,
       });
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "transfer", session: updated });
       sendPushToAdmins(
@@ -2429,6 +2441,7 @@ ${DEMO_BASE_RULES}`,
         userName: "Soporte",
         sender: "support",
         content: "Tu chat ha sido bloqueado por un administrador debido a comportamiento inapropiado.",
+        tenantId: session?.tenantId ?? null,
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", warningMsg);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: warningMsg });

@@ -34,6 +34,9 @@ import {
   CircleCheck,
   Eye,
   Search,
+  Send,
+  UserRound,
+  Headphones,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -479,6 +482,8 @@ interface TenantMessage {
   sender: string;
   content: string;
   imageUrl: string | null;
+  adminName: string | null;
+  adminColor: string | null;
   timestamp: string;
 }
 
@@ -486,6 +491,8 @@ function ConversationsSection({ token }: { token: string }) {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
+  const [filter, setFilter] = useState<"all" | "active" | "closed">("all");
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -543,28 +550,78 @@ function ConversationsSection({ token }: { token: string }) {
   };
 
   const selectedSessionData = sessionsList.find(s => s.sessionId === selectedSession);
+  const filteredSessions = filter === "all" ? sessionsList : sessionsList.filter(s => s.status === filter);
+  const activeSessions = sessionsList.filter(s => s.status === "active").length;
+
+  const renderMessageContent = (msg: TenantMessage) => {
+    if (msg.content === "{{SHOW_RATING}}") {
+      return (
+        <div className="flex items-center gap-2 text-yellow-400">
+          <Star className="w-4 h-4 fill-yellow-400" />
+          <span className="text-xs font-medium">El cliente envio su valoracion</span>
+        </div>
+      );
+    }
+    if (msg.content.startsWith("{{QUICK_REPLIES:")) {
+      try {
+        const jsonStr = msg.content.replace("{{QUICK_REPLIES:", "").replace("}}", "");
+        const data = JSON.parse(jsonStr);
+        return (
+          <div className="space-y-1.5">
+            {data.text && <p className="whitespace-pre-wrap break-words text-sm">{data.text}</p>}
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {(data.buttons || []).map((btn: { label: string }, i: number) => (
+                <span key={i} className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-white/60 border border-white/10">{btn.label}</span>
+              ))}
+            </div>
+          </div>
+        );
+      } catch { return <p className="whitespace-pre-wrap break-words text-sm">{msg.content}</p>; }
+    }
+    const urlRegex = /(https?:\/\/[^\s<>\])"]+)/g;
+    const parts = msg.content.split(urlRegex);
+    return (
+      <p className="whitespace-pre-wrap break-words text-sm">
+        {parts.map((part, i) => {
+          if (urlRegex.test(part)) {
+            urlRegex.lastIndex = 0;
+            return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-blue-400 hover:text-blue-300 break-all">{part}</a>;
+          }
+          return part;
+        })}
+      </p>
+    );
+  };
 
   if (selectedSession) {
     return (
       <div className="rounded-2xl glass-card overflow-hidden animate-dash-scale-in flex flex-col" style={{ height: "calc(100vh - 200px)", minHeight: "500px" }}>
-        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-3">
+        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-3" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)" }}>
           <button
             onClick={() => setSelectedSession(null)}
-            className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors"
+            className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center hover:bg-white/[0.10] transition-colors"
             data-testid="button-back-sessions"
           >
             <ChevronRight className="w-4 h-4 text-white/50 rotate-180" />
           </button>
+          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 border border-primary/30">
+            <UserRound className="w-4 h-4 text-primary" />
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate" data-testid="text-chat-user">{selectedSessionData?.userName || "Cliente"}</p>
             <p className="text-xs text-white/40 truncate">{selectedSessionData?.userEmail}</p>
           </div>
-          <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${selectedSessionData?.status === "active" ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/40"}`}>
-            {selectedSessionData?.status === "active" ? "Activa" : "Cerrada"}
-          </span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {selectedSessionData?.problemType && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-white/50 border border-white/10">{selectedSessionData.problemType}</span>
+            )}
+            <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${selectedSessionData?.status === "active" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-white/[0.06] text-white/40 border border-white/10"}`}>
+              {selectedSessionData?.status === "active" ? "Activa" : "Cerrada"}
+            </span>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: "radial-gradient(ellipse at top, rgba(255,255,255,0.01) 0%, transparent 50%)" }}>
           {messagesLoading ? (
             <div className="flex items-center justify-center h-32">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -572,35 +629,78 @@ function ConversationsSection({ token }: { token: string }) {
           ) : chatMessages.length === 0 ? (
             <div className="flex items-center justify-center h-32 text-white/30 text-sm">Sin mensajes</div>
           ) : (
-            chatMessages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sender === "support" ? "justify-end" : "justify-start"}`}
-                data-testid={`msg-bubble-${msg.id}`}
-              >
-                <div
-                  className={`max-w-[75%] px-3 py-2 rounded-xl text-sm ${
-                    msg.sender === "support"
-                      ? "bg-primary/20 text-white rounded-br-sm"
-                      : "bg-white/[0.06] text-white/80 rounded-bl-sm"
-                  }`}
-                >
-                  {msg.imageUrl && (
-                    <img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mb-1 max-h-48 object-cover" />
+            chatMessages.map((msg, idx) => {
+              const isSupport = msg.sender === "support";
+              const showDateSeparator = idx === 0 || new Date(msg.timestamp).toDateString() !== new Date(chatMessages[idx - 1].timestamp).toDateString();
+              const msgAdminColor = msg.adminColor || "#10b981";
+              return (
+                <div key={msg.id}>
+                  {showDateSeparator && (
+                    <div className="flex items-center gap-3 my-4">
+                      <div className="flex-1 h-px bg-white/[0.06]" />
+                      <span className="text-[10px] text-white/25 font-medium">{new Date(msg.timestamp).toLocaleDateString("es-CL", { weekday: "short", day: "numeric", month: "short" })}</span>
+                      <div className="flex-1 h-px bg-white/[0.06]" />
+                    </div>
                   )}
-                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                  <p className="text-[10px] text-white/25 mt-1">
-                    {new Date(msg.timestamp).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
+                  <div
+                    className={`flex ${isSupport ? "justify-end" : "justify-start"} gap-2`}
+                    data-testid={`msg-bubble-${msg.id}`}
+                  >
+                    {!isSupport && (
+                      <div className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0 mt-1 border border-white/10">
+                        <UserRound className="w-3.5 h-3.5 text-white/40" />
+                      </div>
+                    )}
+                    <div className="max-w-[75%] flex flex-col">
+                      {isSupport && msg.adminName && (
+                        <div className="flex items-center gap-1.5 mb-0.5 justify-end">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: msgAdminColor }} />
+                          <span className="text-[10px] font-medium" style={{ color: msgAdminColor }}>{msg.adminName}</span>
+                        </div>
+                      )}
+                      {isSupport && !msg.adminName && (
+                        <div className="flex items-center gap-1 mb-0.5 justify-end">
+                          <Headphones className="w-2.5 h-2.5 text-primary/60" />
+                          <span className="text-[10px] font-medium text-primary/60">Bot IA</span>
+                        </div>
+                      )}
+                      <div
+                        className={`px-3.5 py-2.5 rounded-2xl ${
+                          isSupport
+                            ? "rounded-br-sm text-white"
+                            : "bg-white/[0.06] text-white/90 rounded-bl-sm border border-white/[0.06]"
+                        }`}
+                        style={isSupport ? { backgroundColor: `${msgAdminColor}20`, border: `1px solid ${msgAdminColor}30` } : undefined}
+                      >
+                        {msg.imageUrl && (
+                          <img
+                            src={msg.imageUrl}
+                            alt=""
+                            className="max-w-full rounded-lg mb-2 max-h-60 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => setLightboxUrl(msg.imageUrl)}
+                          />
+                        )}
+                        {renderMessageContent(msg)}
+                      </div>
+                      <span className={`text-[10px] text-white/20 mt-0.5 ${isSupport ? "text-right" : "text-left"}`}>
+                        {new Date(msg.timestamp).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    {isSupport && (
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-1 border" style={{ backgroundColor: `${msgAdminColor}15`, borderColor: `${msgAdminColor}30` }}>
+                        <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminColor }} />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>
 
         {selectedSessionData?.status === "active" && (
-          <div className="px-4 py-3 border-t border-white/[0.06]">
+          <div className="px-4 py-3 border-t border-white/[0.06]" style={{ background: "rgba(255,255,255,0.01)" }}>
             <form
               onSubmit={(e) => { e.preventDefault(); handleReply(); }}
               className="flex items-end gap-2"
@@ -623,12 +723,18 @@ function ConversationsSection({ token }: { token: string }) {
               <Button
                 type="submit"
                 disabled={!replyText.trim() || sending}
-                className="bg-primary text-white rounded-xl px-4"
+                className="bg-primary text-white rounded-xl px-5 h-10"
                 data-testid="button-send-reply"
               >
-                {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Enviar"}
+                {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Send className="w-4 h-4 mr-1.5" />Enviar</>}
               </Button>
             </form>
+          </div>
+        )}
+
+        {lightboxUrl && (
+          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+            <img src={lightboxUrl} alt="" className="max-w-full max-h-full object-contain rounded-lg" />
           </div>
         )}
       </div>
@@ -653,33 +759,58 @@ function ConversationsSection({ token }: { token: string }) {
         </div>
       ) : (
         <div className="rounded-2xl glass-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/[0.06]">
-            <p className="text-sm text-white/40">{sessionsList.length} conversacion{sessionsList.length !== 1 ? "es" : ""}</p>
+          <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-white/40">{filteredSessions.length} conversacion{filteredSessions.length !== 1 ? "es" : ""}</p>
+              {activeSessions > 0 && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 font-medium">{activeSessions} activa{activeSessions !== 1 ? "s" : ""}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {(["all", "active", "closed"] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`text-[10px] px-2.5 py-1 rounded-lg font-medium transition-colors ${filter === f ? "bg-primary/15 text-primary border border-primary/20" : "text-white/30 hover:text-white/50 hover:bg-white/[0.04]"}`}
+                  data-testid={`filter-${f}`}
+                >
+                  {f === "all" ? "Todas" : f === "active" ? "Activas" : "Cerradas"}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="divide-y divide-white/[0.04]">
-            {sessionsList.map((session) => (
+          <div className="divide-y divide-white/[0.04] max-h-[calc(100vh-300px)] overflow-y-auto">
+            {filteredSessions.map((session) => (
               <button
                 key={session.sessionId}
                 onClick={() => setSelectedSession(session.sessionId)}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/[0.03] transition-colors text-left group"
                 data-testid={`session-row-${session.sessionId}`}
               >
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${session.status === "active" ? "bg-green-400" : "bg-white/20"}`} />
+                <div className="relative flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center border border-white/10">
+                    <UserRound className="w-4 h-4 text-white/40" />
+                  </div>
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0a0a0a] ${session.status === "active" ? "bg-green-400" : "bg-white/20"}`} />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium text-white truncate">{session.userName}</p>
                     <span className="text-[10px] text-white/25 flex-shrink-0">
-                      {session.lastMessage ? new Date(session.lastMessage).toLocaleDateString("es-CL") : ""}
+                      {session.lastMessage ? new Date(session.lastMessage).toLocaleDateString("es-CL", { day: "numeric", month: "short" }) : ""}
                     </span>
                   </div>
                   <p className="text-xs text-white/40 truncate">{session.userEmail}</p>
                   {session.lastMessageContent && (
-                    <p className="text-xs text-white/30 truncate mt-0.5">{session.lastMessageContent}</p>
+                    <p className="text-xs text-white/25 truncate mt-0.5">{session.lastMessageContent.startsWith("{{") ? "Mensaje del sistema" : session.lastMessageContent}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[10px] text-white/20 bg-white/[0.04] px-1.5 py-0.5 rounded">{session.messageCount} msgs</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors" />
+                  {session.problemType && (
+                    <span className="text-[9px] text-white/30 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">{session.problemType}</span>
+                  )}
+                  <span className="text-[10px] text-white/20 bg-white/[0.04] px-1.5 py-0.5 rounded">{session.messageCount}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/40 transition-colors" />
                 </div>
               </button>
             ))}

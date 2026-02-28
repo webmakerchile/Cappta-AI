@@ -59,6 +59,7 @@ interface ChatWindowProps {
   brandColor?: string;
   brandName?: string;
   brandLogo?: string;
+  tenantId?: number;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -561,6 +562,7 @@ function NewConsultationPicker({ onSelect, brandColor = "#10b981" }: { onSelect:
           onChange={setGameName}
           placeholder="Buscar juego o producto..."
           dataTestId="input-new-game-name"
+          tenantId={tenantId}
         />
         <button
           data-testid="button-submit-new-consultation"
@@ -600,7 +602,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -651,9 +653,10 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const fetchBrowseProducts = useCallback(async (query: string) => {
     try {
       setIsLoadingProducts(true);
+      const tenantParam = tenantId ? `&tenantId=${tenantId}` : "";
       const url = query.length >= 2
-        ? `/api/products/browse?q=${encodeURIComponent(query)}&limit=20`
-        : `/api/products/browse?limit=20`;
+        ? `/api/products/browse?q=${encodeURIComponent(query)}&limit=20${tenantParam}`
+        : `/api/products/browse?limit=20${tenantParam}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Error fetching products");
       const data = await response.json();
@@ -663,7 +666,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     } finally {
       setIsLoadingProducts(false);
     }
-  }, []);
+  }, [tenantId]);
 
   const handleProductSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

@@ -21,6 +21,7 @@ interface WelcomeFormProps {
   consultationOptions?: string;
   showProductSearch?: number;
   productSearchLabel?: string;
+  tenantId?: number;
 }
 
 export function WelcomeForm({
@@ -33,6 +34,7 @@ export function WelcomeForm({
   consultationOptions: consultationOptionsJson,
   showProductSearch = 0,
   productSearchLabel,
+  tenantId,
 }: WelcomeFormProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -159,6 +161,7 @@ export function WelcomeForm({
               onChange={setGameName}
               placeholder={productSearchLabel || "Buscar producto..."}
               dataTestId="input-game-name"
+              tenantId={tenantId}
             />
           </div>
         )}

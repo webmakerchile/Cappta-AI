@@ -17,6 +17,7 @@ interface ProductSelectorProps {
   placeholder?: string;
   disabled?: boolean;
   dataTestId?: string;
+  tenantId?: number;
 }
 
 const getPlatformBadge = (platform: string): string => {
@@ -38,6 +39,7 @@ export function ProductSelector({
   placeholder = "Buscar juego o producto...",
   disabled = false,
   dataTestId = "product-selector",
+  tenantId,
 }: ProductSelectorProps) {
   const [searchInput, setSearchInput] = useState(value || "");
   const [isOpen, setIsOpen] = useState(false);
@@ -58,9 +60,10 @@ export function ProductSelector({
     try {
       setIsLoading(true);
       setError(null);
+      const tenantParam = tenantId ? `&tenantId=${tenantId}` : "";
       const url = searchQuery.length >= 2
-        ? `/api/products/browse?q=${encodeURIComponent(searchQuery)}&limit=20`
-        : `/api/products/browse?limit=20`;
+        ? `/api/products/browse?q=${encodeURIComponent(searchQuery)}&limit=20${tenantParam}`
+        : `/api/products/browse?limit=20${tenantParam}`;
       
       const response = await fetch(url);
       if (!response.ok) {
@@ -76,7 +79,7 @@ export function ProductSelector({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
   // Debounced search handler
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

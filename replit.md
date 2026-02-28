@@ -8,7 +8,9 @@ This project is a SaaS platform for AI-powered customer support chat widgets. Or
 - **Primary Color**: Green (HSL 142 72% 32%) - matches the Web Maker Chile fox logo
 - **Accent Color**: Orange (HSL 30 90% 52%) - matches the fox mascot
 - **Logo Assets**: `attached_assets/Logo_sin_fondo_1772247619250.png` (transparent), `attached_assets/Logo_1772247624057.png` (with background)
-- **Note**: Purple (#6200EA) is used ONLY in the CJM Digitales chat widget components (hardcoded inline styles), NOT in the SaaS platform UI
+- **Default Widget Color**: Green (#10b981) used as fallback when no tenant brandColor is set
+- **Note**: Purple (#6200EA) is used ONLY as CJM admin color fallback and in the admin panel UI, NOT in multi-tenant widgets
+- **Product Isolation**: `/api/products/browse?tenantId=X` filters products by tenant. Each tenant only sees their own products in the widget.
 
 ## User Preferences
 I want iterative development.
@@ -66,6 +68,9 @@ Key architectural decisions and features include:
 - `GET /api/tenants/me` - Get tenant profile (auth required)
 - `PATCH /api/tenants/me` - Update tenant settings (auth required)
 - `GET /api/tenants/me/stats` - Get tenant dashboard stats (auth required)
+- `GET /api/tenants/me/sessions` - List tenant's customer sessions (auth required)
+- `GET /api/tenants/me/sessions/:id/messages` - Get messages for a tenant session (auth required)
+- `POST /api/tenants/me/sessions/:id/reply` - Reply to a customer session (auth required)
 - `GET /api/tenants/:id/config` - Public endpoint for widget to load tenant config
 
 ## Plan Limit Enforcement
