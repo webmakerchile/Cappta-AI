@@ -341,7 +341,7 @@ export default function Landing() {
               { value: "24/7", label: "Disponibilidad total", icon: Clock, desc: "Tu bot nunca descansa" },
               { value: "<2s", label: "Respuesta instantanea", icon: Zap, desc: "Velocidad de IA" },
               { value: "5min", label: "Configuracion rapida", icon: TrendingUp, desc: "Sin conocimiento tecnico" },
-              { value: "100%", label: "Personalizable", icon: Users, desc: "Tu marca, tu estilo" },
+              { value: "+90%", label: "Consultas resueltas", icon: Users, desc: "Sin intervencion humana" },
             ].map(({ value, label, icon: Icon, desc }) => (
               <div key={label} className="relative group" data-testid={`stat-${label}`}>
                 <div className="rounded-2xl border border-border bg-card/50 p-6 text-center group-hover:border-primary/20 transition-all duration-300">
