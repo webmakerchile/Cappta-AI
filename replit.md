@@ -43,6 +43,7 @@ Key architectural decisions and features include:
 - `/widget` - Chat widget (for iframe embedding, accepts `?tenantId=X`)
 - `/chat` - Full-screen chat (for logged-in users via email params)
 - `/chat/contacto` - Contact chat (with welcome form)
+- `/guias` - Installation guides for 15+ platforms (WordPress, Shopify, WooCommerce, Magento, Squarespace, Wix, Webflow, React, Next.js, Vue, Angular, GTM, PrestaShop, HTML, iFrame) with copy-paste code blocks
 - `/admin` - Admin panel (agent dashboard)
 
 ## Database Tables

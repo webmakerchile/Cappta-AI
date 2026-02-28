@@ -742,6 +742,9 @@ export default function Landing() {
             <a href="/demo">
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button>
             </a>
+            <a href="/guias">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guias</Button>
+            </a>
             <div className="w-px h-5 bg-white/10 mx-1 hidden sm:block" />
             <a href="/login">
               <Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesion</Button>
@@ -1256,6 +1259,7 @@ export default function Landing() {
                 <li><a href="#features" className="hover:text-primary transition-colors" data-testid="link-footer-features">Caracteristicas</a></li>
                 <li><a href="#pricing" className="hover:text-primary transition-colors" data-testid="link-footer-pricing">Precios</a></li>
                 <li><a href="/demo" className="hover:text-primary transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
+                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-guides">Guias de instalacion</a></li>
               </ul>
             </div>
             <div>
