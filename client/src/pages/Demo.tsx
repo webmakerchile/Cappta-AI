@@ -641,7 +641,7 @@ export default function Demo() {
   const remaining = MAX_DEMO_MESSAGES - messageCount;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden" data-testid="demo-page">
+    <div className="h-screen bg-background text-foreground flex flex-col relative overflow-hidden" data-testid="demo-page">
       <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}06, transparent 60%)` }} />
       <div className="absolute bottom-[-150px] left-[-100px] w-[350px] h-[350px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}04, transparent 60%)`, animationDelay: "-10s" }} />
 
@@ -676,8 +676,8 @@ export default function Demo() {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full relative">
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4" data-testid="demo-messages">
+      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full relative min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 min-h-0" data-testid="demo-messages">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-4">
               <div
