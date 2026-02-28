@@ -2190,6 +2190,23 @@ Reglas:
       }
 
       const html = await response.text();
+
+      const metaParts: string[] = [];
+      const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      if (titleMatch) metaParts.push(`Titulo: ${titleMatch[1].trim()}`);
+      const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
+        || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
+      if (metaDescMatch) metaParts.push(`Descripcion: ${metaDescMatch[1].trim()}`);
+      const ogMatches = html.matchAll(/<meta[^>]*property=["'](og:[^"']+)["'][^>]*content=["']([^"']+)["']/gi);
+      for (const m of ogMatches) metaParts.push(`${m[1]}: ${m[2].trim()}`);
+      const ogMatches2 = html.matchAll(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["'](og:[^"']+)["']/gi);
+      for (const m of ogMatches2) metaParts.push(`${m[2]}: ${m[1].trim()}`);
+      const jsonLdMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+      const jsonLdParts: string[] = [];
+      for (const m of jsonLdMatches) {
+        try { jsonLdParts.push(m[1].trim()); } catch {}
+      }
+
       const textContent = html
         .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
         .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -2206,11 +2223,16 @@ Reglas:
         .replace(/\s+/g, " ")
         .trim();
 
-      if (textContent.length < 50) {
-        return res.status(400).json({ message: "La pagina no tiene suficiente contenido de texto para analizar." });
+      let combinedText = "";
+      if (metaParts.length > 0) combinedText += "METADATOS DE LA PAGINA:\n" + metaParts.join("\n") + "\n\n";
+      if (jsonLdParts.length > 0) combinedText += "DATOS ESTRUCTURADOS (JSON-LD):\n" + jsonLdParts.join("\n") + "\n\n";
+      if (textContent.length > 10) combinedText += "CONTENIDO DE TEXTO:\n" + textContent;
+
+      if (combinedText.trim().length < 10) {
+        return res.status(400).json({ message: "La pagina no tiene contenido accesible. Prueba con otra URL o usa 'Pegar texto' para copiar la info manualmente." });
       }
 
-      const truncatedText = textContent.substring(0, 15000);
+      const truncatedText = combinedText.substring(0, 15000);
 
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -2304,7 +2326,7 @@ Reglas:
           },
           {
             role: "user",
-            content: `Analiza el contenido de esta pagina web (${cleanUrl}) y extrae toda la informacion del negocio:\n\n${truncatedText}`
+            content: `Analiza el contenido de esta pagina web (${cleanUrl}) y extrae toda la informacion del negocio. Usa todos los datos disponibles (metadatos, JSON-LD, texto visible) para construir el perfil mas completo posible:\n\n${truncatedText}`
           }
         ],
         temperature: 0.3,
