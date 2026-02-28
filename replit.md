@@ -66,6 +66,20 @@ Key architectural decisions and features include:
 - `GET /api/tenants/me/stats` - Get tenant dashboard stats (auth required)
 - `GET /api/tenants/:id/config` - Public endpoint for widget to load tenant config
 
+## Plan Limit Enforcement
+- Limits defined in `server/flow.ts` as `PLAN_LIMITS`: free (50 sessions, 500 messages/month), basic (500/5000), pro (unlimited)
+- Checked in `POST /api/messages` before session upsert — only for tenant users (tenantId present)
+- Sessions limit: blocks new session creation but allows messaging in existing sessions
+- Messages limit: blocks all new user messages when exceeded
+- 429 response handled in `use-chat.ts` — shows limit message in chat as a system message
+- Monthly usage tracked via `getTenantMonthlyUsage()` storage method (counts from 1st of current month)
+
+## Admin Tenant Management
+- `GET /api/admin/tenants` - List all tenants with session/message counts (superadmin only)
+- `PATCH /api/admin/tenants/:id` - Change tenant plan manually (superadmin only)
+- `GET /api/admin/payments` - List recent payment orders (superadmin only)
+- Admin.tsx: "Tenants" tab (superadmin only) shows tenant table with plan selector and payments history toggle
+
 ## Payment Integration (Flow.cl)
 - **Provider**: Flow.cl (Chilean payment gateway, used instead of Stripe)
 - **Package**: `flowcl-node-api-client` (CommonJS, imported via createRequire)

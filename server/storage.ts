@@ -78,6 +78,10 @@ export interface IStorage {
   createPaymentOrder(data: { tenantId: number; commerceOrder: string; flowOrder?: number; targetPlan: string; amount: number }): Promise<typeof paymentOrders.$inferSelect>;
   getPaymentOrderByCommerceOrder(commerceOrder: string): Promise<typeof paymentOrders.$inferSelect | null>;
   updatePaymentOrderStatus(commerceOrder: string, status: string, paidAt?: Date): Promise<typeof paymentOrders.$inferSelect | null>;
+  getTenantMonthlyUsage(tenantId: number): Promise<{ sessionsCount: number; messagesCount: number }>;
+  getAllTenants(): Promise<Tenant[]>;
+  getRecentPaymentOrders(limit?: number): Promise<(typeof paymentOrders.$inferSelect)[]>;
+  getAllTenantsWithStats(): Promise<{ id: number; name: string; email: string; companyName: string; plan: string; createdAt: Date; sessionsCount: number; messagesCount: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1031,6 +1035,46 @@ export class DatabaseStorage implements IStorage {
       .where(eq(paymentOrders.commerceOrder, commerceOrder))
       .returning();
     return order || null;
+  }
+
+  async getTenantMonthlyUsage(tenantId: number): Promise<{ sessionsCount: number; messagesCount: number }> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const result = await db.execute(sql`
+      SELECT
+        (SELECT COUNT(*)::int FROM sessions WHERE tenant_id = ${tenantId} AND created_at >= ${startOfMonth}) AS "sessionsCount",
+        (SELECT COUNT(*)::int FROM messages WHERE tenant_id = ${tenantId} AND timestamp >= ${startOfMonth}) AS "messagesCount"
+    `);
+    const row = result.rows[0] as any;
+    return {
+      sessionsCount: row?.sessionsCount || 0,
+      messagesCount: row?.messagesCount || 0,
+    };
+  }
+
+  async getAllTenants(): Promise<Tenant[]> {
+    return await db.select().from(tenants).orderBy(desc(tenants.createdAt));
+  }
+
+  async getRecentPaymentOrders(limit = 50) {
+    return await db.select().from(paymentOrders).orderBy(desc(paymentOrders.createdAt)).limit(limit);
+  }
+
+  async getAllTenantsWithStats() {
+    const result = await db.execute(sql`
+      SELECT
+        t.id,
+        t.name,
+        t.email,
+        t.company_name AS "companyName",
+        t.plan,
+        t.created_at AS "createdAt",
+        (SELECT COUNT(*)::int FROM sessions WHERE tenant_id = t.id) AS "sessionsCount",
+        (SELECT COUNT(*)::int FROM messages WHERE tenant_id = t.id) AS "messagesCount"
+      FROM tenants t
+      ORDER BY t.created_at DESC
+    `);
+    return result.rows as any[];
   }
 }
 

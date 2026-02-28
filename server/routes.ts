@@ -11,7 +11,7 @@ import { getSmartAutoReply } from "./autoReply";
 import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuiltinWords, getCustomWords, setCustomWords } from "./profanityFilter";
 import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
-import { getFlowApi, PLAN_PRICES } from "./flow";
+import { getFlowApi, PLAN_PRICES, PLAN_LIMITS } from "./flow";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
@@ -346,7 +346,42 @@ export async function registerRoutes(
 
       const normalizedEmail = parsed.data.userEmail.toLowerCase();
 
-      const tenantId = req.body.tenantId ? parseInt(req.body.tenantId, 10) : null;
+      let tenantId = req.body.tenantId ? parseInt(req.body.tenantId, 10) : null;
+
+      const existingSessionForTenant = await storage.getSession(sessionId);
+      if (!tenantId && existingSessionForTenant?.tenantId) {
+        tenantId = existingSessionForTenant.tenantId;
+      }
+
+      if (tenantId && parsed.data.sender === "user") {
+        const tenant = await storage.getTenantById(tenantId);
+        if (tenant) {
+          const limits = PLAN_LIMITS[tenant.plan] || PLAN_LIMITS.free;
+          if (limits.maxMessages !== Infinity || limits.maxSessions !== Infinity) {
+            const usage = await storage.getTenantMonthlyUsage(tenantId);
+            if (usage.messagesCount >= limits.maxMessages) {
+              return res.status(429).json({
+                message: "Se alcanzó el límite de mensajes de tu plan. Contacta al administrador para mejorar el plan.",
+                limitType: "messages",
+                current: usage.messagesCount,
+                max: limits.maxMessages,
+              });
+            }
+            if (usage.sessionsCount >= limits.maxSessions) {
+              const existingSession = await storage.getSession(sessionId);
+              if (!existingSession) {
+                return res.status(429).json({
+                  message: "Se alcanzó el límite de sesiones de tu plan. Contacta al administrador para mejorar el plan.",
+                  limitType: "sessions",
+                  current: usage.sessionsCount,
+                  max: limits.maxSessions,
+                });
+              }
+            }
+          }
+        }
+      }
+
       const upsertData: { sessionId: string; userEmail: string; userName: string; problemType?: string; gameName?: string; tenantId?: number | null } = {
         sessionId,
         userEmail: normalizedEmail,
@@ -1591,6 +1626,60 @@ export async function registerRoutes(
     } catch (error: any) {
       log(`Error al crear calificacion: ${error.message}`, "api");
       res.status(500).json({ message: "Error al crear calificacion" });
+    }
+  });
+
+  app.get("/api/admin/tenants", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo superadmin puede ver tenants" });
+    }
+    try {
+      const tenantsWithStats = await storage.getAllTenantsWithStats();
+      res.json(tenantsWithStats);
+    } catch (error: any) {
+      log(`Error al obtener tenants: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener tenants" });
+    }
+  });
+
+  app.patch("/api/admin/tenants/:id", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo superadmin puede modificar tenants" });
+    }
+    try {
+      const tenantId = parseInt(req.params.id, 10);
+      const { plan } = req.body;
+      if (!plan || !["free", "basic", "pro"].includes(plan)) {
+        return res.status(400).json({ message: "Plan invalido" });
+      }
+      const updated = await storage.updateTenant(tenantId, { plan } as any);
+      if (!updated) {
+        return res.status(404).json({ message: "Tenant no encontrado" });
+      }
+      log(`Superadmin ${user.email} cambió plan de tenant ${tenantId} a ${plan}`, "api");
+      res.json({ id: updated.id, plan: updated.plan });
+    } catch (error: any) {
+      log(`Error al actualizar tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar tenant" });
+    }
+  });
+
+  app.get("/api/admin/payments", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo superadmin puede ver pagos" });
+    }
+    try {
+      const orders = await storage.getRecentPaymentOrders(100);
+      res.json(orders);
+    } catch (error: any) {
+      log(`Error al obtener pagos: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener pagos" });
     }
   });
 

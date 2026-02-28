@@ -324,6 +324,7 @@ function ChatWidget() {
   const widgetColor = tenantConfig?.widgetColor || undefined;
   const widgetName = tenantConfig?.companyName || undefined;
   const widgetWelcome = tenantConfig?.welcomeMessage || undefined;
+  const widgetLogo = tenantConfig?.logoUrl || undefined;
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -410,6 +411,7 @@ function ChatWidget() {
                 onStartNewSession={startNewSession}
                 brandColor={widgetColor}
                 brandName={widgetName}
+                brandLogo={widgetLogo}
               />
             ) : (
               <WelcomeForm

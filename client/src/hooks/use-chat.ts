@@ -145,6 +145,7 @@ export function useChat(tenantId?: number | null) {
   const [contactRequested, setContactRequested] = useState(false);
   const [pageInfo, setPageInfo] = useState<PageInfo>({ url: "", title: "" });
   const [productContext, setProductContext] = useState<ProductContext | null>(null);
+  const [planLimitReached, setPlanLimitReached] = useState(false);
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -314,6 +315,7 @@ export function useChat(tenantId?: number | null) {
     async (content: string, imageUrl?: string, quickReplyValue?: string) => {
       if (!user) return;
       if (!content.trim() && !imageUrl) return;
+      if (planLimitReached) return;
 
       try {
         const res = await fetch("/api/messages", {
@@ -350,6 +352,26 @@ export function useChat(tenantId?: number | null) {
           setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
           }, 2500);
+        } else if (res.status === 429) {
+          if (!planLimitReached) {
+            setPlanLimitReached(true);
+            const errorData = await res.json().catch(() => ({ message: "Límite de plan alcanzado." }));
+            const limitMsg: Message = {
+              id: Date.now(),
+              sessionId: user.sessionId,
+              userEmail: user.email,
+              userName: "Sistema",
+              sender: "support",
+              content: errorData.message || "Se alcanzó el límite de tu plan. Contacta al administrador.",
+              imageUrl: null,
+              tenantId: tenantId ? Number(tenantId) : null,
+              timestamp: new Date(),
+            };
+            queryClient.setQueryData(
+              ["/api/messages/thread", user.email],
+              (old: Message[] | undefined) => [...(old || []), limitMsg],
+            );
+          }
         }
       } catch {
         try {
@@ -366,7 +388,7 @@ export function useChat(tenantId?: number | null) {
         } catch {}
       }
     },
-    [user, pageInfo, productContext, tenantId],
+    [user, pageInfo, productContext, tenantId, planLimitReached],
   );
 
   const requestContact = useCallback(async () => {

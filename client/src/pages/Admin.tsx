@@ -3993,6 +3993,210 @@ function PasswordChangeModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+interface TenantRow {
+  id: number;
+  name: string;
+  email: string;
+  companyName: string;
+  plan: string;
+  createdAt: string;
+  sessionsCount: number;
+  messagesCount: number;
+}
+
+interface PaymentRow {
+  id: number;
+  tenantId: number;
+  commerceOrder: string;
+  targetPlan: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+function TenantsPanel() {
+  const { toast } = useToast();
+  const [paymentsView, setPaymentsView] = useState(false);
+
+  const { data: tenantsList = [], isLoading: tenantsLoading } = useQuery<TenantRow[]>({
+    queryKey: ["/api/admin/tenants"],
+    queryFn: async () => {
+      const token = getAuthToken();
+      const res = await fetch("/api/admin/tenants", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const { data: paymentsList = [], isLoading: paymentsLoading } = useQuery<PaymentRow[]>({
+    queryKey: ["/api/admin/payments"],
+    queryFn: async () => {
+      const token = getAuthToken();
+      const res = await fetch("/api/admin/payments", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    enabled: paymentsView,
+  });
+
+  const changePlanMutation = useMutation({
+    mutationFn: async ({ tenantId, plan }: { tenantId: number; plan: string }) => {
+      const token = getAuthToken();
+      const res = await fetch(`/api/admin/tenants/${tenantId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan }),
+      });
+      if (!res.ok) throw new Error("Error al cambiar plan");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+      toast({ title: "Plan actualizado", description: "El plan del tenant ha sido actualizado." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo actualizar el plan.", variant: "destructive" });
+    },
+  });
+
+  const planLabels: Record<string, string> = { free: "Gratis", basic: "Pro", pro: "Enterprise" };
+  const planColors: Record<string, string> = {
+    free: "bg-white/10 text-white/60",
+    basic: "bg-[#BB86FC]/20 text-[#BB86FC]",
+    pro: "bg-yellow-500/20 text-yellow-400",
+  };
+
+  return (
+    <div className="flex-1 overflow-auto p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-white">
+          {paymentsView ? "Historial de Pagos" : "Gestión de Tenants"}
+        </h2>
+        <button
+          data-testid="button-toggle-payments"
+          onClick={() => setPaymentsView(!paymentsView)}
+          className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-md transition-colors"
+        >
+          {paymentsView ? "Ver Tenants" : "Ver Pagos"}
+        </button>
+      </div>
+
+      {!paymentsView ? (
+        tenantsLoading ? (
+          <div className="text-white/40 text-sm">Cargando tenants...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-white/40">
+                  <th className="pb-2 pr-4">ID</th>
+                  <th className="pb-2 pr-4">Empresa</th>
+                  <th className="pb-2 pr-4">Email</th>
+                  <th className="pb-2 pr-4">Plan</th>
+                  <th className="pb-2 pr-4">Sesiones</th>
+                  <th className="pb-2 pr-4">Mensajes</th>
+                  <th className="pb-2 pr-4">Registrado</th>
+                  <th className="pb-2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tenantsList.map((t) => (
+                  <tr key={t.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]" data-testid={`row-tenant-${t.id}`}>
+                    <td className="py-2.5 pr-4 text-white/50">{t.id}</td>
+                    <td className="py-2.5 pr-4 text-white font-medium">{t.companyName}</td>
+                    <td className="py-2.5 pr-4 text-white/60">{t.email}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${planColors[t.plan] || planColors.free}`}>
+                        {planLabels[t.plan] || t.plan}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-white/60">{t.sessionsCount}</td>
+                    <td className="py-2.5 pr-4 text-white/60">{t.messagesCount}</td>
+                    <td className="py-2.5 pr-4 text-white/40 text-xs">
+                      {new Date(t.createdAt).toLocaleDateString("es-CL")}
+                    </td>
+                    <td className="py-2.5">
+                      <Select
+                        value={t.plan}
+                        onValueChange={(val) => changePlanMutation.mutate({ tenantId: t.id, plan: val })}
+                      >
+                        <SelectTrigger className="h-7 w-28 bg-white/5 border-white/10 text-white text-xs" data-testid={`select-plan-${t.id}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Gratis</SelectItem>
+                          <SelectItem value="basic">Pro</SelectItem>
+                          <SelectItem value="pro">Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {tenantsList.length === 0 && (
+              <p className="text-white/30 text-sm text-center py-8">No hay tenants registrados aún.</p>
+            )}
+          </div>
+        )
+      ) : (
+        paymentsLoading ? (
+          <div className="text-white/40 text-sm">Cargando pagos...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-white/40">
+                  <th className="pb-2 pr-4">Orden</th>
+                  <th className="pb-2 pr-4">Tenant</th>
+                  <th className="pb-2 pr-4">Plan</th>
+                  <th className="pb-2 pr-4">Monto</th>
+                  <th className="pb-2 pr-4">Estado</th>
+                  <th className="pb-2 pr-4">Fecha</th>
+                  <th className="pb-2">Pagado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paymentsList.map((p) => (
+                  <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]" data-testid={`row-payment-${p.id}`}>
+                    <td className="py-2.5 pr-4 text-white/50 text-xs font-mono">{p.commerceOrder.slice(0, 25)}...</td>
+                    <td className="py-2.5 pr-4 text-white/60">{p.tenantId}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${planColors[p.targetPlan] || planColors.free}`}>
+                        {planLabels[p.targetPlan] || p.targetPlan}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-white/80">${p.amount.toLocaleString("es-CL")}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        p.status === "paid" ? "bg-green-500/20 text-green-400" :
+                        p.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                        "bg-yellow-500/20 text-yellow-400"
+                      }`}>
+                        {p.status === "paid" ? "Pagado" : p.status === "rejected" ? "Rechazado" : p.status === "cancelled" ? "Cancelado" : "Pendiente"}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-white/40 text-xs">
+                      {new Date(p.createdAt).toLocaleDateString("es-CL")}
+                    </td>
+                    <td className="py-2.5 text-white/40 text-xs">
+                      {p.paidAt ? new Date(p.paidAt).toLocaleDateString("es-CL") : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {paymentsList.length === 0 && (
+              <p className="text-white/30 text-sm text-center py-8">No hay pagos registrados aún.</p>
+            )}
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState<{ id: number; email: string; role: string; displayName: string; color?: string } | null>(null);
@@ -4003,7 +4207,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "pendientes" | "mis_chats">("all");
-  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge">("conversations");
+  const [adminTab, setAdminTab] = useState<"conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge" | "tenants">("conversations");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -4632,6 +4836,21 @@ export default function AdminPage() {
             )}
           </button>
         )}
+        {adminUser?.role === "superadmin" && (
+          <button
+            data-testid="tab-tenants"
+            onClick={() => setAdminTab("tenants")}
+            className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              adminTab === "tenants" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            }`}
+          >
+            <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            Tenants
+            {adminTab === "tenants" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            )}
+          </button>
+        )}
       </div>
 
       {adminTab === "settings" ? (
@@ -4646,6 +4865,8 @@ export default function AdminPage() {
         <KnowledgePanel />
       ) : adminTab === "canned" ? (
         <CannedResponsesPanel />
+      ) : adminTab === "tenants" ? (
+        <TenantsPanel />
       ) : (
         <div className="flex-1 flex min-h-0">
           <div className={`w-full md:w-80 lg:w-96 border-r border-white/[0.06] flex flex-col ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
