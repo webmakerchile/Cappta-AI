@@ -26,6 +26,18 @@ import {
   Bot,
   MousePointerClick,
   Palette,
+  ImagePlus,
+  ShoppingBag,
+  Wifi,
+  X,
+  UserRound,
+  Search,
+  Bell,
+  Mail,
+  LogOut,
+  CircleDot,
+  Tag,
+  Eye,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -210,6 +222,302 @@ const brandThemes = [
     ],
   },
 ];
+
+function ChatbotPreview() {
+  return (
+    <div className="w-full max-w-[360px] mx-auto" data-testid="chatbot-preview">
+      <div className="rounded-2xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(20,20,20,0.97) 0%, rgba(8,8,8,0.99) 100%)", boxShadow: "0 0 60px rgba(98,0,234,0.06), 0 20px 40px rgba(0,0,0,0.4)" }}>
+        <div className="px-3.5 py-3 flex items-center gap-2.5" style={{ background: "linear-gradient(135deg, #6200EA 0%, #4a00b0 100%)" }}>
+          <div className="relative">
+            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+              <Headphones className="w-4 h-4 text-white" />
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-[#4a00b0]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[13px] font-bold text-white" data-testid="text-preview-brand">Equipo de Soporte</p>
+            <div className="flex items-center gap-1">
+              <Wifi className="w-2.5 h-2.5 text-green-300" />
+              <span className="text-[10px] text-green-200/80" data-testid="status-preview-online">En linea</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center"><Search className="w-3 h-3 text-white/70" /></div>
+            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center"><X className="w-3 h-3 text-white/70" /></div>
+          </div>
+        </div>
+
+        <div className="p-3 space-y-2.5 min-h-[200px]">
+          <div className="flex justify-start">
+            <div className="max-w-[80%] bg-white/[0.06] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3 py-2">
+              <div className="flex items-center gap-1 mb-1">
+                <Headphones className="w-2.5 h-2.5 text-[#6200EA]" />
+                <span className="text-[9px] font-semibold text-[#6200EA]">Soporte IA</span>
+              </div>
+              <p className="text-[12px] text-white/80 leading-relaxed">Hola! Bienvenido a nuestra tienda. En que puedo ayudarte hoy?</p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <div className="max-w-[80%] bg-[#6200EA] rounded-2xl rounded-br-sm px-3 py-2">
+              <p className="text-[12px] text-white leading-relaxed">Busco una PS5 con 2 controles</p>
+            </div>
+          </div>
+          <div className="flex justify-start">
+            <div className="max-w-[80%] bg-white/[0.06] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3 py-2">
+              <div className="flex items-center gap-1 mb-1">
+                <Headphones className="w-2.5 h-2.5 text-[#6200EA]" />
+                <span className="text-[9px] font-semibold text-[#6200EA]">Soporte IA</span>
+              </div>
+              <p className="text-[12px] text-white/80 leading-relaxed">Tenemos la PS5 Slim + 2 DualSense a $459.990. Envio gratis! Te interesa?</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <span className="text-[10px] px-2 py-1 rounded-lg bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/20 cursor-default">Ver detalles</span>
+                <span className="text-[10px] px-2 py-1 rounded-lg bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/20 cursor-default">Agregar al carrito</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <div className="max-w-[80%] bg-[#6200EA] rounded-2xl rounded-br-sm px-3 py-2">
+              <p className="text-[12px] text-white leading-relaxed">Quiero hablar con un ejecutivo</p>
+            </div>
+          </div>
+          <div className="flex justify-start">
+            <div className="max-w-[80%] bg-white/[0.06] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3 py-2 border-l-2 border-l-emerald-500">
+              <div className="flex items-center gap-1 mb-1">
+                <div className="w-3 h-3 rounded-full bg-emerald-500/30 flex items-center justify-center"><UserRound className="w-2 h-2 text-emerald-400" /></div>
+                <span className="text-[9px] font-semibold text-emerald-400">Carlos M. — Ejecutivo</span>
+              </div>
+              <p className="text-[12px] text-white/80 leading-relaxed">Hola! Soy Carlos, vi que te interesa la PS5 Slim. Te puedo ofrecer un descuento especial hoy!</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-3 pb-1">
+          <div className="flex items-center gap-2 mb-2">
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#6200EA]/15 border border-[#6200EA]/20 cursor-default" data-testid="button-preview-contact">
+              <UserRound className="w-3 h-3 text-[#6200EA]" />
+              <span className="text-[10px] font-semibold text-[#a78bfa]">Contactar Ejecutivo</span>
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-default" data-testid="button-preview-rate">
+              <Star className="w-3 h-3 text-amber-400" />
+              <span className="text-[10px] font-semibold text-amber-300/80">Calificar</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="px-3 pb-3">
+          <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2">
+            <ImagePlus className="w-3.5 h-3.5 text-white/25 shrink-0" />
+            <ShoppingBag className="w-3.5 h-3.5 text-white/25 shrink-0" />
+            <span className="flex-1 text-[11px] text-white/20 ml-1">Escribe un mensaje...</span>
+            <div className="w-7 h-7 rounded-lg bg-[#6200EA]/25 flex items-center justify-center shrink-0">
+              <Send className="w-3 h-3 text-[#6200EA]" />
+            </div>
+          </div>
+        </div>
+
+        <div className="px-3 pb-2 text-center">
+          <span className="text-[9px] text-white/15">Powered by webmakerchile.com</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DashboardPreview() {
+  return (
+    <div className="w-full max-w-4xl mx-auto" data-testid="dashboard-preview">
+      <div className="rounded-2xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(18,18,18,0.98) 0%, rgba(8,8,8,0.99) 100%)", boxShadow: "0 0 60px rgba(98,0,234,0.04), 0 20px 40px rgba(0,0,0,0.4)" }}>
+        <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: "linear-gradient(135deg, #6200EA 0%, #4a00b0 100%)" }}>
+          <div className="flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-white" />
+            <span className="text-[13px] font-bold text-white" data-testid="text-dashboard-title">Panel de Ejecutivos</span>
+          </div>
+          <div className="flex-1" />
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10">
+              <Star className="w-2.5 h-2.5 text-amber-300" />
+              <span className="text-[10px] text-white/80 font-medium">4.8</span>
+            </div>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10">
+              <MessageSquare className="w-2.5 h-2.5 text-white/60" />
+              <span className="text-[10px] text-white/80 font-medium">12 activas</span>
+            </div>
+            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Bell className="w-3 h-3 text-white/60" /></div>
+            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><LogOut className="w-3 h-3 text-white/60" /></div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-0.5 px-3 py-1.5 bg-white/[0.02] border-b border-white/[0.06] overflow-x-auto">
+          {["Chats", "Atajos", "Etiquetas", "Productos", "Conocimiento", "Ajustes"].map((tab, i) => (
+            <span key={tab} className={`text-[10px] px-2.5 py-1 rounded-md shrink-0 font-medium ${i === 0 ? "bg-[#6200EA]/20 text-[#a78bfa]" : "text-white/30"}`} data-testid={`tab-preview-${tab.toLowerCase()}`}>{tab}</span>
+          ))}
+        </div>
+
+        <div className="flex min-h-[320px]">
+          <div className="w-[200px] shrink-0 border-r border-white/[0.06] hidden sm:block">
+            <div className="p-2">
+              <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-lg px-2 py-1.5 mb-2">
+                <Search className="w-3 h-3 text-white/25" />
+                <span className="text-[10px] text-white/20">Buscar chats...</span>
+              </div>
+              <div className="flex items-center gap-1 mb-2">
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#6200EA]/20 text-[#a78bfa] font-medium">Activos</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded text-white/25">Cerrados</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-medium flex items-center gap-0.5">
+                  <CircleDot className="w-2 h-2" />2
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-0.5 px-1.5">
+              {[
+                { name: "Maria Lopez", msg: "Quiero hablar con alguien", status: "request", unread: 3 },
+                { name: "Juan Perez", msg: "Gracias por la info!", status: "agent", unread: 0 },
+                { name: "Ana Torres", msg: "Tienen envio a regiones?", status: "bot", unread: 1 },
+                { name: "Pedro Soto", msg: "Me llego danado el producto", status: "request", unread: 5 },
+              ].map((chat, i) => (
+                <div key={i} className={`flex items-center gap-2 p-1.5 rounded-lg cursor-default transition-colors ${i === 0 ? "bg-white/[0.06] border border-white/[0.06]" : "hover:bg-white/[0.03]"}`} data-testid={`card-preview-chat-${i}`}>
+                  <div className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-white/50">{chat.name[0]}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-semibold text-white/70 truncate">{chat.name}</span>
+                      {chat.unread > 0 && <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-[8px] text-white font-bold flex items-center justify-center shrink-0">{chat.unread}</span>}
+                    </div>
+                    <p className="text-[9px] text-white/30 truncate">{chat.msg}</p>
+                  </div>
+                  <div className="shrink-0">
+                    {chat.status === "request" && <span className="w-2 h-2 rounded-full bg-amber-400 block animate-pulse" />}
+                    {chat.status === "agent" && <span className="w-2 h-2 rounded-full bg-emerald-400 block" />}
+                    {chat.status === "bot" && <span className="w-2 h-2 rounded-full bg-[#6200EA] block" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06] bg-white/[0.01]">
+              <div className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center">
+                <span className="text-[10px] font-bold text-white/50">M</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[11px] font-bold text-white/80">Maria Lopez</span>
+                <span className="text-[9px] text-white/25 ml-1.5">maria@email.com</span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/25 cursor-default" data-testid="button-preview-enter">
+                  <UserRound className="w-2.5 h-2.5 text-emerald-400" />
+                  <span className="text-[9px] font-semibold text-emerald-300">Entrar</span>
+                </button>
+                <button className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/15 border border-amber-500/25 cursor-default" data-testid="button-preview-transfer">
+                  <Users className="w-2.5 h-2.5 text-amber-400" />
+                  <span className="text-[9px] font-semibold text-amber-300">Transferir</span>
+                </button>
+                <div className="w-5 h-5 rounded bg-white/[0.06] flex items-center justify-center"><Star className="w-2.5 h-2.5 text-white/30" /></div>
+                <div className="w-5 h-5 rounded bg-white/[0.06] flex items-center justify-center"><Mail className="w-2.5 h-2.5 text-white/30" /></div>
+              </div>
+            </div>
+
+            <div className="px-3 py-1.5">
+              <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/15">
+                <Eye className="w-3 h-3 text-emerald-400" />
+                <span className="text-[10px] text-emerald-300/80" data-testid="status-preview-intervention">Chat asignado a ti — El bot esta pausado</span>
+              </div>
+            </div>
+
+            <div className="flex-1 px-3 py-2 space-y-2 overflow-hidden">
+              <div className="flex justify-start">
+                <div className="max-w-[75%] bg-white/[0.05] border border-white/[0.06] rounded-xl rounded-bl-sm px-2.5 py-1.5">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <Bot className="w-2.5 h-2.5 text-[#6200EA]" />
+                    <span className="text-[8px] font-semibold text-[#a78bfa]">Bot IA</span>
+                  </div>
+                  <p className="text-[11px] text-white/70">Hola Maria! En que puedo ayudarte?</p>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="max-w-[75%] bg-[#6200EA] rounded-xl rounded-br-sm px-2.5 py-1.5">
+                  <p className="text-[11px] text-white">Quiero hablar con un ejecutivo por favor</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 py-1">
+                <div className="flex-1 h-px bg-amber-500/20" />
+                <span className="text-[8px] text-amber-400/60 font-medium px-1">Solicitud de ejecutivo</span>
+                <div className="flex-1 h-px bg-amber-500/20" />
+              </div>
+              <div className="flex justify-start">
+                <div className="max-w-[75%] bg-white/[0.05] border border-white/[0.06] rounded-xl rounded-bl-sm px-2.5 py-1.5 border-l-2 border-l-emerald-500">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/40 flex items-center justify-center"><UserRound className="w-1.5 h-1.5 text-emerald-300" /></div>
+                    <span className="text-[8px] font-semibold text-emerald-400">Carlos M.</span>
+                  </div>
+                  <p className="text-[11px] text-white/70">Hola Maria! Soy Carlos, como te puedo ayudar?</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-3 pb-2.5">
+              <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl px-2.5 py-2">
+                <ImagePlus className="w-3 h-3 text-white/20" />
+                <span className="flex-1 text-[10px] text-white/20">Responder como Carlos M...</span>
+                <Send className="w-3 h-3 text-[#6200EA]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewTabs() {
+  const [activeTab, setActiveTab] = useState<"widget" | "dashboard">("widget");
+
+  return (
+    <div data-testid="preview-tabs">
+      <div className="text-center mb-8">
+        <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90">Asi se ve en la practica</h3>
+        <p className="text-sm text-white/35 max-w-lg mx-auto">Explora como luce el chatbot para tus clientes y el panel donde tus ejecutivos toman el control.</p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <button
+          onClick={() => setActiveTab("widget")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === "widget" ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40 hover:text-white/60"}`}
+          data-testid="tab-widget-preview"
+        >
+          <MessageSquare className="w-4 h-4" />
+          Chat Widget
+        </button>
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === "dashboard" ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40 hover:text-white/60"}`}
+          data-testid="tab-dashboard-preview"
+        >
+          <Headphones className="w-4 h-4" />
+          Panel de Ejecutivos
+        </button>
+      </div>
+
+      <div className="relative">
+        <div
+          className={`transition-all duration-500 ${activeTab === "widget" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}
+        >
+          <ChatbotPreview />
+          <p className="text-center text-[11px] text-white/20 mt-4">Widget embebido en tu sitio web — Totalmente personalizable</p>
+        </div>
+        <div
+          className={`transition-all duration-500 ${activeTab === "dashboard" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}
+        >
+          <DashboardPreview />
+          <p className="text-center text-[11px] text-white/20 mt-4">Panel de administracion donde los ejecutivos gestionan chats en tiempo real</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLElement>(null);
@@ -699,7 +1007,7 @@ export default function Landing() {
             ))}
           </div>
 
-          <div className="rounded-2xl glass-card p-8 max-w-3xl mx-auto">
+          <div className="rounded-2xl glass-card p-8 max-w-3xl mx-auto mb-16">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
                 { value: "90%", label: "Consultas resueltas por IA", desc: "Sin intervencion humana", color: "#10b981" },
@@ -714,6 +1022,8 @@ export default function Landing() {
               ))}
             </div>
           </div>
+
+          <PreviewTabs />
         </div>
       </section>
 
