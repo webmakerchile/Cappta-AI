@@ -56,6 +56,8 @@ import { GuidesPanel } from "./Guides";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import OnboardingWizard from "./OnboardingWizard";
+import DashboardTour, { TourPrompt } from "./DashboardTour";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 
@@ -1963,6 +1965,15 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("stats");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { toast } = useToast();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTourPrompt, setShowTourPrompt] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+
+  useEffect(() => {
+    if (tenant && (tenant.onboardingStep ?? 0) < 3) {
+      setShowOnboarding(true);
+    }
+  }, [tenant?.id]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2088,6 +2099,23 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (showOnboarding && tenant && token) {
+    return (
+      <OnboardingWizard
+        tenant={tenant}
+        token={token}
+        onComplete={() => {
+          setShowOnboarding(false);
+          queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+          const tourSeen = localStorage.getItem("foxbot_tour_seen");
+          if (!tourSeen) {
+            setShowTourPrompt(true);
+          }
+        }}
+      />
     );
   }
 
@@ -2249,6 +2277,33 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      {showTourPrompt && (
+        <TourPrompt
+          onStart={() => {
+            setShowTourPrompt(false);
+            setSidebarOpen(true);
+            setTimeout(() => setShowTour(true), 400);
+          }}
+          onSkip={() => {
+            setShowTourPrompt(false);
+            localStorage.setItem("foxbot_tour_seen", "1");
+          }}
+        />
+      )}
+
+      {showTour && (
+        <DashboardTour
+          onComplete={() => {
+            setShowTour(false);
+            localStorage.setItem("foxbot_tour_seen", "1");
+          }}
+          onSkip={() => {
+            setShowTour(false);
+            localStorage.setItem("foxbot_tour_seen", "1");
+          }}
+        />
+      )}
     </div>
   );
 }

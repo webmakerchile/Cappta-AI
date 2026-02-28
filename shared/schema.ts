@@ -152,6 +152,7 @@ export const tenants = pgTable("tenants", {
   productSearchLabel: text("product_search_label").notNull().default("Buscar producto"),
   productApiUrl: text("product_api_url"),
   botConfigured: integer("bot_configured").notNull().default(0),
+  onboardingStep: integer("onboarding_step").notNull().default(0),
   aiEnabled: integer("ai_enabled").notNull().default(1),
   botContext: text("bot_context"),
   businessHoursConfig: text("business_hours_config"),
