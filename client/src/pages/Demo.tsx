@@ -867,14 +867,28 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
     sendMessage(`Me interesa ${p.name} (${p.price})`);
   }
 
+  const [execConnected, setExecConnected] = useState(false);
+  const [execTyping, setExecTyping] = useState(false);
+
   function handleContactExecutive() {
     if (contactRequested) return;
     setContactRequested(true);
     setMessages(prev => [
       ...prev,
       { role: "user", content: "Quiero hablar con un ejecutivo" },
-      { role: "assistant", content: `Tu solicitud fue enviada! 🙋 Un ejecutivo de ${ctx.business} se conectara en breve para ayudarte personalmente. Mientras tanto, puedo seguir resolviendo tus dudas.` },
+      { role: "assistant", content: `🔔 Tu solicitud fue enviada. Un ejecutivo de ${ctx.business} se conectará en breve para ayudarte personalmente.` },
     ]);
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: "assistant", content: `⚡ Un ejecutivo se ha conectado al chat. A partir de ahora te atenderá directamente.` }]);
+      setExecConnected(true);
+    }, 2500);
+    setTimeout(() => {
+      setExecTyping(true);
+    }, 4000);
+    setTimeout(() => {
+      setExecTyping(false);
+      setMessages(prev => [...prev, { role: "assistant", content: `👋 ¡Hola! Soy ejecutivo de ${ctx.business}. Vi tu consulta y estoy aquí para ayudarte. ¿En qué te puedo asistir?` }]);
+    }, 6000);
   }
 
   function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -923,8 +937,17 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
           <div>
             <div className="text-[13px] font-bold text-white leading-tight" data-testid="text-chat-brand">{ctx.business}</div>
             <div className="flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-              <span className="text-[10px] text-white/70">En línea</span>
+              {execConnected ? (
+                <>
+                  <Headphones className="w-2.5 h-2.5 text-amber-300" />
+                  <span className="text-[10px] text-amber-300 font-medium">Ejecutivo atendiendo</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                  <span className="text-[10px] text-white/70">{contactRequested ? "Conectando ejecutivo..." : "En línea"}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -997,6 +1020,22 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
               <div className="flex items-center gap-2">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: ctx.color }} />
                 <span className="text-[11px] text-white/40">Escribiendo...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {execTyping && (
+          <div className="flex justify-start">
+            <div className="px-3 py-2 rounded-2xl rounded-bl-sm border" style={{ backgroundColor: `${ctx.color}08`, borderColor: `${ctx.color}20` }}>
+              <div className="flex items-center gap-2">
+                <Headphones className="w-3 h-3" style={{ color: ctx.color }} />
+                <span className="text-[11px] font-medium" style={{ color: ctx.color }}>Ejecutivo escribiendo</span>
+                <span className="flex gap-0.5">
+                  <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: ctx.color, animationDelay: "0ms" }} />
+                  <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: ctx.color, animationDelay: "150ms" }} />
+                  <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: ctx.color, animationDelay: "300ms" }} />
+                </span>
               </div>
             </div>
           </div>
@@ -1121,28 +1160,109 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
   const [execInput, setExecInput] = useState("");
   const [localMsgs, setLocalMsgs] = useState<DemoSessionMsg[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [userTyping, setUserTyping] = useState(false);
+  const [sessionStatuses, setSessionStatuses] = useState<Record<string, "active" | "closed">>({});
+  const [sessionClaimed, setSessionClaimed] = useState<Record<string, boolean>>({});
+  const [liveUnread, setLiveUnread] = useState<Record<string, number>>({});
+  const [incomingNotif, setIncomingNotif] = useState<string | null>(null);
+  const execInputRef = useRef<HTMLInputElement>(null);
+  const [elapsedTimes] = useState<Record<string, string>>(() => {
+    const times: Record<string, string> = {};
+    sessions.forEach((s, i) => {
+      times[s.id] = i === 0 ? "hace 2 min" : i === 1 ? "hace 45 seg" : "hace 12 min";
+    });
+    return times;
+  });
+
+  const getStatus = (sId: string, original: "active" | "closed") => sessionStatuses[sId] ?? original;
+  const isClaimed = (sId: string) => sessionClaimed[sId] ?? false;
+  const getUnread = (sId: string, original: number) => liveUnread[sId] ?? original;
 
   useEffect(() => {
     setLocalMsgs([]);
-    setClaimed(false);
     setExecInput("");
   }, [selectedSession]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [localMsgs, selectedSession]);
+  }, [localMsgs, selectedSession, userTyping]);
+
+  useEffect(() => {
+    if (!claimed) return;
+    const timeout1 = setTimeout(() => {
+      setUserTyping(true);
+    }, 3000);
+    const timeout2 = setTimeout(() => {
+      setUserTyping(false);
+      setLocalMsgs(prev => [...prev, { sender: "user", content: "Perfecto, gracias por atenderme! 😊" }]);
+    }, 5500);
+    return () => { clearTimeout(timeout1); clearTimeout(timeout2); };
+  }, [claimed, selectedSession]);
+
+  useEffect(() => {
+    const incomingTimer = setTimeout(() => {
+      const unclaimed = sessions.find(s => !isClaimed(s.id) && s.id !== selectedSession && getStatus(s.id, s.status) === "active");
+      if (unclaimed) {
+        setLiveUnread(prev => ({ ...prev, [unclaimed.id]: (prev[unclaimed.id] ?? unclaimed.unread) + 1 }));
+        setIncomingNotif(`💬 Nuevo mensaje de ${unclaimed.userName}`);
+        setTimeout(() => setIncomingNotif(null), 3000);
+      }
+    }, 8000);
+    return () => clearTimeout(incomingTimer);
+  }, [selectedSession]);
 
   const allMessages = [...(activeSession?.messages || []), ...localMsgs];
+
+  function handleClaim() {
+    setClaimed(true);
+    setSessionClaimed(prev => ({ ...prev, [selectedSession]: true }));
+    setLiveUnread(prev => ({ ...prev, [selectedSession]: 0 }));
+    setLocalMsgs(prev => [...prev, { sender: "system", content: "Te has asignado este chat — El bot IA está pausado" }]);
+  }
+
+  function handleUnclaim() {
+    setClaimed(false);
+    setSessionClaimed(prev => ({ ...prev, [selectedSession]: false }));
+    setLocalMsgs(prev => [...prev, { sender: "system", content: "Has dejado el chat — El bot IA retoma la conversación" }]);
+  }
+
+  function handleCloseSession() {
+    setSessionStatuses(prev => ({ ...prev, [selectedSession]: "closed" }));
+    setClaimed(false);
+    setSessionClaimed(prev => ({ ...prev, [selectedSession]: false }));
+    setLocalMsgs(prev => [...prev, { sender: "system", content: "Sesión cerrada" }]);
+  }
 
   function handleSendExecMsg() {
     if (!execInput.trim() || !claimed) return;
     setLocalMsgs(prev => [...prev, { sender: "executive", content: execInput.trim() }]);
     setExecInput("");
+    execInputRef.current?.focus();
+    setTimeout(() => {
+      setUserTyping(true);
+      setTimeout(() => {
+        setUserTyping(false);
+        const responses = [
+          "Entendido, muchas gracias por la ayuda! 🙏",
+          "Excelente, justo lo que necesitaba saber!",
+          "Perfecto! ¿Y tienen otros modelos disponibles?",
+          "Genial, voy a revisarlo. Gracias! 👍",
+        ];
+        setLocalMsgs(prev => [...prev, { sender: "user", content: responses[Math.floor(Math.random() * responses.length)] }]);
+      }, 2500);
+    }, 1500);
   }
 
   function handleSendFile() {
     if (!claimed || !file) return;
     setLocalMsgs(prev => [...prev, { sender: "executive", content: "Te envío la información detallada:", file }]);
+    setTimeout(() => {
+      setUserTyping(true);
+      setTimeout(() => {
+        setUserTyping(false);
+        setLocalMsgs(prev => [...prev, { sender: "user", content: "Recibido! Voy a revisar el documento. Gracias 📄👍" }]);
+      }, 2000);
+    }, 1500);
   }
 
   const TAG_COLORS: Record<string, string> = {
@@ -1153,17 +1273,34 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
     VIP: "#f59e0b",
   };
 
+  const totalPending = sessions.filter(s => s.contactRequested && !isClaimed(s.id)).length;
+
   return (
     <div className="flex flex-col h-full" data-testid="demo-executive-panel">
+      {incomingNotif && (
+        <div className="absolute top-14 right-4 z-50 animate-dash-fade-up">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg" style={{ backgroundColor: "rgba(15,15,15,0.98)", borderColor: `${ctx.color}30`, boxShadow: `0 4px 20px ${ctx.color}15` }}>
+            <Bell className="w-3.5 h-3.5 animate-bounce" style={{ color: ctx.color }} />
+            <span className="text-[11px] font-medium text-white/80">{incomingNotif}</span>
+          </div>
+        </div>
+      )}
+
       <div className="shrink-0 px-3.5 py-2.5 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${ctx.color} 0%, ${ctx.colorAccent} 100%)` }}>
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-white" />
           <span className="text-[13px] font-bold text-white" data-testid="text-exec-panel-title">Panel de Ejecutivos — {ctx.business}</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
+          {totalPending > 0 && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/30 animate-pulse">
+              <Bell className="w-2.5 h-2.5 text-amber-300" />
+              <span className="text-[10px] text-amber-200 font-bold">{totalPending} pendiente{totalPending > 1 ? "s" : ""}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/15 border border-white/20">
-            <Bell className="w-2.5 h-2.5 text-white" />
-            <span className="text-[10px] text-white font-bold">{sessions.filter(s => s.contactRequested).length} solicitudes</span>
+            <Eye className="w-2.5 h-2.5 text-white" />
+            <span className="text-[10px] text-white font-bold">{sessions.filter(s => getStatus(s.id, s.status) === "active").length} activos</span>
           </div>
         </div>
       </div>
@@ -1171,50 +1308,66 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
       <div className="flex flex-1 min-h-0">
         <div className="w-[180px] sm:w-[220px] shrink-0 border-r border-white/[0.06] overflow-y-auto" style={{ background: "rgba(8,8,8,0.98)" }}>
           <div className="p-2 border-b border-white/[0.04]">
-            <span className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Chats activos ({sessions.length})</span>
+            <span className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Chats ({sessions.length})</span>
           </div>
-          {sessions.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedSession(s.id)}
-              className={`w-full text-left p-2 transition-colors border-b border-white/[0.03] ${
-                selectedSession === s.id
-                  ? "bg-white/[0.06]"
-                  : "hover:bg-white/[0.03]"
-              } ${s.contactRequested ? "bg-amber-500/[0.04]" : ""}`}
-              data-testid={`button-exec-session-${s.id}`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="relative shrink-0">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${s.color}25` }}>
-                    <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.initial}</span>
-                  </div>
-                  {s.status === "active" && (
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#080808] ${s.contactRequested ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-semibold text-white/80 truncate">{s.userName}</span>
-                    {s.unread > 0 && (
-                      <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-[7px] text-white font-bold flex items-center justify-center shrink-0 animate-bounce">{s.unread}</span>
+          {sessions.map((s) => {
+            const status = getStatus(s.id, s.status);
+            const sClaimed = isClaimed(s.id);
+            const unread = getUnread(s.id, s.unread);
+            return (
+              <button
+                key={s.id}
+                onClick={() => { setSelectedSession(s.id); setClaimed(sClaimed); setLiveUnread(prev => ({ ...prev, [s.id]: 0 })); }}
+                className={`w-full text-left p-2 transition-all duration-200 border-b border-white/[0.03] ${
+                  selectedSession === s.id
+                    ? "bg-white/[0.06]"
+                    : "hover:bg-white/[0.03]"
+                } ${s.contactRequested && !sClaimed ? "bg-amber-500/[0.04]" : ""}`}
+                data-testid={`button-exec-session-${s.id}`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="relative shrink-0">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${s.color}25` }}>
+                      <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.initial}</span>
+                    </div>
+                    {status === "active" && (
+                      <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#080808] ${
+                        sClaimed ? "bg-blue-400" : s.contactRequested ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
+                      }`} />
+                    )}
+                    {status === "closed" && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#080808] bg-white/20" />
                     )}
                   </div>
-                  {s.contactRequested && (
-                    <p className="text-[8px] text-amber-400 font-bold mt-0.5 flex items-center gap-0.5"><CircleDot className="w-2 h-2" /> Solicita Ejecutivo</p>
-                  )}
-                  {s.status === "closed" && (
-                    <p className="text-[8px] text-white/20 mt-0.5">Cerrado</p>
-                  )}
-                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                    {s.tags.map(tag => (
-                      <span key={tag} className="text-[7px] px-1 py-0.5 rounded font-bold" style={{ backgroundColor: `${TAG_COLORS[tag] || "#6b7280"}15`, color: TAG_COLORS[tag] || "#6b7280" }}>{tag}</span>
-                    ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-semibold text-white/80 truncate">{s.userName}</span>
+                      {unread > 0 && (
+                        <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-[7px] text-white font-bold flex items-center justify-center shrink-0 animate-bounce">{unread}</span>
+                      )}
+                    </div>
+                    {sClaimed ? (
+                      <p className="text-[8px] font-bold mt-0.5 flex items-center gap-0.5" style={{ color: ctx.color }}><UserRound className="w-2 h-2" /> Asignado a ti</p>
+                    ) : s.contactRequested && status === "active" ? (
+                      <p className="text-[8px] text-amber-400 font-bold mt-0.5 flex items-center gap-0.5"><CircleDot className="w-2 h-2" /> Solicita Ejecutivo</p>
+                    ) : status === "closed" ? (
+                      <p className="text-[8px] text-white/20 mt-0.5">Cerrado</p>
+                    ) : (
+                      <p className="text-[8px] text-white/25 mt-0.5">Bot atendiendo</p>
+                    )}
+                    <div className="flex items-center justify-between mt-0.5">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {s.tags.map(tag => (
+                          <span key={tag} className="text-[7px] px-1 py-0.5 rounded font-bold" style={{ backgroundColor: `${TAG_COLORS[tag] || "#6b7280"}15`, color: TAG_COLORS[tag] || "#6b7280" }}>{tag}</span>
+                        ))}
+                      </div>
+                      <span className="text-[7px] text-white/15 shrink-0">{elapsedTimes[s.id]}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex-1 flex flex-col min-w-0" style={{ background: "rgba(12,12,12,0.98)" }}>
@@ -1223,14 +1376,19 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
               <span className="text-[10px] font-bold" style={{ color: activeSession.color }}>{activeSession.initial}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <span className="text-[11px] font-bold text-white/80">{activeSession.userName}</span>
-              <span className="text-[9px] text-white/25 ml-1.5">{activeSession.userEmail}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-white/80">{activeSession.userName}</span>
+                {getStatus(selectedSession, activeSession.status) === "active" && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                )}
+              </div>
+              <span className="text-[9px] text-white/25">{activeSession.userEmail}</span>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              {activeSession.status === "active" && !claimed && (
+              {getStatus(selectedSession, activeSession.status) === "active" && !claimed && (
                 <button
-                  onClick={() => setClaimed(true)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all"
+                  onClick={handleClaim}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all hover:scale-105"
                   style={{ backgroundColor: `${ctx.color}15`, border: `1px solid ${ctx.color}30` }}
                   data-testid="button-exec-claim"
                 >
@@ -1239,25 +1397,32 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                 </button>
               )}
               {claimed && (
-                <button
-                  onClick={() => setClaimed(false)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/25"
-                  data-testid="button-exec-leave"
-                >
-                  <span className="text-[10px] font-bold text-red-400">Salir</span>
-                </button>
+                <>
+                  <button
+                    onClick={handleUnclaim}
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all"
+                    data-testid="button-exec-leave"
+                  >
+                    <span className="text-[10px] font-medium text-white/50">Soltar</span>
+                  </button>
+                  <button
+                    onClick={handleCloseSession}
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                    data-testid="button-exec-close-session"
+                  >
+                    <X className="w-2.5 h-2.5 text-red-400" />
+                    <span className="text-[10px] font-medium text-red-400">Cerrar</span>
+                  </button>
+                </>
               )}
-              <select className="text-[9px] bg-white/[0.04] border border-white/[0.08] rounded-md px-1.5 py-1 text-white/50" defaultValue={activeSession.status} data-testid="select-exec-status">
-                <option value="active">Activo</option>
-                <option value="closed">Cerrar</option>
-              </select>
             </div>
           </div>
 
           {claimed && (
             <div className="shrink-0 px-3 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${ctx.color}08`, borderBottom: `1px solid ${ctx.color}15` }}>
               <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: ctx.color }} />
-              <span className="text-[10px] font-medium" style={{ color: ctx.color }}>Chat asignado a ti — El bot esta pausado. Tus respuestas se envian directamente al usuario.</span>
+              <span className="text-[10px] font-medium" style={{ color: ctx.color }}>Chat asignado a ti — El bot está pausado</span>
+              <span className="text-[8px] text-white/20 ml-auto">Tus respuestas llegan directamente al usuario</span>
             </div>
           )}
 
@@ -1267,6 +1432,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                 <div className="flex items-center gap-1.5 mb-2">
                   <FileText className="w-3 h-3" style={{ color: ctx.color }} />
                   <span className="text-[10px] font-bold" style={{ color: ctx.color }}>Formulario pre-chat</span>
+                  <span className="text-[8px] text-white/20 ml-auto">{elapsedTimes[selectedSession]}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -1294,10 +1460,12 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
             {allMessages.map((msg, i) => {
               if (msg.sender === "system") {
                 return (
-                  <div key={i} className="flex items-center gap-2 py-1" data-testid={`msg-exec-system-${i}`}>
-                    <div className="flex-1 h-px bg-amber-500/20" />
-                    <span className="text-[8px] text-amber-400/60 font-medium px-1 flex items-center gap-1"><Bell className="w-2 h-2" />{msg.content}</span>
-                    <div className="flex-1 h-px bg-amber-500/20" />
+                  <div key={i} className="flex items-center gap-2 py-1.5" data-testid={`msg-exec-system-${i}`}>
+                    <div className="flex-1 h-px bg-white/[0.06]" />
+                    <span className="text-[8px] text-white/30 font-medium px-2 py-0.5 rounded-full bg-white/[0.03] flex items-center gap-1">
+                      <Bell className="w-2 h-2" />{msg.content}
+                    </span>
+                    <div className="flex-1 h-px bg-white/[0.06]" />
                   </div>
                 );
               }
@@ -1309,7 +1477,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                 <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"}`} data-testid={`msg-exec-${msg.sender}-${i}`}>
                   <div className={`max-w-[75%] px-2.5 py-1.5 rounded-xl text-[11px] leading-relaxed ${
                     isUser
-                      ? `rounded-br-sm text-white`
+                      ? "rounded-br-sm text-white"
                       : isExec
                         ? "rounded-bl-sm border"
                         : "bg-white/[0.05] border border-white/[0.06] rounded-bl-sm"
@@ -1324,7 +1492,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                     {isExec && (
                       <div className="flex items-center gap-1 mb-0.5">
                         <UserRound className="w-2.5 h-2.5" style={{ color: ctx.color }} />
-                        <span className="text-[9px] font-semibold" style={{ color: ctx.color }}>Ejecutivo</span>
+                        <span className="text-[9px] font-semibold" style={{ color: ctx.color }}>Tú (Ejecutivo)</span>
                       </div>
                     )}
                     {!isUser && !isExec && (
@@ -1347,6 +1515,21 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
               );
             })}
 
+            {userTyping && (
+              <div className="flex justify-end">
+                <div className="px-2.5 py-1.5 rounded-xl rounded-br-sm bg-white/[0.04] border border-white/[0.06]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-white/30">Escribiendo</span>
+                    <span className="flex gap-0.5">
+                      <span className="w-1 h-1 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1 h-1 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1 h-1 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -1354,7 +1537,11 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
             {!claimed ? (
               <div className="flex items-center gap-2 justify-center py-1">
                 <UserRound className="w-3 h-3 text-white/20" />
-                <span className="text-[10px] text-white/25">Haz clic en "Entrar al Chat" para responder como ejecutivo</span>
+                <span className="text-[10px] text-white/25">
+                  {getStatus(selectedSession, activeSession.status) === "closed"
+                    ? "Esta sesión está cerrada"
+                    : 'Haz clic en "Entrar al Chat" para responder como ejecutivo'}
+                </span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
@@ -1368,18 +1555,20 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                   <FileText className="w-3.5 h-3.5" />
                 </button>
                 <input
+                  ref={execInputRef}
                   type="text"
                   value={execInput}
                   onChange={(e) => setExecInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendExecMsg(); }}}
                   placeholder="Responde como ejecutivo..."
-                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-white/15 transition-all text-white placeholder:text-white/20"
+                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-[11px] focus:outline-none transition-all text-white placeholder:text-white/20"
+                  style={{ borderColor: execInput.trim() ? `${ctx.color}30` : undefined }}
                   data-testid="input-exec-message"
                 />
                 <button
                   onClick={handleSendExecMsg}
                   disabled={!execInput.trim()}
-                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white disabled:opacity-30 transition-all"
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white disabled:opacity-30 transition-all hover:scale-110"
                   style={{ backgroundColor: ctx.color }}
                   data-testid="button-exec-send"
                 >
