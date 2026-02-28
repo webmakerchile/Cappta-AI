@@ -26,6 +26,9 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+app.get("/api/config/google-client-id", (_req, res) => {
+  res.json({ clientId: process.env.GOOGLE_CLIENT_ID || "" });
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

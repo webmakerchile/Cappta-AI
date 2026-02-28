@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, Zap } from "lucide-react";
+import { GoogleSignIn } from "@/components/GoogleSignIn";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 const loginSchema = z.object({
@@ -134,6 +135,21 @@ export default function Login() {
 
           <div className="rounded-2xl glass-card p-7 animate-dash-scale-in dash-stagger-2 relative overflow-hidden">
             <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)" }} />
+
+            <div className="relative mb-5 animate-dash-fade-up dash-stagger-2">
+              <GoogleSignIn
+                onSuccess={(token) => {
+                  localStorage.setItem("tenant_token", token);
+                  toast({ title: "Sesion iniciada", description: "Bienvenido de vuelta." });
+                  window.location.href = "/dashboard";
+                }}
+              />
+              <div className="flex items-center gap-3 mt-5">
+                <div className="flex-1 h-px bg-white/[0.06]" />
+                <span className="text-xs text-white/20 font-medium">o usa tu email</span>
+                <div className="flex-1 h-px bg-white/[0.06]" />
+              </div>
+            </div>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 relative">

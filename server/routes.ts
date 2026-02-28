@@ -1122,6 +1122,48 @@ ${DEMO_BASE_RULES}`,
     }
   });
 
+  app.post("/api/tenants/google-auth", async (req, res) => {
+    try {
+      const { credential } = req.body;
+      if (!credential) {
+        return res.status(400).json({ message: "Token de Google requerido" });
+      }
+      const { OAuth2Client } = await import("google-auth-library");
+      const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email) {
+        return res.status(401).json({ message: "Token de Google invalido" });
+      }
+      const email = payload.email.toLowerCase().trim();
+      const name = payload.name || email.split("@")[0];
+      let tenant = await storage.getTenantByEmail(email);
+      if (!tenant) {
+        const crypto = await import("crypto");
+        const randomPass = crypto.randomBytes(32).toString("hex");
+        const passwordHash = await bcrypt.hash(randomPass, 10);
+        tenant = await storage.createTenant({
+          name,
+          email,
+          passwordHash,
+          companyName: name,
+        });
+      }
+      const token = generateTenantToken({ id: tenant.id, email: tenant.email, companyName: tenant.companyName });
+      res.json({
+        token,
+        isNew: !!(tenant.companyName === name && tenant.plan === "free"),
+        tenant: { id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain },
+      });
+    } catch (error: any) {
+      log(`Error en Google auth: ${error.message}`, "auth");
+      res.status(401).json({ message: "Error de autenticacion con Google" });
+    }
+  });
+
   app.post("/api/tenants/login", async (req, res) => {
     try {
       const { email, password } = req.body;
