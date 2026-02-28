@@ -5,12 +5,27 @@ import { registerRoutes } from "./routes";
 import { serveStaticFiles, serveSpaFallback } from "./static";
 import { createServer } from "http";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 const app = express();
+
+let indexHtmlCache: string | null = null;
+if (process.env.NODE_ENV === "production") {
+  try {
+    indexHtmlCache = fs.readFileSync(path.resolve(__dirname, "public", "index.html"), "utf-8");
+  } catch {}
+}
+
 const httpServer = createServer((req, res) => {
   if (req.url === "/health" || req.url === "/api/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end('{"status":"ok"}');
+    return;
+  }
+  if (req.url === "/" && indexHtmlCache) {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(indexHtmlCache);
     return;
   }
   app(req, res);
