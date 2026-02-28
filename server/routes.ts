@@ -1832,10 +1832,29 @@ ${DEMO_BASE_RULES}`,
     if (!auth) return;
     try {
       const tenant = await storage.getTenantById(auth.id);
-      const updated = await storage.claimTenantSession(auth.id, req.params.sessionId, tenant?.companyName || auth.email, tenant?.widgetColor || "#10b981");
+      const agentName = tenant?.companyName || auth.email;
+      const updated = await storage.claimTenantSession(auth.id, req.params.sessionId, agentName, tenant?.widgetColor || "#10b981");
       if (!updated) return res.status(404).json({ message: "Sesion no encontrada" });
+
+      await storage.updateSessionAdminActive(req.params.sessionId, true);
+
+      const session = await storage.getSession(req.params.sessionId);
+      const notifyMsg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session?.userEmail || "support@system",
+        userName: "Soporte",
+        sender: "support",
+        content: "Un agente de soporte se ha unido a la conversacion. A partir de ahora seras atendido personalmente.",
+        tenantId: auth.id,
+      });
+      io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
+      io.to(`tenant:${auth.id}`).emit("tenant_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "claim", session: updated });
+
       res.json(updated);
     } catch (error: any) {
+      log(`Error tenant claim: ${error.message}`, "api");
       res.status(500).json({ message: "Error" });
     }
   });
@@ -1844,10 +1863,27 @@ ${DEMO_BASE_RULES}`,
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
+      await storage.updateSessionAdminActive(req.params.sessionId, false);
       const updated = await storage.unclaimTenantSession(auth.id, req.params.sessionId);
       if (!updated) return res.status(404).json({ message: "Sesion no encontrada" });
+
+      const session = await storage.getSession(req.params.sessionId);
+      const notifyMsg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        userEmail: session?.userEmail || "support@system",
+        userName: "Soporte",
+        sender: "support",
+        content: "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.",
+        tenantId: auth.id,
+      });
+      io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
+      io.to(`tenant:${auth.id}`).emit("tenant_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
+      io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: notifyMsg });
+      io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "unclaim", session: updated });
+
       res.json(updated);
     } catch (error: any) {
+      log(`Error tenant unclaim: ${error.message}`, "api");
       res.status(500).json({ message: "Error" });
     }
   });
