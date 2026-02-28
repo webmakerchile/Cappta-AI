@@ -14,7 +14,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, Zap } from "lucide-react";
+import { useState } from "react";
+import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, Zap, UserCog, Building2 } from "lucide-react";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
@@ -23,16 +24,33 @@ const loginSchema = z.object({
   password: z.string().min(1, "Ingresa tu contrasena"),
 });
 
+const agentLoginSchema = z.object({
+  email: z.string().email("Ingresa un correo valido"),
+  password: z.string().min(1, "Ingresa tu contrasena"),
+  tenantId: z.string().min(1, "Ingresa el ID de empresa"),
+});
+
 type LoginForm = z.infer<typeof loginSchema>;
+type AgentLoginForm = z.infer<typeof agentLoginSchema>;
 
 export default function Login() {
   const { toast } = useToast();
+  const [isAgentLogin, setIsAgentLogin] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const agentForm = useForm<AgentLoginForm>({
+    resolver: zodResolver(agentLoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      tenantId: "",
     },
   });
 
@@ -58,8 +76,34 @@ export default function Login() {
     },
   });
 
+  const agentLoginMutation = useMutation({
+    mutationFn: async (data: AgentLoginForm) => {
+      const res = await apiRequest("POST", "/api/tenant-agents/login", data);
+      return res.json();
+    },
+    onSuccess: (data: { token: string; companyName: string }) => {
+      localStorage.setItem("tenant_token", data.token);
+      toast({
+        title: "Sesion iniciada",
+        description: `Bienvenido al panel de ${data.companyName}`,
+      });
+      window.location.href = "/panel";
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error al iniciar sesion",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   function onSubmit(data: LoginForm) {
     loginMutation.mutate(data);
+  }
+
+  function onAgentSubmit(data: AgentLoginForm) {
+    agentLoginMutation.mutate(data);
   }
 
   return (
@@ -136,89 +180,198 @@ export default function Login() {
           <div className="rounded-2xl glass-card p-7 animate-dash-scale-in dash-stagger-2 relative overflow-hidden">
             <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)" }} />
 
-            <div className="relative mb-5 animate-dash-fade-up dash-stagger-2">
-              <GoogleSignIn
-                onSuccess={(token) => {
-                  localStorage.setItem("tenant_token", token);
-                  toast({ title: "Sesion iniciada", description: "Bienvenido de vuelta." });
-                  window.location.href = "/dashboard";
-                }}
-              />
-              <div className="flex items-center gap-3 mt-5">
-                <div className="flex-1 h-px bg-white/[0.06]" />
-                <span className="text-xs text-white/20 font-medium">o usa tu email</span>
-                <div className="flex-1 h-px bg-white/[0.06]" />
-              </div>
+            <div className="flex gap-1 mb-5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]" data-testid="login-mode-toggle">
+              <button
+                onClick={() => setIsAgentLogin(false)}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${!isAgentLogin ? "bg-primary/15 text-primary" : "text-white/35 hover:text-white/50"}`}
+                data-testid="button-owner-login"
+              >
+                <Building2 className="w-4 h-4" />
+                Propietario
+              </button>
+              <button
+                onClick={() => setIsAgentLogin(true)}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${isAgentLogin ? "bg-blue-500/15 text-blue-400" : "text-white/35 hover:text-white/50"}`}
+                data-testid="button-agent-login"
+              >
+                <UserCog className="w-4 h-4" />
+                Ejecutivo
+              </button>
             </div>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 relative">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="animate-dash-fade-up dash-stagger-3">
-                      <FormLabel className="text-white/60 text-sm font-medium">Correo electronico</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="tu@empresa.com"
-                          className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
-                          data-testid="input-login-email"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="animate-dash-fade-up dash-stagger-4">
-                      <FormLabel className="text-white/60 text-sm font-medium">Contrasena</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Tu contrasena"
-                          className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
-                          data-testid="input-login-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="animate-dash-fade-up dash-stagger-5">
-                  <Button
-                    type="submit"
-                    className="w-full h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group"
-                    disabled={loginMutation.isPending}
-                    data-testid="button-login-submit"
-                  >
-                    <span className="absolute inset-0 animate-shimmer-line opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
-                    {loginMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <LogIn className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-0.5" />
-                    )}
-                    {loginMutation.isPending ? "Iniciando sesion..." : "Iniciar sesion"}
-                  </Button>
+            {!isAgentLogin ? (
+              <>
+                <div className="relative mb-5 animate-dash-fade-up dash-stagger-2">
+                  <GoogleSignIn
+                    onSuccess={(token) => {
+                      localStorage.setItem("tenant_token", token);
+                      toast({ title: "Sesion iniciada", description: "Bienvenido de vuelta." });
+                      window.location.href = "/dashboard";
+                    }}
+                  />
+                  <div className="flex items-center gap-3 mt-5">
+                    <div className="flex-1 h-px bg-white/[0.06]" />
+                    <span className="text-xs text-white/20 font-medium">o usa tu email</span>
+                    <div className="flex-1 h-px bg-white/[0.06]" />
+                  </div>
                 </div>
-              </form>
-            </Form>
+
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 relative">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/60 text-sm font-medium">Correo electronico</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="tu@empresa.com"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+                              data-testid="input-login-email"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/60 text-sm font-medium">Contrasena</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Tu contrasena"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+                              data-testid="input-login-password"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group"
+                      disabled={loginMutation.isPending}
+                      data-testid="button-login-submit"
+                    >
+                      <span className="absolute inset-0 animate-shimmer-line opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
+                      {loginMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <LogIn className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-0.5" />
+                      )}
+                      {loginMutation.isPending ? "Iniciando sesion..." : "Iniciar sesion"}
+                    </Button>
+                  </form>
+                </Form>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                  <p className="text-xs text-blue-400/70">Acceso para ejecutivos. Tu administrador te proporcionara las credenciales y el ID de empresa.</p>
+                </div>
+
+                <Form {...agentForm}>
+                  <form onSubmit={agentForm.handleSubmit(onAgentSubmit)} className="space-y-5 relative">
+                    <FormField
+                      control={agentForm.control}
+                      name="tenantId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/60 text-sm font-medium">ID de Empresa</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="text"
+                              placeholder="Ej: 12"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-blue-400/40 text-white placeholder:text-white/20 transition-all duration-300"
+                              data-testid="input-agent-tenant-id"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={agentForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/60 text-sm font-medium">Correo electronico</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="tu@empresa.com"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-blue-400/40 text-white placeholder:text-white/20 transition-all duration-300"
+                              data-testid="input-agent-email"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={agentForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/60 text-sm font-medium">Contrasena</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Tu contrasena"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-blue-400/40 text-white placeholder:text-white/20 transition-all duration-300"
+                              data-testid="input-agent-password"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full h-12 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/15 hover:shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group bg-blue-600 hover:bg-blue-700"
+                      disabled={agentLoginMutation.isPending}
+                      data-testid="button-agent-login-submit"
+                    >
+                      {agentLoginMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <UserCog className="w-4 h-4 mr-2" />
+                      )}
+                      {agentLoginMutation.isPending ? "Iniciando sesion..." : "Entrar como ejecutivo"}
+                    </Button>
+                  </form>
+                </Form>
+              </>
+            )}
 
             <div className="mt-6 pt-5 border-t border-white/[0.06] text-center text-sm text-white/30 animate-dash-fade-in dash-stagger-6">
-              <span data-testid="text-login-register-link">
-                No tienes cuenta?{" "}
-                <a href="/register" className="text-primary font-semibold hover:text-primary/80 transition-colors" data-testid="link-go-to-register">
-                  Registrate gratis
-                </a>
-              </span>
+              {!isAgentLogin ? (
+                <span data-testid="text-login-register-link">
+                  No tienes cuenta?{" "}
+                  <a href="/register" className="text-primary font-semibold hover:text-primary/80 transition-colors" data-testid="link-go-to-register">
+                    Registrate gratis
+                  </a>
+                </span>
+              ) : (
+                <span className="text-white/25 text-xs">Pide tus credenciales a tu administrador</span>
+              )}
             </div>
           </div>
         </div>

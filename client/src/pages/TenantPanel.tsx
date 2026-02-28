@@ -33,6 +33,7 @@ import {
   Loader2,
   Clock,
   User,
+  Users,
   ShieldCheck,
   ShieldOff,
   XCircle,
@@ -48,6 +49,12 @@ import {
   PlusCircle,
   ShoppingBag,
   Wand2,
+  Crown,
+  Shield,
+  UserCog,
+  Eye,
+  EyeOff,
+  Copy,
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
@@ -56,10 +63,23 @@ import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 
+interface AgentProfile {
+  id: number;
+  tenantId: number;
+  email: string;
+  displayName: string;
+  role: "owner" | "admin" | "ejecutivo";
+  color: string;
+  active: number;
+  companyName: string;
+  plan: string;
+  isAgent: boolean;
+}
+
 function useAuth() {
   const token = localStorage.getItem("tenant_token");
 
-  const { data: tenant, isLoading, error } = useQuery<TenantProfile>({
+  const { data: tenant, isLoading: tenantLoading, error: tenantError } = useQuery<TenantProfile>({
     queryKey: ["/api/tenants/me"],
     enabled: !!token,
     queryFn: async () => {
@@ -71,13 +91,29 @@ function useAuth() {
     },
   });
 
+  const { data: agentProfile, isLoading: agentLoading } = useQuery<AgentProfile>({
+    queryKey: ["/api/tenant-panel/agents/me"],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await fetch("/api/tenant-panel/agents/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
   useEffect(() => {
-    if (!token || error) {
+    if (!token || tenantError) {
       window.location.href = "/login";
     }
-  }, [token, error]);
+  }, [token, tenantError]);
 
-  return { tenant, isLoading, token };
+  const isLoading = tenantLoading || agentLoading;
+  const role = agentProfile?.role || "owner";
+  const isAgent = agentProfile?.isAgent || false;
+
+  return { tenant, isLoading, token, agentProfile, role, isAgent };
 }
 
 function tenantFetch(url: string, options?: RequestInit) {
@@ -186,17 +222,18 @@ interface TenantSettings {
   botContext: string;
 }
 
-type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "entrenar" | "guias" | "ajustes";
+type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "entrenar" | "guias" | "equipo" | "ajustes";
 
-const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any }[] = [
+const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any; minRole?: "owner" | "admin" }[] = [
   { id: "chats", label: "Chats", icon: MessageSquare },
-  { id: "entrenar", label: "Entrenar Bot", icon: Bot },
+  { id: "entrenar", label: "Entrenar Bot", icon: Bot, minRole: "admin" },
   { id: "atajos", label: "Atajos", icon: Zap },
   { id: "etiquetas", label: "Etiquetas", icon: Tag },
-  { id: "productos", label: "Productos", icon: Package },
+  { id: "productos", label: "Productos", icon: Package, minRole: "admin" },
   { id: "conocimiento", label: "Conocimiento", icon: BookOpen },
+  { id: "equipo", label: "Equipo", icon: Users, minRole: "admin" },
   { id: "guias", label: "Guias", icon: FileText },
-  { id: "ajustes", label: "Ajustes", icon: Settings },
+  { id: "ajustes", label: "Ajustes", icon: Settings, minRole: "admin" },
 ];
 
 const notifSound = typeof window !== "undefined" ? new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1mZmB0eHqEgn16gIJ6bmBjaF9pfHmIiIR8fnyAcmFgZmFqfHuJhYF5e3t7cGBeY19tfXyMh4R7ent9c2JeYl5ufnyNh4Z6ent+c2NeYl5ufXuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuLhIV5e3t+c2NeYl5vfnuLhIV5e3t+cmNeYV5vfnuLhIR5e3t/cmNeYV5vfnqLhIR5e3t/cmNeYV5wfnqLhIR5fHt/cmNeYV5wfnqKg4R5fHt/cmNeYV5wfnqKg4R5fHuAcmNeYV5wf3qKg4R5fHuAcmNeYV5wf3qKg4N5fHuAcmNeYF5wf3qKg4N5fHuAcmNeYF5xf3qKg4N5fHuAcmNeYF5xf3qKg4N5fXuAcmNeYF5xf3qKg4N5fXuAcmNeYF5xf3qJg4N5fXuAcmNeYF5xf3qJg4N5fXuAcmNeYF5xf3qJg4N5fXuBcmNeYF5xf3qJg4N5fXuBcmReYF5xf3mJgoN5fXuBcmReYF5xgHmJgoN5fXyBcmReYF5xgHmJgoN5fXyBcmReYF5xgHmJgoN5fXyBcmReX15xgHmJgoN5fnyBcmReX15ygHmJgoJ5fnyBcmReX15ygHmIgoJ5fnyBcmReX15ygHmIgoJ5fnyBcWReX15ygHmIgoJ4fnyBcWReX15ygHiIgoJ4fnyBcWReX15ygHiIgoJ4fn2BcWReX15ygHiIgoJ4fn2BcWReX15ygXiIgoJ4fn2BcWReX15ygXiIgYJ4fn2BcWReX15ygXiIgYJ4fn2CcWReX15ygXiIgYJ4fn2CcWReX15ygXiIgYJ4fn2CcWReX15ygXiHgYJ4fn2CcWReX15ygXiHgYJ4f32CcWReX15ygXiHgYJ4f32CcWReX15ygXiHgYF4f32CcWReX15ygXiHgYF4f32CcWReX15ygXiHgYF4f32CcGReX15ygXiHgYF4f32CcGReX11zgXiHgYF4f32CcGReX11zgXiHgYF4f32CcGReX11zgXiHgYF3f32CcGReX11zgXiHgYF3f32CcGReX11zgXiHgYF3f32CcGReX11zgniHgYF3f32CcGReX11zgniHgIF3f32CcGReX11zgniGgIF3f32CcGReX11zgniGgIF3f36CcGReX11zgniGgIF3f36CcGReX11zgniGgIF3gH6CcGReX11zgniGgIF3gH6CcGReX11zgniGgIF3gH6Cb2RdX11zgniGgIF3gH6Cb2RdX11zgniGgIB3gH6Cb2RdX11z") : null;
@@ -2385,14 +2422,369 @@ function AjustesTab() {
   );
 }
 
+interface AgentItem {
+  id: number;
+  tenantId: number;
+  email: string;
+  displayName: string;
+  role: string;
+  color: string;
+  active: number;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+const ROLE_LABELS: Record<string, string> = { owner: "Propietario", admin: "Administrador", ejecutivo: "Ejecutivo" };
+const ROLE_ICONS: Record<string, any> = { owner: Crown, admin: Shield, ejecutivo: UserCog };
+const AGENT_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#6366f1", "#84cc16", "#e11d48"];
+
+function EquipoTab({ currentRole }: { currentRole: string }) {
+  const { toast } = useToast();
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({ displayName: "", email: "", password: "", role: "ejecutivo", color: "#10b981" });
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { data: agents = [], isLoading } = useQuery<AgentItem[]>({
+    queryKey: ["/api/tenant-panel/agents"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/agents");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/agents", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Error");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/agents"] });
+      setShowForm(false);
+      setFormData({ displayName: "", email: "", password: "", role: "ejecutivo", color: "#10b981" });
+      toast({ title: "Ejecutivo creado", description: "El nuevo miembro del equipo ya puede iniciar sesion" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await tenantFetch(`/api/tenant-panel/agents/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.message || "Error");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/agents"] });
+      setEditingId(null);
+      toast({ title: "Ejecutivo actualizado" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await tenantFetch(`/api/tenant-panel/agents/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.message || "Error");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/agents"] });
+      toast({ title: "Ejecutivo eliminado" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const generatePassword = () => {
+    const chars = "abcdefghijkmnpqrstuvwxyz23456789";
+    let pass = "";
+    for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    setFormData(prev => ({ ...prev, password: pass }));
+    setShowPassword(true);
+  };
+
+  if (isLoading) {
+    return <div className="flex-1 flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#10b981] animate-spin" /></div>;
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 max-w-4xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-white" data-testid="text-equipo-title">Equipo</h2>
+          <p className="text-xs text-white/40 mt-1">Gestiona los ejecutivos que pueden acceder al panel de soporte</p>
+        </div>
+        {!showForm && (
+          <Button data-testid="button-add-agent" onClick={() => setShowForm(true)} className="bg-[#10b981] hover:bg-[#10b981]/80 text-sm gap-1.5">
+            <Plus className="w-4 h-4" />
+            Agregar Ejecutivo
+          </Button>
+        )}
+      </div>
+
+      {showForm && (
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 space-y-4" data-testid="agent-form">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-white">Nuevo Ejecutivo</h3>
+            <button onClick={() => { setShowForm(false); setFormData({ displayName: "", email: "", password: "", role: "ejecutivo", color: "#10b981" }); }} className="text-white/40 hover:text-white/60">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-white/40 mb-1 block">Nombre para mostrar *</label>
+              <Input data-testid="input-agent-name" value={formData.displayName} onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))} placeholder="Ej: Maria Lopez" className="bg-white/[0.04] border-white/[0.08]" />
+            </div>
+            <div>
+              <label className="text-xs text-white/40 mb-1 block">Email *</label>
+              <Input data-testid="input-agent-email" type="email" value={formData.email} onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} placeholder="maria@empresa.cl" className="bg-white/[0.04] border-white/[0.08]" />
+            </div>
+            <div>
+              <label className="text-xs text-white/40 mb-1 block">Contraseña *</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input data-testid="input-agent-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))} placeholder="Minimo 6 caracteres" className="bg-white/[0.04] border-white/[0.08] pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={generatePassword} className="border-white/[0.08] text-white/50 hover:text-white/70 text-xs shrink-0" data-testid="button-generate-password">
+                  Generar
+                </Button>
+              </div>
+              {showPassword && formData.password && (
+                <button type="button" onClick={() => { navigator.clipboard.writeText(formData.password); toast({ title: "Contraseña copiada" }); }} className="flex items-center gap-1 mt-1 text-[10px] text-[#10b981]/70 hover:text-[#10b981]">
+                  <Copy className="w-3 h-3" />
+                  Copiar contraseña
+                </button>
+              )}
+            </div>
+            <div>
+              <label className="text-xs text-white/40 mb-1 block">Rol</label>
+              <Select value={formData.role} onValueChange={(v) => setFormData(prev => ({ ...prev, role: v }))}>
+                <SelectTrigger data-testid="select-agent-role" className="bg-white/[0.04] border-white/[0.08]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ejecutivo">Ejecutivo — Solo chats y atajos</SelectItem>
+                  {currentRole === "owner" && <SelectItem value="admin">Administrador — Todo excepto eliminar propietario</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-white/40 mb-2 block">Color del ejecutivo</label>
+            <div className="flex flex-wrap gap-2">
+              {AGENT_COLORS.map((c) => (
+                <button key={c} data-testid={`color-${c}`} onClick={() => setFormData(prev => ({ ...prev, color: c }))} className={`w-8 h-8 rounded-full border-2 transition-all ${formData.color === c ? "border-white scale-110" : "border-transparent hover:border-white/30"}`} style={{ backgroundColor: c }} />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button data-testid="button-save-agent" onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !formData.displayName || !formData.email || !formData.password} className="bg-[#10b981] hover:bg-[#10b981]/80">
+              {createMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+              Crear Ejecutivo
+            </Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setFormData({ displayName: "", email: "", password: "", role: "ejecutivo", color: "#10b981" }); }} className="border-white/[0.08] text-white/50">
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-2">
+          <Users className="w-4 h-4 text-white/40" />
+          <span className="text-xs font-medium text-white/50">{agents.length} miembro(s) del equipo</span>
+        </div>
+
+        {agents.length === 0 ? (
+          <div className="p-8 text-center">
+            <Users className="w-10 h-10 text-white/10 mx-auto mb-3" />
+            <p className="text-sm text-white/40">Aun no hay ejecutivos</p>
+            <p className="text-xs text-white/25 mt-1">Agrega miembros a tu equipo para que puedan atender chats</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.04]">
+            {agents.map((agent) => {
+              const RoleIcon = ROLE_ICONS[agent.role] || UserCog;
+              const isEditing = editingId === agent.id;
+
+              return (
+                <div key={agent.id} className="px-4 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition-colors" data-testid={`agent-row-${agent.id}`}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ backgroundColor: agent.color }}>
+                    {agent.displayName.charAt(0).toUpperCase()}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white truncate">{agent.displayName}</span>
+                      <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: agent.role === "owner" ? "#f59e0b20" : agent.role === "admin" ? "#3b82f620" : "#10b98120", color: agent.role === "owner" ? "#f59e0b" : agent.role === "admin" ? "#3b82f6" : "#10b981" }}>
+                        <RoleIcon className="w-3 h-3" />
+                        {ROLE_LABELS[agent.role] || agent.role}
+                      </span>
+                      {agent.active !== 1 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400">Desactivado</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-white/30 truncate">{agent.email}</p>
+                    {agent.lastLoginAt && (
+                      <p className="text-[10px] text-white/20 mt-0.5">Ultimo acceso: {formatDateTime(agent.lastLoginAt)}</p>
+                    )}
+                  </div>
+
+                  {agent.role !== "owner" && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      {isEditing ? (
+                        <EditAgentInline
+                          agent={agent}
+                          currentRole={currentRole}
+                          onSave={(data) => { updateMutation.mutate({ id: agent.id, data }); }}
+                          onCancel={() => setEditingId(null)}
+                          saving={updateMutation.isPending}
+                        />
+                      ) : (
+                        <>
+                          <button data-testid={`button-toggle-agent-${agent.id}`} onClick={() => updateMutation.mutate({ id: agent.id, data: { active: agent.active === 1 ? 0 : 1 } })} className={`p-1.5 rounded-md transition-colors ${agent.active === 1 ? "text-green-400/50 hover:text-green-400 hover:bg-green-500/10" : "text-red-400/50 hover:text-red-400 hover:bg-red-500/10"}`} title={agent.active === 1 ? "Desactivar" : "Activar"}>
+                            {agent.active === 1 ? <ShieldCheck className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
+                          </button>
+                          <button data-testid={`button-edit-agent-${agent.id}`} onClick={() => setEditingId(agent.id)} className="p-1.5 rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05]">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button data-testid={`button-delete-agent-${agent.id}`} onClick={() => { if (window.confirm(`Eliminar a ${agent.displayName}? Esta accion no se puede deshacer.`)) deleteMutation.mutate(agent.id); }} className="p-1.5 rounded-md text-red-400/30 hover:text-red-400 hover:bg-red-500/10">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {agent.role === "owner" && (
+                    <div className="shrink-0">
+                      <span className="text-[10px] text-white/20 italic">No editable</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+        <h3 className="text-sm font-semibold text-white/70 mb-2">Permisos por rol</h3>
+        <div className="space-y-2 text-xs">
+          <div className="flex items-start gap-2">
+            <Crown className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-white/60 font-medium">Propietario</span>
+              <span className="text-white/30"> — Acceso total. Puede crear/eliminar ejecutivos y administradores. No puede ser eliminado.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Shield className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-white/60 font-medium">Administrador</span>
+              <span className="text-white/30"> — Puede gestionar chats, productos, conocimiento, entrenar el bot y crear ejecutivos. No puede modificar al propietario.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <UserCog className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-white/60 font-medium">Ejecutivo</span>
+              <span className="text-white/30"> — Puede ver y responder chats, usar atajos, etiquetas y consultar la base de conocimiento. No puede gestionar equipo ni ajustes.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditAgentInline({ agent, currentRole, onSave, onCancel, saving }: { agent: AgentItem; currentRole: string; onSave: (data: any) => void; onCancel: () => void; saving: boolean }) {
+  const [name, setName] = useState(agent.displayName);
+  const [color, setColor] = useState(agent.color);
+  const [role, setRole] = useState(agent.role);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-2 w-full max-w-xs" data-testid="edit-agent-form">
+      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" className="bg-white/[0.04] border-white/[0.08] text-sm h-8" data-testid="input-edit-agent-name" />
+      <div className="relative">
+        <Input type={showPw ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nueva contraseña (dejar vacio para mantener)" className="bg-white/[0.04] border-white/[0.08] text-sm h-8 pr-8" data-testid="input-edit-agent-password" />
+        <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50">
+          {showPw ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+        </button>
+      </div>
+      {currentRole === "owner" && (
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger className="bg-white/[0.04] border-white/[0.08] h-8 text-sm" data-testid="select-edit-agent-role">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ejecutivo">Ejecutivo</SelectItem>
+            <SelectItem value="admin">Administrador</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+      <div className="flex flex-wrap gap-1.5">
+        {AGENT_COLORS.map((c) => (
+          <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 rounded-full border ${color === c ? "border-white" : "border-transparent"}`} style={{ backgroundColor: c }} />
+        ))}
+      </div>
+      <div className="flex gap-1.5">
+        <Button size="sm" onClick={() => { const data: any = { displayName: name, color, role }; if (newPassword.length >= 6) data.password = newPassword; onSave(data); }} disabled={saving || !name} className="bg-[#10b981] h-7 text-xs" data-testid="button-save-edit-agent">
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+        </Button>
+        <Button size="sm" variant="outline" onClick={onCancel} className="border-white/[0.08] text-white/50 h-7 text-xs" data-testid="button-cancel-edit-agent">
+          <X className="w-3 h-3" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function TenantPanel() {
-  const { tenant, isLoading, token } = useAuth();
+  const { tenant, isLoading, token, agentProfile, role, isAgent } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("chats");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
+
+  const canAccessTab = (item: typeof SIDEBAR_ITEMS[0]) => {
+    if (!item.minRole) return true;
+    if (role === "owner") return true;
+    if (role === "admin" && (item.minRole === "admin" || item.minRole === "owner")) return true;
+    return false;
+  };
+
+  const visibleTabs = SIDEBAR_ITEMS.filter(canAccessTab);
 
   if (isLoading || !tenant || !token) {
     return (
@@ -2411,6 +2803,11 @@ export default function TenantPanel() {
     window.location.href = "/login";
   };
 
+  const currentName = isAgent ? (agentProfile?.displayName || "Ejecutivo") : tenant.companyName;
+  const currentEmail = isAgent ? (agentProfile?.email || "") : tenant.email;
+  const currentColor = isAgent ? (agentProfile?.color || "#10b981") : (tenant.widgetColor || "#10b981");
+  const RoleIcon = ROLE_ICONS[role] || UserCog;
+
   return (
     <div className="h-screen flex" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }} data-testid="tenant-panel">
       {sidebarOpen && (
@@ -2420,10 +2817,16 @@ export default function TenantPanel() {
       <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0d0d0d] border-r border-white/[0.06] flex flex-col transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`} data-testid="sidebar">
         <div className="p-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
-            <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 rounded-lg" />
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-white truncate" data-testid="text-company-name">{tenant.companyName}</p>
-              <p className="text-[10px] text-white/30 truncate">{tenant.email}</p>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ backgroundColor: currentColor }}>
+              {currentName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-white truncate" data-testid="text-company-name">{currentName}</p>
+              <div className="flex items-center gap-1.5">
+                <RoleIcon className="w-3 h-3" style={{ color: role === "owner" ? "#f59e0b" : role === "admin" ? "#3b82f6" : "#10b981" }} />
+                <span className="text-[10px] truncate" style={{ color: role === "owner" ? "#f59e0b" : role === "admin" ? "#3b82f6" : "#10b981" }}>{ROLE_LABELS[role]}</span>
+              </div>
+              <p className="text-[10px] text-white/25 truncate">{currentEmail}</p>
             </div>
             <button className="md:hidden ml-auto" onClick={() => setSidebarOpen(false)} data-testid="button-close-sidebar">
               <X className="w-5 h-5 text-white/40" />
@@ -2432,7 +2835,7 @@ export default function TenantPanel() {
         </div>
 
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-          {SIDEBAR_ITEMS.map((item) => (
+          {visibleTabs.map((item) => (
             <button
               key={item.id}
               data-testid={`sidebar-tab-${item.id}`}
@@ -2446,14 +2849,16 @@ export default function TenantPanel() {
         </nav>
 
         <div className="p-3 border-t border-white/[0.06] space-y-1">
-          <a
-            href="/dashboard"
-            data-testid="link-back-dashboard"
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-white/50 hover:text-white/70 hover:bg-white/[0.04] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al Dashboard
-          </a>
+          {!isAgent && (
+            <a
+              href="/dashboard"
+              data-testid="link-back-dashboard"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-white/50 hover:text-white/70 hover:bg-white/[0.04] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver al Dashboard
+            </a>
+          )}
           <button
             data-testid="button-logout"
             onClick={handleLogout}
@@ -2473,17 +2878,21 @@ export default function TenantPanel() {
           <h1 className="text-sm font-semibold text-white/70" data-testid="text-active-tab-title">
             {SIDEBAR_ITEMS.find((i) => i.id === activeTab)?.label}
           </h1>
+          {isAgent && (
+            <span className="ml-auto text-[10px] text-white/25">{tenant.companyName}</span>
+          )}
         </header>
 
         <main className="flex-1 overflow-hidden flex flex-col">
           {activeTab === "chats" && <ChatsTab token={token} tenant={tenant} />}
           {activeTab === "atajos" && <AtajosTab />}
           {activeTab === "etiquetas" && <EtiquetasTab />}
-          {activeTab === "productos" && <ProductosTab />}
+          {activeTab === "productos" && canAccessTab({ id: "productos", label: "", icon: null, minRole: "admin" }) && <ProductosTab />}
           {activeTab === "conocimiento" && <ConocimientoTab />}
-          {activeTab === "entrenar" && <EntrenarBotTab />}
+          {activeTab === "entrenar" && canAccessTab({ id: "entrenar", label: "", icon: null, minRole: "admin" }) && <EntrenarBotTab />}
           {activeTab === "guias" && <GuidesPanel />}
-          {activeTab === "ajustes" && <AjustesTab />}
+          {activeTab === "equipo" && canAccessTab({ id: "equipo", label: "", icon: null, minRole: "admin" }) && <EquipoTab currentRole={role} />}
+          {activeTab === "ajustes" && canAccessTab({ id: "ajustes", label: "", icon: null, minRole: "admin" }) && <AjustesTab />}
         </main>
       </div>
     </div>

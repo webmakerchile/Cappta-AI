@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, tenantFiles, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, tenantFiles, tenantAgents, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -110,6 +110,14 @@ export interface IStorage {
   updateTenantFile(tenantId: number, id: number, data: Partial<InsertTenantFile>): Promise<TenantFile | null>;
   deleteTenantFile(tenantId: number, id: number): Promise<boolean>;
   incrementTenantFileDownload(id: number): Promise<void>;
+  getTenantAgents(tenantId: number): Promise<TenantAgent[]>;
+  getTenantAgentById(id: number): Promise<TenantAgent | null>;
+  getTenantAgentByEmail(tenantId: number, email: string): Promise<TenantAgent | null>;
+  createTenantAgent(data: InsertTenantAgent): Promise<TenantAgent>;
+  updateTenantAgent(tenantId: number, id: number, data: Partial<InsertTenantAgent>): Promise<TenantAgent | null>;
+  deleteTenantAgent(tenantId: number, id: number): Promise<boolean>;
+  countTenantAgents(tenantId: number): Promise<number>;
+  updateTenantAgentLastLogin(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1360,6 +1368,44 @@ export class DatabaseStorage implements IStorage {
 
   async incrementTenantFileDownload(id: number): Promise<void> {
     await db.update(tenantFiles).set({ downloadCount: sql`${tenantFiles.downloadCount} + 1` }).where(eq(tenantFiles.id, id));
+  }
+
+  async getTenantAgents(tenantId: number): Promise<TenantAgent[]> {
+    return await db.select().from(tenantAgents).where(eq(tenantAgents.tenantId, tenantId)).orderBy(asc(tenantAgents.createdAt));
+  }
+
+  async getTenantAgentById(id: number): Promise<TenantAgent | null> {
+    const [agent] = await db.select().from(tenantAgents).where(eq(tenantAgents.id, id));
+    return agent || null;
+  }
+
+  async getTenantAgentByEmail(tenantId: number, email: string): Promise<TenantAgent | null> {
+    const [agent] = await db.select().from(tenantAgents).where(and(eq(tenantAgents.tenantId, tenantId), eq(tenantAgents.email, email.toLowerCase())));
+    return agent || null;
+  }
+
+  async createTenantAgent(data: InsertTenantAgent): Promise<TenantAgent> {
+    const [agent] = await db.insert(tenantAgents).values(data).returning();
+    return agent;
+  }
+
+  async updateTenantAgent(tenantId: number, id: number, data: Partial<InsertTenantAgent>): Promise<TenantAgent | null> {
+    const [updated] = await db.update(tenantAgents).set(data).where(and(eq(tenantAgents.id, id), eq(tenantAgents.tenantId, tenantId))).returning();
+    return updated || null;
+  }
+
+  async deleteTenantAgent(tenantId: number, id: number): Promise<boolean> {
+    const result = await db.delete(tenantAgents).where(and(eq(tenantAgents.id, id), eq(tenantAgents.tenantId, tenantId))).returning();
+    return result.length > 0;
+  }
+
+  async countTenantAgents(tenantId: number): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(tenantAgents).where(eq(tenantAgents.tenantId, tenantId));
+    return Number(result[0]?.count || 0);
+  }
+
+  async updateTenantAgentLastLogin(id: number): Promise<void> {
+    await db.update(tenantAgents).set({ lastLoginAt: new Date() }).where(eq(tenantAgents.id, id));
   }
 }
 

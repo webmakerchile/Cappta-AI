@@ -1110,18 +1110,42 @@ ${DEMO_BASE_RULES}`,
   });
 
   function generateTenantToken(tenant: { id: number; email: string; companyName: string }) {
-    return jwt.sign({ id: tenant.id, email: tenant.email, companyName: tenant.companyName, isTenant: true }, JWT_SECRET, { expiresIn: "30d" });
+    return jwt.sign({ id: tenant.id, email: tenant.email, companyName: tenant.companyName, isTenant: true, role: "owner" }, JWT_SECRET, { expiresIn: "30d" });
   }
 
-  function verifyTenantToken(token: string): { id: number; email: string; companyName: string; isTenant: true } | null {
+  function generateAgentToken(agent: { id: number; tenantId: number; email: string; displayName: string; role: string; color: string }, companyName: string) {
+    return jwt.sign({ id: agent.tenantId, agentId: agent.id, email: agent.email, companyName, displayName: agent.displayName, role: agent.role, color: agent.color, isTenant: true, isAgent: true }, JWT_SECRET, { expiresIn: "30d" });
+  }
+
+  interface TenantAuthResult {
+    id: number;
+    email: string;
+    companyName: string;
+    role: "owner" | "admin" | "ejecutivo";
+    agentId?: number;
+    displayName?: string;
+    color?: string;
+    isAgent?: boolean;
+  }
+
+  function verifyTenantToken(token: string): TenantAuthResult | null {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       if (!decoded.isTenant) return null;
-      return decoded;
+      return {
+        id: decoded.id,
+        email: decoded.email,
+        companyName: decoded.companyName,
+        role: decoded.isAgent ? decoded.role : "owner",
+        agentId: decoded.agentId,
+        displayName: decoded.displayName,
+        color: decoded.color,
+        isAgent: decoded.isAgent || false,
+      };
     } catch { return null; }
   }
 
-  function requireTenantAuth(req: any, res: any): { id: number; email: string; companyName: string } | null {
+  function requireTenantAuth(req: any, res: any): TenantAuthResult | null {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({ message: "No autorizado" });
@@ -1134,6 +1158,16 @@ ${DEMO_BASE_RULES}`,
       return null;
     }
     return tenant;
+  }
+
+  function requireTenantOwnerOrAdmin(req: any, res: any): TenantAuthResult | null {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return null;
+    if (auth.role === "ejecutivo") {
+      res.status(403).json({ message: "No tienes permisos para esta accion" });
+      return null;
+    }
+    return auth;
   }
 
   app.post("/api/tenants/register", async (req, res) => {
@@ -1280,6 +1314,174 @@ ${DEMO_BASE_RULES}`,
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  // ========== TENANT AGENT LOGIN ==========
+  app.post("/api/tenant-agents/login", async (req, res) => {
+    try {
+      const { email, password, tenantId } = req.body;
+      if (!email || !password || !tenantId) {
+        return res.status(400).json({ message: "Email, contraseña y ID de empresa son requeridos" });
+      }
+      const tid = parseInt(tenantId);
+      if (isNaN(tid)) return res.status(400).json({ message: "ID de empresa invalido" });
+      const tenant = await storage.getTenantById(tid);
+      if (!tenant) return res.status(404).json({ message: "Empresa no encontrada" });
+      const agent = await storage.getTenantAgentByEmail(tid, email.toLowerCase().trim());
+      if (!agent) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      if (agent.active !== 1) {
+        return res.status(403).json({ message: "Tu cuenta esta desactivada. Contacta al administrador." });
+      }
+      const valid = await bcrypt.compare(password, agent.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      await storage.updateTenantAgentLastLogin(agent.id);
+      const token = generateAgentToken(agent, tenant.companyName);
+      res.json({ token, agent: { id: agent.id, displayName: agent.displayName, email: agent.email, role: agent.role, color: agent.color }, tenantId: tenant.id, companyName: tenant.companyName });
+    } catch (error: any) {
+      log(`Error agent login: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al iniciar sesion" });
+    }
+  });
+
+  // ========== TENANT AGENT MANAGEMENT (owner/admin only) ==========
+  app.get("/api/tenant-panel/agents", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const agents = await storage.getTenantAgents(auth.id);
+      res.json(agents.map(a => ({ id: a.id, tenantId: a.tenantId, email: a.email, displayName: a.displayName, role: a.role, color: a.color, active: a.active, lastLoginAt: a.lastLoginAt, createdAt: a.createdAt })));
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener agentes" });
+    }
+  });
+
+  app.post("/api/tenant-panel/agents", async (req, res) => {
+    const auth = requireTenantOwnerOrAdmin(req, res);
+    if (!auth) return;
+    try {
+      const { email, password, displayName, role, color } = req.body;
+      if (!email || !password || !displayName) {
+        return res.status(400).json({ message: "Email, contraseña y nombre son requeridos" });
+      }
+      if (password.length < 6) {
+        return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres" });
+      }
+      const agentRole = role || "ejecutivo";
+      if (auth.role !== "owner" && agentRole === "admin") {
+        return res.status(403).json({ message: "Solo el propietario puede crear administradores" });
+      }
+      if (agentRole === "owner") {
+        return res.status(403).json({ message: "No se puede crear otro propietario" });
+      }
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+      const limits = PLAN_LIMITS[tenant.plan] || PLAN_LIMITS.free;
+      const currentCount = await storage.countTenantAgents(auth.id);
+      if (currentCount >= limits.maxAgents) {
+        return res.status(403).json({ message: `Tu plan ${tenant.plan === "free" ? "Gratis" : tenant.plan === "basic" ? "Pro" : "Enterprise"} permite maximo ${limits.maxAgents} ejecutivo(s). Actualiza tu plan para agregar mas.` });
+      }
+      const existing = await storage.getTenantAgentByEmail(auth.id, email.toLowerCase().trim());
+      if (existing) {
+        return res.status(409).json({ message: "Ya existe un ejecutivo con este email" });
+      }
+      const passwordHash = await bcrypt.hash(password, 10);
+      const agent = await storage.createTenantAgent({
+        tenantId: auth.id,
+        email: email.toLowerCase().trim(),
+        passwordHash,
+        displayName,
+        role: agentRole,
+        color: color || "#10b981",
+        active: 1,
+      });
+      res.json({ id: agent.id, tenantId: agent.tenantId, email: agent.email, displayName: agent.displayName, role: agent.role, color: agent.color, active: agent.active, createdAt: agent.createdAt });
+    } catch (error: any) {
+      log(`Error creating agent: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear ejecutivo" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/agents/:id", async (req, res) => {
+    const auth = requireTenantOwnerOrAdmin(req, res);
+    if (!auth) return;
+    try {
+      const agentId = parseInt(req.params.id);
+      if (isNaN(agentId)) return res.status(400).json({ message: "ID invalido" });
+      const targetAgent = await storage.getTenantAgentById(agentId);
+      if (!targetAgent || targetAgent.tenantId !== auth.id) {
+        return res.status(404).json({ message: "Ejecutivo no encontrado" });
+      }
+      if (targetAgent.role === "owner" && auth.role !== "owner") {
+        return res.status(403).json({ message: "No puedes modificar al propietario" });
+      }
+      const { displayName, color, role, active, password } = req.body;
+      const updates: any = {};
+      if (displayName !== undefined) updates.displayName = displayName;
+      if (color !== undefined) updates.color = color;
+      if (active !== undefined) updates.active = active;
+      if (role !== undefined) {
+        if (role === "owner") return res.status(403).json({ message: "No se puede asignar rol de propietario" });
+        if (targetAgent.role === "owner") return res.status(403).json({ message: "No se puede cambiar el rol del propietario" });
+        if (auth.role !== "owner" && role === "admin") return res.status(403).json({ message: "Solo el propietario puede asignar administradores" });
+        updates.role = role;
+      }
+      if (password && password.length >= 6) {
+        updates.passwordHash = await bcrypt.hash(password, 10);
+      }
+      const updated = await storage.updateTenantAgent(auth.id, agentId, updates);
+      if (!updated) return res.status(404).json({ message: "No se pudo actualizar" });
+      res.json({ id: updated.id, tenantId: updated.tenantId, email: updated.email, displayName: updated.displayName, role: updated.role, color: updated.color, active: updated.active, lastLoginAt: updated.lastLoginAt, createdAt: updated.createdAt });
+    } catch (error: any) {
+      log(`Error updating agent: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar ejecutivo" });
+    }
+  });
+
+  app.delete("/api/tenant-panel/agents/:id", async (req, res) => {
+    const auth = requireTenantOwnerOrAdmin(req, res);
+    if (!auth) return;
+    try {
+      const agentId = parseInt(req.params.id);
+      if (isNaN(agentId)) return res.status(400).json({ message: "ID invalido" });
+      const targetAgent = await storage.getTenantAgentById(agentId);
+      if (!targetAgent || targetAgent.tenantId !== auth.id) {
+        return res.status(404).json({ message: "Ejecutivo no encontrado" });
+      }
+      if (targetAgent.role === "owner") {
+        return res.status(403).json({ message: "No se puede eliminar al propietario de la cuenta" });
+      }
+      if (auth.isAgent && auth.agentId === agentId) {
+        return res.status(403).json({ message: "No puedes eliminarte a ti mismo" });
+      }
+      const deleted = await storage.deleteTenantAgent(auth.id, agentId);
+      if (!deleted) return res.status(404).json({ message: "No se pudo eliminar" });
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error deleting agent: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al eliminar ejecutivo" });
+    }
+  });
+
+  app.get("/api/tenant-panel/agents/me", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+      if (auth.isAgent && auth.agentId) {
+        const agent = await storage.getTenantAgentById(auth.agentId);
+        if (!agent || agent.tenantId !== auth.id) return res.status(404).json({ message: "Agente no encontrado" });
+        res.json({ id: agent.id, tenantId: agent.tenantId, email: agent.email, displayName: agent.displayName, role: agent.role, color: agent.color, active: agent.active, companyName: tenant.companyName, plan: tenant.plan, isAgent: true });
+      } else {
+        res.json({ id: 0, tenantId: auth.id, email: auth.email, displayName: tenant.companyName, role: "owner", color: tenant.widgetColor, active: 1, companyName: tenant.companyName, plan: tenant.plan, isAgent: false });
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
     }
   });
 
@@ -1785,6 +1987,8 @@ ${DEMO_BASE_RULES}`,
       const { content, imageUrl } = req.body;
       if (!content && !imageUrl) return res.status(400).json({ message: "Contenido requerido" });
       const tenant = await storage.getTenantById(auth.id);
+      const agentName = auth.isAgent ? (auth.displayName || auth.email) : (tenant?.companyName || auth.email);
+      const agentColor = auth.isAgent ? (auth.color || "#10b981") : (tenant?.widgetColor || "#10b981");
       const msg = await storage.createMessage({
         sessionId: req.params.sessionId,
         tenantId: auth.id,
@@ -1793,8 +1997,8 @@ ${DEMO_BASE_RULES}`,
         sender: "support",
         content: content || "",
         imageUrl: imageUrl || null,
-        adminName: tenant?.companyName || auth.email,
-        adminColor: tenant?.widgetColor || "#10b981",
+        adminName: agentName,
+        adminColor: agentColor,
       });
       await storage.touchSession(req.params.sessionId);
       io.to(`session:${req.params.sessionId}`).emit("new_message", msg);
@@ -1842,8 +2046,9 @@ ${DEMO_BASE_RULES}`,
     if (!auth) return;
     try {
       const tenant = await storage.getTenantById(auth.id);
-      const agentName = tenant?.companyName || auth.email;
-      const updated = await storage.claimTenantSession(auth.id, req.params.sessionId, agentName, tenant?.widgetColor || "#10b981");
+      const agentName = auth.isAgent ? (auth.displayName || auth.email) : (tenant?.companyName || auth.email);
+      const agentColor = auth.isAgent ? (auth.color || "#10b981") : (tenant?.widgetColor || "#10b981");
+      const updated = await storage.claimTenantSession(auth.id, req.params.sessionId, agentName, agentColor);
       if (!updated) return res.status(404).json({ message: "Sesion no encontrada" });
 
       await storage.updateSessionAdminActive(req.params.sessionId, true);

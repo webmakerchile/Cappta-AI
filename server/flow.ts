@@ -15,10 +15,10 @@ export function getFlowApi(baseURL: string) {
   return new FlowApi({ ...config, baseURL });
 }
 
-export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: number }> = {
-  free: { maxSessions: 10, maxMessages: 100 },
-  basic: { maxSessions: 500, maxMessages: 5000 },
-  pro: { maxSessions: Infinity, maxMessages: Infinity },
+export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: number; maxAgents: number }> = {
+  free: { maxSessions: 10, maxMessages: 100, maxAgents: 1 },
+  basic: { maxSessions: 500, maxMessages: 5000, maxAgents: 3 },
+  pro: { maxSessions: Infinity, maxMessages: Infinity, maxAgents: 10 },
 };
 
 export const PLAN_PRICES: Record<string, { amount: number; label: string; subject: string }> = {

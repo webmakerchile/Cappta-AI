@@ -214,6 +214,25 @@ export const tenantFiles = pgTable("tenant_files", {
   index("idx_tenant_files_tenant_id").on(table.tenantId),
 ]);
 
+export const tenantAgents = pgTable("tenant_agents", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  email: text("email").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name").notNull(),
+  role: text("role", { enum: ["owner", "admin", "ejecutivo"] }).notNull().default("ejecutivo"),
+  color: text("color").notNull().default("#10b981"),
+  active: integer("active").notNull().default(1),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_tenant_agents_tenant_id").on(table.tenantId),
+]);
+
+export const insertTenantAgentSchema = createInsertSchema(tenantAgents).omit({ id: true, createdAt: true, lastLoginAt: true });
+export type InsertTenantAgent = z.infer<typeof insertTenantAgentSchema>;
+export type TenantAgent = typeof tenantAgents.$inferSelect;
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
