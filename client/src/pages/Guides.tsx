@@ -71,7 +71,7 @@ const guides: Guide[] = [
       {
         title: "Copia el codigo de instalacion",
         description: "Agrega este script justo antes de la etiqueta </body> en tu archivo HTML.",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -104,7 +104,7 @@ const guides: Guide[] = [
       {
         title: "Pega el codigo antes de </body>",
         description: "Agrega el siguiente codigo justo antes de la linea <?php wp_footer(); ?> o antes de </body>:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -129,7 +129,7 @@ const guides: Guide[] = [
       {
         title: "Agrega el script en footer.php",
         description: "Pega este codigo antes de </body>:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -158,7 +158,7 @@ const guides: Guide[] = [
       {
         title: "Pega el codigo antes de </body>",
         description: "Agrega este script justo antes de la etiqueta </body>:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -186,7 +186,7 @@ const guides: Guide[] = [
       {
         title: "Agrega el script en 'Miscellaneous Scripts'",
         description: "Pega el siguiente codigo en el campo 'Scripts and Style Sheets' o 'Miscellaneous HTML':",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -210,7 +210,7 @@ const guides: Guide[] = [
       {
         title: "Pega en el campo 'Footer'",
         description: "En la seccion 'Footer', pega el siguiente codigo:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -239,7 +239,7 @@ const guides: Guide[] = [
       {
         title: "Pega el codigo del iframe",
         description: "Haz clic en 'Introducir codigo' y pega lo siguiente:",
-        code: `<iframe\n  src="${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID"\n  style="position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;"\n  allow="microphone"\n></iframe>`,
+        code: `<iframe\n  src="${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID"\n  style="position:fixed;bottom:0;right:0;width:100%;max-width:400px;height:620px;border:none;z-index:9999;border-radius:16px 16px 0 0;"\n  allow="microphone"\n></iframe>`,
         codeLanguage: "html",
       },
       {
@@ -264,7 +264,7 @@ const guides: Guide[] = [
       {
         title: "Pega en Footer Code",
         description: "En la seccion 'Footer Code', pega el siguiente script:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -285,7 +285,7 @@ const guides: Guide[] = [
       {
         title: "Crea un componente FoxBotWidget",
         description: "Crea un nuevo archivo en tu proyecto React:",
-        code: "// src/components/FoxBotWidget.jsx\nimport { useEffect } from 'react';\n\nexport default function FoxBotWidget({ tenantId }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n    return () => iframe.remove();\n  }, [tenantId]);\n  return null;\n}",
+        code: "// src/components/FoxBotWidget.jsx\nimport { useEffect } from 'react';\n\nexport default function FoxBotWidget({ tenantId }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n    return () => iframe.remove();\n  }, [tenantId]);\n  return null;\n}",
         codeLanguage: "jsx",
       },
       {
@@ -307,7 +307,7 @@ const guides: Guide[] = [
       {
         title: "Crea el componente con 'use client'",
         description: "Crea un archivo de componente client-side:",
-        code: "// components/FoxBotWidget.tsx\n'use client';\nimport { useEffect } from 'react';\n\nexport default function FoxBotWidget({ tenantId }: { tenantId: string }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n    return () => { iframe.remove(); };\n  }, [tenantId]);\n  return null;\n}",
+        code: "// components/FoxBotWidget.tsx\n'use client';\nimport { useEffect } from 'react';\n\nexport default function FoxBotWidget({ tenantId }: { tenantId: string }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n    return () => { iframe.remove(); };\n  }, [tenantId]);\n  return null;\n}",
         codeLanguage: "tsx",
       },
       {
@@ -329,7 +329,7 @@ const guides: Guide[] = [
       {
         title: "Crea el componente FoxBotWidget.vue",
         description: "Crea un nuevo componente Vue:",
-        code: "<!-- components/FoxBotWidget.vue -->\n<template>\n  <div></div>\n</template>\n\n<script setup>\nimport { onMounted, onUnmounted } from 'vue';\n\nconst props = defineProps({ tenantId: String });\nlet iframe;\n\nonMounted(() => {\n  iframe = document.createElement('iframe');\n  iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${props.tenantId}`;\n  iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n  iframe.allow = 'microphone';\n  document.body.appendChild(iframe);\n});\n\nonUnmounted(() => { if (iframe) iframe.remove(); });\n</script>",
+        code: "<!-- components/FoxBotWidget.vue -->\n<template>\n  <div></div>\n</template>\n\n<script setup>\nimport { onMounted, onUnmounted } from 'vue';\n\nconst props = defineProps({ tenantId: String });\nlet iframe;\n\nfunction adjustSize() {\n  var w = window.innerWidth;\n  if (w <= 480) {\n    iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n  } else {\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n  }\n}\n\nonMounted(() => {\n  iframe = document.createElement('iframe');\n  iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${props.tenantId}`;\n  iframe.allow = 'microphone';\n  adjustSize();\n  window.addEventListener('resize', adjustSize);\n  document.body.appendChild(iframe);\n});\n\nonUnmounted(() => {\n  window.removeEventListener('resize', adjustSize);\n  if (iframe) iframe.remove();\n});\n</script>",
         codeLanguage: "vue",
       },
       {
@@ -351,7 +351,7 @@ const guides: Guide[] = [
       {
         title: "Agrega el script en index.html",
         description: "La forma mas simple es agregar el script directamente en src/index.html antes de </body>:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -375,7 +375,7 @@ const guides: Guide[] = [
       {
         title: "Pega el script",
         description: "En el campo HTML, pega el siguiente codigo:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -407,7 +407,7 @@ const guides: Guide[] = [
       {
         title: "Pega el codigo del widget",
         description: "Inserta el siguiente script:",
-        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n    iframe.allow = 'microphone';\n    document.body.appendChild(iframe);\n  })();\n</script>`,
+        code: `<script>\n  (function() {\n    var iframe = document.createElement('iframe');\n    iframe.src = '${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID';\n    iframe.allow = 'microphone';\n    function adjustSize() {\n      var w = window.innerWidth;\n      if (w <= 480) {\n        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';\n      } else {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';\n      }\n    }\n    adjustSize();\n    window.addEventListener('resize', adjustSize);\n    document.body.appendChild(iframe);\n  })();\n</script>`,
         codeLanguage: "html",
       },
       {
@@ -427,7 +427,7 @@ const guides: Guide[] = [
       {
         title: "Usa el iframe directamente",
         description: "Si prefieres no usar JavaScript, puedes insertar el iframe directamente en tu HTML:",
-        code: `<iframe\n  src="${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID"\n  style="position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;"\n  allow="microphone"\n></iframe>`,
+        code: `<iframe\n  src="${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID"\n  style="position:fixed;bottom:0;right:0;width:100%;max-width:400px;height:620px;border:none;z-index:9999;border-radius:16px 16px 0 0;"\n  allow="microphone"\n></iframe>`,
         codeLanguage: "html",
       },
       {

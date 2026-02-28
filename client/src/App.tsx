@@ -330,10 +330,11 @@ function ChatWidget() {
 
   const postMessageToParent = useCallback((type: string) => {
     try {
+      const isMobile = window.innerWidth <= 480;
       const payload = {
         type,
-        width: type === "open_chat" ? 400 : 70,
-        height: type === "open_chat" ? 620 : 70,
+        width: type === "open_chat" ? (isMobile ? "100%" : 400) : 70,
+        height: type === "open_chat" ? (isMobile ? "100%" : 620) : 70,
       };
       window.parent.postMessage(payload, "*");
     } catch {}

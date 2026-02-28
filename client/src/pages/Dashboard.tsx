@@ -318,7 +318,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   const iframeCode = `<iframe
   src="${baseUrl}/widget?tenantId=${tenant.id}"
-  style="position:fixed;bottom:20px;right:20px;width:400px;height:600px;border:none;z-index:9999;"
+  style="position:fixed;bottom:0;right:0;width:100%;max-width:400px;height:620px;border:none;z-index:9999;border-radius:16px 16px 0 0;"
   allow="microphone"
 ></iframe>`;
 
@@ -326,8 +326,17 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   (function() {
     var iframe = document.createElement('iframe');
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
-    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:600px;border:none;z-index:9999;';
     iframe.allow = 'microphone';
+    function adjustSize() {
+      var w = window.innerWidth;
+      if (w <= 480) {
+        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+      } else {
+        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';
+      }
+    }
+    adjustSize();
+    window.addEventListener('resize', adjustSize);
     document.body.appendChild(iframe);
   })();
 </script>`;

@@ -54,7 +54,7 @@ export function WelcomeForm({ onSubmit, onClose, brandColor, brandName, welcomeM
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       <div className="px-4 py-3 flex items-center justify-between" style={{ background: brandColor || "#6200EA" }}>
         <div className="flex items-center gap-2">
           <Headphones className="w-4 h-4 text-white" />
