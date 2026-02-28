@@ -651,9 +651,19 @@ export default function Dashboard() {
 
         <div className="relative p-5 border-b border-white/[0.06] animate-dash-fade-in">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl glass-card flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-110 hover:rotate-3 animate-float" style={{ animationDuration: "8s" }}>
-              <img src={logoSinFondo} alt="FoxBot" className="w-6 h-6 object-contain" />
-            </div>
+            {tenant.avatarUrl ? (
+              <img
+                src={tenant.avatarUrl}
+                alt={tenant.companyName}
+                className="w-9 h-9 rounded-xl object-cover shrink-0 transition-transform duration-300 hover:scale-110 hover:rotate-3"
+                referrerPolicy="no-referrer"
+                data-testid="img-tenant-avatar"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-xl glass-card flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-110 hover:rotate-3 animate-float" style={{ animationDuration: "8s" }}>
+                <img src={logoSinFondo} alt="FoxBot" className="w-6 h-6 object-contain" />
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-sm font-bold truncate">{tenant.companyName}</p>
               <p className="text-[10px] text-white/30 truncate">{tenant.email}</p>
@@ -749,6 +759,15 @@ export default function Dashboard() {
               <span className="text-xs text-white/40">En linea</span>
             </div>
             <span className="text-sm text-white/30 hidden md:block" data-testid="text-tenant-email">{tenant.email}</span>
+            {tenant.avatarUrl && (
+              <img
+                src={tenant.avatarUrl}
+                alt={tenant.name}
+                className="w-8 h-8 rounded-full object-cover border border-white/10"
+                referrerPolicy="no-referrer"
+                data-testid="img-header-avatar"
+              />
+            )}
           </div>
         </header>
 

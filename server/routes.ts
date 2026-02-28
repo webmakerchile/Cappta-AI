@@ -1140,6 +1140,7 @@ ${DEMO_BASE_RULES}`,
       }
       const email = payload.email.toLowerCase().trim();
       const name = payload.name || email.split("@")[0];
+      const picture = payload.picture || null;
       let tenant = await storage.getTenantByEmail(email);
       if (!tenant) {
         const crypto = await import("crypto");
@@ -1150,13 +1151,16 @@ ${DEMO_BASE_RULES}`,
           email,
           passwordHash,
           companyName: name,
+          avatarUrl: picture,
         });
+      } else if (picture && tenant.avatarUrl !== picture) {
+        tenant = (await storage.updateTenant(tenant.id, { avatarUrl: picture } as any)) || tenant;
       }
       const token = generateTenantToken({ id: tenant.id, email: tenant.email, companyName: tenant.companyName });
       res.json({
         token,
         isNew: !!(tenant.companyName === name && tenant.plan === "free"),
-        tenant: { id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain },
+        tenant: { id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain },
       });
     } catch (error: any) {
       log(`Error en Google auth: ${error.message}`, "auth");
@@ -1196,7 +1200,7 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
@@ -1214,7 +1218,7 @@ ${DEMO_BASE_RULES}`,
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });

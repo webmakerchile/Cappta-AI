@@ -128,6 +128,7 @@ export const tenants = pgTable("tenants", {
   widgetColor: text("widget_color").notNull().default("#6200EA"),
   welcomeMessage: text("welcome_message").notNull().default("Hola, ¿en qué podemos ayudarte?"),
   logoUrl: text("logo_url"),
+  avatarUrl: text("avatar_url"),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
   flowCustomerId: text("flow_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
