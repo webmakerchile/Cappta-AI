@@ -1,7 +1,7 @@
 import { containsProfanity } from "./profanityFilter";
 import { getAIReply } from "./aiReply";
 import { storage } from "./storage";
-import { searchWooCommerceProducts } from "./woocommerce";
+
 
 type Intent =
   | "greeting"
@@ -2061,24 +2061,6 @@ async function _processAutoReply(
         } catch {}
       }
 
-      if (relevantProducts.length === 0) {
-        try {
-          const wcQuery = extractProductKeywords(userMessage) || userMessage;
-          const wcResults = await searchWooCommerceProducts(wcQuery, 5);
-          if (wcResults.length > 0) {
-            relevantProducts = wcResults.map(r => ({
-              name: r.name,
-              price: r.price,
-              productUrl: r.productUrl,
-              availability: r.availability,
-              platform: r.platform,
-              description: r.description,
-              category: r.category,
-              accountType: (r as any).accountType || "No especificado",
-            }));
-          }
-        } catch {}
-      }
 
       if (catalogProduct && !relevantProducts.find(p => p.name === catalogProduct.name)) {
         if (relevantProducts.length === 0) {

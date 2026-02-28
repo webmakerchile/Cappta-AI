@@ -32,7 +32,7 @@ Key architectural decisions and features include:
 - **Hybrid Messaging**: Combines HTTP POST for sending messages (iframe compatibility) with Socket.io for real-time message reception, including a 4-second polling fallback. Admin panel uses a separate socket connection with `role: "admin"` auth that bypasses user session requirements, enabling real-time message reception in the admin dashboard.
 - **Intelligent Auto-reply Engine**: A sophisticated `autoReply.ts` engine in the backend provides context-aware responses. For CJM Digitales (tenantId=null), it uses a hardcoded intent-based response tree with product catalog lookup. For all other tenants, `_processTenantAutoReply()` routes directly to OpenAI gpt-4o-mini with tenant-specific context (companyName, botContext from tenants table), tenant-scoped knowledge base entries, and tenant product catalog. The `buildTenantSystemPrompt()` in `aiReply.ts` generates a dynamic system prompt per tenant. Knowledge base searches are tenant-scoped via the `tenantId` parameter.
 - **Business Hours System**: Configurable business hours stored in `app_settings`. During offline hours, the chat continues to work normally but contact executive buttons are replaced with ticket system links.
-- **Integrated Product Catalog**: The bot can query a PostgreSQL-backed product catalog to include real-time prices, availability, and purchase URLs in its responses. Product search uses fuzzy matching via PostgreSQL pg_trgm trigram similarity.
+- **Integrated Product Catalog**: Each tenant manages their own product catalog via the tenant panel. The bot queries the tenant-scoped PostgreSQL-backed catalog with fuzzy matching via pg_trgm trigram similarity. WooCommerce direct integration has been removed — products are managed per-tenant through the panel UI.
 - **Comprehensive Admin Panel**: Located at `/admin`, this panel offers session management, a chat viewer, global search, status filters, tags, canned responses, product catalog management, session agent badges, and agent type filters.
 - **Conversation Learning System**: An AI-powered learning pipeline that extracts knowledge from closed customer conversations.
 - **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
@@ -77,7 +77,7 @@ Key architectural decisions and features include:
 - `POST /api/tenants/me/sessions/:id/reply` - Reply to a customer session (auth required)
 - `GET /api/tenants/:id/config` - Public endpoint for widget to load tenant config
 - `GET /api/tenants/me/referral` - Get referral code, stats, and referral list (auth required)
-- `POST /api/tenants/me/referral/confirm` - Confirm a referral and apply reward if threshold reached (auth required)
+- `POST /api/tenants/me/referral/confirm` - DISABLED: referrals now auto-confirm when referral buys a paid plan via Flow.cl
 
 ## Tenant Panel API Routes (Support Panel at /panel)
 - `GET /api/tenant-panel/sessions?status=` - List tenant sessions with full stats

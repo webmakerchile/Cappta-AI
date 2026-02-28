@@ -9,7 +9,7 @@ import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getSmartAutoReply } from "./autoReply";
 import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuiltinWords, getCustomWords, setCustomWords } from "./profanityFilter";
-import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
+
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import { getFlowApi, PLAN_PRICES, PLAN_LIMITS } from "./flow";
 import bcrypt from "bcryptjs";
@@ -3256,30 +3256,6 @@ Reglas CRITICAS:
     }
   });
 
-  app.get("/api/admin/wc/status", async (req, res) => {
-    const adminUser = requireAuth(req, res);
-    if (!adminUser) return;
-    try {
-      const status = await getWCSyncStatus();
-      res.json(status);
-    } catch (error: any) {
-      log(`Error al obtener estado WC: ${error.message}`, "api");
-      res.status(500).json({ message: "Error al obtener estado" });
-    }
-  });
-
-  app.post("/api/admin/wc/sync", async (req, res) => {
-    const adminUser = requireAuth(req, res);
-    if (!adminUser) return;
-    try {
-      log("Iniciando sincronizacion WooCommerce manual", "woocommerce");
-      const result = await syncWooCommerceProducts();
-      res.json(result);
-    } catch (error: any) {
-      log(`Error en sincronizacion WC: ${error.message}`, "api");
-      res.status(500).json({ message: "Error en sincronizacion", error: error.message });
-    }
-  });
 
   app.post("/api/ratings", async (req, res) => {
     try {
