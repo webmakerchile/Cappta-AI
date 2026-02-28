@@ -36,7 +36,7 @@ Key architectural decisions and features include:
 
 ## SaaS Pages & Routing
 - `/` - Landing page (marketing, features, pricing) - FoxBot branding, animated chat demo, platform logos (WooCommerce/Shopify/WordPress/Magento/API), stats section, CLP pricing
-- `/demo` - Interactive demo chat (no registration required, rate-limited 30 msg/hr, uses OpenAI gpt-4o-mini)
+- `/demo` - Interactive demo chat with context selector (tech/restaurant/clothing/health/realestate), no registration required, rate-limited 30 msg/hr, dynamic theming per context, uses OpenAI gpt-4o-mini via Replit AI integration
 - `/register` - Tenant registration (company signup)
 - `/login` - Tenant login
 - `/dashboard` - Tenant dashboard (widget config, embed code, real stats, plan)
