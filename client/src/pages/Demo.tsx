@@ -38,6 +38,21 @@ import {
   Gamepad2,
   Bike,
   Palette,
+  Headphones,
+  X,
+  ImagePlus,
+  FileText,
+  Download,
+  UserRound,
+  Tag,
+  CircleDot,
+  Bell,
+  ShoppingBag,
+  Star,
+  ChevronDown,
+  Mail,
+  Shield,
+  Eye,
 } from "lucide-react";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
@@ -56,6 +71,169 @@ interface DemoContext {
   colorAccent: string;
   category: string;
   suggestions: string[];
+}
+
+interface DemoProduct {
+  id: number;
+  name: string;
+  price: string;
+  badge?: string;
+}
+
+interface DemoFile {
+  name: string;
+  size: string;
+  type: string;
+}
+
+interface DemoSessionMsg {
+  sender: "user" | "bot" | "executive" | "system";
+  content: string;
+  file?: DemoFile;
+  quickReplies?: string[];
+}
+
+interface DemoSession {
+  id: string;
+  userName: string;
+  userEmail: string;
+  initial: string;
+  color: string;
+  status: "active" | "closed";
+  contactRequested: boolean;
+  unread: number;
+  tags: string[];
+  problemType: string;
+  productName?: string;
+  messages: DemoSessionMsg[];
+}
+
+const DEMO_PRODUCTS: Record<string, DemoProduct[]> = {
+  tech: [{ id: 1, name: "iPhone 15 Pro 256GB", price: "$1.099.990", badge: "Nuevo" }, { id: 2, name: "MacBook Air M2", price: "$899.990", badge: "Popular" }, { id: 3, name: "AirPods Pro 2", price: "$249.990" }],
+  restaurant: [{ id: 1, name: "Empanadas de Pino (6 un)", price: "$8.990" }, { id: 2, name: "Pastel de Choclo Familiar", price: "$12.990", badge: "Popular" }, { id: 3, name: "Cazuela de Ave", price: "$8.490" }],
+  clothing: [{ id: 1, name: "Zapatillas Nike Air Max", price: "$69.990", badge: "Nuevo" }, { id: 2, name: "Jeans Slim Fit Premium", price: "$24.990" }, { id: 3, name: "Polera Oversize Urban", price: "$12.990" }],
+  health: [{ id: 1, name: "Blanqueamiento Dental LED", price: "$89.990", badge: "Popular" }, { id: 2, name: "Limpieza Profesional", price: "$35.000" }, { id: 3, name: "Ortodoncia Invisible", price: "$450.000" }],
+  realestate: [{ id: 1, name: "Depto 2D+2B Providencia", price: "4.200 UF", badge: "Nuevo" }, { id: 2, name: "Casa 4D La Florida", price: "5.800 UF" }, { id: 3, name: "Arriendo Depto Ñuñoa", price: "$650.000/mes" }],
+  education: [{ id: 1, name: "Preparacion PAES Completa", price: "$159.990/sem" }, { id: 2, name: "Ingles Intensivo B2", price: "$89.990/mes", badge: "Popular" }, { id: 3, name: "Taller Matematicas", price: "$49.990/mes" }],
+  automotive: [{ id: 1, name: "Toyota RAV4 2024", price: "$18.990.000", badge: "Nuevo" }, { id: 2, name: "Hyundai Tucson 2023", price: "$15.490.000" }, { id: 3, name: "Kia Sportage Semi-Nuevo", price: "$12.990.000" }],
+  gym: [{ id: 1, name: "Plan Premium + Clases", price: "$39.990/mes", badge: "Popular" }, { id: 2, name: "Plan Basico", price: "$24.990/mes" }, { id: 3, name: "Plan VIP + Nutricionista", price: "$59.990/mes" }],
+  veterinary: [{ id: 1, name: "Consulta General", price: "$18.000" }, { id: 2, name: "Vacunacion Completa", price: "$25.000" }, { id: 3, name: "Esterilizacion", price: "$89.990", badge: "Popular" }],
+  travel: [{ id: 1, name: "Cancun All Inclusive 7 dias", price: "$899.990", badge: "Oferta" }, { id: 2, name: "Patagonia 5 dias", price: "$649.990" }, { id: 3, name: "Europa 15 dias", price: "$2.490.000" }],
+  mechanic: [{ id: 1, name: "Cambio de Aceite Sintetico", price: "$45.000" }, { id: 2, name: "Alineacion + Balanceo", price: "$18.000" }, { id: 3, name: "Scanner Automotriz", price: "$15.000", badge: "Popular" }],
+  legal: [{ id: 1, name: "Consulta Legal Inicial", price: "$30.000" }, { id: 2, name: "Redaccion de Contrato", price: "$120.000" }, { id: 3, name: "Defensa Laboral", price: "Desde $350.000" }],
+  photography: [{ id: 1, name: "Sesion Individual", price: "$89.990" }, { id: 2, name: "Cobertura Matrimonio", price: "$490.000", badge: "Premium" }, { id: 3, name: "Book Profesional", price: "$149.990" }],
+  florist: [{ id: 1, name: "Ramo Rosas Premium", price: "$39.990", badge: "Popular" }, { id: 2, name: "Arreglo Cumpleaños", price: "$25.990" }, { id: 3, name: "Centro de Mesa Evento", price: "$89.990" }],
+  music: [{ id: 1, name: "Clases de Guitarra (4/mes)", price: "$35.990" }, { id: 2, name: "Clases de Piano (4/mes)", price: "$39.990", badge: "Popular" }, { id: 3, name: "Clases de Canto (4/mes)", price: "$45.000" }],
+  barbershop: [{ id: 1, name: "Corte Fade/Degradado", price: "$10.990", badge: "Popular" }, { id: 2, name: "Combo Corte + Barba", price: "$14.990" }, { id: 3, name: "Tratamiento Capilar", price: "$19.990" }],
+  bookstore: [{ id: 1, name: "Bestseller del Mes", price: "$14.990" }, { id: 2, name: "Box Set Harry Potter", price: "$49.990", badge: "Popular" }, { id: 3, name: "Manga One Piece Vol 1-5", price: "$34.990" }],
+  daycare: [{ id: 1, name: "Sala Cuna (mensual)", price: "$189.990" }, { id: 2, name: "Medio Menor (mensual)", price: "$219.990" }, { id: 3, name: "Pre-Kinder (mensual)", price: "$289.990", badge: "Popular" }],
+  construction: [{ id: 1, name: "Remodelacion Baño Completa", price: "$1.200.000" }, { id: 2, name: "Remodelacion Cocina", price: "$2.500.000", badge: "Popular" }, { id: 3, name: "Ampliacion 20m²", price: "$4.500.000" }],
+  coworking: [{ id: 1, name: "Hot Desk Mensual", price: "$89.990" }, { id: 2, name: "Escritorio Fijo", price: "$149.990", badge: "Popular" }, { id: 3, name: "Oficina Privada (4 personas)", price: "$399.990" }],
+  pizza: [{ id: 1, name: "Pizza Pepperoni Grande", price: "$8.490" }, { id: 2, name: "Pizza Especial de la Casa", price: "$10.990", badge: "Popular" }, { id: 3, name: "Combo Familiar (2 pizzas + bebida)", price: "$18.990" }],
+  winery: [{ id: 1, name: "Carmenere Gran Reserva", price: "$12.990", badge: "Popular" }, { id: 2, name: "Cabernet Premium", price: "$24.990" }, { id: 3, name: "Degustacion 5 Vinos", price: "$15.000" }],
+  supermarket: [{ id: 1, name: "Canasta Frutas Organicas", price: "$8.990" }, { id: 2, name: "Pack Asado Completo", price: "$24.990", badge: "Popular" }, { id: 3, name: "Caja Verduras Semanal", price: "$12.990" }],
+  jewelry: [{ id: 1, name: "Anillo Compromiso Oro 18k", price: "$199.990", badge: "Premium" }, { id: 2, name: "Cadena Plata 925", price: "$49.990" }, { id: 3, name: "Reloj Clasico Hombre", price: "$89.990" }],
+  gaming: [{ id: 1, name: "PS5 Slim Digital", price: "$449.990", badge: "Nuevo" }, { id: 2, name: "Teclado Mecanico RGB", price: "$39.990" }, { id: 3, name: "Mouse Gaming Pro", price: "$24.990" }],
+  bikeshop: [{ id: 1, name: "Bicicleta MTB 29er", price: "$349.990", badge: "Popular" }, { id: 2, name: "Bicicleta Urbana", price: "$179.990" }, { id: 3, name: "Mantencion Completa", price: "$35.000" }],
+  art: [{ id: 1, name: "Cuadro Oleo Original 60x80", price: "$189.990" }, { id: 2, name: "Taller Pintura (mensual)", price: "$49.990", badge: "Popular" }, { id: 3, name: "Enmarcado Profesional", price: "$25.000" }],
+};
+
+const DEMO_FILES: Record<string, DemoFile> = {
+  tech: { name: "Ficha_Tecnica_iPhone15Pro.pdf", size: "2.4 MB", type: "PDF" },
+  restaurant: { name: "Menu_Completo_2024.pdf", size: "1.8 MB", type: "PDF" },
+  clothing: { name: "Guia_Tallas_ModaUrbana.pdf", size: "980 KB", type: "PDF" },
+  health: { name: "Plan_Tratamiento_Dental.pdf", size: "1.2 MB", type: "PDF" },
+  realestate: { name: "Ficha_Propiedad_Providencia.pdf", size: "3.1 MB", type: "PDF" },
+  education: { name: "Programa_Academico_2024.pdf", size: "1.5 MB", type: "PDF" },
+  automotive: { name: "Especificaciones_RAV4_2024.pdf", size: "4.2 MB", type: "PDF" },
+  gym: { name: "Plan_Entrenamiento_Personalizado.pdf", size: "890 KB", type: "PDF" },
+  veterinary: { name: "Cartilla_Vacunacion_Mascota.pdf", size: "650 KB", type: "PDF" },
+  travel: { name: "Itinerario_Cancun_7dias.pdf", size: "2.8 MB", type: "PDF" },
+  mechanic: { name: "Diagnostico_Vehiculo.pdf", size: "1.1 MB", type: "PDF" },
+  legal: { name: "Modelo_Contrato_Tipo.pdf", size: "750 KB", type: "PDF" },
+  photography: { name: "Portfolio_Sesiones_2024.pdf", size: "5.2 MB", type: "PDF" },
+  florist: { name: "Catalogo_Arreglos_Florales.pdf", size: "3.4 MB", type: "PDF" },
+  music: { name: "Programa_Clases_Guitarra.pdf", size: "420 KB", type: "PDF" },
+  barbershop: { name: "Catalogo_Estilos_2024.pdf", size: "2.1 MB", type: "PDF" },
+  bookstore: { name: "Catalogo_Novedades_Enero.pdf", size: "1.7 MB", type: "PDF" },
+  daycare: { name: "Proyecto_Educativo_2024.pdf", size: "1.3 MB", type: "PDF" },
+  construction: { name: "Presupuesto_Remodelacion.pdf", size: "980 KB", type: "PDF" },
+  coworking: { name: "Planos_Oficinas_Disponibles.pdf", size: "2.6 MB", type: "PDF" },
+  pizza: { name: "Menu_PizzaMaster_2024.pdf", size: "1.4 MB", type: "PDF" },
+  winery: { name: "Ficha_Tecnica_Carmenere.pdf", size: "890 KB", type: "PDF" },
+  supermarket: { name: "Ofertas_Semana.pdf", size: "1.1 MB", type: "PDF" },
+  jewelry: { name: "Certificado_Autenticidad_Oro18k.pdf", size: "340 KB", type: "PDF" },
+  gaming: { name: "Specs_PS5_Slim.pdf", size: "1.8 MB", type: "PDF" },
+  bikeshop: { name: "Guia_Mantencion_Bicicleta.pdf", size: "1.2 MB", type: "PDF" },
+  art: { name: "Catalogo_Exposicion_Actual.pdf", size: "4.5 MB", type: "PDF" },
+};
+
+function generateDemoSessions(ctx: DemoContext): DemoSession[] {
+  const products = DEMO_PRODUCTS[ctx.id] || [];
+  const file = DEMO_FILES[ctx.id];
+  const p0 = products[0];
+  const p1 = products[1];
+
+  return [
+    {
+      id: "demo-s1",
+      userName: "Maria Lopez",
+      userEmail: "maria.lopez@gmail.com",
+      initial: "M",
+      color: "#8b5cf6",
+      status: "active",
+      contactRequested: false,
+      unread: 1,
+      tags: ["Consulta"],
+      problemType: "Consulta de producto",
+      productName: p0?.name,
+      messages: [
+        { sender: "user", content: `Hola! Me interesa saber sobre ${p0?.name || "sus productos"}` },
+        { sender: "bot", content: `Hola Maria! 👋 ${p0?.name} tiene un precio de ${p0?.price}. Es una excelente opcion! Te interesa?`, quickReplies: ["Ver detalles", "Ver mas opciones", "Contactar ejecutivo"] },
+        { sender: "user", content: "Tienen stock disponible?" },
+        { sender: "bot", content: `Si! Tenemos stock disponible de ${p0?.name} 📦 Envio gratis en compras sobre $50.000. Quieres que te ayude con la compra?`, quickReplies: ["Si, quiero comprarlo", "Ver otros productos"] },
+      ],
+    },
+    {
+      id: "demo-s2",
+      userName: "Carlos Martinez",
+      userEmail: "carlos@empresa.cl",
+      initial: "C",
+      color: "#f59e0b",
+      status: "active",
+      contactRequested: true,
+      unread: 2,
+      tags: ["Venta", "Urgente"],
+      problemType: "Quiero comprar un producto",
+      productName: p1?.name,
+      messages: [
+        { sender: "user", content: `Quiero comprar ${p1?.name || "un producto"}` },
+        { sender: "bot", content: `Excelente eleccion! 🔥 ${p1?.name} esta disponible a ${p1?.price}. Te gustaria proceder con la compra?`, quickReplies: ["Si, comprar ahora", "Mas informacion", "Hablar con ejecutivo"] },
+        { sender: "user", content: "Quiero hablar con un ejecutivo por favor" },
+        { sender: "system", content: "Cliente solicita ejecutivo" },
+        { sender: "executive", content: `Hola Carlos! Soy ejecutivo de ${ctx.business}. Vi que te interesa ${p1?.name}. Te envio la informacion completa 📋` },
+        { sender: "executive", content: "Aqui tienes toda la informacion detallada:", file },
+      ],
+    },
+    {
+      id: "demo-s3",
+      userName: "Ana Perez",
+      userEmail: "ana.perez@mail.com",
+      initial: "A",
+      color: "#10b981",
+      status: "closed",
+      contactRequested: false,
+      unread: 0,
+      tags: ["Resuelto"],
+      problemType: "Consulta general",
+      messages: [
+        { sender: "user", content: "Hola, consulta rapida sobre precios" },
+        { sender: "bot", content: `Con gusto! 😊 Nuestros productos parten desde ${products[2]?.price || "$9.990"}. Que estas buscando especificamente?` },
+        { sender: "user", content: "Perfecto, muchas gracias por la info!" },
+        { sender: "bot", content: "De nada! 🙌 Si necesitas algo mas, aqui estamos. Que tengas un excelente dia!" },
+      ],
+    },
+  ];
 }
 
 const DEMO_CONTEXTS: DemoContext[] = [
@@ -426,13 +604,11 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
               Elige un tipo de negocio para probar
             </h1>
             <p className="text-white/40 text-sm sm:text-base max-w-lg mx-auto leading-relaxed animate-dash-fade-up dash-stagger-2">
-              FoxBot se adapta a cualquier negocio. Elige un escenario y comprueba como el chatbot se ajusta automaticamente.
+              FoxBot se adapta a cualquier negocio. Prueba el modo <strong className="text-white/60">Cliente</strong> y el modo <strong className="text-white/60">Ejecutivo</strong>.
             </p>
-            <div className="flex items-center justify-center gap-2 mt-3 animate-dash-fade-up dash-stagger-3">
-              <MessageSquare className="w-4 h-4 text-accent" />
-              <span className="text-sm text-accent font-medium">
-                {MAX_DEMO_MESSAGES} mensajes de prueba gratuitos
-              </span>
+            <div className="flex items-center justify-center gap-4 mt-3 animate-dash-fade-up dash-stagger-3">
+              <span className="flex items-center gap-1.5 text-xs text-white/35"><MessageSquare className="w-3.5 h-3.5 text-accent" /> Chat en vivo con IA</span>
+              <span className="flex items-center gap-1.5 text-xs text-white/35"><Headphones className="w-3.5 h-3.5 text-accent" /> Panel de ejecutivos</span>
             </div>
           </div>
 
@@ -447,11 +623,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
                 data-testid="input-search-context"
               />
               {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors"
-                  data-testid="button-clear-search"
-                >
+                <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors" data-testid="button-clear-search">
                   <span className="text-xs">Limpiar</span>
                 </button>
               )}
@@ -461,11 +633,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
           <div className="flex flex-wrap items-center justify-center gap-2 mb-8 animate-dash-fade-up dash-stagger-4">
             <button
               onClick={() => setActiveCategory(null)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 ${
-                !activeCategory
-                  ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_rgba(16,185,129,0.08)]"
-                  : "bg-white/[0.03] text-white/35 border border-white/[0.06] hover:bg-white/[0.06] hover:text-white/60"
-              }`}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 ${!activeCategory ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_rgba(16,185,129,0.08)]" : "bg-white/[0.03] text-white/35 border border-white/[0.06] hover:bg-white/[0.06] hover:text-white/60"}`}
               data-testid="button-category-all"
             >
               Todas ({DEMO_CONTEXTS.length})
@@ -476,11 +644,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 ${
-                    activeCategory === cat
-                      ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_rgba(16,185,129,0.08)]"
-                      : "bg-white/[0.03] text-white/35 border border-white/[0.06] hover:bg-white/[0.06] hover:text-white/60"
-                  }`}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 ${activeCategory === cat ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_rgba(16,185,129,0.08)]" : "bg-white/[0.03] text-white/35 border border-white/[0.06] hover:bg-white/[0.06] hover:text-white/60"}`}
                   data-testid={`button-category-${cat.toLowerCase()}`}
                 >
                   {cat} ({count})
@@ -502,19 +666,15 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
               {filtered.map((ctx, i) => (
                 <div
                   key={ctx.id}
-                  className={`rounded-2xl glass-card glass-card-hover p-5 cursor-pointer group transition-all duration-300 animate-dash-fade-up relative overflow-hidden`}
+                  className="rounded-2xl glass-card glass-card-hover p-5 cursor-pointer group transition-all duration-300 animate-dash-fade-up relative overflow-hidden"
                   style={{ animationDelay: `${Math.min(i * 0.04, 0.4)}s` }}
                   onClick={() => onSelect(ctx)}
                   data-testid={`card-context-${ctx.id}`}
                 >
                   <div className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `linear-gradient(90deg, transparent, ${ctx.color}60, transparent)` }} />
                   <div className="absolute -bottom-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700" style={{ background: `radial-gradient(circle, ${ctx.color}08, transparent 60%)` }} />
-
                   <div className="flex items-start gap-3 relative">
-                    <div
-                      className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-                      style={{ backgroundColor: `${ctx.color}15` }}
-                    >
+                    <div className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{ backgroundColor: `${ctx.color}15` }}>
                       <ctx.icon className="w-5 h-5 transition-all duration-300" style={{ color: ctx.color }} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -526,9 +686,9 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
                     </div>
                     <ArrowRight className="w-4 h-4 text-white/10 group-hover:text-white/40 transition-all duration-300 group-hover:translate-x-0.5 shrink-0 mt-1" />
                   </div>
-
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-white/25 font-medium">{ctx.category}</span>
+                    <span className="text-[10px] text-white/15">{(DEMO_PRODUCTS[ctx.id] || []).length} productos</span>
                   </div>
                 </div>
               ))}
@@ -544,33 +704,100 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
   );
 }
 
-export default function Demo() {
-  const [selectedContext, setSelectedContext] = useState<DemoContext | null>(null);
+function FileCard({ file, color }: { file: DemoFile; color: string }) {
+  return (
+    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] mt-1.5 cursor-default group/file" data-testid="card-demo-file">
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
+        <FileText className="w-4 h-4" style={{ color }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-white/80 truncate">{file.name}</p>
+        <p className="text-[9px] text-white/30">{file.type} · {file.size}</p>
+      </div>
+      <Download className="w-3.5 h-3.5 text-white/20 group-hover/file:text-white/50 transition-colors" />
+    </div>
+  );
+}
+
+function DemoProductBrowser({ products, color, onSelect, onClose }: { products: DemoProduct[]; color: string; onSelect: (p: DemoProduct) => void; onClose: () => void }) {
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => {
+    if (!search.trim()) return products;
+    const q = search.toLowerCase();
+    return products.filter(p => p.name.toLowerCase().includes(q));
+  }, [products, search]);
+
+  return (
+    <div className="absolute bottom-full left-0 right-0 mb-2 z-50 animate-dash-fade-up" data-testid="demo-product-browser">
+      <div className="rounded-2xl border border-white/[0.08] overflow-hidden" style={{ background: "rgba(15,15,15,0.98)", boxShadow: "0 -10px 40px rgba(0,0,0,0.5)" }}>
+        <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
+          <span className="text-[11px] font-bold text-white/60 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Catalogo</span>
+          <button onClick={onClose} className="text-white/30 hover:text-white/60" data-testid="button-close-product-browser"><X className="w-3.5 h-3.5" /></button>
+        </div>
+        <div className="p-2">
+          <div className="relative mb-2">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white/20" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar producto..."
+              className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-7 pr-3 py-1.5 text-[11px] focus:outline-none focus:border-white/15 text-white placeholder:text-white/20"
+              autoFocus
+              data-testid="input-product-search"
+            />
+          </div>
+          <div className="max-h-[180px] overflow-y-auto space-y-0.5">
+            {filtered.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => onSelect(p)}
+                className="w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.04] transition-colors text-left"
+                data-testid={`button-product-${p.id}`}
+              >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}12` }}>
+                  <ShoppingBag className="w-3 h-3" style={{ color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[11px] font-medium text-white/80 block truncate">{p.name}</span>
+                  <span className="text-[10px] text-white/35">{p.price}</span>
+                </div>
+                {p.badge && (
+                  <span className="text-[8px] px-1.5 py-0.5 rounded font-bold shrink-0" style={{ backgroundColor: `${color}15`, color }}>{p.badge}</span>
+                )}
+              </button>
+            ))}
+            {filtered.length === 0 && <p className="text-[10px] text-white/25 text-center py-3">No se encontraron productos</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messageCount, setMessageCount] = useState(0);
+  const [showProducts, setShowProducts] = useState(false);
+  const [contactRequested, setContactRequested] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    document.title = "Demo - FoxBot by Web Maker Chile";
-  }, []);
+  const products = DEMO_PRODUCTS[ctx.id] || [];
+  const demoFile = DEMO_FILES[ctx.id];
+  const remaining = MAX_DEMO_MESSAGES - messageCount;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
-    if (selectedContext) {
-      inputRef.current?.focus();
-    }
-  }, [selectedContext]);
+    inputRef.current?.focus();
+  }, []);
 
   async function sendMessage(content: string) {
-    if (!content.trim() || isLoading || !selectedContext) return;
-
+    if (!content.trim() || isLoading) return;
     if (messageCount >= MAX_DEMO_MESSAGES) {
       setError("Has usado tus 30 mensajes de prueba. Registrate gratis para seguir usando FoxBot sin limites.");
       return;
@@ -582,29 +809,26 @@ export default function Demo() {
     setInput("");
     setError(null);
     setIsLoading(true);
+    setShowProducts(false);
 
     try {
       const res = await fetch("/api/demo/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages, context: selectedContext.id }),
+        body: JSON.stringify({ messages: newMessages, context: ctx.id }),
       });
-
       const data = await res.json();
-
       if (res.status === 429) {
         setMessageCount(MAX_DEMO_MESSAGES);
         setError(data.message || "Limite de mensajes alcanzado.");
         setIsLoading(false);
         return;
       }
-
       if (!res.ok) {
         setError(data.message || "Error al enviar mensaje");
         setIsLoading(false);
         return;
       }
-
       setMessageCount((c) => c + 1);
       setMessages([...newMessages, { role: "assistant", content: data.reply }]);
     } catch {
@@ -619,195 +843,586 @@ export default function Demo() {
     sendMessage(input);
   }
 
+  function handleProductSelect(p: DemoProduct) {
+    setShowProducts(false);
+    sendMessage(`Me interesa ${p.name} (${p.price})`);
+  }
+
+  function handleContactExecutive() {
+    if (contactRequested) return;
+    setContactRequested(true);
+    setMessages(prev => [
+      ...prev,
+      { role: "user", content: "Quiero hablar con un ejecutivo" },
+      { role: "assistant", content: `Tu solicitud fue enviada! 🙋 Un ejecutivo de ${ctx.business} se conectara en breve para ayudarte personalmente. Mientras tanto, puedo seguir resolviendo tus dudas.` },
+    ]);
+  }
+
   function resetChat() {
     setMessages([]);
     setInput("");
     setError(null);
+    setContactRequested(false);
     inputRef.current?.focus();
   }
 
-  function changeContext() {
-    setSelectedContext(null);
-    setMessages([]);
-    setInput("");
-    setError(null);
+  return (
+    <div className="flex flex-col h-full" data-testid="demo-client-chat">
+      <div className="shrink-0 px-3.5 py-3 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${ctx.color} 0%, ${ctx.colorAccent} 100%)` }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
+            <ctx.icon className="w-4.5 h-4.5 text-white" />
+          </div>
+          <div>
+            <div className="text-[13px] font-bold text-white leading-tight" data-testid="text-chat-brand">{ctx.business}</div>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+              <span className="text-[10px] text-white/70">En linea</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors" onClick={() => setShowProducts(!showProducts)} data-testid="button-chat-search-products">
+            <Search className="w-3 h-3 text-white" />
+          </button>
+          <button className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors" onClick={onBack} data-testid="button-chat-close">
+            <X className="w-3 h-3 text-white" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 chat-scrollbar" style={{ background: "linear-gradient(180deg, rgba(10,10,10,1) 0%, rgba(15,15,15,1) 100%)" }}>
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center min-h-[45vh] text-center px-2">
+            <div className="w-14 h-14 rounded-2xl mb-4 flex items-center justify-center animate-float" style={{ backgroundColor: `${ctx.color}12` }}>
+              <ctx.icon className="w-7 h-7" style={{ color: ctx.color }} />
+            </div>
+            <h3 className="text-base font-bold mb-1.5 text-white/80" data-testid="text-demo-greeting">Bienvenido a {ctx.business}!</h3>
+            <p className="text-[11px] text-white/30 mb-4 max-w-xs">En que podemos ayudarte hoy?</p>
+            <div className="flex flex-wrap gap-1.5 justify-center max-w-md">
+              {ctx.suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(s)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.08] text-white/50 hover:text-white/80 hover:border-white/20 hover:bg-white/[0.04] transition-all duration-300"
+                  data-testid={`button-suggestion-${i}`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`} data-testid={`message-${msg.role}-${i}`}>
+            <div
+              className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${
+                msg.role === "user"
+                  ? "text-white rounded-br-sm"
+                  : "bg-white/[0.05] border border-white/[0.06] rounded-bl-sm"
+              }`}
+              style={msg.role === "user" ? { backgroundColor: ctx.color } : undefined}
+            >
+              {msg.role === "assistant" && (
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Bot className="w-3 h-3" style={{ color: ctx.color }} />
+                  <span className="text-[10px] font-semibold" style={{ color: ctx.color }}>{ctx.business}</span>
+                </div>
+              )}
+              <span className="whitespace-pre-wrap">{msg.content}</span>
+            </div>
+          </div>
+        ))}
+
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-white/[0.05] border border-white/[0.06] px-3 py-2 rounded-2xl rounded-bl-sm">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: ctx.color }} />
+                <span className="text-[11px] text-white/40">Escribiendo...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex justify-center">
+            <div className="bg-destructive/10 text-destructive text-[11px] px-3 py-1.5 rounded-xl" data-testid="text-demo-error">{error}</div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {!contactRequested && messages.length >= 2 && (
+        <div className="shrink-0 px-3 py-1.5 border-t border-white/[0.04]" style={{ background: "rgba(10,10,10,0.95)" }}>
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={handleContactExecutive}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all border"
+              style={{ borderColor: `${ctx.color}30`, color: ctx.color, backgroundColor: `${ctx.color}08` }}
+              data-testid="button-contact-executive"
+            >
+              <Headphones className="w-3 h-3" />
+              Contactar Ejecutivo
+            </button>
+            <button
+              onClick={() => {
+                const rating = "Gracias por la atencion, excelente servicio!";
+                setMessages(prev => [...prev, { role: "user", content: rating }]);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold border border-white/[0.08] text-white/40 hover:text-white/60 transition-all"
+              data-testid="button-rate-chat"
+            >
+              <Star className="w-3 h-3" />
+              Calificar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="shrink-0 border-t border-white/[0.06]" style={{ background: "rgba(10,10,10,0.98)" }}>
+        <div className="px-3 py-2.5 relative">
+          {showProducts && (
+            <DemoProductBrowser
+              products={products}
+              color={ctx.color}
+              onSelect={handleProductSelect}
+              onClose={() => setShowProducts(false)}
+            />
+          )}
+          {remaining <= 0 ? (
+            <div className="text-center py-2">
+              <p className="text-[11px] text-white/35 mb-2">Has usado tus {MAX_DEMO_MESSAGES} mensajes de prueba</p>
+              <a href="/register">
+                <Button size="sm" className="rounded-xl font-bold" data-testid="button-limit-register">
+                  Registrate Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              </a>
+            </div>
+          ) : (
+            <>
+              <form onSubmit={handleSubmit} className="flex items-center gap-1.5" data-testid="form-demo-chat">
+                <button
+                  type="button"
+                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/25 hover:text-white/50 transition-colors"
+                  data-testid="button-demo-attach"
+                  onClick={() => {
+                    if (demoFile) {
+                      setMessages(prev => [...prev, { role: "user", content: `📎 ${demoFile.name} (${demoFile.size})` }]);
+                    }
+                  }}
+                >
+                  <ImagePlus className="w-4 h-4" />
+                </button>
+                <button type="button" onClick={() => setShowProducts(!showProducts)} className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/25 hover:text-white/50 transition-colors" data-testid="button-demo-catalog">
+                  <ShoppingBag className="w-4 h-4" />
+                </button>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Escribe un mensaje..."
+                  maxLength={500}
+                  disabled={isLoading}
+                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-[12px] focus:outline-none focus:border-white/15 transition-all disabled:opacity-50 placeholder:text-white/20 text-white"
+                  data-testid="input-demo-message"
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-30 transition-all"
+                  style={{ backgroundColor: ctx.color }}
+                  data-testid="button-send-demo"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
+              <div className="flex items-center justify-between mt-1.5 px-1">
+                <span className="text-[9px] text-white/15">{remaining}/{MAX_DEMO_MESSAGES} restantes</span>
+                <span className="text-[9px] text-white/10">Powered by FoxBot</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
+  const sessions = useMemo(() => generateDemoSessions(ctx), [ctx]);
+  const [selectedSession, setSelectedSession] = useState<string>(sessions[1]?.id || sessions[0]?.id);
+  const [claimed, setClaimed] = useState(false);
+  const activeSession = sessions.find(s => s.id === selectedSession) || sessions[0];
+  const file = DEMO_FILES[ctx.id];
+  const [execInput, setExecInput] = useState("");
+  const [localMsgs, setLocalMsgs] = useState<DemoSessionMsg[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLocalMsgs([]);
+    setClaimed(false);
+    setExecInput("");
+  }, [selectedSession]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [localMsgs, selectedSession]);
+
+  const allMessages = [...(activeSession?.messages || []), ...localMsgs];
+
+  function handleSendExecMsg() {
+    if (!execInput.trim() || !claimed) return;
+    setLocalMsgs(prev => [...prev, { sender: "executive", content: execInput.trim() }]);
+    setExecInput("");
   }
 
+  function handleSendFile() {
+    if (!claimed || !file) return;
+    setLocalMsgs(prev => [...prev, { sender: "executive", content: "Te envio la informacion detallada:", file }]);
+  }
+
+  const TAG_COLORS: Record<string, string> = {
+    Consulta: "#8b5cf6",
+    Venta: "#10b981",
+    Urgente: "#ef4444",
+    Resuelto: "#22c55e",
+    VIP: "#f59e0b",
+  };
+
+  return (
+    <div className="flex flex-col h-full" data-testid="demo-executive-panel">
+      <div className="shrink-0 px-3.5 py-2.5 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${ctx.color} 0%, ${ctx.colorAccent} 100%)` }}>
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-white" />
+          <span className="text-[13px] font-bold text-white" data-testid="text-exec-panel-title">Panel de Ejecutivos — {ctx.business}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/15 border border-white/20">
+            <Bell className="w-2.5 h-2.5 text-white" />
+            <span className="text-[10px] text-white font-bold">{sessions.filter(s => s.contactRequested).length} solicitudes</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 min-h-0">
+        <div className="w-[180px] sm:w-[220px] shrink-0 border-r border-white/[0.06] overflow-y-auto" style={{ background: "rgba(8,8,8,0.98)" }}>
+          <div className="p-2 border-b border-white/[0.04]">
+            <span className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Chats activos ({sessions.length})</span>
+          </div>
+          {sessions.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSelectedSession(s.id)}
+              className={`w-full text-left p-2 transition-colors border-b border-white/[0.03] ${
+                selectedSession === s.id
+                  ? "bg-white/[0.06]"
+                  : "hover:bg-white/[0.03]"
+              } ${s.contactRequested ? "bg-amber-500/[0.04]" : ""}`}
+              data-testid={`button-exec-session-${s.id}`}
+            >
+              <div className="flex items-center gap-2">
+                <div className="relative shrink-0">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${s.color}25` }}>
+                    <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.initial}</span>
+                  </div>
+                  {s.status === "active" && (
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#080808] ${s.contactRequested ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-semibold text-white/80 truncate">{s.userName}</span>
+                    {s.unread > 0 && (
+                      <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-[7px] text-white font-bold flex items-center justify-center shrink-0 animate-bounce">{s.unread}</span>
+                    )}
+                  </div>
+                  {s.contactRequested && (
+                    <p className="text-[8px] text-amber-400 font-bold mt-0.5 flex items-center gap-0.5"><CircleDot className="w-2 h-2" /> Solicita Ejecutivo</p>
+                  )}
+                  {s.status === "closed" && (
+                    <p className="text-[8px] text-white/20 mt-0.5">Cerrado</p>
+                  )}
+                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                    {s.tags.map(tag => (
+                      <span key={tag} className="text-[7px] px-1 py-0.5 rounded font-bold" style={{ backgroundColor: `${TAG_COLORS[tag] || "#6b7280"}15`, color: TAG_COLORS[tag] || "#6b7280" }}>{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 flex flex-col min-w-0" style={{ background: "rgba(12,12,12,0.98)" }}>
+          <div className="shrink-0 flex items-center gap-2 px-3 py-2 border-b border-white/[0.06]">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${activeSession.color}20` }}>
+              <span className="text-[10px] font-bold" style={{ color: activeSession.color }}>{activeSession.initial}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[11px] font-bold text-white/80">{activeSession.userName}</span>
+              <span className="text-[9px] text-white/25 ml-1.5">{activeSession.userEmail}</span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {activeSession.status === "active" && !claimed && (
+                <button
+                  onClick={() => setClaimed(true)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all"
+                  style={{ backgroundColor: `${ctx.color}15`, border: `1px solid ${ctx.color}30` }}
+                  data-testid="button-exec-claim"
+                >
+                  <UserRound className="w-3 h-3" style={{ color: ctx.color }} />
+                  <span className="text-[10px] font-bold" style={{ color: ctx.color }}>Entrar al Chat</span>
+                </button>
+              )}
+              {claimed && (
+                <button
+                  onClick={() => setClaimed(false)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/25"
+                  data-testid="button-exec-leave"
+                >
+                  <span className="text-[10px] font-bold text-red-400">Salir</span>
+                </button>
+              )}
+              <select className="text-[9px] bg-white/[0.04] border border-white/[0.08] rounded-md px-1.5 py-1 text-white/50" defaultValue={activeSession.status} data-testid="select-exec-status">
+                <option value="active">Activo</option>
+                <option value="closed">Cerrar</option>
+              </select>
+            </div>
+          </div>
+
+          {claimed && (
+            <div className="shrink-0 px-3 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${ctx.color}08`, borderBottom: `1px solid ${ctx.color}15` }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: ctx.color }} />
+              <span className="text-[10px] font-medium" style={{ color: ctx.color }}>Chat asignado a ti — El bot esta pausado. Tus respuestas se envian directamente al usuario.</span>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 chat-scrollbar">
+            {activeSession.problemType && (
+              <div className="rounded-xl p-3 mb-3" style={{ backgroundColor: `${ctx.color}06`, border: `1px solid ${ctx.color}12` }}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <FileText className="w-3 h-3" style={{ color: ctx.color }} />
+                  <span className="text-[10px] font-bold" style={{ color: ctx.color }}>Formulario pre-chat</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Nombre</span>
+                    <span className="text-[11px] text-white/70 font-medium">{activeSession.userName}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Email</span>
+                    <span className="text-[11px] font-medium" style={{ color: ctx.color }}>{activeSession.userEmail}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Consulta</span>
+                    <span className="text-[11px] text-orange-300 font-medium">{activeSession.problemType}</span>
+                  </div>
+                  {activeSession.productName && (
+                    <div>
+                      <span className="text-[8px] text-white/25 uppercase tracking-wider block">Producto</span>
+                      <span className="text-[11px] text-white/70 font-medium">{activeSession.productName}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {allMessages.map((msg, i) => {
+              if (msg.sender === "system") {
+                return (
+                  <div key={i} className="flex items-center gap-2 py-1" data-testid={`msg-exec-system-${i}`}>
+                    <div className="flex-1 h-px bg-amber-500/20" />
+                    <span className="text-[8px] text-amber-400/60 font-medium px-1 flex items-center gap-1"><Bell className="w-2 h-2" />{msg.content}</span>
+                    <div className="flex-1 h-px bg-amber-500/20" />
+                  </div>
+                );
+              }
+
+              const isUser = msg.sender === "user";
+              const isExec = msg.sender === "executive";
+
+              return (
+                <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"}`} data-testid={`msg-exec-${msg.sender}-${i}`}>
+                  <div className={`max-w-[75%] px-2.5 py-1.5 rounded-xl text-[11px] leading-relaxed ${
+                    isUser
+                      ? `rounded-br-sm text-white`
+                      : isExec
+                        ? "rounded-bl-sm border"
+                        : "bg-white/[0.05] border border-white/[0.06] rounded-bl-sm"
+                  }`}
+                  style={
+                    isUser
+                      ? { backgroundColor: "#6b7280" }
+                      : isExec
+                        ? { backgroundColor: `${ctx.color}08`, borderColor: `${ctx.color}15` }
+                        : undefined
+                  }>
+                    {isExec && (
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <UserRound className="w-2.5 h-2.5" style={{ color: ctx.color }} />
+                        <span className="text-[9px] font-semibold" style={{ color: ctx.color }}>Ejecutivo</span>
+                      </div>
+                    )}
+                    {!isUser && !isExec && (
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <Bot className="w-2.5 h-2.5 text-[#8b5cf6]" />
+                        <span className="text-[9px] font-semibold text-[#a78bfa]">Bot IA</span>
+                      </div>
+                    )}
+                    {msg.content && <p className="text-white/70 whitespace-pre-wrap">{msg.content}</p>}
+                    {msg.file && <FileCard file={msg.file} color={ctx.color} />}
+                    {msg.quickReplies && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {msg.quickReplies.map((qr, qi) => (
+                          <span key={qi} className="text-[9px] px-2 py-0.5 rounded-lg border border-white/[0.08] text-white/40">{qr}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="shrink-0 border-t border-white/[0.06] px-3 py-2" style={{ background: "rgba(8,8,8,0.98)" }}>
+            {!claimed ? (
+              <div className="flex items-center gap-2 justify-center py-1">
+                <UserRound className="w-3 h-3 text-white/20" />
+                <span className="text-[10px] text-white/25">Haz clic en "Entrar al Chat" para responder como ejecutivo</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleSendFile}
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white/25 hover:text-white/50 transition-colors"
+                  title="Enviar archivo"
+                  data-testid="button-exec-send-file"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                </button>
+                <input
+                  type="text"
+                  value={execInput}
+                  onChange={(e) => setExecInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendExecMsg(); }}}
+                  placeholder="Responde como ejecutivo..."
+                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-white/15 transition-all text-white placeholder:text-white/20"
+                  data-testid="input-exec-message"
+                />
+                <button
+                  onClick={handleSendExecMsg}
+                  disabled={!execInput.trim()}
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white disabled:opacity-30 transition-all"
+                  style={{ backgroundColor: ctx.color }}
+                  data-testid="button-exec-send"
+                >
+                  <Send className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Demo() {
+  const [selectedContext, setSelectedContext] = useState<DemoContext | null>(null);
+  const [mode, setMode] = useState<"client" | "executive">("client");
+
+  useEffect(() => {
+    document.title = "Demo - FoxBot by Web Maker Chile";
+  }, []);
+
   if (!selectedContext) {
-    return <ContextSelector onSelect={setSelectedContext} />;
+    return <ContextSelector onSelect={(ctx) => { setSelectedContext(ctx); setMode("client"); }} />;
   }
 
   const ctx = selectedContext;
-  const remaining = MAX_DEMO_MESSAGES - messageCount;
+
+  function changeContext() {
+    setSelectedContext(null);
+    setMode("client");
+  }
 
   return (
     <div className="fixed inset-0 bg-background text-foreground flex flex-col" data-testid="demo-page">
       <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}06, transparent 60%)` }} />
       <div className="absolute bottom-[-150px] left-[-100px] w-[350px] h-[350px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}04, transparent 60%)`, animationDelay: "-10s" }} />
 
-      <nav className="shrink-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl animate-dash-fade-in" data-testid="demo-nav">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <button onClick={changeContext} className="flex items-center gap-1 text-white/30 hover:text-white/60 transition-colors duration-300" data-testid="button-change-context">
+      <nav className="shrink-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl" data-testid="demo-nav">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <button onClick={changeContext} className="flex items-center gap-1 text-white/30 hover:text-white/60 transition-colors" data-testid="button-change-context">
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div className="flex items-center justify-center w-8 h-8 rounded-xl transition-transform duration-300 hover:scale-110" style={{ backgroundColor: `${ctx.color}15` }}>
-              <ctx.icon className="w-4 h-4" style={{ color: ctx.color }} />
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg" style={{ backgroundColor: `${ctx.color}15` }}>
+              <ctx.icon className="w-3.5 h-3.5" style={{ color: ctx.color }} />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold leading-tight" style={{ color: ctx.color }}>{ctx.business}</span>
-              <span className="text-[10px] text-white/25 leading-tight">Powered by FoxBot</span>
-            </div>
+            <span className="text-sm font-bold hidden sm:inline" style={{ color: ctx.color }}>{ctx.business}</span>
           </div>
+
+          <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-0.5 border border-white/[0.06]">
+            <button
+              onClick={() => setMode("client")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-300 ${
+                mode === "client"
+                  ? "text-white shadow-sm"
+                  : "text-white/35 hover:text-white/55"
+              }`}
+              style={mode === "client" ? { backgroundColor: ctx.color } : undefined}
+              data-testid="button-mode-client"
+            >
+              <MessageSquare className="w-3 h-3" />
+              <span className="hidden sm:inline">Modo</span> Cliente
+            </button>
+            <button
+              onClick={() => setMode("executive")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-300 ${
+                mode === "executive"
+                  ? "text-white shadow-sm"
+                  : "text-white/35 hover:text-white/55"
+              }`}
+              style={mode === "executive" ? { backgroundColor: ctx.color } : undefined}
+              data-testid="button-mode-executive"
+            >
+              <Headphones className="w-3 h-3" />
+              <span className="hidden sm:inline">Modo</span> Ejecutivo
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
-            <span className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/30 font-medium" data-testid="badge-remaining">
-              {remaining} restantes
-            </span>
-            <Button variant="ghost" size="sm" onClick={resetChat} className="text-white/30 hover:text-white/60 rounded-xl transition-all duration-300" data-testid="button-reset-chat">
-              <RotateCcw className="w-3.5 h-3.5 mr-1" />
-              Nueva
-            </Button>
             <a href="/register" className="hidden sm:block">
-              <Button size="sm" className="rounded-xl font-bold" data-testid="button-demo-register">
-                Registrarse
+              <Button size="sm" className="rounded-xl font-bold text-[11px] h-8" data-testid="button-demo-register">
+                Registrarse <ArrowRight className="w-3 h-3 ml-0.5" />
               </Button>
             </a>
           </div>
         </div>
       </nav>
 
-      <div className="flex-1 overflow-y-auto" data-testid="demo-messages">
-        <div className="max-w-2xl mx-auto w-full px-4 py-6 space-y-4">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-              <div
-                className="flex items-center justify-center w-16 h-16 rounded-2xl mb-5 animate-dash-scale-in animate-float"
-                style={{ backgroundColor: `${ctx.color}10`, animationDuration: "6s" }}
-              >
-                <ctx.icon className="w-8 h-8" style={{ color: ctx.color }} />
-              </div>
-              <h2 className="text-xl font-bold mb-2 animate-dash-fade-up dash-stagger-1" data-testid="text-demo-title">
-                Chatea con el asistente de {ctx.business}
-              </h2>
-              <p className="text-white/35 text-sm mb-6 max-w-md leading-relaxed animate-dash-fade-up dash-stagger-2">
-                Este es un ejemplo de como FoxBot atiende clientes en una {ctx.name.toLowerCase()}.
-                Prueba preguntando lo que quieras.
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center max-w-lg">
-                {ctx.suggestions.map((s, i) => (
-                  <Button
-                    key={i}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => sendMessage(s)}
-                    className={`rounded-xl border-white/[0.08] hover:border-white/20 hover:bg-white/[0.04] transition-all duration-300 hover:scale-[1.03] animate-dash-fade-up`}
-                    style={{ animationDelay: `${0.15 + i * 0.06}s` }}
-                    data-testid={`button-suggestion-${i}`}
-                  >
-                    {s}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-dash-fade-up`}
-              data-testid={`message-${msg.role}-${i}`}
-            >
-              <div
-                className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed transition-all duration-300 ${
-                  msg.role === "user"
-                    ? "text-white rounded-br-md shadow-lg"
-                    : "glass-card rounded-bl-md"
-                }`}
-                style={msg.role === "user" ? { backgroundColor: ctx.color, boxShadow: `0 4px 20px ${ctx.color}25` } : undefined}
-              >
-                {msg.role === "assistant" && (
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Bot className="w-3.5 h-3.5" style={{ color: ctx.color }} />
-                    <span className="text-[11px] font-semibold" style={{ color: ctx.color }}>{ctx.business}</span>
-                  </div>
-                )}
-                <span className="whitespace-pre-wrap">{msg.content}</span>
-              </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex justify-start animate-dash-fade-up">
-              <div className="glass-card px-4 py-3 rounded-2xl rounded-bl-md">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" style={{ color: ctx.color }} />
-                  <span className="text-sm text-white/40">Escribiendo...</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex justify-center animate-dash-scale-in">
-              <div className="bg-destructive/10 text-destructive text-sm px-4 py-2 rounded-xl" data-testid="text-demo-error">
-                {error}
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
+      <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4">
+        {mode === "client" ? (
+          <div className="w-full max-w-[400px] h-full max-h-[700px] rounded-2xl overflow-hidden border border-white/[0.08] flex flex-col" style={{ background: "rgba(10,10,10,0.98)", boxShadow: `0 0 60px ${ctx.color}08, 0 20px 40px rgba(0,0,0,0.4)` }}>
+            <DemoChat ctx={ctx} onBack={changeContext} />
+          </div>
+        ) : (
+          <div className="w-full max-w-5xl h-full max-h-[700px] rounded-2xl overflow-hidden border border-white/[0.08] flex flex-col" style={{ background: "rgba(10,10,10,0.98)", boxShadow: `0 0 60px ${ctx.color}08, 0 20px 40px rgba(0,0,0,0.4)` }}>
+            <DemoExecutivePanel ctx={ctx} onBack={changeContext} />
+          </div>
+        )}
       </div>
 
-      <div className="shrink-0 border-t border-white/[0.06] bg-background/80 backdrop-blur-xl">
-        <div className="max-w-2xl mx-auto w-full px-4 py-3">
-          {remaining <= 0 ? (
-            <div className="text-center py-3 animate-dash-fade-up">
-              <p className="text-sm text-white/35 mb-3">
-                Has usado tus {MAX_DEMO_MESSAGES} mensajes de prueba
-              </p>
-              <a href="/register">
-                <Button className="rounded-xl font-bold shadow-lg shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-limit-register">
-                  Registrate Gratis para Continuar
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </a>
-            </div>
-          ) : (
-            <>
-              <form onSubmit={handleSubmit} className="flex items-center gap-2" data-testid="form-demo-chat">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={`Pregunta algo a ${ctx.business}...`}
-                  maxLength={500}
-                  disabled={isLoading}
-                  className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/30 transition-all duration-300 disabled:opacity-50 placeholder:text-white/20 focus:shadow-[0_0_16px_rgba(16,185,129,0.06)]"
-                  data-testid="input-demo-message"
-                />
-                <Button
-                  type="submit"
-                  disabled={!input.trim() || isLoading}
-                  className="shrink-0 rounded-xl h-11 w-11 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                  style={{ backgroundColor: ctx.color }}
-                  data-testid="button-send-demo"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </form>
-              <div className="flex items-center justify-between mt-2 px-1">
-                <span className="text-[11px] text-white/20">
-                  {remaining} de {MAX_DEMO_MESSAGES} mensajes restantes
-                </span>
-                <a href="/register" className="text-[11px] text-primary hover:text-primary/80 transition-colors">
-                  Registrate gratis para mensajes ilimitados
-                </a>
-              </div>
-            </>
-          )}
-        </div>
+      <div className="shrink-0 text-center py-2 border-t border-white/[0.04]">
+        <p className="text-[10px] text-white/15">Demo interactiva de FoxBot — <a href="/register" className="text-primary/50 hover:text-primary/70">Registrate gratis</a> para crear tu propio chatbot</p>
       </div>
     </div>
   );
