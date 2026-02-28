@@ -1212,7 +1212,86 @@ export default function Dashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!tenant || !token) return;
+    async function subscribePush() {
+      try {
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+        const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        await navigator.serviceWorker.ready;
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+        reg.addEventListener("updatefound", () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "activated") {
+                newWorker.postMessage({ type: "SKIP_WAITING" });
+              }
+            });
+          }
+        });
+        const res = await fetch("/api/push/vapid-public-key");
+        const { key } = await res.json();
+        if (!key) return;
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+        const urlBase64ToUint8Array = (base64String: string) => {
+          const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+          const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+          for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+          }
+          return outputArray;
+        };
+        let subscription = await reg.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(key),
+          });
+        }
+        const subJson = subscription.toJSON();
+        await fetch("/api/tenants/me/push-subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            endpoint: subJson.endpoint,
+            keys: subJson.keys,
+          }),
+        });
+      } catch (e) {
+        console.log("Push subscription failed:", e);
+      }
+    }
+    subscribePush();
+  }, [tenant, token]);
+
   const handleLogout = () => {
+    const token = localStorage.getItem("tenant_token");
+    if (token && "serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.pushManager.getSubscription().then((sub) => {
+          if (sub) {
+            fetch("/api/tenants/me/push-subscribe", {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ endpoint: sub.endpoint }),
+            }).catch(() => {});
+            sub.unsubscribe().catch(() => {});
+          }
+        }).catch(() => {});
+      }).catch(() => {});
+    }
     localStorage.removeItem("tenant_token");
     window.location.href = "/login";
   };

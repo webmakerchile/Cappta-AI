@@ -1,10 +1,10 @@
-const CACHE_NAME = 'cjm-soporte-v2';
-const OFFLINE_URL = '/admin';
+const CACHE_NAME = 'foxbot-v3';
+const OFFLINE_URLS = ['/admin', '/dashboard'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([OFFLINE_URL]).catch(() => {});
+      return cache.addAll(OFFLINE_URLS).catch(() => {});
     })
   );
   self.skipWaiting();
@@ -45,13 +45,13 @@ self.addEventListener('push', (event) => {
       data = { title: 'Nuevo mensaje', body: event.data.text() };
     }
 
-    const title = data.title || 'Nuevo mensaje - CJM Soporte';
+    const title = data.title || 'Nuevo mensaje - FoxBot';
     const options = {
       body: data.body || 'Tienes un nuevo mensaje de soporte',
-      icon: '/logo-192.webp',
-      badge: '/logo-192.webp',
+      icon: '/favicon-fox.png',
+      badge: '/favicon-fox.png',
       vibrate: [300, 100, 300, 100, 300],
-      tag: 'cjm-soporte-' + (data.sessionId || 'general'),
+      tag: 'foxbot-' + (data.sessionId || 'general'),
       renotify: true,
       requireInteraction: true,
       silent: false,
@@ -88,11 +88,13 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   const urlToOpen = event.notification.data?.url || '/admin';
+  const isDashboard = urlToOpen.includes('/dashboard');
+  const targetPath = isDashboard ? '/dashboard' : '/admin';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
-        if (client.url.includes('/admin') && 'focus' in client) {
+        if (client.url.includes(targetPath) && 'focus' in client) {
           client.postMessage({ type: 'NOTIFICATION_CLICK', sessionId: event.notification.data?.sessionId });
           return client.focus();
         }
@@ -125,7 +127,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match(OFFLINE_URL);
+        const requestUrl = new URL(event.request.url);
+        if (requestUrl.pathname.startsWith('/dashboard')) {
+          return caches.match('/dashboard');
+        }
+        return caches.match('/admin');
       })
     );
   }

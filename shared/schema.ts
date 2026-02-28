@@ -99,7 +99,7 @@ export const adminUsers = pgTable("admin_users", {
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name").notNull(),
   role: text("role", { enum: ["superadmin", "admin", "ejecutivo"] }).notNull().default("ejecutivo"),
-  color: text("color").notNull().default("#6200EA"),
+  color: text("color").notNull().default("#10b981"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -112,6 +112,15 @@ export const customTags = pgTable("custom_tags", {
 export const pushSubscriptions = pgTable("push_subscriptions", {
   id: serial("id").primaryKey(),
   adminUserId: integer("admin_user_id").notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const tenantPushSubscriptions = pgTable("tenant_push_subscriptions", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
   endpoint: text("endpoint").notNull(),
   p256dh: text("p256dh").notNull(),
   auth: text("auth").notNull(),
@@ -205,6 +214,7 @@ export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, t
 
 export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true });
 export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({ id: true, createdAt: true });
+export const insertTenantPushSubscriptionSchema = createInsertSchema(tenantPushSubscriptions).omit({ id: true, createdAt: true });
 export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true, lastUsedAt: true });
 export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
 
@@ -224,6 +234,8 @@ export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertTenantPushSubscription = z.infer<typeof insertTenantPushSubscriptionSchema>;
+export type TenantPushSubscription = typeof tenantPushSubscriptions.$inferSelect;
 export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;
 export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;

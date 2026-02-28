@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -48,6 +48,9 @@ export interface IStorage {
   getAllPushSubscriptions(): Promise<PushSubscription[]>;
   createPushSubscription(data: InsertPushSubscription): Promise<PushSubscription>;
   deletePushSubscription(endpoint: string): Promise<boolean>;
+  getTenantPushSubscriptions(tenantId: number): Promise<TenantPushSubscription[]>;
+  createTenantPushSubscription(data: InsertTenantPushSubscription): Promise<TenantPushSubscription>;
+  deleteTenantPushSubscription(endpoint: string, tenantId?: number): Promise<boolean>;
   getCustomTags(): Promise<string[]>;
   addCustomTag(name: string): Promise<void>;
   deleteCustomTag(name: string): Promise<void>;
@@ -789,6 +792,31 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return result.length > 0;
   }
+
+  async getTenantPushSubscriptions(tenantId: number): Promise<TenantPushSubscription[]> {
+    return await db
+      .select()
+      .from(tenantPushSubscriptions)
+      .where(eq(tenantPushSubscriptions.tenantId, tenantId));
+  }
+
+  async createTenantPushSubscription(data: InsertTenantPushSubscription): Promise<TenantPushSubscription> {
+    const [created] = await db.insert(tenantPushSubscriptions).values(data).returning();
+    return created;
+  }
+
+  async deleteTenantPushSubscription(endpoint: string, tenantId?: number): Promise<boolean> {
+    const conditions = [eq(tenantPushSubscriptions.endpoint, endpoint)];
+    if (tenantId !== undefined) {
+      conditions.push(eq(tenantPushSubscriptions.tenantId, tenantId));
+    }
+    const result = await db
+      .delete(tenantPushSubscriptions)
+      .where(and(...conditions))
+      .returning();
+    return result.length > 0;
+  }
+
   async getCustomTags(): Promise<string[]> {
     const result = await db.select({ name: customTags.name }).from(customTags).orderBy(customTags.name);
     return result.map(r => r.name);

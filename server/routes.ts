@@ -149,7 +149,7 @@ export async function registerRoutes(
   const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
   const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-    webpush.setVapidDetails("mailto:cjmdigitales@gmail.com", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    webpush.setVapidDetails("mailto:soporte@foxbot.cl", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   }
 
   async function sendPushToAdmins(title: string, body: string, sessionId: string, assignedTo?: number | null) {
@@ -167,6 +167,25 @@ export async function registerRoutes(
         } catch (err: any) {
           if (err.statusCode === 410 || err.statusCode === 404) {
             await storage.deletePushSubscription(sub.endpoint);
+          }
+        }
+      }
+    } catch {}
+  }
+
+  async function sendPushToTenant(tenantId: number, title: string, body: string, sessionId: string) {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+    try {
+      const subs = await storage.getTenantPushSubscriptions(tenantId);
+      for (const sub of subs) {
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            JSON.stringify({ title, body, sessionId, url: "/dashboard" })
+          );
+        } catch (err: any) {
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            await storage.deleteTenantPushSubscription(sub.endpoint);
           }
         }
       }
@@ -842,6 +861,14 @@ ${DEMO_BASE_RULES}`,
           sessionId,
           sess?.assignedTo
         );
+        if (tenantId) {
+          sendPushToTenant(
+            tenantId,
+            `Nuevo mensaje de ${parsed.data.userName}`,
+            parsed.data.content.substring(0, 100),
+            sessionId
+          );
+        }
       }
 
       if (parsed.data.sender === "user" && !req.body.imageUrl) {
@@ -1651,6 +1678,43 @@ ${DEMO_BASE_RULES}`,
       const { endpoint } = req.body;
       if (!endpoint) return res.status(400).json({ message: "Endpoint requerido" });
       await storage.deletePushSubscription(endpoint);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al eliminar suscripcion" });
+    }
+  });
+
+  app.post("/api/tenants/me/push-subscribe", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { endpoint, keys } = req.body;
+      if (!endpoint || !keys?.p256dh || !keys?.auth) {
+        return res.status(400).json({ message: "Datos de suscripcion invalidos" });
+      }
+      try {
+        await storage.deleteTenantPushSubscription(endpoint);
+      } catch {}
+      await storage.createTenantPushSubscription({
+        tenantId: auth.id,
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+      });
+      res.json({ success: true });
+    } catch (error: any) {
+      log(`Error al registrar push subscription tenant: ${error.message}`, "push");
+      res.status(500).json({ message: "Error al registrar notificaciones" });
+    }
+  });
+
+  app.delete("/api/tenants/me/push-subscribe", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { endpoint } = req.body;
+      if (!endpoint) return res.status(400).json({ message: "Endpoint requerido" });
+      await storage.deleteTenantPushSubscription(endpoint, auth.id);
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: "Error al eliminar suscripcion" });

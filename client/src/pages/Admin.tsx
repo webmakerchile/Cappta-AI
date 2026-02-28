@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Virtuoso } from "react-virtuoso";
@@ -188,7 +189,7 @@ function highlightText(text: string, query: string) {
   const parts = text.split(regex);
   return parts.map((part, i) =>
     regex.test(part) ? (
-      <mark key={i} className="bg-[#6200EA]/40 text-white rounded-sm px-0.5">{part}</mark>
+      <mark key={i} className="bg-[#10b981]/40 text-white rounded-sm px-0.5">{part}</mark>
     ) : (
       part
     )
@@ -230,8 +231,8 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
     <div className="h-screen flex items-center justify-center" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
       <div className="w-full max-w-sm mx-4">
         <div className="text-center mb-6">
-          <img src="/logo-192.webp" alt="CJM Digitales" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
-          <h1 className="text-xl font-bold text-white mb-1">Soporte CJM DIGITALES</h1>
+          <img src={logoSinFondo} alt="FoxBot" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
+          <h1 className="text-xl font-bold text-white mb-1">FoxBot Admin</h1>
           <p className="text-sm text-white/40">Inicia sesion para acceder al panel</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -241,7 +242,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(""); }}
             placeholder="Correo electronico"
-            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
+            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#10b981] focus-visible:border-[#10b981]"
             autoFocus
           />
           <Input
@@ -250,7 +251,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
             value={password}
             onChange={(e) => { setPassword(e.target.value); setError(""); }}
             placeholder="Contraseña"
-            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
+            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#10b981] focus-visible:border-[#10b981]"
           />
           {error && (
             <p data-testid="text-login-error" className="text-sm text-red-400">{error}</p>
@@ -259,7 +260,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
             data-testid="button-admin-login"
             type="submit"
             disabled={loading || !email.trim() || !password.trim()}
-            className="w-full bg-[#6200EA] border-[#6200EA] text-white"
+            className="w-full bg-[#10b981] border-[#10b981] text-white"
           >
             {loading ? "Verificando..." : "Ingresar"}
           </Button>
@@ -305,7 +306,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
       onClick={onClick}
       className={`w-full text-left p-3 rounded-md border transition-all ${
         isSelected
-          ? hasAgent ? "" : "bg-[#6200EA]/15 border-[#6200EA]/40"
+          ? hasAgent ? "" : "bg-[#10b981]/15 border-[#10b981]/40"
           : hasAgent
             ? ""
             : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
@@ -360,10 +361,10 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
             <button
               data-testid={`preview-btn-${session.sessionId}`}
               onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
-              className="w-7 h-7 rounded-full flex items-center justify-center bg-[#6200EA]/20 border border-[#6200EA]/30 hover:bg-[#6200EA]/40 transition-colors"
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-[#10b981]/20 border border-[#10b981]/30 hover:bg-[#10b981]/40 transition-colors"
               title="Ver formulario pre-chat"
             >
-              <FileText className="w-3.5 h-3.5 text-[#BB86FC]" />
+              <FileText className="w-3.5 h-3.5 text-[#34d399]" />
             </button>
             {isAdmin && onDelete && (
               <button
@@ -439,9 +440,9 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
           <span 
             className="text-[9px] px-1.5 py-0.5 rounded font-semibold truncate max-w-[100px]"
             style={{ 
-              backgroundColor: `${session.assignedToColor || '#6200EA'}25`,
-              color: session.assignedToColor || '#6200EA',
-              border: `1px solid ${session.assignedToColor || '#6200EA'}40`,
+              backgroundColor: `${session.assignedToColor || '#10b981'}25`,
+              color: session.assignedToColor || '#10b981',
+              border: `1px solid ${session.assignedToColor || '#10b981'}40`,
             }}
           >
             {session.assignedToName}
@@ -461,7 +462,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
           </span>
         )}
         {session.lastManualEmailAt && (
-          <span data-testid={`badge-manual-email-${session.sessionId}`} className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-[#BB86FC]/15 text-[#BB86FC] border border-[#BB86FC]/30" title={`Correo manual: ${new Date(session.lastManualEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}`}>
+          <span data-testid={`badge-manual-email-${session.sessionId}`} className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-[#34d399]/15 text-[#34d399] border border-[#34d399]/30" title={`Correo manual: ${new Date(session.lastManualEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}`}>
             <Mail className="w-2.5 h-2.5" />
             Correo
           </span>
@@ -487,7 +488,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
           </div>
           <div>
             <p className="text-[10px] text-white/40">E-mail:</p>
-            <p className="text-[13px] text-[#BB86FC] font-medium break-all">{session.userEmail || "No proporcionado"}</p>
+            <p className="text-[13px] text-[#34d399] font-medium break-all">{session.userEmail || "No proporcionado"}</p>
           </div>
           <div>
             <p className="text-[10px] text-white/40">En que necesitas ayuda?</p>
@@ -643,14 +644,14 @@ function TagsEditor({ sessionId, tags }: { sessionId: string; tags: string[] }) 
                 if (e.key === "Escape") { setShowInput(false); setCustomTag(""); setShowSuggestions(false); }
               }}
               placeholder="Escribe una etiqueta..."
-              className="h-6 w-36 text-[11px] bg-white/5 border-white/10 text-white placeholder:text-white/25 px-1.5 focus-visible:ring-[#6200EA]"
+              className="h-6 w-36 text-[11px] bg-white/5 border-white/10 text-white placeholder:text-white/25 px-1.5 focus-visible:ring-[#10b981]"
               autoFocus
               onFocus={() => setShowSuggestions(true)}
             />
             <button
               data-testid="button-submit-tag"
               onClick={() => { if (customTag.trim()) addTag(customTag); }}
-              className="w-6 h-6 rounded bg-[#6200EA]/20 flex items-center justify-center text-[#BB86FC] hover:bg-[#6200EA]/30"
+              className="w-6 h-6 rounded bg-[#10b981]/20 flex items-center justify-center text-[#34d399] hover:bg-[#10b981]/30"
             >
               <Check className="w-3 h-3" />
             </button>
@@ -918,7 +919,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         content: data.content || (data.imageUrl ? "Imagen enviada" : ""),
         imageUrl: data.imageUrl || null,
         adminName: adminUser?.displayName || null,
-        adminColor: adminUser?.color || "#6200EA",
+        adminColor: adminUser?.color || "#10b981",
         timestamp: new Date(),
       };
       queryClient.setQueryData<Message[]>(
@@ -1040,7 +1041,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         queryClient.setQueryData(key, old.map(s => {
           if (s.sessionId !== sessionId) return s;
           if (action === "claim") {
-            return { ...s, assignedTo: adminUser?.id ?? null, assignedToName: adminUser?.displayName ?? null, assignedToColor: adminUser?.color ?? '#6200EA' };
+            return { ...s, assignedTo: adminUser?.id ?? null, assignedToName: adminUser?.displayName ?? null, assignedToColor: adminUser?.color ?? '#10b981' };
           }
           return { ...s, assignedTo: null, assignedToName: null, assignedToColor: null };
         }));
@@ -1236,7 +1237,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1246,8 +1247,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       <div className="flex-shrink-0 z-30 bg-[#111] border-b border-white/[0.06] sticky top-0 shadow-md">
         <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#6200EA]/20 flex items-center justify-center flex-shrink-0">
-              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#BB86FC]" />
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#10b981]/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#34d399]" />
               <span
                 className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#111] ${
                   sessionStatus === "active" ? "bg-green-500" : "bg-white/30"
@@ -1290,7 +1291,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                           }}
                           className="w-full text-left px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.06] flex items-center gap-2"
                         >
-                          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: agent.color || '#6200EA' }} />
+                          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: agent.color || '#10b981' }} />
                           <span>{agent.displayName}</span>
                           <span className="text-[10px] text-white/30 ml-auto">{agent.role === "admin" ? "Admin" : "Ejecutivo"}</span>
                         </button>
@@ -1369,7 +1370,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               onClick={() => { if (confirm("¿Enviar notificacion por correo ahora?")) sendEmailMutation.mutate(); }}
               disabled={sendEmailMutation.isPending}
               title="Notificar por correo"
-              className="h-7 w-7 text-[#BB86FC] flex-shrink-0"
+              className="h-7 w-7 text-[#34d399] flex-shrink-0"
             >
               <Mail className="w-3.5 h-3.5" />
             </Button>
@@ -1380,7 +1381,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               size="icon"
               onClick={() => setShowLocalSearch(!showLocalSearch)}
               title="Buscar en chat"
-              className={`h-7 w-7 flex-shrink-0 ${showLocalSearch ? "text-[#BB86FC]" : "text-white/40"}`}
+              className={`h-7 w-7 flex-shrink-0 ${showLocalSearch ? "text-[#34d399]" : "text-white/40"}`}
             >
               <Search className="w-3.5 h-3.5" />
             </Button>
@@ -1444,7 +1445,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               </div>
             )}
             {currentSession.lastManualEmailAt && (
-              <div data-testid="manual-email-log" className="flex items-center gap-1.5 text-[11px] text-[#BB86FC]/80">
+              <div data-testid="manual-email-log" className="flex items-center gap-1.5 text-[11px] text-[#34d399]/80">
                 <Mail className="w-3 h-3 flex-shrink-0" />
                 <span>Correo manual enviado: {new Date(currentSession.lastManualEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</span>
               </div>
@@ -1466,7 +1467,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                 </div>
                 <div>
                   <p className="text-[11px] text-white/40 mb-0.5">E-mail:</p>
-                  <p className="text-sm text-[#BB86FC] font-medium break-all">{userEmail || "No proporcionado"}</p>
+                  <p className="text-sm text-[#34d399] font-medium break-all">{userEmail || "No proporcionado"}</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-white/40 mb-0.5">En que necesitas ayuda?</p>
@@ -1502,7 +1503,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             const imageUrl = (msg as any).imageUrl;
             const isImageOnly = hasImage && (!msg.content || msg.content === "Imagen enviada" || msg.content === "Video enviado");
             const msgAdminName = (msg as any).adminName;
-            const msgAdminColor = (msg as any).adminColor || "#6200EA";
+            const msgAdminColor = (msg as any).adminColor || "#10b981";
             return (
               <div
                 key={msg.id}
@@ -1520,11 +1521,11 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                     <div
                       className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border"
                       style={{
-                        backgroundColor: `${msgAdminName ? msgAdminColor : '#6200EA'}20`,
-                        borderColor: `${msgAdminName ? msgAdminColor : '#6200EA'}30`,
+                        backgroundColor: `${msgAdminName ? msgAdminColor : '#10b981'}20`,
+                        borderColor: `${msgAdminName ? msgAdminColor : '#10b981'}30`,
                       }}
                     >
-                      <Headphones className="w-3 h-3" style={{ color: msgAdminName ? msgAdminColor : '#6200EA' }} />
+                      <Headphones className="w-3 h-3" style={{ color: msgAdminName ? msgAdminColor : '#10b981' }} />
                     </div>
                   )}
                   {isUser && (
@@ -1536,7 +1537,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                     <div
                       className={`rounded-md overflow-hidden ${
                         isUser
-                          ? "bg-[#6200EA] text-white rounded-br-none"
+                          ? "bg-[#10b981] text-white rounded-br-none"
                           : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
                       }`}
                       style={!isUser && msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined}
@@ -1675,9 +1676,9 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                     key={r.id}
                     data-testid={`slash-option-${r.id}`}
                     onClick={() => selectCannedResponse(r)}
-                    className={`w-full text-left px-3 py-2 transition-colors border-b border-white/[0.04] last:border-0 ${idx === slashSelectedIndex ? "bg-[#6200EA]/15" : "hover:bg-white/[0.06]"}`}
+                    className={`w-full text-left px-3 py-2 transition-colors border-b border-white/[0.04] last:border-0 ${idx === slashSelectedIndex ? "bg-[#10b981]/15" : "hover:bg-white/[0.06]"}`}
                   >
-                    <span className="text-xs font-mono text-[#BB86FC]">/{r.shortcut}</span>
+                    <span className="text-xs font-mono text-[#34d399]">/{r.shortcut}</span>
                     <p className="text-xs text-white/50 truncate mt-0.5">{r.content}</p>
                   </button>
                 ))
@@ -1720,7 +1721,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm text-white truncate">{p.name}</span>
-                        <span className="text-[10px] bg-[#BB86FC]/15 text-[#BB86FC] px-1.5 py-0.5 rounded flex-shrink-0">{getPlatformLabel(p.platform)}</span>
+                        <span className="text-[10px] bg-[#34d399]/15 text-[#34d399] px-1.5 py-0.5 rounded flex-shrink-0">{getPlatformLabel(p.platform)}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         {p.price && <span className="text-xs text-green-400">{p.price}</span>}
@@ -1753,7 +1754,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   className="text-white/40 flex-shrink-0"
                 >
                   {adminIsUploading ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#BB86FC]" />
+                    <Loader2 className="w-4 h-4 animate-spin text-[#34d399]" />
                   ) : (
                     <ImagePlus className="w-4 h-4" />
                   )}
@@ -1763,7 +1764,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   size="icon"
                   variant="ghost"
                   onClick={() => setShowProductSearch(!showProductSearch)}
-                  className={`flex-shrink-0 ${showProductSearch ? "text-[#BB86FC]" : "text-white/40"}`}
+                  className={`flex-shrink-0 ${showProductSearch ? "text-[#34d399]" : "text-white/40"}`}
                 >
                   <Package className="w-4 h-4" />
                 </Button>
@@ -1786,7 +1787,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   }}
                   placeholder="Escribe tu respuesta... (/ para atajos)"
                   rows={1}
-                  className="flex-1 bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#6200EA]/30 rounded-md px-3 py-2 resize-none overflow-y-auto"
+                  className="flex-1 bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#10b981]/30 rounded-md px-3 py-2 resize-none overflow-y-auto"
                   style={{ maxHeight: "120px" }}
                 />
                 <Button
@@ -1794,7 +1795,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   size="icon"
                   onClick={handleReplySend}
                   disabled={!replyText.trim() || replyMutation.isPending}
-                  className="bg-[#6200EA] text-white flex-shrink-0"
+                  className="bg-[#10b981] text-white flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
@@ -2020,7 +2021,7 @@ function WCSyncSection() {
         variant="outline"
         onClick={() => syncMutation.mutate()}
         disabled={syncMutation.isPending}
-        className="text-xs border-[#6200EA]/40 text-[#B388FF]"
+        className="text-xs border-[#10b981]/40 text-[#34d399]"
       >
         {syncMutation.isPending ? (
           <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
@@ -2167,7 +2168,7 @@ function ProductsPanel() {
         value={formData.name}
         onChange={(e) => setFormData(f => ({ ...f, name: e.target.value }))}
         placeholder="Nombre del producto"
-        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
         autoFocus
       />
       <Input
@@ -2175,7 +2176,7 @@ function ProductsPanel() {
         value={formData.searchAliases}
         onChange={(e) => setFormData(f => ({ ...f, searchAliases: e.target.value }))}
         placeholder="Aliases de busqueda (separados por coma)"
-        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
       />
       <div className="grid grid-cols-3 gap-2">
         <Select value={formData.platform} onValueChange={(v) => setFormData(f => ({ ...f, platform: v }))}>
@@ -2215,7 +2216,7 @@ function ProductsPanel() {
           value={formData.price}
           onChange={(e) => setFormData(f => ({ ...f, price: e.target.value }))}
           placeholder="Precio (ej: $29.99 USD)"
-          className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+          className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
         />
         <Select value={formData.availability} onValueChange={(v) => setFormData(f => ({ ...f, availability: v }))}>
           <SelectTrigger data-testid="select-product-availability" className="bg-white/5 border-white/10 text-white text-sm">
@@ -2233,14 +2234,14 @@ function ProductsPanel() {
         value={formData.productUrl}
         onChange={(e) => setFormData(f => ({ ...f, productUrl: e.target.value }))}
         placeholder="URL del producto"
-        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
       />
       <Input
         data-testid="input-product-description"
         value={formData.description}
         onChange={(e) => setFormData(f => ({ ...f, description: e.target.value }))}
         placeholder="Descripcion corta"
-        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+        className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
       />
       <div className="flex items-center gap-1 justify-end flex-wrap">
         <Button
@@ -2257,7 +2258,7 @@ function ProductsPanel() {
           size="sm"
           onClick={onSubmit}
           disabled={!formData.name.trim() || isPending}
-          className="bg-[#6200EA] text-white text-xs"
+          className="bg-[#10b981] text-white text-xs"
         >
           {isPending ? "Guardando..." : submitLabel}
         </Button>
@@ -2268,7 +2269,7 @@ function ProductsPanel() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -2283,7 +2284,7 @@ function ProductsPanel() {
             data-testid="button-add-product"
             size="sm"
             onClick={() => { setIsAdding(true); setEditingId(null); resetForm(); }}
-            className="bg-[#6200EA] text-white text-xs"
+            className="bg-[#10b981] text-white text-xs"
             disabled={isAdding}
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
@@ -2294,7 +2295,7 @@ function ProductsPanel() {
 
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
         {isAdding && (
-          <div className="p-3 rounded-md border border-[#6200EA]/30 bg-[#6200EA]/5">
+          <div className="p-3 rounded-md border border-[#10b981]/30 bg-[#10b981]/5">
             {renderForm(handleSubmitNew, createMutation.isPending, "Crear Producto")}
           </div>
         )}
@@ -2327,7 +2328,7 @@ function ProductsPanel() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-[10px] bg-[#BB86FC]/15 text-[#BB86FC] px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] bg-[#34d399]/15 text-[#34d399] px-1.5 py-0.5 rounded">
                         {getPlatformLabel(p.platform)}
                       </span>
                       <span className="text-[10px] bg-white/[0.06] text-white/50 px-1.5 py-0.5 rounded">
@@ -2351,7 +2352,7 @@ function ProductsPanel() {
                         href={p.productUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[11px] text-[#BB86FC] hover:underline truncate block"
+                        className="text-[11px] text-[#34d399] hover:underline truncate block"
                       >
                         {p.productUrl}
                       </a>
@@ -2474,7 +2475,7 @@ function CannedResponsesPanel() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -2487,7 +2488,7 @@ function CannedResponsesPanel() {
           data-testid="button-add-canned-response"
           size="sm"
           onClick={() => { setIsAdding(true); setEditingId(null); }}
-          className="bg-[#6200EA] text-white text-xs"
+          className="bg-[#10b981] text-white text-xs"
           disabled={isAdding}
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
@@ -2497,14 +2498,14 @@ function CannedResponsesPanel() {
 
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
         {isAdding && (
-          <div className="p-3 rounded-md border border-[#6200EA]/30 bg-[#6200EA]/5">
+          <div className="p-3 rounded-md border border-[#10b981]/30 bg-[#10b981]/5">
             <div className="flex flex-col gap-2">
               <Input
                 data-testid="input-new-shortcut"
                 value={newShortcut}
                 onChange={(e) => setNewShortcut(e.target.value)}
                 placeholder="Atajo (ej: saludo)"
-                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
                 autoFocus
               />
               <Input
@@ -2512,7 +2513,7 @@ function CannedResponsesPanel() {
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 placeholder="Contenido del mensaje..."
-                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
               />
               <div className="flex items-center gap-1 justify-end flex-wrap">
                 <Button
@@ -2529,7 +2530,7 @@ function CannedResponsesPanel() {
                   size="sm"
                   onClick={() => createMutation.mutate({ shortcut: newShortcut.trim(), content: newContent.trim() })}
                   disabled={!newShortcut.trim() || !newContent.trim() || createMutation.isPending}
-                  className="bg-[#6200EA] text-white text-xs"
+                  className="bg-[#10b981] text-white text-xs"
                 >
                   {createMutation.isPending ? "Guardando..." : "Guardar"}
                 </Button>
@@ -2557,13 +2558,13 @@ function CannedResponsesPanel() {
                     data-testid="input-edit-shortcut"
                     value={editShortcut}
                     onChange={(e) => setEditShortcut(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#6200EA]"
+                    className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#10b981]"
                   />
                   <Input
                     data-testid="input-edit-content"
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#6200EA]"
+                    className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#10b981]"
                   />
                   <div className="flex items-center gap-1 justify-end flex-wrap">
                     <Button
@@ -2580,7 +2581,7 @@ function CannedResponsesPanel() {
                       size="sm"
                       onClick={() => updateMutation.mutate({ id: r.id, data: { shortcut: editShortcut.trim(), content: editContent.trim() } })}
                       disabled={!editShortcut.trim() || !editContent.trim() || updateMutation.isPending}
-                      className="bg-[#6200EA] text-white text-xs"
+                      className="bg-[#10b981] text-white text-xs"
                     >
                       {updateMutation.isPending ? "Guardando..." : "Guardar"}
                     </Button>
@@ -2590,7 +2591,7 @@ function CannedResponsesPanel() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-mono text-[#BB86FC] bg-[#BB86FC]/10 px-1.5 py-0.5 rounded">/{r.shortcut}</span>
+                      <span className="text-xs font-mono text-[#34d399] bg-[#34d399]/10 px-1.5 py-0.5 rounded">/{r.shortcut}</span>
                     </div>
                     <p className="text-sm text-white/60 truncate">{r.content}</p>
                   </div>
@@ -2702,8 +2703,8 @@ function showForegroundNotification(title: string, body: string, sessionId: stri
     if (!document.hidden && isViewingThis) return;
     const n = new Notification(title, {
       body,
-      icon: "/logo-192.webp",
-      tag: "cjm-msg-" + sessionId,
+      icon: "/favicon-fox.png",
+      tag: "foxbot-msg-" + sessionId,
     } as NotificationOptions);
     n.onclick = () => {
       window.focus();
@@ -2866,7 +2867,7 @@ function KnowledgePanel() {
       <div className="p-3 border-b border-white/[0.06] space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Zap className="w-4 h-4 text-[#BB86FC]" />
+            <Zap className="w-4 h-4 text-[#34d399]" />
             Base de Conocimiento
           </h2>
           <Button
@@ -2874,7 +2875,7 @@ function KnowledgePanel() {
             onClick={handleExtract}
             disabled={extracting}
             size="sm"
-            className="bg-[#6200EA] hover:bg-[#7c3aed] text-white text-xs"
+            className="bg-[#10b981] hover:bg-[#7c3aed] text-white text-xs"
           >
             {extracting ? (
               <>
@@ -2891,7 +2892,7 @@ function KnowledgePanel() {
         </div>
 
         {extractResult && (
-          <div className="text-xs p-2 rounded bg-[#6200EA]/10 border border-[#6200EA]/20 text-white/80">
+          <div className="text-xs p-2 rounded bg-[#10b981]/10 border border-[#10b981]/20 text-white/80">
             Procesadas {extractResult.sessionsProcessed} conversaciones. Se extrajeron {extractResult.entriesCreated} nuevas entradas de conocimiento.
           </div>
         )}
@@ -2904,7 +2905,7 @@ function KnowledgePanel() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar conocimiento..."
-              className="pl-9 bg-white/5 border-white/10 text-white text-xs placeholder:text-white/25 focus-visible:ring-[#6200EA] h-8"
+              className="pl-9 bg-white/5 border-white/10 text-white text-xs placeholder:text-white/25 focus-visible:ring-[#10b981] h-8"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -2937,7 +2938,7 @@ function KnowledgePanel() {
       <div className="flex-1 overflow-auto p-3 space-y-2">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 text-[#BB86FC] animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#34d399] animate-spin" />
           </div>
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-white/30">
@@ -2978,7 +2979,7 @@ function KnowledgePanel() {
                     value={editAnswer}
                     onChange={(e) => setEditAnswer(e.target.value)}
                     placeholder="Respuesta"
-                    className="w-full bg-white/5 border border-white/10 rounded-md text-white text-xs p-2 min-h-[80px] resize-y focus:outline-none focus:ring-1 focus:ring-[#6200EA]"
+                    className="w-full bg-white/5 border border-white/10 rounded-md text-white text-xs p-2 min-h-[80px] resize-y focus:outline-none focus:ring-1 focus:ring-[#10b981]"
                   />
                   <Input
                     data-testid="input-edit-keywords"
@@ -2993,7 +2994,7 @@ function KnowledgePanel() {
                       onClick={saveEdit}
                       disabled={updateMutation.isPending}
                       size="sm"
-                      className="bg-[#6200EA] hover:bg-[#7c3aed] text-white text-xs"
+                      className="bg-[#10b981] hover:bg-[#7c3aed] text-white text-xs"
                     >
                       <Save className="w-3 h-3 mr-1" />
                       Guardar
@@ -3164,14 +3165,14 @@ function SettingsPanel() {
 
   const [bhStart, setBhStart] = useState("12");
   const [bhEnd, setBhEnd] = useState("21");
-  const [bhTicketUrl, setBhTicketUrl] = useState("https://cjmdigitales.zohodesk.com/portal/es/newticket");
+  const [bhTicketUrl, setBhTicketUrl] = useState("https://foxbot.zohodesk.com/portal/es/newticket");
   const [bhInitialized, setBhInitialized] = useState(false);
 
   useEffect(() => {
     if (!bhInitialized && bhStartSetting !== undefined && bhEndSetting !== undefined && bhTicketSetting !== undefined) {
       setBhStart(bhStartSetting?.value || "12");
       setBhEnd(bhEndSetting?.value || "21");
-      setBhTicketUrl(bhTicketSetting?.value || "https://cjmdigitales.zohodesk.com/portal/es/newticket");
+      setBhTicketUrl(bhTicketSetting?.value || "https://foxbot.zohodesk.com/portal/es/newticket");
       setBhInitialized(true);
     }
   }, [bhStartSetting, bhEndSetting, bhTicketSetting, bhInitialized]);
@@ -3224,7 +3225,7 @@ function SettingsPanel() {
       <h2 className="text-lg font-semibold text-white mb-4">Configuracion</h2>
       <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg">
         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[#BB86FC]" />
+          <Zap className="w-4 h-4 text-[#34d399]" />
           Configuracion de IA
         </h3>
         <div className="flex items-center justify-between gap-4">
@@ -3257,7 +3258,7 @@ function SettingsPanel() {
 
       <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg mt-4">
         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#BB86FC]" />
+          <Clock className="w-4 h-4 text-[#34d399]" />
           Horario de Atencion
         </h3>
         <div className="flex items-center justify-between gap-4 mb-4">
@@ -3292,7 +3293,7 @@ function SettingsPanel() {
                 max={23}
                 value={bhStart}
                 onChange={(e) => setBhStart(e.target.value)}
-                className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#10b981]"
               />
             </div>
             <div className="flex-1 min-w-[100px]">
@@ -3304,7 +3305,7 @@ function SettingsPanel() {
                 max={23}
                 value={bhEnd}
                 onChange={(e) => setBhEnd(e.target.value)}
-                className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm focus-visible:ring-[#10b981]"
               />
             </div>
           </div>
@@ -3316,7 +3317,7 @@ function SettingsPanel() {
               value={bhTicketUrl}
               onChange={(e) => setBhTicketUrl(e.target.value)}
               placeholder="https://..."
-              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
             />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -3324,7 +3325,7 @@ function SettingsPanel() {
               data-testid="button-save-business-hours"
               onClick={saveBhSettings}
               disabled={bhSaveStatus === "saving"}
-              className="bg-[#6200EA] text-white"
+              className="bg-[#10b981] text-white"
             >
               {bhSaveStatus === "saving" ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-1" />
@@ -3408,7 +3409,7 @@ function ProfanityWordsSection() {
   return (
     <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg mt-4">
       <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
-        <ShieldAlert className="w-4 h-4 text-[#BB86FC]" />
+        <ShieldAlert className="w-4 h-4 text-[#34d399]" />
         Filtro de Palabras
       </h3>
       <p className="text-xs text-white/40 mb-3">
@@ -3422,13 +3423,13 @@ function ProfanityWordsSection() {
           onChange={(e) => setNewWord(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           placeholder="Nueva palabra..."
-          className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+          className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
         />
         <Button
           data-testid="button-add-profanity-word"
           onClick={handleAdd}
           disabled={!newWord.trim() || addMutation.isPending}
-          className="bg-[#6200EA] text-white"
+          className="bg-[#10b981] text-white"
         >
           {addMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin mr-1" />
@@ -3600,13 +3601,13 @@ function TagsPanel() {
               onChange={(e) => setNewTag(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
               placeholder="Nombre de la etiqueta..."
-              className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              className="flex-1 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
             />
             <Button
               data-testid="button-create-tag"
               onClick={handleCreate}
               disabled={!newTag.trim() || allTags.includes(newTag.trim()) || createTagMutation.isPending}
-              className="bg-[#6200EA] hover:bg-[#7C4DFF] text-white"
+              className="bg-[#10b981] hover:bg-[#7C4DFF] text-white"
             >
               <Plus className="w-4 h-4 mr-1" />
               Crear
@@ -3692,7 +3693,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newName, setNewName] = useState("");
-  const [newColor, setNewColor] = useState("#6200EA");
+  const [newColor, setNewColor] = useState("#10b981");
   const [newRole, setNewRole] = useState("ejecutivo");
 
   const { data: users = [], isLoading } = useQuery<{ id: number; email: string; displayName: string; role: string; color?: string; createdAt: string }[]>({
@@ -3722,7 +3723,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
       setNewEmail("");
       setNewPassword("");
       setNewName("");
-      setNewColor("#6200EA");
+      setNewColor("#10b981");
       setNewRole("ejecutivo");
     },
   });
@@ -3744,7 +3745,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -3758,7 +3759,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
             data-testid="button-add-user"
             size="sm"
             onClick={() => setIsAdding(true)}
-            className="bg-[#6200EA] text-white text-xs"
+            className="bg-[#10b981] text-white text-xs"
             disabled={isAdding}
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
@@ -3769,14 +3770,14 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
 
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
         {isAdding && (
-          <div className="p-3 rounded-md border border-[#6200EA]/30 bg-[#6200EA]/5">
+          <div className="p-3 rounded-md border border-[#10b981]/30 bg-[#10b981]/5">
             <div className="flex flex-col gap-2">
               <Input
                 data-testid="input-new-user-name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Nombre del usuario"
-                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
                 autoFocus
               />
               <Input
@@ -3785,7 +3786,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="Correo electronico"
-                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
               />
               <Input
                 data-testid="input-new-user-password"
@@ -3793,12 +3794,12 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Contraseña (min. 6 caracteres)"
-                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+                className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
               />
               <div className="flex items-center gap-2">
                 <label className="text-xs text-white/60 whitespace-nowrap">Color del agente:</label>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {["#6200EA", "#00BCD4", "#4CAF50", "#FF9800", "#E91E63", "#2196F3", "#FF5722", "#9C27B0"].map((c) => (
+                  {["#10b981", "#00BCD4", "#4CAF50", "#FF9800", "#E91E63", "#2196F3", "#FF5722", "#9C27B0"].map((c) => (
                     <button
                       key={c}
                       type="button"
@@ -3819,7 +3820,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
                       type="button"
                       data-testid={`role-option-${r}`}
                       onClick={() => setNewRole(r)}
-                      className={`px-2.5 py-1 rounded text-xs transition-colors ${newRole === r ? "bg-[#6200EA] text-white" : "bg-white/[0.06] text-white/50"}`}
+                      className={`px-2.5 py-1 rounded text-xs transition-colors ${newRole === r ? "bg-[#10b981] text-white" : "bg-white/[0.06] text-white/50"}`}
                     >
                       {r === "admin" ? "Admin" : "Ejecutivo"}
                     </button>
@@ -3834,7 +3835,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
                   data-testid="button-cancel-user"
                   variant="ghost"
                   size="sm"
-                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); setNewColor("#6200EA"); setNewRole("ejecutivo"); }}
+                  onClick={() => { setIsAdding(false); setNewEmail(""); setNewPassword(""); setNewName(""); setNewColor("#10b981"); setNewRole("ejecutivo"); }}
                   className="text-white/40 text-xs"
                 >
                   Cancelar
@@ -3844,7 +3845,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
                   size="sm"
                   onClick={() => createMutation.mutate({ email: newEmail.trim(), password: newPassword, displayName: newName.trim(), color: newColor, role: newRole })}
                   disabled={!newEmail.trim() || !newPassword.trim() || newPassword.length < 6 || !newName.trim() || createMutation.isPending}
-                  className="bg-[#6200EA] text-white text-xs"
+                  className="bg-[#10b981] text-white text-xs"
                 >
                   {createMutation.isPending ? "Creando..." : "Crear Usuario"}
                 </Button>
@@ -3861,10 +3862,10 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
           >
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: u.color || "#6200EA" }} />
+                <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: u.color || "#10b981" }} />
                 <span className="text-sm font-medium text-white">{u.displayName}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                  u.role === "superadmin" ? "bg-[#BB86FC]/15 text-[#BB86FC]" 
+                  u.role === "superadmin" ? "bg-[#34d399]/15 text-[#34d399]" 
                     : u.role === "admin" ? "bg-blue-500/15 text-blue-400"
                     : "bg-emerald-500/15 text-emerald-400"
                 }`}>
@@ -3959,7 +3960,7 @@ function PasswordChangeModal({ onClose }: { onClose: () => void }) {
               value={currentPassword}
               onChange={(e) => { setCurrentPassword(e.target.value); setError(""); }}
               placeholder="Contraseña actual"
-              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
               autoFocus
             />
             <Input
@@ -3968,7 +3969,7 @@ function PasswordChangeModal({ onClose }: { onClose: () => void }) {
               value={newPassword}
               onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
               placeholder="Nueva contraseña (min. 6 caracteres)"
-              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
             />
             <Input
               data-testid="input-confirm-password"
@@ -3976,14 +3977,14 @@ function PasswordChangeModal({ onClose }: { onClose: () => void }) {
               value={confirmPassword}
               onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
               placeholder="Confirmar nueva contraseña"
-              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA]"
+              className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
             />
             {error && <p className="text-xs text-red-400">{error}</p>}
             <Button
               data-testid="button-change-password"
               type="submit"
               disabled={!currentPassword || !newPassword || !confirmPassword || changeMutation.isPending}
-              className="w-full bg-[#6200EA] text-white text-sm"
+              className="w-full bg-[#10b981] text-white text-sm"
             >
               {changeMutation.isPending ? "Cambiando..." : "Cambiar Contraseña"}
             </Button>
@@ -4064,7 +4065,7 @@ function TenantsPanel() {
   const planLabels: Record<string, string> = { free: "Gratis", basic: "Pro", pro: "Enterprise" };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
-    basic: "bg-[#BB86FC]/20 text-[#BB86FC]",
+    basic: "bg-[#34d399]/20 text-[#34d399]",
     pro: "bg-yellow-500/20 text-yellow-400",
   };
 
@@ -4636,7 +4637,7 @@ export default function AdminPage() {
         <div
           data-testid="banner-notification-prompt"
           className="flex items-center justify-between gap-3 px-4 py-2.5"
-          style={{ background: "linear-gradient(135deg, #6200EA 0%, #3F51B5 100%)" }}
+          style={{ background: "linear-gradient(135deg, #10b981 0%, #3F51B5 100%)" }}
         >
           <div className="flex items-center gap-2 min-w-0">
             <Bell className="w-4 h-4 text-white flex-shrink-0" />
@@ -4646,7 +4647,7 @@ export default function AdminPage() {
             <Button
               data-testid="button-enable-notifications"
               size="sm"
-              className="bg-white text-[#6200EA] font-semibold border-white"
+              className="bg-white text-[#10b981] font-semibold border-white"
               onClick={async () => {
                 try {
                   tryResumeAdminAudio();
@@ -4675,7 +4676,7 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-      <header className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] flex items-center justify-between gap-2" style={{ background: "#6200EA" }}>
+      <header className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/[0.06] flex items-center justify-between gap-2" style={{ background: "#10b981" }}>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {mobileView === "chat" && (
             <button
@@ -4686,9 +4687,9 @@ export default function AdminPage() {
               <ArrowLeft className="w-4 h-4 text-white" />
             </button>
           )}
-          <img src="/logo-192.webp" alt="CJM" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" />
+          <img src="/favicon-fox.png" alt="FoxBot" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" />
           <div className="min-w-0">
-            <h1 data-testid="text-admin-title" className="text-sm sm:text-base font-bold text-white leading-tight truncate">Soporte CJM</h1>
+            <h1 data-testid="text-admin-title" className="text-sm sm:text-base font-bold text-white leading-tight truncate">FoxBot Admin</h1>
             {adminUser && (
               <p className="text-[10px] sm:text-[11px] text-white/60 truncate">{adminUser.displayName}</p>
             )}
@@ -4748,76 +4749,76 @@ export default function AdminPage() {
           data-testid="tab-conversations"
           onClick={() => setAdminTab("conversations")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap ${
-            adminTab === "conversations" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            adminTab === "conversations" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
           }`}
         >
           Chats
           {adminTab === "conversations" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
         </button>
         <button
           data-testid="tab-canned-responses"
           onClick={() => setAdminTab("canned")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap ${
-            adminTab === "canned" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            adminTab === "canned" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
           }`}
         >
           Atajos
           {adminTab === "canned" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
         </button>
         <button
           data-testid="tab-tags"
           onClick={() => setAdminTab("tags")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-            adminTab === "tags" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            adminTab === "tags" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
           }`}
         >
           <Tag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Etiquetas
           {adminTab === "tags" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
         </button>
         <button
           data-testid="tab-products"
           onClick={() => setAdminTab("products")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-            adminTab === "products" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            adminTab === "products" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
           }`}
         >
           <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Productos
           {adminTab === "products" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
         </button>
         <button
           data-testid="tab-knowledge"
           onClick={() => setAdminTab("knowledge")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-            adminTab === "knowledge" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            adminTab === "knowledge" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
           }`}
         >
           <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Conocimiento
           {adminTab === "knowledge" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
         </button>
         <button
           data-testid="tab-guides"
           onClick={() => setAdminTab("guides")}
           className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-            adminTab === "guides" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+            adminTab === "guides" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
           }`}
         >
           <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Guias
           {adminTab === "guides" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
         </button>
         {adminUser?.role !== "ejecutivo" && (
@@ -4825,13 +4826,13 @@ export default function AdminPage() {
             data-testid="tab-users"
             onClick={() => setAdminTab("users")}
             className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-              adminTab === "users" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+              adminTab === "users" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
             }`}
           >
             <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             Usuarios
             {adminTab === "users" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
             )}
           </button>
         )}
@@ -4840,13 +4841,13 @@ export default function AdminPage() {
             data-testid="tab-settings"
             onClick={() => setAdminTab("settings")}
             className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-              adminTab === "settings" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+              adminTab === "settings" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
             }`}
           >
             <Settings className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             Ajustes
             {adminTab === "settings" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
             )}
           </button>
         )}
@@ -4855,13 +4856,13 @@ export default function AdminPage() {
             data-testid="tab-tenants"
             onClick={() => setAdminTab("tenants")}
             className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-              adminTab === "tenants" ? "text-[#BB86FC]" : "text-white/40 hover:text-white/60"
+              adminTab === "tenants" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
             }`}
           >
             <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             Tenants
             {adminTab === "tenants" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#BB86FC]" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
             )}
           </button>
         )}
@@ -4894,7 +4895,7 @@ export default function AdminPage() {
                   value={globalSearch}
                   onChange={(e) => setGlobalSearch(e.target.value)}
                   placeholder="Buscar en todos los chats..."
-                  className="pl-10 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#6200EA] focus-visible:border-[#6200EA]"
+                  className="pl-10 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981] focus-visible:border-[#10b981]"
                 />
                 {globalSearch && (
                   <button
@@ -4922,7 +4923,7 @@ export default function AdminPage() {
                       onClick={() => setStatusFilter(tab.key)}
                       className={`px-3 py-1 text-xs rounded-md transition-colors ${
                         statusFilter === tab.key
-                          ? "bg-[#6200EA] text-white"
+                          ? "bg-[#10b981] text-white"
                           : "text-white/40 hover:text-white/60 bg-white/[0.03]"
                       }`}
                     >
@@ -4970,7 +4971,7 @@ export default function AdminPage() {
                           ? tab.key === "bot" ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                             : tab.key === "ejecutivo" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                             : tab.key === "solicita" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                            : "bg-[#6200EA] text-white border border-transparent"
+                            : "bg-[#10b981] text-white border border-transparent"
                           : "text-white/30 hover:text-white/50 bg-white/[0.03] border border-transparent"
                       }`}
                     >
@@ -4991,8 +4992,8 @@ export default function AdminPage() {
                       className={`px-2 py-0.5 text-[10px] rounded-md transition-colors ${
                         assignmentFilter === tab.key
                           ? tab.key === "pendientes" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                            : tab.key === "mis_chats" ? "bg-[#6200EA]/20 text-[#BB86FC] border border-[#6200EA]/30"
-                            : "bg-[#6200EA] text-white border border-transparent"
+                            : tab.key === "mis_chats" ? "bg-[#10b981]/20 text-[#34d399] border border-[#10b981]/30"
+                            : "bg-[#10b981] text-white border border-transparent"
                           : "text-white/30 hover:text-white/50 bg-white/[0.03] border border-transparent"
                       }`}
                     >
@@ -5006,7 +5007,7 @@ export default function AdminPage() {
             <div className="flex-1 overflow-hidden">
               {sessionsLoading && !isSearching ? (
                 <div className="h-full flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : displaySessions.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center px-4">
@@ -5045,8 +5046,8 @@ export default function AdminPage() {
               <ChatViewer sessionId={selectedSession} searchQuery={debouncedSearch} sessions={sessions} adminUser={adminUser} />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-                <div className="w-16 h-16 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">
-                  <MessageSquare className="w-8 h-8 text-[#BB86FC]/40" />
+                <div className="w-16 h-16 rounded-full bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center mb-4">
+                  <MessageSquare className="w-8 h-8 text-[#34d399]/40" />
                 </div>
                 <p className="text-sm text-white/30 mb-1">Selecciona una conversacion</p>
                 <p className="text-xs text-white/20">Haz clic en una sesion para ver el historial de chat</p>
