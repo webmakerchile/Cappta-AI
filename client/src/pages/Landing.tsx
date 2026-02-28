@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -1152,6 +1152,81 @@ function CountUp({ target }: { target: string }) {
   );
 }
 
+function FoxBotFloatingWidget() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [showPulse, setShowPulse] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowPulse(false), 8000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === "foxbot-close") {
+        setIsOpen(false);
+      }
+      if (e.data?.type === "foxbot-unread") {
+        if (!isOpen) setHasUnread(true);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [isOpen]);
+
+  const toggle = useCallback(() => {
+    setIsOpen(prev => !prev);
+    if (!isOpen) setHasUnread(false);
+  }, [isOpen]);
+
+  return (
+    <>
+      {isOpen && (
+        <div
+          className="fixed bottom-24 right-4 sm:right-6 z-[9999] rounded-2xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10"
+          style={{ width: "min(380px, calc(100vw - 32px))", height: "min(560px, calc(100vh - 140px))" }}
+          data-testid="foxbot-floating-chat"
+        >
+          <iframe
+            ref={iframeRef}
+            src="/widget?tenantId=6&embedded=inline"
+            className="w-full h-full border-0 bg-[#0a0a0a] rounded-2xl"
+            title="FoxBot Chat"
+            allow="microphone"
+          />
+        </div>
+      )}
+
+      <button
+        onClick={toggle}
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[9999] w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group"
+        style={{
+          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+          boxShadow: isOpen
+            ? "0 4px 12px rgba(16, 185, 129, 0.3)"
+            : "0 4px 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.15)",
+        }}
+        data-testid="button-foxbot-widget"
+      >
+        {isOpen ? (
+          <X className="w-6 h-6 text-white" />
+        ) : (
+          <MessageSquare className="w-6 h-6 text-white" />
+        )}
+        {hasUnread && !isOpen && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-orange-500 border-2 border-[#0a0a0a] animate-pulse" />
+        )}
+        {showPulse && !isOpen && (
+          <span className="absolute inset-0 rounded-full bg-[#10b981]/30 animate-ping" />
+        )}
+      </button>
+    </>
+  );
+}
+
 export default function Landing() {
   const statsSection = useInView(0.2);
   const featuresSection = useInView(0.1);
@@ -1916,6 +1991,8 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      <FoxBotFloatingWidget />
     </div>
   );
 }

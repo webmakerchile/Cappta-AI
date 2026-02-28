@@ -297,7 +297,9 @@ interface TenantConfig {
 }
 
 function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  const params0 = new URLSearchParams(window.location.search);
+  const isInlineEmbed = params0.get("embedded") === "inline";
+  const [isOpen, setIsOpen] = useState(isInlineEmbed);
   const [hasUnread, setHasUnread] = useState(false);
   const [tenantId, setTenantId] = useState<number | null>(null);
   const [tenantConfig, setTenantConfig] = useState<TenantConfig | null>(null);
@@ -366,13 +368,17 @@ function ChatWidget() {
   }, []);
 
   const toggleChat = useCallback(() => {
+    if (isInlineEmbed) {
+      try { window.parent.postMessage({ type: "foxbot-close" }, window.location.origin); } catch {}
+      return;
+    }
     setIsOpen((prev) => {
       const next = !prev;
       postMessageToParent(next ? "open_chat" : "close_chat");
       if (next) setHasUnread(false);
       return next;
     });
-  }, [postMessageToParent]);
+  }, [postMessageToParent, isInlineEmbed]);
 
   const handleExitChat = useCallback(() => {
     logout();
@@ -466,6 +472,10 @@ function ChatWidget() {
               />
             )}
           </div>
+        </div>
+      ) : isInlineEmbed ? (
+        <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a] text-white/40 text-sm">
+          Cargando...
         </div>
       ) : (
         <div className="p-1.5">
