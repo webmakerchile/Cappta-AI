@@ -201,6 +201,18 @@
   body.saas-page {
     @apply bg-background;
   }
+
+  body.saas-page.saas-fixed,
+  body.saas-page.saas-fixed #root {
+    overflow: hidden;
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  html:has(body.saas-fixed) {
+    overflow: hidden;
+    height: 100vh;
+  }
 }
 
 @keyframes pulse-glow {

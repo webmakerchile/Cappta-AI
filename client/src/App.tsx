@@ -485,6 +485,8 @@ function App() {
 
   const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel;
 
+  const isFixedLayout = isDashboard || isPanel;
+
   useEffect(() => {
     if (isSaasPage) {
       document.documentElement.classList.add("dark");
@@ -492,7 +494,12 @@ function App() {
     } else {
       document.body.classList.remove("saas-page");
     }
-  }, [isSaasPage]);
+    if (isFixedLayout) {
+      document.body.classList.add("saas-fixed");
+    } else {
+      document.body.classList.remove("saas-fixed");
+    }
+  }, [isSaasPage, isFixedLayout]);
 
   return (
     <QueryClientProvider client={queryClient}>

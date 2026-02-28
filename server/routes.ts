@@ -2057,48 +2057,84 @@ ${DEMO_BASE_RULES}`,
             role: "system",
             content: `Eres un asistente experto en organizar informacion de negocios para entrenar chatbots de atencion al cliente.
 
-Tu tarea: Recibir texto desordenado (copiado de paginas web, documentos, etc.) y organizarlo en un formato estructurado y limpio.
+Tu tarea: Recibir texto desordenado (copiado de paginas web, documentos, etc.) y organizarlo en un formato visual, estructurado y facil de leer/editar.
 
-FORMATO DE SALIDA (usar exactamente estas secciones, omitir las que no apliquen):
+FORMATO DE SALIDA (usar exactamente estas secciones con emojis, omitir las que no apliquen):
 
-NOMBRE DEL NEGOCIO: [nombre]
-DESCRIPCION: [breve descripcion del negocio en 1-2 lineas]
+🏪 NOMBRE DEL NEGOCIO: [nombre]
 
-PRODUCTOS/SERVICIOS:
-- [nombre]: [descripcion breve] | Precio: [precio] | [estado/disponibilidad si aplica]
+📝 DESCRIPCION:
+[breve descripcion del negocio en 1-3 lineas]
 
-CATEGORIAS DE PRODUCTOS:
-- [categoria]: [lista de productos]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-METODOS DE PAGO:
-- [metodo]
+🛍️ PRODUCTOS / SERVICIOS:
+• [nombre] — [descripcion breve]
+  💰 Precio: $[precio] | 🏷️ Oferta: $[precio oferta si aplica]
 
-ENVIOS/DESPACHO:
-- [politica de envio]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-POLITICAS:
-- [politica]
+📂 CATEGORIAS:
+📌 [categoria 1]:
+  • [producto 1]
+  • [producto 2]
+📌 [categoria 2]:
+  • [producto 1]
 
-CONTACTO:
-- [canal]: [detalle]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-HORARIOS:
-- [horario]
+💳 METODOS DE PAGO:
+• [metodo 1]
+• [metodo 2]
 
-PREGUNTAS FRECUENTES:
-- P: [pregunta] R: [respuesta]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-INFORMACION ADICIONAL:
-- [dato relevante]
+🚚 ENVIOS / DESPACHO:
+• [politica de envio]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 POLITICAS:
+• [politica 1]
+• [politica 2]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 CONTACTO:
+• 📱 WhatsApp: [numero]
+• 📧 Email: [correo]
+• 🌐 Web: [url]
+• 📍 Direccion: [direccion]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🕐 HORARIOS:
+• [dia/rango]: [horario]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PREGUNTAS FRECUENTES:
+❔ [pregunta 1]
+✅ [respuesta 1]
+
+❔ [pregunta 2]
+✅ [respuesta 2]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ℹ️ INFORMACION ADICIONAL:
+• [dato relevante]
 
 Reglas:
 - Mantener TODOS los precios exactos del texto original
 - Mantener TODOS los nombres de productos/tonos/variantes exactos
-- Si hay ofertas o descuentos, indicarlos
+- Si hay ofertas o descuentos, indicarlos claramente con el emoji 🏷️
 - Si hay categorias, agrupar productos por categoria
 - Escribir en español
 - No inventar informacion que no este en el texto
-- Ser conciso pero completo`
+- Ser conciso pero completo
+- Usar las lineas separadoras ━━━ entre cada seccion para facilitar la lectura
+- Los emojis son obligatorios para cada seccion`
           },
           {
             role: "user",
@@ -2185,49 +2221,86 @@ Reglas:
             role: "system",
             content: `Eres un asistente experto en analizar sitios web de negocios y extraer toda la informacion relevante para entrenar un chatbot de atencion al cliente.
 
-Tu tarea: Analizar el contenido de una pagina web y extraer toda la informacion del negocio en formato estructurado.
+Tu tarea: Analizar el contenido de una pagina web y extraer toda la informacion del negocio en formato visual, estructurado y facil de leer/editar.
 
-FORMATO DE SALIDA (usar exactamente estas secciones, omitir las que no apliquen):
+FORMATO DE SALIDA (usar exactamente estas secciones con emojis, omitir las que no apliquen):
 
-NOMBRE DEL NEGOCIO: [nombre]
-DESCRIPCION: [breve descripcion del negocio en 1-2 lineas]
-SITIO WEB: [url]
+🏪 NOMBRE DEL NEGOCIO: [nombre]
 
-PRODUCTOS/SERVICIOS:
-- [nombre]: [descripcion breve] | Precio: [precio] | [estado/disponibilidad si aplica]
+📝 DESCRIPCION:
+[breve descripcion del negocio en 1-3 lineas]
 
-CATEGORIAS DE PRODUCTOS:
-- [categoria]: [lista de productos]
+🌐 SITIO WEB: [url]
 
-METODOS DE PAGO:
-- [metodo]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-ENVIOS/DESPACHO:
-- [politica de envio]
+🛍️ PRODUCTOS / SERVICIOS:
+• [nombre] — [descripcion breve]
+  💰 Precio: $[precio] | 🏷️ Oferta: $[precio oferta si aplica]
 
-POLITICAS:
-- [politica]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-CONTACTO:
-- [canal]: [detalle]
+📂 CATEGORIAS:
+📌 [categoria 1]:
+  • [producto 1]
+  • [producto 2]
+📌 [categoria 2]:
+  • [producto 1]
 
-HORARIOS:
-- [horario]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-PREGUNTAS FRECUENTES:
-- P: [pregunta] R: [respuesta]
+💳 METODOS DE PAGO:
+• [metodo 1]
+• [metodo 2]
 
-INFORMACION ADICIONAL:
-- [dato relevante]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚚 ENVIOS / DESPACHO:
+• [politica de envio]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 POLITICAS:
+• [politica 1]
+• [politica 2]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 CONTACTO:
+• 📱 WhatsApp: [numero]
+• 📧 Email: [correo]
+• 🌐 Web: [url]
+• 📍 Direccion: [direccion]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🕐 HORARIOS:
+• [dia/rango]: [horario]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PREGUNTAS FRECUENTES:
+❔ [pregunta 1]
+✅ [respuesta 1]
+
+❔ [pregunta 2]
+✅ [respuesta 2]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ℹ️ INFORMACION ADICIONAL:
+• [dato relevante]
 
 Reglas:
 - Extraer TODOS los productos con sus precios exactos
 - Mantener nombres exactos de productos/servicios
-- Si hay ofertas o descuentos, indicarlos
+- Si hay ofertas o descuentos, indicarlos claramente con el emoji 🏷️
 - Agrupar por categorias cuando sea posible
 - Escribir en español
 - No inventar informacion
-- Ser conciso pero completo`
+- Ser conciso pero completo
+- Usar las lineas separadoras ━━━ entre cada seccion para facilitar la lectura
+- Los emojis son obligatorios para cada seccion`
           },
           {
             role: "user",
