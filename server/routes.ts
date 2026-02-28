@@ -1783,8 +1783,12 @@ ${DEMO_BASE_RULES}`,
       let nextReward = null;
       if (confirmedCount < 1) {
         nextReward = { target: 1, current: confirmedCount, plan: "Fox Pro", months: 1 };
+      } else if (confirmedCount < 3) {
+        nextReward = { target: 3, current: confirmedCount, plan: "Fox Pro", months: 2 };
       } else if (confirmedCount < 5) {
         nextReward = { target: 5, current: confirmedCount, plan: "Fox Enterprise", months: 3 };
+      } else if (confirmedCount < 10) {
+        nextReward = { target: 10, current: confirmedCount, plan: "Fox Enterprise", months: 6 };
       }
       res.json({ code, confirmedCount, pendingCount, referrals: referralsWithNames, currentReward, nextReward });
     } catch (error: any) {
@@ -1808,9 +1812,15 @@ ${DEMO_BASE_RULES}`,
       if (confirmedCount === 1) {
         await storage.applyReferralReward(auth.id, "basic", 1);
         log(`Referral reward: tenant ${auth.id} earned 1 month of Fox Pro (1 confirmed referral)`, "referral");
+      } else if (confirmedCount === 3) {
+        await storage.applyReferralReward(auth.id, "basic", 2);
+        log(`Referral reward: tenant ${auth.id} earned 2 months of Fox Pro (3 confirmed referrals)`, "referral");
       } else if (confirmedCount === 5) {
         await storage.applyReferralReward(auth.id, "pro", 3);
         log(`Referral reward: tenant ${auth.id} earned 3 months of Fox Enterprise (5 confirmed referrals)`, "referral");
+      } else if (confirmedCount === 10) {
+        await storage.applyReferralReward(auth.id, "pro", 6);
+        log(`Referral reward: tenant ${auth.id} earned 6 months of Fox Enterprise (10 confirmed referrals - Ambassador)`, "referral");
       }
       res.json({ success: true, confirmedCount });
     } catch (error: any) {

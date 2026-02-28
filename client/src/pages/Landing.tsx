@@ -1706,19 +1706,20 @@ export default function Landing() {
           <div className={`text-center mb-16 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
               <Gift className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-semibold text-amber-400 tracking-wide">PROGRAMA DE REFERIDOS</span>
+              <span className="text-xs font-semibold text-amber-400 tracking-wide">PROGRAMA EXCLUSIVO DE REFERIDOS</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-referral-title">
-              Invita amigos,
+              Invita negocios,
               <br />
               <span className="text-gradient-green">gana meses gratis</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Comparte FoxBot con otros negocios. Cuando tu referido se registra y tú confirmas la invitación, ambos ganan.
+              Recomienda FoxBot a otros negocios. Cuando se registran con tu enlace y tú confirmas la invitación,
+              <span className="text-white/60 font-semibold"> ambos reciben beneficios: tú ganas meses de plan premium y tu referido empieza con ventajas exclusivas.</span>
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
             <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "100ms" }} data-testid="referral-step-1">
               <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))" }}>
                 <UserPlus className="w-6 h-6 text-amber-400" />
@@ -1728,7 +1729,7 @@ export default function Landing() {
               </div>
               <h3 className="text-lg font-bold text-white/90 mb-2">Comparte tu enlace</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Desde tu dashboard, copia tu enlace de referido único y envíalo a otros negocios que necesiten un chatbot.
+                Desde tu dashboard, copia tu enlace único de referido y compártelo con cualquier negocio que necesite un chatbot inteligente.
               </p>
             </div>
 
@@ -1739,9 +1740,9 @@ export default function Landing() {
               <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-black text-primary">2</span>
               </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Confirma el registro</h3>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Tu referido se registra</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Cuando tu referido se registra con tu enlace, aparecerá en tu lista de referidos. Confirma que lo conoces y listo.
+                Cuando el negocio se registra con tu enlace, aparece en tu lista de referidos. Tú confirmas que lo conoces con un clic.
               </p>
             </div>
 
@@ -1752,42 +1753,72 @@ export default function Landing() {
               <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
                 <span className="text-sm font-black text-amber-400">3</span>
               </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Recibe tu recompensa</h3>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Ambos ganan</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Por cada referido confirmado recibes meses gratis de FoxBot. ¡Mientras más invites, más ganas!
+                Tú recibes meses de plan premium gratis. Tu referido también recibe un bonus de bienvenida. ¡Todos salen ganando!
               </p>
             </div>
           </div>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto mb-12 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "550ms" }}>
-            <div className="rounded-2xl p-6 text-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.15)" }} data-testid="referral-reward-1">
-              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))" }}>
-                <Gift className="w-7 h-7 text-primary" />
-              </div>
-              <p className="text-3xl font-black text-primary mb-1">1 referido</p>
-              <p className="text-white/60 font-semibold mb-2">1 mes de Fox Pro gratis</p>
-              <p className="text-xs text-white/30">500 sesiones, 5.000 mensajes, 3 ejecutivos</p>
-            </div>
-
-            <div className="rounded-2xl p-6 text-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02))", border: "1px solid rgba(245,158,11,0.15)" }} data-testid="referral-reward-2">
-              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05))" }}>
-                <Trophy className="w-7 h-7 text-amber-400" />
-              </div>
-              <p className="text-3xl font-black text-amber-400 mb-1">5 referidos</p>
-              <p className="text-white/60 font-semibold mb-2">3 meses de Fox Enterprise gratis</p>
-              <p className="text-xs text-white/30">Sesiones y mensajes ilimitados, 10 ejecutivos</p>
+          <div className={`mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "550ms" }}>
+            <h3 className="text-center text-lg font-bold text-white/70 mb-8">Escalera de recompensas</h3>
+            <div className="max-w-3xl mx-auto space-y-4">
+              {[
+                { refs: 1, reward: "1 mes de Fox Pro gratis", detail: "500 sesiones, 5.000 mensajes, 3 ejecutivos", color: "16,185,129", icon: <Gift className="w-5 h-5" />, tier: "Fox Pro" },
+                { refs: 3, reward: "2 meses de Fox Pro gratis", detail: "Acumula referidos y sigue subiendo de nivel", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "Fox Pro" },
+                { refs: 5, reward: "3 meses de Fox Enterprise gratis", detail: "Sesiones y mensajes ilimitados, 10 ejecutivos", color: "245,158,11", icon: <Trophy className="w-5 h-5" />, tier: "Fox Enterprise" },
+                { refs: 10, reward: "6 meses de Fox Enterprise gratis", detail: "El máximo reconocimiento para embajadores FoxBot", color: "168,85,247", icon: <Crown className="w-5 h-5" />, tier: "Embajador" },
+              ].map((tier, i) => (
+                <div
+                  key={tier.refs}
+                  className={`group relative flex items-center gap-5 rounded-2xl p-5 transition-all duration-500 hover:scale-[1.02] ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
+                  style={{
+                    animationDelay: `${600 + i * 120}ms`,
+                    background: `linear-gradient(135deg, rgba(${tier.color},0.08), rgba(${tier.color},0.02))`,
+                    border: `1px solid rgba(${tier.color},0.15)`,
+                  }}
+                  data-testid={`referral-tier-${tier.refs}`}
+                >
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, rgba(${tier.color},0.25), rgba(${tier.color},0.08))` }}>
+                    <span style={{ color: `rgb(${tier.color})` }}>{tier.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <span className="text-lg font-black" style={{ color: `rgb(${tier.color})` }}>{tier.refs} {tier.refs === 1 ? "referido" : "referidos"}</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider" style={{ background: `rgba(${tier.color},0.15)`, color: `rgb(${tier.color})` }}>{tier.tier}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-white/70">{tier.reward}</p>
+                    <p className="text-xs text-white/30 mt-0.5">{tier.detail}</p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: `rgba(${tier.color},0.4)` }} />
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className={`text-center transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "700ms" }}>
+          <div className={`max-w-3xl mx-auto rounded-2xl p-6 mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1000ms", background: "linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.1)" }} data-testid="referral-both-win">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))" }}>
+                <Handshake className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-white/80 mb-2">¿Qué gana tu referido?</h4>
+                <p className="text-sm text-white/40 leading-relaxed">
+                  Cada negocio que se registra con tu enlace recibe un <span className="text-primary font-semibold">bonus de bienvenida</span>: configuración asistida del chatbot, soporte prioritario en sus primeros 7 días y acceso a todas las guías de entrenamiento. Tu referido empieza con ventaja desde el día uno.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`text-center transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1100ms" }}>
             <a href="/register">
               <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-referral-register">
-                Registrarme y obtener mi enlace
+                Crear mi cuenta y empezar a referir
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </a>
-            <p className="text-sm text-white/20 mt-4">
-              El enlace de referido está disponible en tu dashboard desde el primer día.
+            <p className="text-sm text-white/25 mt-4">
+              Tu enlace de referido se activa automáticamente al crear tu cuenta. Sin límite de invitaciones.
             </p>
           </div>
         </div>

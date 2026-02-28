@@ -1603,8 +1603,12 @@ function ReferidosSection() {
       queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/referral"] });
       if (result.confirmedCount === 1) {
         toast({ title: "1 mes de Fox Pro desbloqueado", description: "Tu primer referido fue confirmado. Disfruta 1 mes de Fox Pro gratis." });
+      } else if (result.confirmedCount === 3) {
+        toast({ title: "2 meses de Fox Pro desbloqueados", description: "Llegaste a 3 referidos confirmados. Disfruta 2 meses de Fox Pro gratis." });
       } else if (result.confirmedCount === 5) {
         toast({ title: "3 meses de Fox Enterprise desbloqueados", description: "Llegaste a 5 referidos confirmados. Disfruta 3 meses de Fox Enterprise gratis." });
+      } else if (result.confirmedCount === 10) {
+        toast({ title: "6 meses de Fox Enterprise desbloqueados", description: "Eres embajador FoxBot. Disfruta 6 meses de Fox Enterprise gratis." });
       } else {
         toast({ title: "Referido confirmado" });
       }
@@ -1656,23 +1660,29 @@ function ReferidosSection() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 animate-dash-fade-up dash-stagger-1">
-            <div className="rounded-xl bg-primary/5 border border-primary/10 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Trophy className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-semibold text-amber-400">1 referido confirmado</span>
-              </div>
-              <p className="text-2xl font-black text-white mb-1">1 mes de Fox Pro</p>
-              <p className="text-xs text-white/40">Trae a un negocio, y cuando confirmes que se registro por ti, desbloqueas Fox Pro gratis por 1 mes</p>
-            </div>
-            <div className="rounded-xl bg-amber-500/5 border border-amber-500/10 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Crown className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-semibold text-amber-400">5 referidos confirmados</span>
-              </div>
-              <p className="text-2xl font-black text-white mb-1">3 meses de Fox Enterprise</p>
-              <p className="text-xs text-white/40">Alcanza los 5 referidos confirmados y disfruta 3 meses del plan más completo</p>
-            </div>
+          <div className="space-y-2.5 mb-6 animate-dash-fade-up dash-stagger-1">
+            {[
+              { refs: 1, reward: "1 mes de Fox Pro", color: "16,185,129", icon: <Gift className="w-4 h-4" />, desc: "Tu primer referido desbloquea Fox Pro gratis" },
+              { refs: 3, reward: "2 meses de Fox Pro", color: "59,130,246", icon: <Star className="w-4 h-4" />, desc: "Sigue invitando y acumula más meses premium" },
+              { refs: 5, reward: "3 meses de Fox Enterprise", color: "245,158,11", icon: <Trophy className="w-4 h-4" />, desc: "El plan más completo: sesiones y mensajes ilimitados" },
+              { refs: 10, reward: "6 meses de Fox Enterprise", color: "168,85,247", icon: <Crown className="w-4 h-4" />, desc: "Máximo reconocimiento para embajadores FoxBot" },
+            ].map((tier) => {
+              const achieved = data.confirmedCount >= tier.refs;
+              return (
+                <div key={tier.refs} className="flex items-center gap-4 rounded-xl p-4 transition-all duration-300" style={{ background: achieved ? `rgba(${tier.color},0.08)` : "rgba(255,255,255,0.02)", border: `1px solid rgba(${tier.color},${achieved ? 0.2 : 0.06})` }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `rgba(${tier.color},${achieved ? 0.2 : 0.06})` }}>
+                    <span style={{ color: achieved ? `rgb(${tier.color})` : "rgba(255,255,255,0.25)" }}>{tier.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold" style={{ color: achieved ? `rgb(${tier.color})` : "rgba(255,255,255,0.5)" }}>{tier.refs} {tier.refs === 1 ? "referido" : "referidos"}</span>
+                      {achieved && <CircleCheck className="w-3.5 h-3.5" style={{ color: `rgb(${tier.color})` }} />}
+                    </div>
+                    <p className="text-xs text-white/40">{tier.reward}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {data.nextReward && (
