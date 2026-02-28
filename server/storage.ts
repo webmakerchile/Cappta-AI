@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, tenantFiles, tenantAgents, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -118,6 +118,13 @@ export interface IStorage {
   deleteTenantAgent(tenantId: number, id: number): Promise<boolean>;
   countTenantAgents(tenantId: number): Promise<number>;
   updateTenantAgentLastLogin(id: number): Promise<void>;
+  getReferralsByReferrerId(referrerId: number): Promise<Referral[]>;
+  createReferral(data: InsertReferral): Promise<Referral>;
+  confirmReferral(referrerId: number, referredId: number): Promise<Referral | null>;
+  getConfirmedReferralCount(referrerId: number): Promise<number>;
+  getTenantByReferralCode(code: string): Promise<Tenant | null>;
+  generateReferralCode(tenantId: number): Promise<string>;
+  applyReferralReward(tenantId: number, plan: string, months: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1406,6 +1413,65 @@ export class DatabaseStorage implements IStorage {
 
   async updateTenantAgentLastLogin(id: number): Promise<void> {
     await db.update(tenantAgents).set({ lastLoginAt: new Date() }).where(eq(tenantAgents.id, id));
+  }
+
+  async getReferralsByReferrerId(referrerId: number): Promise<Referral[]> {
+    return await db.select().from(referrals).where(eq(referrals.referrerId, referrerId)).orderBy(desc(referrals.createdAt));
+  }
+
+  async createReferral(data: InsertReferral): Promise<Referral> {
+    const [created] = await db.insert(referrals).values(data).returning();
+    return created;
+  }
+
+  async confirmReferral(referrerId: number, referredId: number): Promise<Referral | null> {
+    const [updated] = await db.update(referrals).set({ confirmed: 1, confirmedAt: new Date() }).where(and(eq(referrals.referrerId, referrerId), eq(referrals.referredId, referredId))).returning();
+    return updated || null;
+  }
+
+  async getConfirmedReferralCount(referrerId: number): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(referrals).where(and(eq(referrals.referrerId, referrerId), eq(referrals.confirmed, 1)));
+    return Number(result[0]?.count || 0);
+  }
+
+  async getTenantByReferralCode(code: string): Promise<Tenant | null> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.referralCode, code));
+    return tenant || null;
+  }
+
+  async generateReferralCode(tenantId: number): Promise<string> {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code: string;
+    let attempts = 0;
+    do {
+      code = "FOX-";
+      for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      const existing = await this.getTenantByReferralCode(code);
+      if (!existing) break;
+      attempts++;
+    } while (attempts < 10);
+    await db.update(tenants).set({ referralCode: code }).where(eq(tenants.id, tenantId));
+    return code;
+  }
+
+  async applyReferralReward(tenantId: number, plan: string, months: number): Promise<void> {
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setMonth(expiresAt.getMonth() + months);
+    const tenant = await this.getTenantById(tenantId);
+    if (tenant && tenant.rewardExpiresAt && tenant.rewardExpiresAt > now) {
+      expiresAt.setMonth(expiresAt.getMonth() + Math.ceil((tenant.rewardExpiresAt.getTime() - now.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+    }
+    const planOrder = ["free", "basic", "pro"];
+    const currentPlanIdx = planOrder.indexOf(tenant?.plan || "free");
+    const rewardPlanIdx = planOrder.indexOf(plan);
+    const effectivePlan = rewardPlanIdx >= currentPlanIdx ? plan : tenant?.plan || plan;
+    await db.update(tenants).set({
+      rewardMonths: months,
+      rewardPlan: effectivePlan,
+      rewardExpiresAt: expiresAt,
+      plan: effectivePlan,
+    }).where(eq(tenants.id, tenantId));
   }
 }
 

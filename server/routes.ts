@@ -1172,7 +1172,7 @@ ${DEMO_BASE_RULES}`,
 
   app.post("/api/tenants/register", async (req, res) => {
     try {
-      const { name, email, password, companyName } = req.body;
+      const { name, email, password, companyName, referralCode } = req.body;
       if (!name || !email || !password || !companyName) {
         return res.status(400).json({ message: "Todos los campos son requeridos" });
       }
@@ -1183,13 +1183,29 @@ ${DEMO_BASE_RULES}`,
       if (existing) {
         return res.status(409).json({ message: "Ya existe una cuenta con este email" });
       }
+      let referrerId: number | undefined;
+      if (referralCode && typeof referralCode === "string" && referralCode.trim()) {
+        const referrer = await storage.getTenantByReferralCode(referralCode.trim().toUpperCase());
+        if (referrer) {
+          referrerId = referrer.id;
+        }
+      }
       const passwordHash = await bcrypt.hash(password, 10);
       const tenant = await storage.createTenant({
         name,
         email: email.toLowerCase().trim(),
         passwordHash,
         companyName,
+        ...(referrerId ? { referredBy: referrerId } : {}),
       });
+      if (referrerId) {
+        try {
+          await storage.createReferral({ referrerId, referredId: tenant.id });
+          log(`Referral tracked: tenant ${tenant.id} referred by ${referrerId} (code: ${referralCode})`, "referral");
+        } catch (e: any) {
+          log(`Error creating referral record: ${e.message}`, "referral");
+        }
+      }
       const token = generateTenantToken({ id: tenant.id, email: tenant.email, companyName: tenant.companyName });
       res.status(201).json({
         token,
@@ -1728,6 +1744,79 @@ ${DEMO_BASE_RULES}`,
       formattedPrice: `$${val.amount.toLocaleString("es-CL")} CLP/mes`,
     }));
     res.json(prices);
+  });
+
+  app.get("/api/tenants/me/referral", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+      let code = tenant.referralCode;
+      if (!code) {
+        code = await storage.generateReferralCode(auth.id);
+      }
+      const allReferrals = await storage.getReferralsByReferrerId(auth.id);
+      const confirmedCount = allReferrals.filter(r => r.confirmed === 1).length;
+      const pendingCount = allReferrals.filter(r => r.confirmed === 0).length;
+      const referralsWithNames = await Promise.all(allReferrals.map(async (r) => {
+        const referred = await storage.getTenantById(r.referredId);
+        return {
+          id: r.id,
+          referredName: referred?.companyName || referred?.name || "Desconocido",
+          referredEmail: referred?.email || "",
+          confirmed: r.confirmed,
+          createdAt: r.createdAt,
+          confirmedAt: r.confirmedAt,
+        };
+      }));
+      let currentReward = null;
+      if (tenant.rewardPlan && tenant.rewardExpiresAt) {
+        const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
+        currentReward = {
+          plan: tenant.rewardPlan,
+          planLabel: planLabels[tenant.rewardPlan] || tenant.rewardPlan,
+          expiresAt: tenant.rewardExpiresAt,
+          months: tenant.rewardMonths,
+        };
+      }
+      let nextReward = null;
+      if (confirmedCount < 1) {
+        nextReward = { target: 1, current: confirmedCount, plan: "Fox Pro", months: 1 };
+      } else if (confirmedCount < 5) {
+        nextReward = { target: 5, current: confirmedCount, plan: "Fox Enterprise", months: 3 };
+      }
+      res.json({ code, confirmedCount, pendingCount, referrals: referralsWithNames, currentReward, nextReward });
+    } catch (error: any) {
+      log(`Error obteniendo referidos: ${error.message}`, "referral");
+      res.status(500).json({ message: "Error al obtener datos de referidos" });
+    }
+  });
+
+  app.post("/api/tenants/me/referral/confirm", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { referralId } = req.body;
+      if (!referralId) return res.status(400).json({ message: "ID de referido requerido" });
+      const allReferrals = await storage.getReferralsByReferrerId(auth.id);
+      const referral = allReferrals.find(r => r.id === referralId);
+      if (!referral) return res.status(404).json({ message: "Referido no encontrado" });
+      if (referral.confirmed === 1) return res.status(400).json({ message: "Este referido ya fue confirmado" });
+      await storage.confirmReferral(auth.id, referral.referredId);
+      const confirmedCount = await storage.getConfirmedReferralCount(auth.id);
+      if (confirmedCount === 1) {
+        await storage.applyReferralReward(auth.id, "basic", 1);
+        log(`Referral reward: tenant ${auth.id} earned 1 month of Fox Pro (1 confirmed referral)`, "referral");
+      } else if (confirmedCount === 5) {
+        await storage.applyReferralReward(auth.id, "pro", 3);
+        log(`Referral reward: tenant ${auth.id} earned 3 months of Fox Enterprise (5 confirmed referrals)`, "referral");
+      }
+      res.json({ success: true, confirmedCount });
+    } catch (error: any) {
+      log(`Error confirmando referido: ${error.message}`, "referral");
+      res.status(500).json({ message: "Error al confirmar referido" });
+    }
   });
 
   app.get("/api/admin/users", async (req, res) => {

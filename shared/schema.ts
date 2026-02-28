@@ -158,7 +158,22 @@ export const tenants = pgTable("tenants", {
   businessHoursConfig: text("business_hours_config"),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
   flowCustomerId: text("flow_customer_id"),
+  referralCode: text("referral_code").unique(),
+  referredBy: integer("referred_by"),
+  rewardMonths: integer("reward_months").notNull().default(0),
+  rewardPlan: text("reward_plan"),
+  rewardExpiresAt: timestamp("reward_expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  referrerId: integer("referrer_id").notNull(),
+  referredId: integer("referred_id").notNull(),
+  confirmed: integer("confirmed").notNull().default(0),
+  rewardApplied: integer("reward_applied").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  confirmedAt: timestamp("confirmed_at"),
 });
 
 export const paymentOrders = pgTable("payment_orders", {
@@ -265,6 +280,7 @@ export const insertTenantPushSubscriptionSchema = createInsertSchema(tenantPushS
 export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true, lastUsedAt: true });
 export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
 export const insertTenantFileSchema = createInsertSchema(tenantFiles).omit({ id: true, createdAt: true, downloadCount: true });
+export const insertReferralSchema = createInsertSchema(referrals).omit({ id: true, createdAt: true, confirmedAt: true });
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
@@ -290,6 +306,8 @@ export type InsertTenant = z.infer<typeof insertTenantSchema>;
 export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenantFile = z.infer<typeof insertTenantFileSchema>;
 export type TenantFile = typeof tenantFiles.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type Referral = typeof referrals.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

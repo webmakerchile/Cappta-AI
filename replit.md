@@ -51,7 +51,8 @@ Key architectural decisions and features include:
 - `/admin` - Admin panel (superadmin agent dashboard)
 
 ## Database Tables
-- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, aiEnabled, businessHoursConfig, plan, flowCustomerId, createdAt)
+- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, aiEnabled, businessHoursConfig, plan, flowCustomerId, referralCode, referredBy, rewardMonths, rewardPlan, rewardExpiresAt, createdAt)
+- `referrals` - Referral tracking (id, referrerId, referredId, confirmed, rewardApplied, createdAt, confirmedAt)
 - `sessions` - Chat sessions (has tenantId for multi-tenant isolation)
 - `messages` - Chat messages (has tenantId)
 - `products` - Product catalog (has tenantId)
@@ -66,7 +67,7 @@ Key architectural decisions and features include:
 - `app_settings` - Key-value app configuration
 
 ## Tenant API Routes
-- `POST /api/tenants/register` - Register new tenant
+- `POST /api/tenants/register` - Register new tenant (accepts optional `referralCode`)
 - `POST /api/tenants/login` - Tenant login (returns JWT)
 - `GET /api/tenants/me` - Get tenant profile (auth required)
 - `PATCH /api/tenants/me` - Update tenant settings (auth required)
@@ -75,6 +76,8 @@ Key architectural decisions and features include:
 - `GET /api/tenants/me/sessions/:id/messages` - Get messages for a tenant session (auth required)
 - `POST /api/tenants/me/sessions/:id/reply` - Reply to a customer session (auth required)
 - `GET /api/tenants/:id/config` - Public endpoint for widget to load tenant config
+- `GET /api/tenants/me/referral` - Get referral code, stats, and referral list (auth required)
+- `POST /api/tenants/me/referral/confirm` - Confirm a referral and apply reward if threshold reached (auth required)
 
 ## Tenant Panel API Routes (Support Panel at /panel)
 - `GET /api/tenant-panel/sessions?status=` - List tenant sessions with full stats

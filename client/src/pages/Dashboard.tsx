@@ -50,6 +50,11 @@ import {
   Bell,
   Wifi,
   Share2,
+  Gift,
+  UserPlus,
+  Crown,
+  Trophy,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -1558,6 +1563,217 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   );
 }
 
+interface ReferralData {
+  code: string;
+  confirmedCount: number;
+  pendingCount: number;
+  referrals: { id: number; referredName: string; referredEmail: string; confirmed: number; createdAt: string; confirmedAt: string | null }[];
+  currentReward: { plan: string; planLabel: string; expiresAt: string; months: number } | null;
+  nextReward: { target: number; current: number; plan: string; months: number } | null;
+}
+
+function ReferidosSection() {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+  const token = localStorage.getItem("tenant_token");
+
+  const { data, isLoading } = useQuery<ReferralData>({
+    queryKey: ["/api/tenants/me/referral"],
+    queryFn: async () => {
+      const res = await fetch("/api/tenants/me/referral", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: async (referralId: number) => {
+      const res = await fetch("/api/tenants/me/referral/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ referralId }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.message || "Error");
+      }
+      return res.json();
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/referral"] });
+      if (result.confirmedCount === 1) {
+        toast({ title: "1 mes de Fox Pro desbloqueado", description: "Tu primer referido fue confirmado. Disfruta 1 mes de Fox Pro gratis." });
+      } else if (result.confirmedCount === 5) {
+        toast({ title: "3 meses de Fox Enterprise desbloqueados", description: "Llegaste a 5 referidos confirmados. Disfruta 3 meses de Fox Enterprise gratis." });
+      } else {
+        toast({ title: "Referido confirmado" });
+      }
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const copyLink = () => {
+    if (!data?.code) return;
+    const link = `${window.location.origin}/register?ref=${data.code}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    toast({ title: "Link copiado", description: "Comparte este link con otros negocios" });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyCode = () => {
+    if (!data?.code) return;
+    navigator.clipboard.writeText(data.code);
+    toast({ title: "Codigo copiado" });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const progress = data.nextReward ? (data.nextReward.current / data.nextReward.target) * 100 : 100;
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl glass-card p-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1), transparent 60%)" }} />
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-6 animate-dash-slide-right">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Gift className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold" data-testid="text-referidos-title">Programa de Referidos</h3>
+              <p className="text-sm text-white/40">Invita negocios a FoxBot y gana meses de plan premium gratis</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 animate-dash-fade-up dash-stagger-1">
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-semibold text-amber-400">1 referido confirmado</span>
+              </div>
+              <p className="text-2xl font-black text-white mb-1">1 mes de Fox Pro</p>
+              <p className="text-xs text-white/40">Trae a un negocio, y cuando confirmes que se registro por ti, desbloqueas Fox Pro gratis por 1 mes</p>
+            </div>
+            <div className="rounded-xl bg-amber-500/5 border border-amber-500/10 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Crown className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-semibold text-amber-400">5 referidos confirmados</span>
+              </div>
+              <p className="text-2xl font-black text-white mb-1">3 meses de Fox Enterprise</p>
+              <p className="text-xs text-white/40">Alcanza los 5 referidos confirmados y disfruta 3 meses del plan mas completo</p>
+            </div>
+          </div>
+
+          {data.nextReward && (
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 mb-6 animate-dash-fade-up dash-stagger-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-white/60">Progreso hacia {data.nextReward.plan}</span>
+                <span className="text-sm font-bold text-primary">{data.nextReward.current} / {data.nextReward.target}</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-700" style={{ width: `${Math.min(progress, 100)}%` }} />
+              </div>
+              <p className="text-[11px] text-white/30 mt-2">
+                {data.nextReward.target - data.nextReward.current === 1
+                  ? "Te falta solo 1 referido confirmado"
+                  : `Te faltan ${data.nextReward.target - data.nextReward.current} referidos confirmados`}
+                {" para ganar "}
+                {data.nextReward.months} {data.nextReward.months === 1 ? "mes" : "meses"} de {data.nextReward.plan}
+              </p>
+            </div>
+          )}
+
+          {data.currentReward && (
+            <div className="rounded-xl bg-gradient-to-r from-primary/10 to-emerald-500/5 border border-primary/20 p-4 mb-6 animate-dash-fade-up dash-stagger-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold text-primary">Recompensa activa</span>
+              </div>
+              <p className="text-sm text-white/70">{data.currentReward.planLabel} gratis hasta el {new Date(data.currentReward.expiresAt).toLocaleDateString("es-CL")}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl glass-card p-6 animate-dash-fade-up dash-stagger-3">
+        <h4 className="text-base font-bold mb-4">Tu link de referido</h4>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+            <LinkIcon className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-sm text-white/60 truncate" data-testid="text-referral-link">{window.location.origin}/register?ref={data.code}</span>
+          </div>
+          <Button onClick={copyLink} className="bg-primary hover:bg-primary/80 gap-2 shrink-0" data-testid="button-copy-referral-link">
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copied ? "Copiado" : "Copiar link"}
+          </Button>
+        </div>
+        <div className="flex items-center gap-4 mt-3">
+          <button onClick={copyCode} className="flex items-center gap-2 text-xs text-white/40 hover:text-white/60 transition-colors" data-testid="button-copy-referral-code">
+            <Copy className="w-3 h-3" />
+            Codigo: <span className="font-mono font-bold text-primary">{data.code}</span>
+          </button>
+          <div className="flex items-center gap-2 text-xs text-white/30">
+            <UserPlus className="w-3 h-3" />
+            {data.confirmedCount} confirmado{data.confirmedCount !== 1 ? "s" : ""} · {data.pendingCount} pendiente{data.pendingCount !== 1 ? "s" : ""}
+          </div>
+        </div>
+      </div>
+
+      {data.referrals.length > 0 && (
+        <div className="rounded-2xl glass-card p-6 animate-dash-fade-up dash-stagger-4">
+          <h4 className="text-base font-bold mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            Tus referidos ({data.referrals.length})
+          </h4>
+          <div className="space-y-3">
+            {data.referrals.map((ref) => (
+              <div key={ref.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors" data-testid={`referral-row-${ref.id}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${ref.confirmed ? "bg-primary/15 text-primary" : "bg-white/[0.06] text-white/40"}`}>
+                  {ref.referredName.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white/80 truncate">{ref.referredName}</p>
+                  <p className="text-xs text-white/30 truncate">{ref.referredEmail} · {new Date(ref.createdAt).toLocaleDateString("es-CL")}</p>
+                </div>
+                {ref.confirmed ? (
+                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium shrink-0">
+                    <CircleCheck className="w-3 h-3" />
+                    Confirmado
+                  </span>
+                ) : (
+                  <Button size="sm" onClick={() => confirmMutation.mutate(ref.id)} disabled={confirmMutation.isPending} className="bg-primary hover:bg-primary/80 text-xs gap-1 shrink-0" data-testid={`button-confirm-referral-${ref.id}`}>
+                    {confirmMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    Confirmar
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.referrals.length === 0 && (
+        <div className="rounded-2xl glass-card p-8 text-center animate-dash-fade-up dash-stagger-4">
+          <UserPlus className="w-12 h-12 text-white/10 mx-auto mb-4" />
+          <p className="text-sm text-white/40 mb-1">Aun no tienes referidos</p>
+          <p className="text-xs text-white/25">Comparte tu link con otros negocios para empezar a ganar recompensas</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlanSection({ tenant }: { tenant: TenantProfile }) {
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<string | null>(null);
@@ -1949,13 +2165,14 @@ function DownloadAppSection() {
   );
 }
 
-type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "guides";
+type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadisticas", value: "stats", icon: BarChart3 },
   { title: "Configuracion", value: "config", icon: Palette },
   { title: "Integracion", value: "embed", icon: Code },
   { title: "Descargar App", value: "download", icon: Download },
+  { title: "Referidos", value: "referidos", icon: Gift },
   { title: "Guias", value: "guides", icon: BookOpen },
   { title: "Plan", value: "plan", icon: CreditCard },
 ];
@@ -2266,6 +2483,7 @@ export default function Dashboard() {
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
               {activeTab === "download" && "Instala FoxBot en tu celular o computador"}
               {activeTab === "guides" && "Manuales de instalacion paso a paso"}
+              {activeTab === "referidos" && "Invita negocios y gana meses gratis"}
               {activeTab === "plan" && "Gestiona tu suscripcion"}
             </p>
           </div>
@@ -2298,6 +2516,7 @@ export default function Dashboard() {
             {activeTab === "embed" && <EmbedCodeSection tenant={tenant} />}
             {activeTab === "download" && <DownloadAppSection />}
             {activeTab === "guides" && <GuidesPanel />}
+            {activeTab === "referidos" && <ReferidosSection />}
             {activeTab === "plan" && <PlanSection tenant={tenant} />}
           </div>
         </main>

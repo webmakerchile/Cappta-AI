@@ -47,11 +47,14 @@ export default function Register() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterForm) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const referralCode = urlParams.get("ref") || "";
       const res = await apiRequest("POST", "/api/tenants/register", {
         name: data.name,
         email: data.email,
         companyName: data.companyName,
         password: data.password,
+        ...(referralCode ? { referralCode } : {}),
       });
       return res.json();
     },
