@@ -61,6 +61,10 @@ interface ChatWindowProps {
   brandName?: string;
   brandLogo?: string;
   tenantId?: number;
+  headerTextColor?: string;
+  botBubbleColor?: string;
+  botTextColor?: string;
+  userTextColor?: string;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -271,9 +275,12 @@ interface MessageBubbleProps {
   onRatingComplete?: () => void;
   onImageClick?: (url: string) => void;
   brandColor?: string;
+  botBubbleColor?: string;
+  botTextColor?: string;
+  userTextColor?: string;
 }
 
-const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick, brandColor = "#10b981" }: MessageBubbleProps) {
+const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick, brandColor = "#10b981", botBubbleColor, botTextColor, userTextColor }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
@@ -349,11 +356,19 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
             className={`
               rounded-md overflow-hidden
               ${isUser
-                ? "text-white rounded-br-none"
-                : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
+                ? "rounded-br-none"
+                : "rounded-bl-none"
               }
             `}
-            style={isUser ? { backgroundColor: brandColor } : ((!isUser && msgAdminName) ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined)}
+            style={isUser
+              ? { backgroundColor: brandColor, color: userTextColor || "#ffffff" }
+              : {
+                  backgroundColor: botBubbleColor || "rgba(255,255,255,0.05)",
+                  border: botBubbleColor ? `1px solid ${botBubbleColor}` : "1px solid rgba(255,255,255,0.1)",
+                  color: botTextColor || "rgba(255,255,255,0.9)",
+                  ...(msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : {}),
+                }
+            }
           >
             {hasImage && (
               (() => {
@@ -603,7 +618,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -828,11 +843,11 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           <img src={brandLogo} alt={brandName || "Logo"} className="w-9 h-9 rounded-full object-cover bg-white/15" data-testid="img-brand-logo" />
         ) : (
           <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
-            <Headphones className="w-4 h-4 text-white" />
+            <Headphones className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 data-testid="text-header-title" className="text-sm font-semibold text-white truncate">{brandName || "Equipo de Soporte"}</h3>
+          <h3 data-testid="text-header-title" className="text-sm font-semibold truncate" style={{ color: headerTextColor || "#ffffff" }}>{brandName || "Equipo de Soporte"}</h3>
           <div className="flex items-center gap-1.5">
             {isConnected ? (
               <Wifi className="w-3 h-3 text-green-300" />
@@ -850,7 +865,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${showSearch ? "bg-white/30" : "bg-white/15 hover:bg-white/25"}`}
           title="Buscar"
         >
-          <Search className="w-4 h-4 text-white" />
+          <Search className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />
         </button>
         <button
           data-testid="button-exit-chat"
@@ -858,7 +873,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
           title="Salir del chat"
         >
-          <LogOut className="w-4 h-4 text-white" />
+          <LogOut className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />
         </button>
         <button
           data-testid="button-close-chat"
@@ -866,7 +881,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25"
           title="Minimizar"
         >
-          <X className="w-4 h-4 text-white" />
+          <X className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />
         </button>
       </div>
 
@@ -936,6 +951,9 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                   onRatingComplete={onRatingComplete}
                   onImageClick={setLightboxImage}
                   brandColor={brandColor}
+                  botBubbleColor={botBubbleColor}
+                  botTextColor={botTextColor}
+                  userTextColor={userTextColor}
                 />
               );
             });

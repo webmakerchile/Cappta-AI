@@ -1245,17 +1245,21 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
-      const { companyName, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured } = req.body;
+      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured } = req.body;
       const updates: any = {};
       if (companyName !== undefined) updates.companyName = companyName;
       if (widgetColor !== undefined) updates.widgetColor = widgetColor;
+      if (headerTextColor !== undefined) updates.headerTextColor = headerTextColor;
+      if (botBubbleColor !== undefined) updates.botBubbleColor = botBubbleColor;
+      if (botTextColor !== undefined) updates.botTextColor = botTextColor;
+      if (userTextColor !== undefined) updates.userTextColor = userTextColor;
       if (welcomeMessage !== undefined) updates.welcomeMessage = welcomeMessage;
       if (welcomeSubtitle !== undefined) updates.welcomeSubtitle = welcomeSubtitle;
       if (logoUrl !== undefined) updates.logoUrl = logoUrl;
@@ -1270,7 +1274,7 @@ ${DEMO_BASE_RULES}`,
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
@@ -1287,6 +1291,10 @@ ${DEMO_BASE_RULES}`,
         id: tenant.id,
         companyName: tenant.companyName,
         widgetColor: tenant.widgetColor,
+        headerTextColor: tenant.headerTextColor,
+        botBubbleColor: tenant.botBubbleColor,
+        botTextColor: tenant.botTextColor,
+        userTextColor: tenant.userTextColor,
         welcomeMessage: tenant.welcomeMessage,
         welcomeSubtitle: tenant.welcomeSubtitle,
         logoUrl: tenant.logoUrl,

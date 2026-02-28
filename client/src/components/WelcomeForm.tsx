@@ -22,6 +22,7 @@ interface WelcomeFormProps {
   showProductSearch?: number;
   productSearchLabel?: string;
   tenantId?: number;
+  headerTextColor?: string;
 }
 
 export function WelcomeForm({
@@ -35,6 +36,7 @@ export function WelcomeForm({
   showProductSearch = 0,
   productSearchLabel,
   tenantId,
+  headerTextColor,
 }: WelcomeFormProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -81,15 +83,15 @@ export function WelcomeForm({
     <div className="flex flex-col h-full overflow-hidden">
       <div className="px-4 py-3 flex items-center justify-between shrink-0" style={{ background: color }}>
         <div className="flex items-center gap-2 min-w-0">
-          <Headphones className="w-4 h-4 text-white shrink-0" />
-          <span className="text-sm font-semibold text-white truncate">{brandName || "Chat de Soporte"}</span>
+          <Headphones className="w-4 h-4 shrink-0" style={{ color: headerTextColor || "#ffffff" }} />
+          <span className="text-sm font-semibold truncate" style={{ color: headerTextColor || "#ffffff" }}>{brandName || "Chat de Soporte"}</span>
         </div>
         <button
           data-testid="button-close-welcome"
           onClick={onClose}
           className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center transition-colors hover:bg-white/25 shrink-0"
         >
-          <X className="w-4 h-4 text-white" />
+          <X className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />
         </button>
       </div>
       <div className="flex flex-col items-center pt-3 pb-2 px-4 sm:px-6 shrink-0">

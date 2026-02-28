@@ -283,6 +283,10 @@ interface TenantConfig {
   id: number;
   companyName: string;
   widgetColor: string;
+  headerTextColor: string;
+  botBubbleColor: string;
+  botTextColor: string;
+  userTextColor: string;
   welcomeMessage: string;
   welcomeSubtitle: string;
   logoUrl: string | null;
@@ -344,6 +348,10 @@ function ChatWidget() {
   const widgetConsultationOptions = tenantConfig?.consultationOptions || undefined;
   const widgetShowProductSearch = tenantConfig?.showProductSearch || 0;
   const widgetProductSearchLabel = tenantConfig?.productSearchLabel || undefined;
+  const widgetHeaderTextColor = tenantConfig?.headerTextColor || undefined;
+  const widgetBotBubbleColor = tenantConfig?.botBubbleColor || undefined;
+  const widgetBotTextColor = tenantConfig?.botTextColor || undefined;
+  const widgetUserTextColor = tenantConfig?.userTextColor || undefined;
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -437,6 +445,10 @@ function ChatWidget() {
                 brandName={widgetName}
                 brandLogo={widgetLogo}
                 tenantId={tenantId ?? undefined}
+                headerTextColor={widgetHeaderTextColor}
+                botBubbleColor={widgetBotBubbleColor}
+                botTextColor={widgetBotTextColor}
+                userTextColor={widgetUserTextColor}
               />
             ) : (
               <WelcomeForm
@@ -450,6 +462,7 @@ function ChatWidget() {
                 showProductSearch={widgetShowProductSearch}
                 productSearchLabel={widgetProductSearchLabel}
                 tenantId={tenantId ?? undefined}
+                headerTextColor={widgetHeaderTextColor}
               />
             )}
           </div>

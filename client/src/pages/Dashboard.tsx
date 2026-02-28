@@ -293,6 +293,10 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const { toast } = useToast();
   const [companyName, setCompanyName] = useState(tenant.companyName);
   const [widgetColor, setWidgetColor] = useState(tenant.widgetColor);
+  const [headerTextColor, setHeaderTextColor] = useState(tenant.headerTextColor || "#ffffff");
+  const [botBubbleColor, setBotBubbleColor] = useState(tenant.botBubbleColor || "#2a2a2a");
+  const [botTextColor, setBotTextColor] = useState(tenant.botTextColor || "#e0e0e0");
+  const [userTextColor, setUserTextColor] = useState(tenant.userTextColor || "#ffffff");
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage);
   const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
@@ -319,6 +323,10 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   useEffect(() => {
     setCompanyName(tenant.companyName);
     setWidgetColor(tenant.widgetColor);
+    setHeaderTextColor(tenant.headerTextColor || "#ffffff");
+    setBotBubbleColor(tenant.botBubbleColor || "#2a2a2a");
+    setBotTextColor(tenant.botTextColor || "#e0e0e0");
+    setUserTextColor(tenant.userTextColor || "#ffffff");
     setWelcomeMessage(tenant.welcomeMessage);
     setWelcomeSubtitle(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
     setLogoUrl(tenant.logoUrl || "");
@@ -464,6 +472,10 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     const data: any = {
       companyName,
       widgetColor,
+      headerTextColor,
+      botBubbleColor,
+      botTextColor,
+      userTextColor,
       welcomeMessage,
       welcomeSubtitle,
       logoUrl: logoUrl || null,
@@ -620,40 +632,50 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
           <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Color, logo y textos de tu chatbot</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-          <div className="space-y-2 animate-dash-fade-up dash-stagger-1">
-            <label className="text-sm font-medium text-white/60">Nombre de la Empresa</label>
-            <Input
-              data-testid="input-company-name"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Mi Empresa"
-              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
-            />
-          </div>
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-1">
+          <label className="text-sm font-medium text-white/60">Nombre de la Empresa</label>
+          <Input
+            data-testid="input-company-name"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            placeholder="Mi Empresa"
+            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+          />
+        </div>
 
-          <div className="space-y-2 animate-dash-fade-up dash-stagger-2">
-            <label className="text-sm font-medium text-white/60">Color del Widget</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                data-testid="input-widget-color"
-                value={widgetColor}
-                onChange={(e) => setWidgetColor(e.target.value)}
-                className="h-11 w-14 rounded-xl border border-white/[0.08] cursor-pointer bg-transparent transition-transform duration-200 hover:scale-105"
-              />
-              <Input
-                value={widgetColor}
-                onChange={(e) => setWidgetColor(e.target.value)}
-                className="max-w-[140px] h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 font-mono text-sm transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
-                data-testid="input-widget-color-text"
-              />
-              <div
-                className="h-11 w-11 rounded-xl border border-white/[0.08] shrink-0 transition-all duration-500 hover:scale-110 hover:shadow-lg"
-                style={{ backgroundColor: widgetColor, boxShadow: `0 4px 20px ${widgetColor}30` }}
-                data-testid="widget-color-preview"
-              />
-            </div>
+        <div className="space-y-3 animate-dash-fade-up dash-stagger-2">
+          <label className="text-sm font-medium text-white/60 flex items-center gap-2">
+            <Palette className="w-3.5 h-3.5 text-primary" />
+            Colores del Widget
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { label: "Color principal", value: widgetColor, setter: setWidgetColor, testId: "widget-color", desc: "Header y burbujas del usuario" },
+              { label: "Texto del header", value: headerTextColor, setter: setHeaderTextColor, testId: "header-text-color", desc: "Nombre y estado en el header" },
+              { label: "Burbuja del bot", value: botBubbleColor, setter: setBotBubbleColor, testId: "bot-bubble-color", desc: "Fondo de mensajes del bot" },
+              { label: "Texto del bot", value: botTextColor, setter: setBotTextColor, testId: "bot-text-color", desc: "Color del texto del bot" },
+              { label: "Texto del usuario", value: userTextColor, setter: setUserTextColor, testId: "user-text-color", desc: "Color del texto del usuario" },
+            ].map((c) => (
+              <div key={c.testId} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1.5">
+                <label className="text-xs font-medium text-white/50">{c.label}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={c.value}
+                    onChange={(e) => c.setter(e.target.value)}
+                    className="h-9 w-10 rounded-lg border border-white/[0.08] cursor-pointer bg-transparent transition-transform duration-200 hover:scale-105"
+                    data-testid={`input-${c.testId}`}
+                  />
+                  <Input
+                    value={c.value}
+                    onChange={(e) => c.setter(e.target.value)}
+                    className="flex-1 h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 font-mono text-xs transition-all duration-300"
+                    data-testid={`input-${c.testId}-text`}
+                  />
+                </div>
+                <p className="text-[10px] text-white/25">{c.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -916,17 +938,17 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                         <img src={logoUrl} alt="" className="w-8 h-8 rounded-full object-cover bg-white/15" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
-                          <Headphones className="w-3.5 h-3.5 text-white" />
+                          <Headphones className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
                         </div>
                       )}
-                      <span className="text-sm font-semibold text-white truncate">{companyName || "Mi Empresa"}</span>
+                      <span className="text-sm font-semibold truncate" style={{ color: headerTextColor }}>{companyName || "Mi Empresa"}</span>
                     </div>
                     <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
-                      <X className="w-3.5 h-3.5 text-white" />
+                      <X className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
                     </div>
                   </div>
                   <div className="flex flex-col items-center pt-4 pb-2 px-4 shrink-0">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2 border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2 border overflow-hidden" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
                       {logoUrl ? (
                         <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" />
                       ) : (
@@ -950,11 +972,11 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       <img src={logoUrl} alt="" className="w-8 h-8 rounded-full object-cover bg-white/15" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
-                        <Headphones className="w-3.5 h-3.5 text-white" />
+                        <Headphones className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-white truncate">{companyName || "Mi Empresa"}</h3>
+                      <h3 className="text-sm font-semibold truncate" style={{ color: headerTextColor }}>{companyName || "Mi Empresa"}</h3>
                       <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-300" />
                         <span className="text-[10px] text-green-200">En linea</span>
@@ -962,40 +984,48 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
-                        <Search className="w-3.5 h-3.5 text-white" />
+                        <Search className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
                       </div>
                       <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
-                        <X className="w-3.5 h-3.5 text-white" />
+                        <X className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
                       </div>
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
                     <div className="flex items-end gap-1.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
-                        <Headphones className="w-3 h-3" style={{ color: widgetColor }} />
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <Headphones className="w-3 h-3" style={{ color: widgetColor }} />
+                        )}
                       </div>
                       <div className="max-w-[75%]">
-                        <div className="rounded-md rounded-bl-none bg-white/5 border border-white/10 px-3 py-2">
-                          <p className="text-[12px] text-white/90 leading-relaxed">Hola! Bienvenido a {companyName || "nuestra tienda"}. ¿En que puedo ayudarte hoy?</p>
+                        <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>
+                          <p className="text-[12px] leading-relaxed" style={{ color: botTextColor }}>Hola! Bienvenido a {companyName || "nuestra tienda"}. ¿En que puedo ayudarte hoy?</p>
                         </div>
                         <span className="text-[9px] text-white/25 mt-0.5 block">11:30 a.m.</span>
                       </div>
                     </div>
                     <div className="flex items-end gap-1.5 flex-row-reverse">
                       <div className="max-w-[75%]">
-                        <div className="rounded-md rounded-br-none text-white px-3 py-2" style={{ backgroundColor: widgetColor }}>
+                        <div className="rounded-md rounded-br-none px-3 py-2" style={{ backgroundColor: widgetColor, color: userTextColor }}>
                           <p className="text-[12px] leading-relaxed">Hola, quiero informacion sobre sus productos</p>
                         </div>
                         <span className="text-[9px] text-white/25 mt-0.5 block text-right">11:31 a.m.</span>
                       </div>
                     </div>
                     <div className="flex items-end gap-1.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
-                        <Headphones className="w-3 h-3" style={{ color: widgetColor }} />
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <Headphones className="w-3 h-3" style={{ color: widgetColor }} />
+                        )}
                       </div>
                       <div className="max-w-[75%]">
-                        <div className="rounded-md rounded-bl-none bg-white/5 border border-white/10 px-3 py-2">
-                          <p className="text-[12px] text-white/90 leading-relaxed">Claro! Aqui tienes nuestras opciones:</p>
+                        <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>
+                          <p className="text-[12px] leading-relaxed" style={{ color: botTextColor }}>Claro! Aqui tienes nuestras opciones:</p>
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1 pl-0.5">
                           <span className="px-2 py-1 text-[10px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Ver catalogo</span>
@@ -1006,7 +1036,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </div>
                   </div>
                   <div className="px-3 pt-2 pb-1 border-t border-white/10 shrink-0">
-                    <div className="w-full mb-2 font-semibold text-[12px] flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-white" style={{ backgroundColor: widgetColor }}>
+                    <div className="w-full mb-2 font-semibold text-[12px] flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5" style={{ backgroundColor: widgetColor, color: headerTextColor }}>
                       <UserRound className="w-3.5 h-3.5" />
                       Contactar un Ejecutivo
                     </div>
@@ -1023,7 +1053,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       <div className="flex-1 py-2 px-3 rounded-md bg-white/5 border border-white/10">
                         <span className="text-[11px] text-white/25">Escribe un mensaje...</span>
                       </div>
-                      <div className="w-7 h-7 rounded-md flex items-center justify-center text-white" style={{ backgroundColor: widgetColor }}>
+                      <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ backgroundColor: widgetColor, color: headerTextColor }}>
                         <Send className="w-3.5 h-3.5" />
                       </div>
                     </div>
