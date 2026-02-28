@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import helmet from "helmet";
 import { registerRoutes } from "./routes";
-import { serveStatic } from "./static";
+import { serveStaticFiles, serveSpaFallback } from "./static";
 import { createServer } from "http";
 import crypto from "crypto";
 
@@ -84,6 +84,12 @@ app.use((req, res, next) => {
 
 (async () => {
   const port = parseInt(process.env.PORT || "5000", 10);
+  let distPath: string | undefined;
+
+  if (process.env.NODE_ENV === "production") {
+    distPath = serveStaticFiles(app);
+    log("static files ready");
+  }
 
   httpServer.listen(
     {
@@ -115,9 +121,9 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
+  if (process.env.NODE_ENV === "production" && distPath) {
+    serveSpaFallback(app, distPath);
+  } else if (process.env.NODE_ENV !== "production") {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
