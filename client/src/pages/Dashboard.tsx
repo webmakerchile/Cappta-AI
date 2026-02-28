@@ -2122,13 +2122,38 @@ export default function Dashboard() {
   const planLabels: Record<string, string> = { free: "Flox Free", basic: "Flox Pro", pro: "Flox Enterprise" };
   const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
+  const planTheme: Record<string, { borderColor: string; glowFrom: string; glowTo: string; orbColor: string; accentRgba: string }> = {
+    free: {
+      borderColor: "rgba(16, 185, 129, 0.12)",
+      glowFrom: "rgba(16, 185, 129, 0.03)",
+      glowTo: "transparent",
+      orbColor: "rgba(16, 185, 129, 0.04)",
+      accentRgba: "rgba(16, 185, 129, 0.08)",
+    },
+    basic: {
+      borderColor: "rgba(16, 185, 129, 0.18)",
+      glowFrom: "rgba(16, 185, 129, 0.04)",
+      glowTo: "rgba(245, 158, 11, 0.03)",
+      orbColor: "rgba(245, 158, 11, 0.05)",
+      accentRgba: "rgba(16, 185, 129, 0.1)",
+    },
+    pro: {
+      borderColor: "rgba(245, 158, 11, 0.18)",
+      glowFrom: "rgba(245, 158, 11, 0.04)",
+      glowTo: "rgba(217, 119, 6, 0.03)",
+      orbColor: "rgba(245, 158, 11, 0.06)",
+      accentRgba: "rgba(245, 158, 11, 0.1)",
+    },
+  };
+  const theme = planTheme[tenant.plan] || planTheme.free;
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <aside className={`${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} shrink-0 transition-all duration-300 border-r border-white/[0.06] flex flex-col relative animate-sidebar-glow`}>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(16,185,129,0.03) 0%, transparent 40%, rgba(245,158,11,0.02) 100%)" }} />
-        <div className="absolute top-20 -right-16 w-32 h-32 rounded-full animate-orb-drift pointer-events-none" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04), transparent 60%)", animationDelay: "-10s" }} />
+      <aside className={`${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} shrink-0 transition-all duration-300 flex flex-col relative animate-sidebar-glow`} style={{ borderRight: `1px solid ${theme.borderColor}` }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(180deg, ${theme.glowFrom} 0%, transparent 40%, ${theme.glowTo} 100%)` }} />
+        <div className="absolute top-20 -right-16 w-32 h-32 rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${theme.orbColor}, transparent 60%)`, animationDelay: "-10s" }} />
 
-        <div className="relative p-5 border-b border-white/[0.06] animate-dash-fade-in">
+        <div className="relative p-5 animate-dash-fade-in" style={{ borderBottom: `1px solid ${theme.borderColor}` }}>
           <div className="flex items-center gap-3">
             {tenant.avatarUrl ? (
               <img
@@ -2174,7 +2199,7 @@ export default function Dashboard() {
             );
           })}
 
-          <div className="mt-3 pt-3 border-t border-white/[0.06]">
+          <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${theme.borderColor}` }}>
             <a
               href="/panel"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-300 bg-primary/10 text-primary font-semibold hover:bg-primary/20 group/panel"
@@ -2187,12 +2212,12 @@ export default function Dashboard() {
           </div>
         </nav>
 
-        <div className="relative p-3 border-t border-white/[0.06]">
-          <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-3 mb-3 animate-dash-fade-up transition-all duration-300 hover:bg-white/[0.04] hover:border-white/[0.1] group/plan">
+        <div className="relative p-3" style={{ borderTop: `1px solid ${theme.borderColor}` }}>
+          <div className="rounded-xl p-3 mb-3 animate-dash-fade-up transition-all duration-300 hover:bg-white/[0.04] group/plan" style={{ background: theme.accentRgba, border: `1px solid ${theme.borderColor}` }}>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full animate-glow-pulse" style={{ backgroundColor: planColors[tenant.plan] }} />
               <span className="text-xs font-semibold" style={{ color: planColors[tenant.plan] }}>
-                Plan {planLabels[tenant.plan]}
+                {planLabels[tenant.plan]}
               </span>
             </div>
             {tenant.plan === "free" && (
@@ -2218,7 +2243,7 @@ export default function Dashboard() {
       </aside>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <header className="flex items-center gap-3 px-6 py-4 border-b border-white/[0.06] animate-dash-fade-in relative overflow-hidden">
+        <header className="flex items-center gap-3 px-6 py-4 animate-dash-fade-in relative overflow-hidden" style={{ borderBottom: `1px solid ${theme.borderColor}` }}>
           <div className="absolute inset-0 animate-shimmer-line opacity-30 pointer-events-none" />
 
           <button
