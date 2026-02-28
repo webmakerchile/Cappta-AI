@@ -1571,6 +1571,15 @@ export default function Landing() {
                 <div className="absolute -inset-[1px] rounded-3xl z-0 opacity-30 blur-xl animate-subtle-breathe" style={{ background: plan.borderGradient }} />
 
                 <div className="relative z-10 rounded-3xl h-full flex flex-col glass-card" style={{ background: plan.bgTint, border: "none" }}>
+                  {plan.tier === "free" && (
+                    <div className="flex justify-center pt-5">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
+                        <Zap className="w-3 h-3" />
+                        PLAN INICIAL
+                      </div>
+                    </div>
+                  )}
+
                   {plan.highlighted && (
                     <div className="flex justify-center pt-5">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
