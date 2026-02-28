@@ -403,6 +403,9 @@ function ChatWidget() {
           className="w-full h-full flex flex-col overflow-hidden animate-slide-up"
           style={{
             background: "#1a1a1a",
+            position: "absolute",
+            inset: 0,
+            zIndex: 10,
           }}
         >
           <div className="flex-1 flex flex-col min-h-0">
