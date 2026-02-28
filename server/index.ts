@@ -7,7 +7,14 @@ import { createServer } from "http";
 import crypto from "crypto";
 
 const app = express();
-const httpServer = createServer(app);
+const httpServer = createServer((req, res) => {
+  if (req.url === "/health" || req.url === "/api/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end('{"status":"ok"}');
+    return;
+  }
+  app(req, res);
+});
 
 declare module "http" {
   interface IncomingMessage {
