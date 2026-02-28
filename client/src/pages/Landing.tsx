@@ -834,7 +834,9 @@ function MobileNav() {
           <a href="/demo" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Demo</a>
           <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guias</a>
           <div className="h-px bg-white/[0.06] my-2" />
-          <a href="/login" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Iniciar Sesion</a>
+          <a href="/login" className="block">
+            <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10" data-testid="link-login-mobile">Iniciar Sesion</Button>
+          </a>
           <a href="/register" className="block mt-2">
             <Button size="sm" className="w-full rounded-xl">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
           </a>
