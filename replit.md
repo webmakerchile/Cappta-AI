@@ -11,6 +11,7 @@ This project is a SaaS platform for AI-powered customer support chat widgets. Or
 - **Default Widget Color**: Green (#10b981) used as fallback when no tenant brandColor is set
 - **Note**: Purple (#6200EA) is used ONLY as CJM admin color fallback and in the admin panel UI, NOT in multi-tenant widgets
 - **Product Isolation**: `/api/products/browse?tenantId=X` filters products by tenant. Each tenant only sees their own products in the widget.
+- **Beautify Text**: `/api/tenant-panel/beautify-text` endpoint uses GPT-4o-mini to improve bot training text (copywriting, grammar, tone) while preserving structure and factual data.
 
 ## User Preferences
 I want iterative development.

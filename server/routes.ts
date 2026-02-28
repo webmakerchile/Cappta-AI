@@ -2190,6 +2190,61 @@ Reglas CRITICAS:
     }
   });
 
+  app.post("/api/tenant-panel/beautify-text", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { text } = req.body;
+    if (!text || typeof text !== "string" || text.trim().length < 30) {
+      return res.status(400).json({ message: "El texto es muy corto para embellecer. Necesita al menos un parrafo de contenido." });
+    }
+    try {
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `Eres un experto en copywriting y comunicacion comercial para chatbots de atencion al cliente en Chile.
+
+Tu tarea: Recibir el texto de entrenamiento de un chatbot y EMBELLECERLO para que el bot de respuestas mas profesionales, claras, persuasivas y humanas.
+
+REGLAS CRITICAS:
+- MANTENER EXACTAMENTE la misma estructura del texto original (secciones, emojis, separadores ━━━)
+- MANTENER TODOS los datos reales: precios, nombres de productos, URLs, telefonos, emails, horarios, direcciones
+- NUNCA cambiar, inventar o eliminar informacion factual
+- NUNCA agregar placeholders como [dato], [info], etc.
+- NUNCA agregar secciones nuevas que no existan en el original
+- Si una seccion tiene informacion real, mantenerla intacta
+
+LO QUE SI PUEDES MEJORAR:
+- Mejorar las descripciones de productos/servicios haciendolas mas atractivas y persuasivas
+- Mejorar la descripcion del negocio para que suene mas profesional y cercana
+- Mejorar la redaccion de politicas para que sean mas claras
+- Mejorar las respuestas de preguntas frecuentes para que sean mas completas y amables
+- Agregar palabras que transmitan confianza y profesionalismo
+- Usar un tono amable, cercano y profesional (estilo chileno pero no exageradamente informal)
+- Mejorar la coherencia y fluidez del texto
+- Corregir errores ortograficos o gramaticales
+
+El resultado debe ser el MISMO texto pero con mejor redaccion, NO un texto completamente diferente.`
+          },
+          {
+            role: "user",
+            content: `Embellece el siguiente texto de entrenamiento de chatbot. Mejora la redaccion manteniendo toda la informacion real intacta:\n\n${text.substring(0, 15000)}`
+          }
+        ],
+        temperature: 0.4,
+        max_tokens: 5000,
+      });
+      const beautified = completion.choices[0]?.message?.content || "";
+      res.json({ beautified });
+    } catch (error: any) {
+      console.error("[beautify-text] Error:", error.message);
+      res.status(500).json({ message: "Error al embellecer el texto. Intenta de nuevo." });
+    }
+  });
+
   app.post("/api/tenant-panel/analyze-url", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;

@@ -46,6 +46,8 @@ import {
   Sparkles,
   Replace,
   PlusCircle,
+  ShoppingBag,
+  Wand2,
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
@@ -562,14 +564,17 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
             <div className="text-center py-12 text-white/30 text-sm" data-testid="text-no-sessions">No hay sesiones</div>
           ) : (
             filteredSessions.map((session) => (
-              <button
+              <div
                 key={session.sessionId}
+                role="button"
+                tabIndex={0}
                 data-testid={`session-card-${session.sessionId}`}
                 onClick={() => handleSelectSession(session.sessionId)}
-                className={`w-full text-left p-3 border-b border-white/[0.04] transition-colors ${selectedSession === session.sessionId ? "bg-[#10b981]/10" : "hover:bg-white/[0.04]"}`}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSelectSession(session.sessionId); } }}
+                className={`w-full text-left p-3 border-l-[3px] border-b border-b-white/[0.04] transition-colors cursor-pointer ${selectedSession === session.sessionId ? "bg-[#10b981]/10 border-l-[#10b981]" : "hover:bg-white/[0.04] border-l-transparent"}`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-shrink-0">
+                <div className="flex items-start gap-2">
+                  <div className="relative flex-shrink-0 mt-0.5">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getAvatarColor(session.userName || session.sessionId) }}>
                       {(session.userName || "?").charAt(0).toUpperCase()}
                     </div>
@@ -578,9 +583,29 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
                       <p className="text-sm font-medium text-white truncate">{session.userName || "Sin nombre"}</p>
-                      {session.unreadCount > 0 && (
-                        <span data-testid={`badge-unread-${session.sessionId}`} className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-bounce">{session.unreadCount > 99 ? "99+" : session.unreadCount}</span>
-                      )}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {session.unreadCount > 0 && (
+                          <span data-testid={`badge-unread-${session.sessionId}`} className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-bounce">{session.unreadCount > 99 ? "99+" : session.unreadCount}</span>
+                        )}
+                        {session.status === "active" && (
+                          <button
+                            data-testid={`button-card-close-${session.sessionId}`}
+                            onClick={(e) => { e.stopPropagation(); if (window.confirm("Cerrar esta sesion?")) handleCloseSession(session.sessionId); }}
+                            className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-amber-500/20 text-white/20 hover:text-amber-400 transition-colors"
+                            title="Cerrar sesion"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          data-testid={`button-card-delete-${session.sessionId}`}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.sessionId); }}
+                          className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-colors"
+                          title="Eliminar sesion"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-[11px] text-white/40 truncate">{session.userEmail}</p>
                     {session.lastMessageContent && (
@@ -591,10 +616,26 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-1.5 pl-11 text-[10px] text-white/25 flex-wrap">
+                {(session.problemType || session.gameName || (session.tags && session.tags.length > 0)) && (
+                  <div className="flex items-center gap-1 mt-1.5 pl-11 flex-wrap">
+                    {session.problemType && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20 font-medium">{session.problemType}</span>
+                    )}
+                    {session.gameName && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 inline-flex items-center gap-0.5">
+                        <Package className="w-2 h-2" />
+                        {session.gameName}
+                      </span>
+                    )}
+                    {session.tags?.map((tag) => (
+                      <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20 font-medium">{tag}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 mt-1.5 pl-11 text-[10px] text-white/25 flex-wrap">
                   <span className="flex items-center gap-0.5"><MessageSquare className="w-2.5 h-2.5" />{session.messageCount}</span>
                   <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{formatDateTime(session.lastMessage)}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${session.adminActive ? "bg-emerald-500/15 text-emerald-400" : "bg-blue-500/15 text-blue-400"}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${session.adminActive ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-blue-500/15 text-blue-400"}`}>
                     {session.adminActive ? "Ejecutivo" : "Bot"}
                   </span>
                   {session.status === "closed" && <span className="px-1.5 py-0.5 rounded bg-white/10 text-white/40 text-[9px]">Cerrado</span>}
@@ -604,14 +645,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                     </span>
                   )}
                 </div>
-                {session.tags && session.tags.length > 0 && (
-                  <div className="flex items-center gap-1 mt-1 pl-11 flex-wrap">
-                    {session.tags.map((tag) => (
-                      <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20">{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </button>
+              </div>
             ))
           )}
         </div>
@@ -1106,8 +1140,24 @@ function AtajosTab() {
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-6 overflow-y-auto h-full">
       <div>
-        <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-atajos-title">Respuestas Rapidas</h2>
-        <p className="text-sm text-white/40">Crea atajos para responder mas rapido. Usa "/" en el chat para acceder.</p>
+        <h2 className="text-xl font-bold text-white/90 mb-1 flex items-center gap-2" data-testid="text-atajos-title">
+          <Zap className="w-5 h-5 text-[#10b981]" />
+          Respuestas Rapidas
+        </h2>
+        <p className="text-sm text-white/40">Crea atajos para responder mas rapido en tus conversaciones.</p>
+      </div>
+
+      <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#10b981]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Zap className="w-4 h-4 text-[#10b981]" />
+          </div>
+          <div className="text-sm text-white/60 space-y-1">
+            <p className="text-white/80 font-medium">Como funcionan los atajos</p>
+            <p>Los atajos te permiten responder al instante con mensajes predefinidos. Cuando estes en una conversacion en el tab <strong className="text-white/70">"Chats"</strong>, escribe <span className="font-mono text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded">/</span> seguido del nombre del atajo para insertar la respuesta automaticamente.</p>
+            <p className="text-[#10b981]">Ejemplo: Si creas el atajo "saludo", al escribir /saludo en el chat se insertara el mensaje completo.</p>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
@@ -1201,8 +1251,24 @@ function EtiquetasTab() {
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6 overflow-y-auto h-full">
       <div>
-        <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-etiquetas-title">Etiquetas</h2>
-        <p className="text-sm text-white/40">Gestiona las etiquetas para organizar tus conversaciones.</p>
+        <h2 className="text-xl font-bold text-white/90 mb-1 flex items-center gap-2" data-testid="text-etiquetas-title">
+          <Tag className="w-5 h-5 text-[#10b981]" />
+          Etiquetas
+        </h2>
+        <p className="text-sm text-white/40">Organiza tus conversaciones con etiquetas personalizadas.</p>
+      </div>
+
+      <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#10b981]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Tag className="w-4 h-4 text-[#10b981]" />
+          </div>
+          <div className="text-sm text-white/60 space-y-1">
+            <p className="text-white/80 font-medium">Como funcionan las etiquetas</p>
+            <p>Las etiquetas te ayudan a clasificar y filtrar conversaciones. Puedes asignar etiquetas a cada chat desde el tab <strong className="text-white/70">"Chats"</strong> usando el boton <span className="text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded text-xs">+ Etiqueta</span> en la barra superior de cada conversacion.</p>
+            <p className="text-[#10b981]">Tip: Crea etiquetas como "urgente", "venta_cerrada", "seguimiento" para organizar mejor tu atencion.</p>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
@@ -1581,6 +1647,7 @@ function EntrenarBotTab() {
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState("");
+  const [beautifying, setBeautifying] = useState(false);
 
   useEffect(() => {
     if (settings && !hasLoaded) {
@@ -1668,6 +1735,28 @@ function EntrenarBotTab() {
     setRawText("");
     setScrapeUrl("");
     toast({ title: "Agregado", description: "Se agrego al final del contenido. Recuerda guardar." });
+  };
+
+  const handleBeautify = async () => {
+    if (!botContext.trim() || botContext.trim().length < 30) {
+      toast({ title: "Texto muy corto", description: "Necesitas al menos un parrafo de contenido para embellecer", variant: "destructive" });
+      return;
+    }
+    setBeautifying(true);
+    try {
+      const res = await tenantFetch("/api/tenant-panel/beautify-text", {
+        method: "POST",
+        body: JSON.stringify({ text: botContext }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error");
+      setBotContext(data.beautified);
+      toast({ title: "Texto embellecido", description: "Se mejoro la redaccion. Revisa y guarda los cambios." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo embellecer el texto", variant: "destructive" });
+    } finally {
+      setBeautifying(false);
+    }
   };
 
   const { data: kbEntries = [] } = useQuery<KBEntry[]>({
@@ -1856,15 +1945,27 @@ function EntrenarBotTab() {
           rows={18}
         />
 
-        <Button
-          data-testid="button-save-training"
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || !botContext.trim()}
-          className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
-        >
-          {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-          Guardar Entrenamiento
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            data-testid="button-beautify-text"
+            onClick={handleBeautify}
+            disabled={beautifying || !botContext.trim() || botContext.trim().length < 30}
+            variant="outline"
+            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 w-full sm:w-auto"
+          >
+            {beautifying ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Wand2 className="w-4 h-4 mr-1" />}
+            {beautifying ? "Embelleciendo..." : "Embellecer textos"}
+          </Button>
+          <Button
+            data-testid="button-save-training"
+            onClick={() => saveMutation.mutate()}
+            disabled={saveMutation.isPending || !botContext.trim()}
+            className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
+          >
+            {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+            Guardar Entrenamiento
+          </Button>
+        </div>
       </div>
 
       <CatalogQuickEdit />
