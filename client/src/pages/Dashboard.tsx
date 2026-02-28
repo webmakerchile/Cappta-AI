@@ -1,23 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +20,14 @@ import {
   Copy,
   Check,
   Zap,
+  ArrowRight,
+  Activity,
+  TrendingUp,
+  Shield,
+  Bot,
+  ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -78,27 +72,65 @@ function StatsSection({ token }: { token: string }) {
   });
 
   const stats = [
-    { label: "Sesiones Totales", value: statsLoading ? "..." : String(statsData?.totalSessions || 0), icon: Users, sub: `${statsData?.activeSessionsCount || 0} activas` },
-    { label: "Mensajes", value: statsLoading ? "..." : String(statsData?.totalMessages || 0), icon: MessageSquare, sub: "Total enviados" },
-    { label: "Satisfaccion", value: statsLoading ? "..." : statsData?.avgRating ? `${statsData.avgRating}/5` : "N/A", icon: Star, sub: statsData?.avgRating ? "Promedio" : "Sin datos" },
-    { label: "Sesiones Activas", value: statsLoading ? "..." : String(statsData?.activeSessionsCount || 0), icon: BarChart3, sub: "En curso" },
+    {
+      label: "Sesiones Totales",
+      value: statsLoading ? "..." : String(statsData?.totalSessions || 0),
+      icon: Users,
+      sub: `${statsData?.activeSessionsCount || 0} activas`,
+      color: "hsl(142, 72%, 40%)",
+      trend: "+12%",
+    },
+    {
+      label: "Mensajes",
+      value: statsLoading ? "..." : String(statsData?.totalMessages || 0),
+      icon: MessageSquare,
+      sub: "Total enviados",
+      color: "hsl(142, 60%, 50%)",
+      trend: "+8%",
+    },
+    {
+      label: "Satisfaccion",
+      value: statsLoading ? "..." : statsData?.avgRating ? `${statsData.avgRating}/5` : "N/A",
+      icon: Star,
+      sub: statsData?.avgRating ? "Promedio" : "Sin datos",
+      color: "hsl(30, 90%, 52%)",
+      trend: null,
+    },
+    {
+      label: "Sesiones Activas",
+      value: statsLoading ? "..." : String(statsData?.activeSessionsCount || 0),
+      icon: Activity,
+      sub: "En curso",
+      color: "hsl(30, 80%, 45%)",
+      trend: null,
+    },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
-        <Card key={stat.label} data-testid={`stat-card-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-            <stat.icon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold" data-testid={`stat-value-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}>
-              {stat.value}
+        <div
+          key={stat.label}
+          className="rounded-2xl glass-card glass-card-hover p-5 transition-all duration-300"
+          data-testid={`stat-card-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${stat.color}15` }}>
+              <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
             </div>
-            <p className="text-xs text-muted-foreground">{stat.sub}</p>
-          </CardContent>
-        </Card>
+            {stat.trend && (
+              <span className="text-xs font-semibold text-primary flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" />
+                {stat.trend}
+              </span>
+            )}
+          </div>
+          <p className="text-3xl font-black mb-1" data-testid={`stat-value-${stat.label.toLowerCase().replace(/\s+/g, "-")}`} style={{ color: stat.color }}>
+            {stat.value}
+          </p>
+          <p className="text-sm font-medium text-white/60">{stat.label}</p>
+          <p className="text-xs text-white/30 mt-0.5">{stat.sub}</p>
+        </div>
       ))}
     </div>
   );
@@ -133,7 +165,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
-      toast({ title: "Configuración guardada", description: "Los cambios se han aplicado correctamente." });
+      toast({ title: "Configuracion guardada", description: "Los cambios se han aplicado correctamente." });
     },
     onError: () => {
       toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
@@ -145,76 +177,88 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Configuración del Widget</CardTitle>
-        <CardDescription>Personaliza la apariencia de tu chat widget</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="rounded-2xl glass-card p-6 space-y-6">
+      <div>
+        <h3 className="text-lg font-bold mb-1">Configuracion del Widget</h3>
+        <p className="text-sm text-white/40">Personaliza la apariencia de tu chat</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="companyName">Nombre de la Empresa</Label>
+          <label className="text-sm font-medium text-white/60">Nombre de la Empresa</label>
           <Input
-            id="companyName"
             data-testid="input-company-name"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
+            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40"
           />
         </div>
+
         <div className="space-y-2">
-          <Label htmlFor="widgetColor">Color del Widget</Label>
+          <label className="text-sm font-medium text-white/60">Color del Widget</label>
           <div className="flex items-center gap-3">
             <input
               type="color"
-              id="widgetColor"
               data-testid="input-widget-color"
               value={widgetColor}
               onChange={(e) => setWidgetColor(e.target.value)}
-              className="h-9 w-12 rounded-md border border-input cursor-pointer"
+              className="h-11 w-14 rounded-xl border border-white/[0.08] cursor-pointer bg-transparent"
             />
             <Input
               value={widgetColor}
               onChange={(e) => setWidgetColor(e.target.value)}
-              className="max-w-[140px]"
+              className="max-w-[140px] h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 font-mono text-sm"
               data-testid="input-widget-color-text"
             />
             <div
-              className="h-9 w-9 rounded-md border border-input"
+              className="h-11 w-11 rounded-xl border border-white/[0.08] shrink-0"
               style={{ backgroundColor: widgetColor }}
               data-testid="widget-color-preview"
             />
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="welcomeMessage">Mensaje de Bienvenida</Label>
-          <Textarea
-            id="welcomeMessage"
-            data-testid="input-welcome-message"
-            value={welcomeMessage}
-            onChange={(e) => setWelcomeMessage(e.target.value)}
-            className="resize-none"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="logoUrl">URL del Logo (opcional)</Label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-white/60">Mensaje de Bienvenida</label>
+        <Textarea
+          data-testid="input-welcome-message"
+          value={welcomeMessage}
+          onChange={(e) => setWelcomeMessage(e.target.value)}
+          className="resize-none min-h-[80px] rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-white/60">URL del Logo (opcional)</label>
+        <div className="flex items-center gap-3">
           <Input
-            id="logoUrl"
             data-testid="input-logo-url"
             value={logoUrl}
             onChange={(e) => setLogoUrl(e.target.value)}
             placeholder="https://ejemplo.com/logo.png"
+            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40"
           />
+          {logoUrl && (
+            <img src={logoUrl} alt="Preview" className="h-11 w-11 rounded-xl object-cover border border-white/[0.08]" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          )}
         </div>
-      </CardContent>
-      <CardFooter>
+      </div>
+
+      <div className="flex items-center gap-3 pt-2">
         <Button
           onClick={handleSave}
           disabled={updateMutation.isPending}
+          className="rounded-xl px-6 h-11 font-bold shadow-lg shadow-primary/15"
           data-testid="button-save-config"
         >
           {updateMutation.isPending ? "Guardando..." : "Guardar Cambios"}
         </Button>
-      </CardFooter>
-    </Card>
+        <div className="h-11 w-11 rounded-xl border border-white/[0.08] flex items-center justify-center" style={{ backgroundColor: widgetColor }}>
+          <MessageSquare className="w-5 h-5 text-white" />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -246,46 +290,57 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Código de Integración</CardTitle>
-        <CardDescription>Copia y pega este código en tu sitio web para agregar el chat</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="iframe">
-          <TabsList>
-            <TabsTrigger value="iframe" data-testid="tab-iframe">iFrame</TabsTrigger>
-            <TabsTrigger value="script" data-testid="tab-script">Script</TabsTrigger>
-          </TabsList>
-          <TabsContent value="iframe" className="space-y-3">
-            <pre className="rounded-md bg-muted p-4 text-xs overflow-x-auto" data-testid="text-iframe-code">
-              <code>{iframeCode}</code>
-            </pre>
-            <Button
-              variant="outline"
-              onClick={() => handleCopy(iframeCode, "iframe")}
-              data-testid="button-copy-iframe"
-            >
-              {copied === "iframe" ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-              {copied === "iframe" ? "Copiado" : "Copiar código"}
-            </Button>
-          </TabsContent>
-          <TabsContent value="script" className="space-y-3">
-            <pre className="rounded-md bg-muted p-4 text-xs overflow-x-auto" data-testid="text-script-code">
-              <code>{scriptCode}</code>
-            </pre>
-            <Button
-              variant="outline"
-              onClick={() => handleCopy(scriptCode, "script")}
-              data-testid="button-copy-script"
-            >
-              {copied === "script" ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-              {copied === "script" ? "Copiado" : "Copiar código"}
-            </Button>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="rounded-2xl glass-card p-6 space-y-6">
+      <div>
+        <h3 className="text-lg font-bold mb-1">Codigo de Integracion</h3>
+        <p className="text-sm text-white/40">Copia y pega este codigo en tu sitio web</p>
+      </div>
+
+      <Tabs defaultValue="iframe">
+        <TabsList className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-1">
+          <TabsTrigger value="iframe" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white" data-testid="tab-iframe">iFrame</TabsTrigger>
+          <TabsTrigger value="script" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white" data-testid="tab-script">Script</TabsTrigger>
+        </TabsList>
+        <TabsContent value="iframe" className="space-y-4 mt-4">
+          <pre className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 text-xs overflow-x-auto text-white/60 font-mono" data-testid="text-iframe-code">
+            <code>{iframeCode}</code>
+          </pre>
+          <Button
+            variant="outline"
+            onClick={() => handleCopy(iframeCode, "iframe")}
+            className="rounded-xl border-white/[0.08] hover:border-primary/30 hover:bg-primary/5"
+            data-testid="button-copy-iframe"
+          >
+            {copied === "iframe" ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Copy className="mr-2 h-4 w-4" />}
+            {copied === "iframe" ? "Copiado!" : "Copiar codigo"}
+          </Button>
+        </TabsContent>
+        <TabsContent value="script" className="space-y-4 mt-4">
+          <pre className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 text-xs overflow-x-auto text-white/60 font-mono" data-testid="text-script-code">
+            <code>{scriptCode}</code>
+          </pre>
+          <Button
+            variant="outline"
+            onClick={() => handleCopy(scriptCode, "script")}
+            className="rounded-xl border-white/[0.08] hover:border-primary/30 hover:bg-primary/5"
+            data-testid="button-copy-script"
+          >
+            {copied === "script" ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Copy className="mr-2 h-4 w-4" />}
+            {copied === "script" ? "Copiado!" : "Copiar codigo"}
+          </Button>
+        </TabsContent>
+      </Tabs>
+
+      <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+          <Bot className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-white/70 mb-1">Compatible con cualquier plataforma</p>
+          <p className="text-xs text-white/40">WordPress, WooCommerce, Shopify, Magento, o cualquier sitio web que permita HTML personalizado.</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -293,36 +348,30 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
-  const planLabels: Record<string, string> = {
-    free: "Gratis",
-    basic: "Pro",
-    pro: "Enterprise",
-  };
-
-  const planPrices: Record<string, string> = {
-    basic: "$19.990 CLP/mes",
-    pro: "$49.990 CLP/mes",
-  };
+  const planLabels: Record<string, string> = { free: "Gratis", basic: "Pro", pro: "Enterprise" };
+  const planPrices: Record<string, string> = { free: "$0", basic: "$19.990", pro: "$49.990" };
+  const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
   const planLimits: Record<string, { sessions: string; messages: string; features: string[] }> = {
     free: {
       sessions: "50 / mes",
       messages: "500 / mes",
-      features: ["Chat en vivo", "Respuestas automáticas básicas"],
+      features: ["Chat en vivo", "Respuestas automaticas basicas", "Widget personalizable"],
     },
     basic: {
       sessions: "500 / mes",
-      messages: "5,000 / mes",
-      features: ["Chat en vivo", "IA avanzada", "Catálogo de productos", "Base de conocimiento"],
+      messages: "5.000 / mes",
+      features: ["Chat en vivo", "IA avanzada con GPT", "Catalogo de productos", "Base de conocimiento", "Analiticas completas"],
     },
     pro: {
       sessions: "Ilimitadas",
       messages: "Ilimitados",
-      features: ["Todo incluido", "Soporte prioritario", "API personalizada", "Multi-agente"],
+      features: ["Todo incluido", "Soporte 24/7 dedicado", "API personalizada", "Multi-agente", "Onboarding personalizado"],
     },
   };
 
   const currentPlan = planLimits[tenant.plan] || planLimits.free;
+  const currentColor = planColors[tenant.plan] || planColors.free;
 
   const handleUpgrade = async (targetPlan: string) => {
     setUpgrading(targetPlan);
@@ -358,99 +407,107 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+      <div className="rounded-2xl glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <CardTitle className="text-lg">Tu Plan Actual</CardTitle>
-            <CardDescription>Gestiona tu suscripción</CardDescription>
+            <h3 className="text-lg font-bold mb-1">Tu Plan Actual</h3>
+            <p className="text-sm text-white/40">Gestiona tu suscripcion</p>
           </div>
-          <Badge variant="secondary" data-testid="badge-plan">
+          <div className="px-4 py-2 rounded-xl text-sm font-bold" style={{ backgroundColor: `${currentColor}15`, color: currentColor }} data-testid="badge-plan">
             {planLabels[tenant.plan] || tenant.plan}
-          </Badge>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Sesiones</p>
-              <p className="text-sm font-medium" data-testid="text-plan-sessions">{currentPlan.sessions}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Mensajes</p>
-              <p className="text-sm font-medium" data-testid="text-plan-messages">{currentPlan.messages}</p>
-            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground mb-2">Funcionalidades incluidas</p>
-            <ul className="space-y-1">
-              {currentPlan.features.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm">
-                  <Check className="h-3 w-3 text-primary" />
-                  {f}
-                </li>
-              ))}
-            </ul>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+            <p className="text-xs text-white/35 mb-1">Sesiones</p>
+            <p className="text-lg font-bold" data-testid="text-plan-sessions">{currentPlan.sessions}</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+            <p className="text-xs text-white/35 mb-1">Mensajes</p>
+            <p className="text-lg font-bold" data-testid="text-plan-messages">{currentPlan.messages}</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-white/35 mb-3">Funcionalidades incluidas</p>
+          <div className="flex flex-wrap gap-2">
+            {currentPlan.features.map((f) => (
+              <span key={f} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/60">
+                <Check className="h-3 w-3 text-primary" />
+                {f}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {upgradePlans.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {upgradePlans.map(([key, limits]) => (
-            <Card key={key} className="border-primary/30">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{planLabels[key]}</CardTitle>
-                  <Badge variant="outline" data-testid={`badge-price-${key}`}>
-                    {planPrices[key]}
-                  </Badge>
-                </div>
-                <CardDescription>
-                  {key === "basic" ? "Para negocios en crecimiento" : "Para grandes empresas"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Sesiones:</span>{" "}
-                    <span className="font-medium">{limits.sessions}</span>
+        <div>
+          <h3 className="text-base font-bold mb-4 text-white/70">Mejora tu plan</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {upgradePlans.map(([key, limits]) => {
+              const color = planColors[key];
+              return (
+                <div key={key} className="rounded-2xl glass-card glass-card-hover p-6 transition-all duration-300 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent 0%, ${color}40 50%, transparent 100%)` }} />
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="text-lg font-bold">{planLabels[key]}</h4>
+                      <p className="text-xs text-white/35">
+                        {key === "basic" ? "Para negocios en crecimiento" : "Para grandes empresas"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black" style={{ color }} data-testid={`badge-price-${key}`}>{planPrices[key]}</p>
+                      <p className="text-xs text-white/30">CLP/mes</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Mensajes:</span>{" "}
-                    <span className="font-medium">{limits.messages}</span>
+
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3">
+                      <p className="text-xs text-white/35">Sesiones</p>
+                      <p className="text-sm font-bold">{limits.sessions}</p>
+                    </div>
+                    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3">
+                      <p className="text-xs text-white/35">Mensajes</p>
+                      <p className="text-sm font-bold">{limits.messages}</p>
+                    </div>
                   </div>
+
+                  <ul className="space-y-2 mb-5">
+                    {limits.features.map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-white/50">
+                        <Check className="h-3.5 w-3.5" style={{ color }} />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className="w-full rounded-xl h-11 font-bold transition-all duration-300 hover:scale-[1.01]"
+                    style={{ backgroundColor: color, color: "white" }}
+                    disabled={upgrading !== null}
+                    onClick={() => handleUpgrade(key)}
+                    data-testid={`button-upgrade-${key}`}
+                  >
+                    {upgrading === key ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Procesando...
+                      </span>
+                    ) : (
+                      <>
+                        <Zap className="mr-2 h-4 w-4" />
+                        Contratar {planLabels[key]}
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <ul className="space-y-1">
-                  {limits.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm">
-                      <Check className="h-3 w-3 text-primary" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="default"
-                  className="w-full"
-                  disabled={upgrading !== null}
-                  onClick={() => handleUpgrade(key)}
-                  data-testid={`button-upgrade-${key}`}
-                >
-                  {upgrading === key ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Procesando...
-                    </span>
-                  ) : (
-                    <>
-                      <Zap className="mr-2 h-4 w-4" />
-                      Contratar {planLabels[key]}
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -460,15 +517,16 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
 type DashboardTab = "stats" | "config" | "embed" | "plan";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
-  { title: "Estadísticas", value: "stats", icon: BarChart3 },
-  { title: "Configuración", value: "config", icon: Palette },
-  { title: "Integración", value: "embed", icon: Code },
+  { title: "Estadisticas", value: "stats", icon: BarChart3 },
+  { title: "Configuracion", value: "config", icon: Palette },
+  { title: "Integracion", value: "embed", icon: Code },
   { title: "Plan", value: "plan", icon: CreditCard },
 ];
 
 export default function Dashboard() {
   const { tenant, isLoading, token } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>("stats");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -484,7 +542,7 @@ export default function Dashboard() {
         toast({ title: "Pago rechazado", description: "Tu pago fue rechazado. Intenta con otro medio de pago.", variant: "destructive" });
         setActiveTab("plan");
       } else if (payment === "pending") {
-        toast({ title: "Pago pendiente", description: "Tu pago está siendo procesado. El plan se actualizará automáticamente." });
+        toast({ title: "Pago pendiente", description: "Tu pago esta siendo procesado. El plan se actualizara automaticamente." });
         setActiveTab("plan");
       } else if (payment === "error") {
         toast({ title: "Error", description: "Hubo un error procesando tu pago. Intenta nuevamente.", variant: "destructive" });
@@ -500,109 +558,129 @@ export default function Dashboard() {
 
   if (isLoading || !tenant) {
     return (
-      <div className="flex items-center justify-center h-screen" data-testid="dashboard-loading">
-        <div className="text-muted-foreground">Cargando...</div>
+      <div className="flex items-center justify-center h-screen bg-background" data-testid="dashboard-loading">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center animate-float">
+            <img src={logoSinFondo} alt="FoxBot" className="w-8 h-8 object-contain" />
+          </div>
+          <p className="text-sm text-white/40">Cargando dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  const sidebarStyle = {
-    "--sidebar-width": "16rem",
-    "--sidebar-width-icon": "3rem",
-  };
+  const planLabels: Record<string, string> = { free: "Gratis", basic: "Pro", pro: "Enterprise" };
+  const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
   return (
-    <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <Sidebar>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                <div className="flex items-center gap-2">
-                  <img src={logoSinFondo} alt="FoxBot" className="w-5 h-5 object-contain" />
-                  <span>{tenant.companyName}</span>
-                </div>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {navItems.map((item) => (
-                    <SidebarMenuItem key={item.value}>
-                      <SidebarMenuButton
-                        onClick={() => setActiveTab(item.value)}
-                        data-active={activeTab === item.value}
-                        className="data-[active=true]:bg-sidebar-accent"
-                        data-testid={`nav-${item.value}`}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup className="mt-auto">
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton onClick={handleLogout} data-testid="button-logout">
-                      <LogOut />
-                      <span>Cerrar Sesión</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-        <div className="flex flex-col flex-1 min-w-0">
-          <header className="flex items-center gap-2 p-3 border-b">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <h1 className="text-lg font-semibold" data-testid="text-dashboard-title">Dashboard</h1>
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-sm text-muted-foreground" data-testid="text-tenant-email">{tenant.email}</span>
+    <div className="flex h-screen w-full bg-background overflow-hidden">
+      <aside className={`${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} shrink-0 transition-all duration-300 border-r border-white/[0.06] flex flex-col relative`}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(16,185,129,0.02) 0%, transparent 50%)" }} />
+
+        <div className="relative p-5 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl glass-card flex items-center justify-center shrink-0">
+              <img src={logoSinFondo} alt="FoxBot" className="w-6 h-6 object-contain" />
             </div>
-          </header>
-          <main className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
-            {activeTab === "stats" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">Resumen</h2>
-                  <p className="text-sm text-muted-foreground">Métricas de tu chat en tiempo real</p>
-                </div>
-                <StatsSection token={token!} />
-              </div>
-            )}
-            {activeTab === "config" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">Configuración</h2>
-                  <p className="text-sm text-muted-foreground">Personaliza tu widget de chat</p>
-                </div>
-                <WidgetConfigSection tenant={tenant} token={token!} />
-              </div>
-            )}
-            {activeTab === "embed" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">Integración</h2>
-                  <p className="text-sm text-muted-foreground">Agrega el chat a tu sitio web</p>
-                </div>
-                <EmbedCodeSection tenant={tenant} />
-              </div>
-            )}
-            {activeTab === "plan" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">Plan y Facturación</h2>
-                  <p className="text-sm text-muted-foreground">Gestiona tu suscripción</p>
-                </div>
-                <PlanSection tenant={tenant} />
-              </div>
-            )}
-          </main>
+            <div className="min-w-0">
+              <p className="text-sm font-bold truncate">{tenant.companyName}</p>
+              <p className="text-[10px] text-white/30 truncate">{tenant.email}</p>
+            </div>
+          </div>
         </div>
+
+        <nav className="relative flex-1 p-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.value;
+            return (
+              <button
+                key={item.value}
+                onClick={() => setActiveTab(item.value)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                  isActive
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                }`}
+                data-testid={`nav-${item.value}`}
+              >
+                <item.icon className={`w-4.5 h-4.5 ${isActive ? "text-primary" : ""}`} />
+                <span>{item.title}</span>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto text-primary/50" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="relative p-3 border-t border-white/[0.06]">
+          <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-3 mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: planColors[tenant.plan] }} />
+              <span className="text-xs font-semibold" style={{ color: planColors[tenant.plan] }}>
+                Plan {planLabels[tenant.plan]}
+              </span>
+            </div>
+            {tenant.plan === "free" && (
+              <button
+                onClick={() => setActiveTab("plan")}
+                className="text-[11px] text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
+                data-testid="link-upgrade-sidebar"
+              >
+                Mejorar plan <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/30 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
+            data-testid="button-logout"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Cerrar Sesion</span>
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex flex-col flex-1 min-w-0">
+        <header className="flex items-center gap-3 px-6 py-4 border-b border-white/[0.06]">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="w-9 h-9 rounded-xl glass-card flex items-center justify-center hover:bg-white/[0.06] transition-colors"
+            data-testid="button-sidebar-toggle"
+          >
+            {sidebarOpen ? <X className="w-4 h-4 text-white/50" /> : <Menu className="w-4 h-4 text-white/50" />}
+          </button>
+
+          <div>
+            <h1 className="text-lg font-bold" data-testid="text-dashboard-title">
+              {navItems.find((n) => n.value === activeTab)?.title || "Dashboard"}
+            </h1>
+            <p className="text-xs text-white/30">
+              {activeTab === "stats" && "Metricas de tu chat en tiempo real"}
+              {activeTab === "config" && "Personaliza tu widget de chat"}
+              {activeTab === "embed" && "Agrega el chat a tu sitio web"}
+              {activeTab === "plan" && "Gestiona tu suscripcion"}
+            </p>
+          </div>
+
+          <div className="ml-auto flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+              <div className="w-2 h-2 rounded-full bg-primary animate-glow-pulse" />
+              <span className="text-xs text-white/40">En linea</span>
+            </div>
+            <span className="text-sm text-white/30 hidden md:block" data-testid="text-tenant-email">{tenant.email}</span>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6 md:p-8">
+          <div className="max-w-5xl mx-auto space-y-6">
+            {activeTab === "stats" && <StatsSection token={token!} />}
+            {activeTab === "config" && <WidgetConfigSection tenant={tenant} token={token!} />}
+            {activeTab === "embed" && <EmbedCodeSection tenant={tenant} />}
+            {activeTab === "plan" && <PlanSection tenant={tenant} />}
+          </div>
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
