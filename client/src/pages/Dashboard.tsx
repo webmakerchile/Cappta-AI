@@ -44,6 +44,12 @@ import {
   Globe,
   Wand2,
   UserCircle,
+  Smartphone,
+  Download,
+  Monitor,
+  Bell,
+  Wifi,
+  Share2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -2060,13 +2066,224 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   );
 }
 
-type DashboardTab = "stats" | "conversations" | "config" | "embed" | "plan" | "guides";
+function DownloadAppSection() {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setIsInstalled(true));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === "accepted") setIsInstalled(true);
+      setDeferredPrompt(null);
+    }
+  };
+
+  const currentUrl = window.location.origin + "/dashboard";
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full animate-orb-drift opacity-30" style={{ background: "radial-gradient(circle, rgba(6,182,212,0.06), transparent 60%)", animationDelay: "-4s" }} />
+
+        <div className="relative">
+          <h3 className="text-lg font-bold mb-1 animate-dash-slide-right flex items-center gap-2">
+            <Download className="w-5 h-5 text-primary" />
+            Descarga FoxBot en tus dispositivos
+          </h3>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Lleva tu panel de soporte a cualquier lugar. Responde a tus clientes desde el celular o tu computador como si fuera una app nativa.</p>
+        </div>
+
+        {isInstalled && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-xl bg-green-500/5 border border-green-500/15 p-4 flex items-center gap-3">
+            <CircleCheck className="w-5 h-5 text-green-400 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-green-400">App instalada</p>
+              <p className="text-xs text-white/40">FoxBot ya esta instalado en este dispositivo. Puedes abrirlo desde tu escritorio o pantalla de inicio.</p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 transition-all duration-300 hover:bg-white/[0.05] hover:border-white/[0.1] group">
+            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Smartphone className="w-6 h-6 text-cyan-400" />
+            </div>
+            <h4 className="text-sm font-bold text-white/90">Celular (Android / iOS)</h4>
+            <p className="text-xs text-white/40 leading-relaxed">Agrega FoxBot a tu pantalla de inicio y recibe notificaciones push cada vez que un cliente escriba.</p>
+          </div>
+
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 transition-all duration-300 hover:bg-white/[0.05] hover:border-white/[0.1] group">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Monitor className="w-6 h-6 text-blue-400" />
+            </div>
+            <h4 className="text-sm font-bold text-white/90">Computador (PC / Mac)</h4>
+            <p className="text-xs text-white/40 leading-relaxed">Instala FoxBot como aplicacion de escritorio en Chrome, Edge o Brave. Se abre como una ventana independiente.</p>
+          </div>
+
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 transition-all duration-300 hover:bg-white/[0.05] hover:border-white/[0.1] group">
+            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Bell className="w-6 h-6 text-green-400" />
+            </div>
+            <h4 className="text-sm font-bold text-white/90">Notificaciones Push</h4>
+            <p className="text-xs text-white/40 leading-relaxed">Recibe alertas en tiempo real cuando un cliente inicie un chat o escriba un mensaje. Nunca pierdas una venta.</p>
+          </div>
+        </div>
+      </div>
+
+      {deferredPrompt && !isInstalled && (
+        <div className="rounded-2xl glass-card p-6 animate-dash-fade-up relative overflow-hidden">
+          <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full animate-orb-drift opacity-30" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)" }} />
+          <div className="flex items-center gap-4 relative">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 animate-float" style={{ animationDuration: "6s" }}>
+              <Download className="w-7 h-7 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-base font-bold mb-1">Instalar ahora</h4>
+              <p className="text-xs text-white/40">Tu navegador permite instalar FoxBot directamente. Haz clic para agregarlo a tu dispositivo.</p>
+            </div>
+            <Button
+              onClick={handleInstall}
+              className="rounded-xl px-6 h-11 font-bold shrink-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20"
+              data-testid="button-install-pwa"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Instalar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-fade-up relative overflow-hidden">
+        <div className="relative">
+          <h3 className="text-base font-bold mb-1 flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-primary" />
+            Como instalar en tu celular
+          </h3>
+          <p className="text-xs text-white/40">Sigue estos pasos segun tu dispositivo</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-green-400" />
+              </div>
+              <h4 className="text-sm font-bold text-white/80">Android (Chrome)</h4>
+            </div>
+            {[
+              { step: "1", text: "Abre Chrome y visita esta pagina" },
+              { step: "2", text: 'Toca el menu (3 puntos arriba a la derecha)' },
+              { step: "3", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicacion"' },
+              { step: "4", text: 'Confirma tocando "Agregar"' },
+              { step: "5", text: "FoxBot aparecera como una app en tu celular" },
+            ].map((item) => (
+              <div key={item.step} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
+                <p className="text-xs text-white/60 leading-relaxed pt-0.5">{item.text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-blue-400" />
+              </div>
+              <h4 className="text-sm font-bold text-white/80">iPhone / iPad (Safari)</h4>
+            </div>
+            {[
+              { step: "1", text: "Abre Safari y visita esta pagina" },
+              { step: "2", text: 'Toca el boton de compartir (cuadrado con flecha hacia arriba)' },
+              { step: "3", text: 'Desplazate y selecciona "Agregar a pantalla de inicio"' },
+              { step: "4", text: 'Toca "Agregar" en la esquina superior derecha' },
+              { step: "5", text: "FoxBot aparecera como una app en tu iPhone" },
+            ].map((item) => (
+              <div key={item.step} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-blue-400">{item.step}</div>
+                <p className="text-xs text-white/60 leading-relaxed pt-0.5">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-fade-up relative overflow-hidden">
+        <div className="relative">
+          <h3 className="text-base font-bold mb-1 flex items-center gap-2">
+            <Monitor className="w-4 h-4 text-primary" />
+            Como instalar en tu computador
+          </h3>
+          <p className="text-xs text-white/40">Chrome, Edge y Brave permiten instalar FoxBot como app de escritorio</p>
+        </div>
+
+        <div className="space-y-4">
+          {[
+            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita esta pagina" },
+            { step: "2", text: 'Busca el icono de instalar en la barra de direcciones (un monitor con flecha hacia abajo) o ve al menu del navegador' },
+            { step: "3", text: 'Haz clic en "Instalar FoxBot" o "Instalar aplicacion"' },
+            { step: "4", text: "FoxBot se abrira como una ventana independiente, como cualquier otra app de tu computador" },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
+              <p className="text-xs text-white/60 leading-relaxed pt-0.5">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl glass-card p-6 space-y-4 animate-dash-fade-up relative overflow-hidden">
+        <div className="relative">
+          <h3 className="text-base font-bold mb-1 flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-primary" />
+            Comparte con tu equipo
+          </h3>
+          <p className="text-xs text-white/40">Envia este enlace a tus ejecutivos para que instalen FoxBot en sus dispositivos</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 rounded-xl bg-black/30 border border-white/[0.06] p-3">
+            <p className="text-[11px] font-mono text-white/50 truncate" data-testid="text-share-url">{currentUrl}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              navigator.clipboard.writeText(currentUrl);
+            }}
+            className="rounded-lg border-white/[0.08] hover:border-primary/30 text-xs h-10 shrink-0"
+            data-testid="button-copy-share-url"
+          >
+            <Copy className="mr-1.5 h-3 w-3" />
+            Copiar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type DashboardTab = "stats" | "conversations" | "config" | "embed" | "download" | "plan" | "guides";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadisticas", value: "stats", icon: BarChart3 },
   { title: "Conversaciones", value: "conversations", icon: MessageSquare },
   { title: "Configuracion", value: "config", icon: Palette },
   { title: "Integracion", value: "embed", icon: Code },
+  { title: "Descargar App", value: "download", icon: Download },
   { title: "Guias", value: "guides", icon: BookOpen },
   { title: "Plan", value: "plan", icon: CreditCard },
 ];
@@ -2325,6 +2542,7 @@ export default function Dashboard() {
               {activeTab === "conversations" && "Chats de tus clientes en tiempo real"}
               {activeTab === "config" && "Personaliza tu widget de chat"}
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
+              {activeTab === "download" && "Instala FoxBot en tu celular o computador"}
               {activeTab === "guides" && "Manuales de instalacion paso a paso"}
               {activeTab === "plan" && "Gestiona tu suscripcion"}
             </p>
@@ -2357,6 +2575,7 @@ export default function Dashboard() {
             {activeTab === "conversations" && <ConversationsSection token={token!} />}
             {activeTab === "config" && <WidgetConfigSection tenant={tenant} token={token!} />}
             {activeTab === "embed" && <EmbedCodeSection tenant={tenant} />}
+            {activeTab === "download" && <DownloadAppSection />}
             {activeTab === "guides" && <GuidesPanel />}
             {activeTab === "plan" && <PlanSection tenant={tenant} />}
           </div>

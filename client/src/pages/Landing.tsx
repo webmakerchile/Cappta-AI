@@ -46,6 +46,8 @@ import {
   Trophy,
   Timer,
   Package,
+  Smartphone,
+  Download,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -85,6 +87,13 @@ const features = [
     description: "Metricas de sesiones, satisfaccion, rendimiento del bot y consumo — todo en un solo lugar.",
     iconColor: "#ef4444",
     glow: "rgba(239, 68, 68, 0.15)",
+  },
+  {
+    icon: Smartphone,
+    title: "App Descargable (PWA)",
+    description: "Descarga FoxBot en tu celular o PC como una app nativa. Recibe notificaciones push al instante y responde desde donde estes.",
+    iconColor: "#06b6d4",
+    glow: "rgba(6, 182, 212, 0.15)",
   },
   {
     icon: Headphones,
