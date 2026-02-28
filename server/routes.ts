@@ -124,7 +124,10 @@ export async function registerRoutes(
       },
       methods: ["GET", "POST"],
     },
-    transports: ["websocket", "polling"],
+    transports: ["polling", "websocket"],
+    allowUpgrades: true,
+    pingTimeout: 25000,
+    pingInterval: 15000,
     cookie: false,
   });
 

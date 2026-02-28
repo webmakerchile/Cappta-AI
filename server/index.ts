@@ -94,6 +94,17 @@ app.use((req, res, next) => {
   next();
 });
 
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.resolve(__dirname, "public");
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath, {
+      maxAge: "1d",
+      immutable: true,
+    }));
+    log("static files ready");
+  }
+}
+
 const port = parseInt(process.env.PORT || "5000", 10);
 httpServer.listen(port, "0.0.0.0", () => {
   log(`serving on port ${port}`);
@@ -122,7 +133,6 @@ httpServer.listen(port, "0.0.0.0", () => {
   if (process.env.NODE_ENV === "production") {
     const distPath = path.resolve(__dirname, "public");
     if (fs.existsSync(distPath)) {
-      app.use(express.static(distPath));
       app.use("/{*path}", (_req, res) => {
         res.sendFile(path.resolve(distPath, "index.html"));
       });
