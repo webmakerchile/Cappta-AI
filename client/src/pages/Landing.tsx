@@ -19,6 +19,10 @@ import {
   Star,
   Send,
   Sparkles,
+  ChevronRight,
+  Users,
+  TrendingUp,
+  MessageSquare,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -28,31 +32,43 @@ const features = [
     icon: Brain,
     title: "IA Conversacional Avanzada",
     description: "Respuestas inteligentes potenciadas por GPT que entienden contexto, historial y la personalidad de tu marca.",
+    gradient: "from-emerald-500/20 to-teal-500/20",
+    iconColor: "#10b981",
   },
   {
     icon: Plug,
     title: "Conecta Cualquier Plataforma",
     description: "WooCommerce, Shopify, Magento, APIs propias o cualquier sistema. Sin limites de integracion.",
+    gradient: "from-blue-500/20 to-cyan-500/20",
+    iconColor: "#3b82f6",
   },
   {
     icon: BookOpen,
     title: "Base de Conocimiento con IA",
     description: "Entrena tu bot con documentos, FAQs y politicas. Aprende automaticamente de cada conversacion.",
+    gradient: "from-purple-500/20 to-pink-500/20",
+    iconColor: "#a855f7",
   },
   {
     icon: ShoppingCart,
     title: "Catalogo en el Chat",
     description: "Tus clientes exploran productos, ven precios y disponibilidad sin salir de la conversacion.",
+    gradient: "from-orange-500/20 to-amber-500/20",
+    iconColor: "#f59e0b",
   },
   {
     icon: BarChart3,
     title: "Dashboard en Tiempo Real",
     description: "Metricas de sesiones, satisfaccion, rendimiento del bot y consumo — todo en un solo lugar.",
+    gradient: "from-rose-500/20 to-red-500/20",
+    iconColor: "#ef4444",
   },
   {
     icon: Shield,
     title: "Seguro y Confiable",
     description: "Filtro de contenido, proteccion anti-spam, aislamiento total de datos entre clientes.",
+    gradient: "from-indigo-500/20 to-violet-500/20",
+    iconColor: "#6366f1",
   },
 ];
 
@@ -192,42 +208,6 @@ function AnimatedChat() {
   );
 }
 
-function PlatformLogos() {
-  return (
-    <div className="flex items-center justify-center gap-8 flex-wrap opacity-60" data-testid="platform-logos">
-      <div className="flex flex-col items-center gap-1">
-        <SiWoocommerce className="w-8 h-8" />
-        <span className="text-[10px] text-muted-foreground">WooCommerce</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <SiShopify className="w-8 h-8" />
-        <span className="text-[10px] text-muted-foreground">Shopify</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <SiWordpress className="w-8 h-8" />
-        <span className="text-[10px] text-muted-foreground">WordPress</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <SiMagento className="w-8 h-8" />
-        <span className="text-[10px] text-muted-foreground">Magento</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Code className="w-8 h-8" />
-        <span className="text-[10px] text-muted-foreground">Tu API</span>
-      </div>
-    </div>
-  );
-}
-
-function StatsCounter({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <p className="text-3xl sm:text-4xl font-bold text-primary">{value}</p>
-      <p className="text-sm text-muted-foreground mt-1">{label}</p>
-    </div>
-  );
-}
-
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
@@ -242,6 +222,9 @@ export default function Landing() {
           <div className="flex items-center gap-2 flex-wrap">
             <a href="#pricing">
               <Button variant="ghost" size="sm" data-testid="link-pricing">Precios</Button>
+            </a>
+            <a href="/demo">
+              <Button variant="ghost" size="sm" data-testid="link-demo-nav">Demo</Button>
             </a>
             <a href="/login">
               <Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesion</Button>
@@ -281,8 +264,8 @@ export default function Landing() {
               duerme
             </h1>
             <p className="text-lg text-muted-foreground max-w-lg mb-8 leading-relaxed" data-testid="text-hero-description">
-              <strong className="text-foreground">FoxBot</strong> atiende a tus clientes 24/7 con inteligencia artificial, 
-              conecta tu catalogo de productos y aprende de cada conversacion. 
+              <strong className="text-foreground">FoxBot</strong> atiende a tus clientes 24/7 con inteligencia artificial,
+              conecta tu catalogo de productos y aprende de cada conversacion.
               Funciona con <strong className="text-foreground">cualquier plataforma</strong>.
             </p>
             <div className="flex items-center gap-3 flex-wrap mb-8">
@@ -320,10 +303,26 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="py-12 px-6 border-y border-border bg-card/50" data-testid="section-platforms">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-center text-sm text-muted-foreground mb-6">Funciona con las plataformas que ya usas</p>
-          <PlatformLogos />
+      <section className="relative py-14 px-6 overflow-hidden" data-testid="section-platforms">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, hsl(142, 72%, 32%, 0.03) 0%, transparent 50%, hsl(142, 72%, 32%, 0.03) 100%)" }} />
+        <div className="relative max-w-5xl mx-auto">
+          <p className="text-center text-sm font-medium text-muted-foreground mb-8 tracking-wide uppercase">Compatible con las plataformas que ya usas</p>
+          <div className="flex items-center justify-center gap-10 sm:gap-16 flex-wrap" data-testid="platform-logos">
+            {[
+              { Icon: SiWoocommerce, name: "WooCommerce" },
+              { Icon: SiShopify, name: "Shopify" },
+              { Icon: SiWordpress, name: "WordPress" },
+              { Icon: SiMagento, name: "Magento" },
+              { Icon: Code, name: "Tu API" },
+            ].map(({ Icon, name }) => (
+              <div key={name} className="flex flex-col items-center gap-2 group">
+                <div className="flex items-center justify-center w-14 h-14 rounded-2xl border border-border bg-card/50 group-hover:border-primary/30 group-hover:bg-primary/5 transition-all duration-300">
+                  <Icon className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                </div>
+                <span className="text-[11px] text-muted-foreground font-medium">{name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -334,208 +333,295 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-card/30" data-testid="section-stats">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatsCounter value="24/7" label="Disponibilidad" />
-          <StatsCounter value="<2s" label="Tiempo de respuesta" />
-          <StatsCounter value="95%" label="Margen de ganancia" />
-          <StatsCounter value="5min" label="Configuracion" />
-        </div>
-      </section>
-
-      <section id="features" className="py-20 px-6" data-testid="section-features">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <Badge variant="secondary" className="mb-4">
-              <Zap className="w-3 h-3 mr-1" />
-              Caracteristicas
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4" data-testid="text-features-title">
-              Todo lo que tu negocio necesita
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto" data-testid="text-features-description">
-              Herramientas poderosas para automatizar, personalizar y escalar tu atencion al cliente.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Card key={feature.title} className="group hover:border-primary/30 transition-colors duration-300" data-testid={`card-feature-${index}`}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                      <feature.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-base">{feature.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6 bg-card" data-testid="section-how-it-works">
-        <div className="max-w-4xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-4">
-            <Clock className="w-3 h-3 mr-1" />
-            Rapido y simple
-          </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4" data-testid="text-how-title">
-            En 3 pasos, listo para vender
-          </h2>
-          <p className="text-muted-foreground text-lg mb-14 max-w-2xl mx-auto">
-            No necesitas ser tecnico. Desde el registro hasta el chat en vivo en minutos.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <section className="py-20 px-6 relative overflow-hidden" data-testid="section-stats">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%, 0.04) 0%, transparent 50%, hsl(30, 90%, 52%, 0.03) 100%)" }} />
+        <div className="relative max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { step: "1", title: "Crea tu cuenta", desc: "Registrate gratis y configura el nombre de tu empresa, colores y mensaje de bienvenida.", icon: Headphones },
-              { step: "2", title: "Conecta tu tienda", desc: "Integra WooCommerce, Shopify, tu API propia o simplemente entrena la base de conocimiento.", icon: Plug },
-              { step: "3", title: "Copia y pega", desc: "Agrega una linea de codigo a tu sitio web y FoxBot empieza a atender clientes al instante.", icon: Code },
-            ].map((item, index) => (
-              <div key={item.step} className="flex flex-col items-center gap-4 relative" data-testid={`step-${index}`}>
-                <div className="relative">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-                    <item.icon className="w-7 h-7" />
+              { value: "24/7", label: "Disponibilidad total", icon: Clock, desc: "Tu bot nunca descansa" },
+              { value: "<2s", label: "Respuesta instantanea", icon: Zap, desc: "Velocidad de IA" },
+              { value: "5min", label: "Configuracion rapida", icon: TrendingUp, desc: "Sin conocimiento tecnico" },
+              { value: "100%", label: "Personalizable", icon: Users, desc: "Tu marca, tu estilo" },
+            ].map(({ value, label, icon: Icon, desc }) => (
+              <div key={label} className="relative group" data-testid={`stat-${label}`}>
+                <div className="rounded-2xl border border-border bg-card/50 p-6 text-center group-hover:border-primary/20 transition-all duration-300">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 mx-auto mb-4">
+                    <Icon className="w-5 h-5 text-primary" />
                   </div>
-                  <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-accent text-white text-sm font-bold flex items-center justify-center shadow-md">
-                    {item.step}
-                  </span>
+                  <p className="text-3xl sm:text-4xl font-extrabold text-primary mb-1">{value}</p>
+                  <p className="text-sm font-semibold text-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{desc}</p>
                 </div>
-                <h3 className="text-lg font-bold">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="pricing" className="py-20 px-6" data-testid="section-pricing">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <Badge variant="secondary" className="mb-4">
-              <Star className="w-3 h-3 mr-1" />
+      <section id="features" className="py-24 px-6 relative overflow-hidden" data-testid="section-features">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.04]" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%) 0%, transparent 70%)" }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.03]" style={{ background: "radial-gradient(circle, hsl(30, 90%, 52%) 0%, transparent 70%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4 text-xs px-3 py-1">
+              <Zap className="w-3 h-3 mr-1.5 text-accent" />
+              Caracteristicas
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5" data-testid="text-features-title">
+              Todo lo que tu negocio necesita
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
+              Herramientas poderosas para automatizar, personalizar y escalar tu atencion al cliente.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((feature, index) => (
+              <div
+                key={feature.title}
+                className="group relative rounded-2xl border border-border bg-card/30 p-6 hover:border-white/10 transition-all duration-300"
+                data-testid={`card-feature-${index}`}
+              >
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                <div className="relative">
+                  <div
+                    className="flex items-center justify-center w-12 h-12 rounded-xl mb-4 transition-transform duration-300 group-hover:scale-110"
+                    style={{ backgroundColor: `${feature.iconColor}15` }}
+                  >
+                    <feature.icon className="w-6 h-6" style={{ color: feature.iconColor }} />
+                  </div>
+                  <h3 className="text-base font-bold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 relative overflow-hidden" data-testid="section-how-it-works">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, hsl(142, 72%, 32%, 0.03) 0%, transparent 30%, transparent 70%, hsl(142, 72%, 32%, 0.03) 100%)" }} />
+        <div className="relative max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4 text-xs px-3 py-1">
+              <Clock className="w-3 h-3 mr-1.5 text-accent" />
+              Rapido y simple
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5" data-testid="text-how-title">
+              En 3 pasos, listo para vender
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+              No necesitas ser tecnico. Desde el registro hasta el chat en vivo en minutos.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                step: "01",
+                title: "Crea tu cuenta",
+                desc: "Registrate gratis y configura el nombre de tu empresa, colores y mensaje de bienvenida.",
+                icon: Headphones,
+                color: "#10b981",
+              },
+              {
+                step: "02",
+                title: "Conecta tu tienda",
+                desc: "Integra WooCommerce, Shopify, tu API propia o entrena la base de conocimiento con tus documentos.",
+                icon: Plug,
+                color: "#3b82f6",
+              },
+              {
+                step: "03",
+                title: "Copia y pega",
+                desc: "Agrega una linea de codigo a tu sitio web y FoxBot empieza a atender clientes al instante.",
+                icon: Code,
+                color: "#a855f7",
+              },
+            ].map((item, index) => (
+              <div key={item.step} className="relative group" data-testid={`step-${index}`}>
+                <div className="rounded-2xl border border-border bg-card/30 p-7 h-full hover:border-white/10 transition-all duration-300">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div
+                      className="flex items-center justify-center w-14 h-14 rounded-2xl transition-transform duration-300 group-hover:scale-110"
+                      style={{ backgroundColor: `${item.color}15` }}
+                    >
+                      <item.icon className="w-7 h-7" style={{ color: item.color }} />
+                    </div>
+                    <span className="text-4xl font-extrabold text-white/5">{item.step}</span>
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                </div>
+                {index < 2 && (
+                  <div className="hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 z-10">
+                    <ChevronRight className="w-6 h-6 text-border" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <a href="/demo">
+              <Button variant="outline" size="lg" data-testid="button-steps-demo">
+                Prueba la demo en vivo
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="py-24 px-6 relative overflow-hidden" data-testid="section-pricing">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full opacity-[0.04]" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%) 0%, transparent 60%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4 text-xs px-3 py-1">
+              <Star className="w-3 h-3 mr-1.5 text-accent" />
               Precios transparentes
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4" data-testid="text-pricing-title">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5" data-testid="text-pricing-title">
               Un plan para cada negocio
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto" data-testid="text-pricing-description">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-pricing-description">
               Comienza gratis. Escala cuando quieras. Sin contratos ni compromisos.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             {pricingPlans.map((plan, index) => (
-              <Card
+              <div
                 key={plan.name}
-                className={`relative overflow-hidden transition-all duration-300 ${plan.highlighted ? "border-primary border-2 shadow-xl shadow-primary/10 scale-[1.02]" : "hover:border-primary/20"}`}
+                className={`relative rounded-2xl border p-[1px] transition-all duration-300 ${
+                  plan.highlighted
+                    ? "border-0 bg-gradient-to-b from-primary/50 via-primary/20 to-accent/20 shadow-2xl shadow-primary/10 scale-[1.03]"
+                    : "border-border hover:border-white/10"
+                }`}
                 data-testid={`card-pricing-${index}`}
               >
-                {plan.highlighted && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
-                )}
-                {plan.highlighted && (
-                  <div className="absolute right-4 top-0">
-                    <Badge className="rounded-t-none rounded-b-lg shadow-md" data-testid="badge-popular">
-                      Mas Popular
-                    </Badge>
+                <div className={`rounded-2xl bg-background h-full ${plan.highlighted ? "p-0" : ""}`}>
+                  {plan.highlighted && (
+                    <div className="flex justify-center pt-4">
+                      <Badge className="shadow-lg" data-testid="badge-popular">
+                        <Star className="w-3 h-3 mr-1" />
+                        Mas Popular
+                      </Badge>
+                    </div>
+                  )}
+                  <div className="text-center px-6 pt-7 pb-2">
+                    <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>{plan.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-5">{plan.description}</p>
+                    <div className="mb-6">
+                      <span className="text-5xl font-extrabold" data-testid={`text-plan-price-${index}`}>{plan.price}</span>
+                      <span className="text-muted-foreground text-sm">{plan.period}</span>
+                    </div>
                   </div>
-                )}
-                <CardHeader className="text-center pt-8">
-                  <CardTitle className="text-xl" data-testid={`text-plan-name-${index}`}>{plan.name}</CardTitle>
-                  <CardDescription className="mt-1">{plan.description}</CardDescription>
-                  <div className="mt-5 mb-1">
-                    <span className="text-4xl font-extrabold" data-testid={`text-plan-price-${index}`}>{plan.price}</span>
-                    <span className="text-muted-foreground text-sm">{plan.period}</span>
+                  <div className="px-6 pb-4">
+                    <div className="h-px bg-border mb-5" />
+                    <ul className="space-y-3.5">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2.5 text-sm">
+                          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 text-primary" />
+                          </div>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5 text-sm">
-                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="pb-8">
-                  <a href="/register" className="w-full">
-                    <Button
-                      className={`w-full py-5 rounded-xl text-sm font-semibold ${plan.highlighted ? "shadow-lg shadow-primary/20" : ""}`}
-                      variant={plan.highlighted ? "default" : "outline"}
-                      data-testid={`button-plan-cta-${index}`}
-                    >
-                      {plan.cta}
-                      {plan.highlighted && <ArrowRight className="w-4 h-4 ml-1" />}
-                    </Button>
-                  </a>
-                </CardFooter>
-              </Card>
+                  <div className="px-6 pb-7 pt-3">
+                    <a href="/register" className="block">
+                      <Button
+                        className={`w-full py-5 rounded-xl text-sm font-semibold ${plan.highlighted ? "shadow-lg shadow-primary/20" : ""}`}
+                        variant={plan.highlighted ? "default" : "outline"}
+                        data-testid={`button-plan-cta-${index}`}
+                      >
+                        {plan.cta}
+                        {plan.highlighted && <ArrowRight className="w-4 h-4 ml-1" />}
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-          <p className="text-center text-sm text-muted-foreground mt-8">
+          <p className="text-center text-sm text-muted-foreground mt-10">
             Todos los planes incluyen soporte tecnico, actualizaciones gratuitas y sin contratos de permanencia.
           </p>
         </div>
       </section>
 
-      <section className="py-20 px-6 relative overflow-hidden" data-testid="section-cta">
+      <section className="py-24 px-6 relative overflow-hidden" data-testid="section-cta">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.06]" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%) 0%, transparent 70%)" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, hsl(142, 72%, 32%, 0.2) 50%, transparent 100%)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-[0.06]" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%) 0%, transparent 60%)" }} />
         </div>
         <div className="relative max-w-3xl mx-auto text-center">
-          <div className="flex items-center justify-center mb-6">
-            <img src={logoSinFondo} alt="FoxBot" className="w-20 h-20 object-contain" />
+          <div className="relative inline-block mb-8">
+            <img src={logoSinFondo} alt="FoxBot" className="w-24 h-24 object-contain" />
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+              <MessageSquare className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" data-testid="text-cta-title">
-            Dale a tu negocio el soporte que merece
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5 leading-tight" data-testid="text-cta-title">
+            Dale a tu negocio el
+            <br />
+            <span className="text-primary">soporte que merece</span>
           </h2>
-          <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto leading-relaxed">
-            Mas de <strong className="text-foreground">100 negocios</strong> ya usan FoxBot para vender mas y atender mejor.
+          <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+            Negocios de todos los tamanos ya usan FoxBot para vender mas y atender mejor.
             Empieza gratis hoy.
           </p>
-          <a href="/register">
-            <Button size="lg" className="text-base px-10 py-6 rounded-xl shadow-xl shadow-primary/20" data-testid="button-cta-register">
-              Crear Mi Cuenta Gratis
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </a>
-          <p className="text-sm text-muted-foreground mt-4">
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <a href="/register">
+              <Button size="lg" className="text-base px-10 py-6 rounded-xl shadow-xl shadow-primary/20" data-testid="button-cta-register">
+                Crear Mi Cuenta Gratis
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </a>
+            <a href="/demo">
+              <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-xl" data-testid="button-cta-demo">
+                Probar Demo
+              </Button>
+            </a>
+          </div>
+          <p className="text-sm text-muted-foreground mt-5">
             Sin tarjeta de credito. Sin compromisos. Cancela cuando quieras.
           </p>
         </div>
       </section>
 
-      <footer className="border-t border-border py-12 px-6 bg-card/50" data-testid="footer">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+      <footer className="border-t border-border py-14 px-6 relative" data-testid="footer">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, hsl(142, 72%, 32%, 0.02) 0%, transparent 100%)" }} />
+        <div className="relative max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
             <div>
-              <div className="flex items-center gap-2.5 mb-3">
-                <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 object-contain" />
+              <div className="flex items-center gap-2.5 mb-4">
+                <img src={logoSinFondo} alt="FoxBot" className="w-10 h-10 object-contain" />
                 <span className="text-xl font-extrabold">
                   <span className="text-primary">Fox</span><span className="text-accent">Bot</span>
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Chatbot con IA para atencion al cliente. 
+              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                Chatbot con IA para atencion al cliente.
                 Funciona con cualquier plataforma.
               </p>
-              <p className="text-xs text-muted-foreground mt-3">Un producto de Web Maker Chile</p>
+              <p className="text-xs text-muted-foreground/60">Un producto de Web Maker Chile</p>
             </div>
             <div>
-              <h4 className="font-semibold mb-3 text-sm">Producto</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-bold mb-4 text-sm">Producto</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors" data-testid="link-footer-features">Caracteristicas</a></li>
                 <li><a href="#pricing" className="hover:text-foreground transition-colors" data-testid="link-footer-pricing">Precios</a></li>
-                <li><a href="/demo" className="hover:text-foreground transition-colors" data-testid="link-footer-demo">Demo</a></li>
+                <li><a href="/demo" className="hover:text-foreground transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-3 text-sm">Integraciones</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-bold mb-4 text-sm">Integraciones</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li><span data-testid="link-footer-woo">WooCommerce</span></li>
                 <li><span data-testid="link-footer-shopify">Shopify</span></li>
                 <li><span data-testid="link-footer-wordpress">WordPress</span></li>
@@ -543,15 +629,15 @@ export default function Landing() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-3 text-sm">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-bold mb-4 text-sm">Legal</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li><span data-testid="link-footer-privacy">Privacidad</span></li>
                 <li><span data-testid="link-footer-terms">Terminos de Uso</span></li>
                 <li><span data-testid="link-footer-contact">Contacto</span></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground" data-testid="text-copyright">
+          <div className="border-t border-border mt-10 pt-8 text-center text-sm text-muted-foreground" data-testid="text-copyright">
             &copy; {new Date().getFullYear()} FoxBot by Web Maker Chile. Todos los derechos reservados.
           </div>
         </div>
