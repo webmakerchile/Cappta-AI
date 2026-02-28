@@ -2040,6 +2040,214 @@ ${DEMO_BASE_RULES}`,
     }
   });
 
+  app.post("/api/tenant-panel/analyze-text", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { text } = req.body;
+    if (!text || typeof text !== "string" || text.trim().length < 20) {
+      return res.status(400).json({ message: "Texto muy corto. Pega al menos un parrafo con informacion de tu negocio." });
+    }
+    try {
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `Eres un asistente experto en organizar informacion de negocios para entrenar chatbots de atencion al cliente.
+
+Tu tarea: Recibir texto desordenado (copiado de paginas web, documentos, etc.) y organizarlo en un formato estructurado y limpio.
+
+FORMATO DE SALIDA (usar exactamente estas secciones, omitir las que no apliquen):
+
+NOMBRE DEL NEGOCIO: [nombre]
+DESCRIPCION: [breve descripcion del negocio en 1-2 lineas]
+
+PRODUCTOS/SERVICIOS:
+- [nombre]: [descripcion breve] | Precio: [precio] | [estado/disponibilidad si aplica]
+
+CATEGORIAS DE PRODUCTOS:
+- [categoria]: [lista de productos]
+
+METODOS DE PAGO:
+- [metodo]
+
+ENVIOS/DESPACHO:
+- [politica de envio]
+
+POLITICAS:
+- [politica]
+
+CONTACTO:
+- [canal]: [detalle]
+
+HORARIOS:
+- [horario]
+
+PREGUNTAS FRECUENTES:
+- P: [pregunta] R: [respuesta]
+
+INFORMACION ADICIONAL:
+- [dato relevante]
+
+Reglas:
+- Mantener TODOS los precios exactos del texto original
+- Mantener TODOS los nombres de productos/tonos/variantes exactos
+- Si hay ofertas o descuentos, indicarlos
+- Si hay categorias, agrupar productos por categoria
+- Escribir en español
+- No inventar informacion que no este en el texto
+- Ser conciso pero completo`
+          },
+          {
+            role: "user",
+            content: `Organiza la siguiente informacion de negocio:\n\n${text.substring(0, 15000)}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      const organized = completion.choices[0]?.message?.content || "";
+      res.json({ organized });
+    } catch (error: any) {
+      console.error("[analyze-text] Error:", error.message);
+      res.status(500).json({ message: "Error al analizar el texto. Intenta de nuevo." });
+    }
+  });
+
+  app.post("/api/tenant-panel/analyze-url", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { url } = req.body;
+    if (!url || typeof url !== "string") {
+      return res.status(400).json({ message: "URL invalida" });
+    }
+    try {
+      let cleanUrl = url.trim();
+      if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
+        cleanUrl = "https://" + cleanUrl;
+      }
+      const parsedUrl = new URL(cleanUrl);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      const blockedPatterns = ["localhost", "127.0.0.1", "0.0.0.0", "169.254.", "10.", "192.168.", "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.", "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.", "[::1]", "metadata.google", "metadata.aws"];
+      if (blockedPatterns.some(p => hostname.includes(p)) || hostname.endsWith(".local") || hostname.endsWith(".internal")) {
+        return res.status(400).json({ message: "URL no permitida. Solo se permiten sitios web publicos." });
+      }
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ message: "Solo se permiten URLs con protocolo HTTP o HTTPS." });
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const response = await fetch(cleanUrl, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; FoxBot/1.0; +https://foxbot.cl)",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        return res.status(400).json({ message: `No se pudo acceder a la pagina (HTTP ${response.status})` });
+      }
+
+      const html = await response.text();
+      const textContent = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
+        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "")
+        .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (textContent.length < 50) {
+        return res.status(400).json({ message: "La pagina no tiene suficiente contenido de texto para analizar." });
+      }
+
+      const truncatedText = textContent.substring(0, 15000);
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `Eres un asistente experto en analizar sitios web de negocios y extraer toda la informacion relevante para entrenar un chatbot de atencion al cliente.
+
+Tu tarea: Analizar el contenido de una pagina web y extraer toda la informacion del negocio en formato estructurado.
+
+FORMATO DE SALIDA (usar exactamente estas secciones, omitir las que no apliquen):
+
+NOMBRE DEL NEGOCIO: [nombre]
+DESCRIPCION: [breve descripcion del negocio en 1-2 lineas]
+SITIO WEB: [url]
+
+PRODUCTOS/SERVICIOS:
+- [nombre]: [descripcion breve] | Precio: [precio] | [estado/disponibilidad si aplica]
+
+CATEGORIAS DE PRODUCTOS:
+- [categoria]: [lista de productos]
+
+METODOS DE PAGO:
+- [metodo]
+
+ENVIOS/DESPACHO:
+- [politica de envio]
+
+POLITICAS:
+- [politica]
+
+CONTACTO:
+- [canal]: [detalle]
+
+HORARIOS:
+- [horario]
+
+PREGUNTAS FRECUENTES:
+- P: [pregunta] R: [respuesta]
+
+INFORMACION ADICIONAL:
+- [dato relevante]
+
+Reglas:
+- Extraer TODOS los productos con sus precios exactos
+- Mantener nombres exactos de productos/servicios
+- Si hay ofertas o descuentos, indicarlos
+- Agrupar por categorias cuando sea posible
+- Escribir en español
+- No inventar informacion
+- Ser conciso pero completo`
+          },
+          {
+            role: "user",
+            content: `Analiza el contenido de esta pagina web (${cleanUrl}) y extrae toda la informacion del negocio:\n\n${truncatedText}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      const organized = completion.choices[0]?.message?.content || "";
+      res.json({ organized, sourceUrl: cleanUrl });
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        return res.status(408).json({ message: "La pagina tardo demasiado en responder (mas de 30 segundos)." });
+      }
+      console.error("[analyze-url] Error:", error.message);
+      res.status(500).json({ message: "Error al analizar la URL. Verifica que sea accesible." });
+    }
+  });
+
   app.get("/api/admin/tags", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;

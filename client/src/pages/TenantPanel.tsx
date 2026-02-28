@@ -41,6 +41,11 @@ import {
   Bot,
   Star,
   Image as ImageIcon,
+  Globe,
+  FileUp,
+  Sparkles,
+  Replace,
+  PlusCircle,
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
@@ -1570,6 +1575,11 @@ function EntrenarBotTab() {
 
   const [botContext, setBotContext] = useState("");
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [analyzeMode, setAnalyzeMode] = useState<"text" | "url" | null>(null);
+  const [rawText, setRawText] = useState("");
+  const [scrapeUrl, setScrapeUrl] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzedResult, setAnalyzedResult] = useState("");
 
   useEffect(() => {
     if (settings && !hasLoaded) {
@@ -1594,6 +1604,70 @@ function EntrenarBotTab() {
       toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
     },
   });
+
+  const handleAnalyzeText = async () => {
+    if (!rawText.trim() || rawText.trim().length < 20) {
+      toast({ title: "Texto muy corto", description: "Pega al menos un parrafo con informacion de tu negocio", variant: "destructive" });
+      return;
+    }
+    setAnalyzing(true);
+    setAnalyzedResult("");
+    try {
+      const res = await tenantFetch("/api/tenant-panel/analyze-text", {
+        method: "POST",
+        body: JSON.stringify({ text: rawText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error");
+      setAnalyzedResult(data.organized);
+      toast({ title: "Analisis completado", description: "Revisa el resultado y elige como aplicarlo" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo analizar", variant: "destructive" });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleAnalyzeUrl = async () => {
+    if (!scrapeUrl.trim()) {
+      toast({ title: "URL requerida", description: "Ingresa la URL de tu pagina web", variant: "destructive" });
+      return;
+    }
+    setAnalyzing(true);
+    setAnalyzedResult("");
+    try {
+      const res = await tenantFetch("/api/tenant-panel/analyze-url", {
+        method: "POST",
+        body: JSON.stringify({ url: scrapeUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error");
+      setAnalyzedResult(data.organized);
+      toast({ title: "Analisis web completado", description: "Se extrajo la informacion de tu sitio web" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo analizar la URL", variant: "destructive" });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const applyReplace = () => {
+    setBotContext(analyzedResult);
+    setAnalyzedResult("");
+    setAnalyzeMode(null);
+    setRawText("");
+    setScrapeUrl("");
+    toast({ title: "Aplicado", description: "Se reemplazo el contenido. Recuerda guardar." });
+  };
+
+  const applyAppend = () => {
+    setBotContext((prev) => prev ? prev + "\n\n" + analyzedResult : analyzedResult);
+    setAnalyzedResult("");
+    setAnalyzeMode(null);
+    setRawText("");
+    setScrapeUrl("");
+    toast({ title: "Agregado", description: "Se agrego al final del contenido. Recuerda guardar." });
+  };
 
   const { data: kbEntries = [] } = useQuery<KBEntry[]>({
     queryKey: ["/api/tenant-panel/knowledge"],
@@ -1625,53 +1699,166 @@ function EntrenarBotTab() {
           </div>
           <div className="text-sm text-white/60 space-y-1">
             <p className="text-white/80 font-medium">Como funciona el entrenamiento</p>
-            <p>Escribe toda la informacion relevante de tu negocio: productos, servicios, precios, politicas, horarios, preguntas frecuentes, etc.</p>
-            <p>El bot usara este contexto como su base de conocimiento principal para responder a tus clientes.</p>
-            <p className="text-[#10b981]">Tip: Tambien puedes corregir respuestas del bot en el tab "Chats" usando el boton "Corregir" en cualquier mensaje del bot.</p>
+            <p>Puedes entrenar tu bot de 3 formas:</p>
+            <div className="flex flex-col gap-1 pl-1">
+              <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Pegar texto</strong> — Copia informacion de tu negocio y la IA la organiza automaticamente</span>
+              <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Analizar web</strong> — Pega la URL de tu sitio y la IA extrae toda la informacion</span>
+              <span className="flex items-center gap-1.5"><Pencil className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Escribir manual</strong> — Edita directamente el campo de informacion</span>
+            </div>
+            <p className="text-[#10b981]">Tip: Tambien puedes corregir respuestas del bot en el tab "Chats" usando el boton "Corregir".</p>
           </div>
         </div>
       </div>
 
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[#10b981]" />
+          <p className="text-sm font-medium text-white/80">Entrenamiento inteligente con IA</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            data-testid="button-analyze-text-mode"
+            onClick={() => { setAnalyzeMode(analyzeMode === "text" ? null : "text"); setAnalyzedResult(""); }}
+            className={`flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${analyzeMode === "text" ? "border-[#10b981]/50 bg-[#10b981]/10" : "border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05]"}`}
+          >
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${analyzeMode === "text" ? "bg-[#10b981]/20" : "bg-white/[0.05]"}`}>
+              <FileUp className="w-4 h-4 text-[#10b981]" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/80">Pegar texto</p>
+              <p className="text-[11px] text-white/40">Copia y pega info de tu negocio</p>
+            </div>
+          </button>
+          <button
+            data-testid="button-analyze-url-mode"
+            onClick={() => { setAnalyzeMode(analyzeMode === "url" ? null : "url"); setAnalyzedResult(""); }}
+            className={`flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${analyzeMode === "url" ? "border-[#10b981]/50 bg-[#10b981]/10" : "border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05]"}`}
+          >
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${analyzeMode === "url" ? "bg-[#10b981]/20" : "bg-white/[0.05]"}`}>
+              <Globe className="w-4 h-4 text-[#10b981]" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/80">Analizar sitio web</p>
+              <p className="text-[11px] text-white/40">Extrae info desde tu pagina</p>
+            </div>
+          </button>
+        </div>
+
+        {analyzeMode === "text" && (
+          <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <Textarea
+              data-testid="textarea-raw-text"
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              placeholder="Pega aqui toda la informacion de tu negocio (copiada de tu web, documentos, redes sociales, etc.)... La IA la organizara automaticamente."
+              className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[200px] text-sm"
+              rows={10}
+            />
+            <Button
+              data-testid="button-analyze-text"
+              onClick={handleAnalyzeText}
+              disabled={analyzing || !rawText.trim()}
+              className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
+            >
+              {analyzing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+              {analyzing ? "Analizando con IA..." : "Analizar y organizar"}
+            </Button>
+          </div>
+        )}
+
+        {analyzeMode === "url" && (
+          <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex gap-2">
+              <Input
+                data-testid="input-scrape-url"
+                value={scrapeUrl}
+                onChange={(e) => setScrapeUrl(e.target.value)}
+                placeholder="https://tusitio.com"
+                className="bg-white/[0.04] border-white/[0.08] flex-1"
+              />
+              <Button
+                data-testid="button-analyze-url"
+                onClick={handleAnalyzeUrl}
+                disabled={analyzing || !scrapeUrl.trim()}
+                className="bg-[#10b981] border-[#10b981]"
+              >
+                {analyzing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Globe className="w-4 h-4 mr-1" />}
+                {analyzing ? "Analizando..." : "Analizar web"}
+              </Button>
+            </div>
+            <p className="text-[11px] text-white/30">La IA visitara tu pagina, extraera toda la informacion del negocio y la organizara automaticamente. Puede tardar hasta 30 segundos.</p>
+          </div>
+        )}
+
+        {analyzing && (
+          <div className="flex items-center gap-3 p-4 rounded-lg border border-[#10b981]/20 bg-[#10b981]/5">
+            <Loader2 className="w-5 h-5 text-[#10b981] animate-spin" />
+            <div>
+              <p className="text-sm text-white/70">Analizando con inteligencia artificial...</p>
+              <p className="text-[11px] text-white/40">Esto puede tardar unos segundos</p>
+            </div>
+          </div>
+        )}
+
+        {analyzedResult && (
+          <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-[#10b981]" />
+              <p className="text-sm font-medium text-white/80">Resultado del analisis</p>
+            </div>
+            <div className="rounded-lg border border-[#10b981]/20 bg-black/20 p-3 max-h-[300px] overflow-y-auto chat-scrollbar">
+              <pre className="text-xs text-white/70 whitespace-pre-wrap font-mono">{analyzedResult}</pre>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                data-testid="button-apply-replace"
+                onClick={applyReplace}
+                className="bg-[#10b981] border-[#10b981]"
+              >
+                <Replace className="w-4 h-4 mr-1" />
+                Reemplazar todo
+              </Button>
+              <Button
+                data-testid="button-apply-append"
+                onClick={applyAppend}
+                variant="outline"
+                className="border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" />
+                Agregar al final
+              </Button>
+              <Button
+                data-testid="button-discard-analysis"
+                onClick={() => { setAnalyzedResult(""); setAnalyzeMode(null); setRawText(""); setScrapeUrl(""); }}
+                variant="ghost"
+                className="text-white/40 hover:text-white/60"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Descartar
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-white/80">Informacion del negocio</label>
+          <label className="text-sm font-medium text-white/80">Informacion del negocio (editada por el bot)</label>
           <span className="text-[10px] text-white/30">{botContext.length} caracteres</span>
         </div>
         <Textarea
           data-testid="textarea-bot-context"
           value={botContext}
           onChange={(e) => setBotContext(e.target.value)}
-          placeholder={`Ejemplo:
-
-Somos [nombre de tu empresa], una tienda de [tipo de negocio] ubicada en [ubicacion].
-
-PRODUCTOS/SERVICIOS:
-- Producto 1: descripcion, precio
-- Producto 2: descripcion, precio
-
-METODOS DE PAGO:
-- Transferencia bancaria
-- Tarjeta de credito
-
-ENVIOS:
-- Envio gratis sobre $30.000
-- Despacho en 24-48 hrs
-
-POLITICAS:
-- Devolucion dentro de 7 dias
-- Garantia de 30 dias
-
-PREGUNTAS FRECUENTES:
-- ¿Como compro? Resp: ...
-- ¿Cuanto demora? Resp: ...`}
-          className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[350px] text-sm font-mono"
-          rows={20}
+          placeholder="Aqui aparecera la informacion organizada de tu negocio despues de usar el analisis con IA, o puedes escribirla manualmente..."
+          className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[300px] text-sm font-mono"
+          rows={18}
         />
 
         <Button
           data-testid="button-save-training"
           onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending}
+          disabled={saveMutation.isPending || !botContext.trim()}
           className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
         >
           {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}

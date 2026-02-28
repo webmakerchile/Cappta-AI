@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Bot,
   ChevronRight,
+  ChevronDown,
   Menu,
   X,
   Sparkles,
@@ -176,6 +177,104 @@ function StatsSection({ token }: { token: string }) {
           <p className="text-xs text-white/30 mt-0.5 relative">{stat.sub}</p>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PreviewFormBody({ consultationOptions, showProductSearch, productSearchLabel, widgetColor }: {
+  consultationOptions: { value: string; label: string }[];
+  showProductSearch: boolean;
+  productSearchLabel: string;
+  widgetColor: string;
+}) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [previewName, setPreviewName] = useState("");
+  const [previewEmail, setPreviewEmail] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [dropdownOpen]);
+
+  return (
+    <div className="flex flex-col gap-2.5 px-4 pb-3 flex-1 overflow-y-auto chat-scrollbar">
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Correo electronico</label>
+        <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
+          <input
+            type="text"
+            value={previewEmail}
+            onChange={(e) => setPreviewEmail(e.target.value)}
+            placeholder="tu@correo.com"
+            className="w-full bg-transparent text-[11px] text-white/80 placeholder:text-white/25 outline-none"
+            data-testid="input-preview-email"
+          />
+        </div>
+      </div>
+      {consultationOptions.length > 0 && (
+        <div className="flex flex-col gap-1 relative" ref={dropdownRef}>
+          <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Tipo de consulta</label>
+          <div
+            className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3 cursor-pointer hover:bg-white/[0.08] transition-colors"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            data-testid="button-preview-consultation-dropdown"
+          >
+            <span className={`text-[11px] flex-1 ${selectedOption ? "text-white/80" : "text-white/25"}`}>
+              {selectedOption || "Selecciona una opcion"}
+            </span>
+            <ChevronDown className={`w-3 h-3 text-white/30 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+          </div>
+          {dropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-[#2a2a2a] border border-white/15 rounded-md shadow-xl z-10 max-h-32 overflow-y-auto chat-scrollbar">
+              {consultationOptions.map((opt) => (
+                <div
+                  key={opt.value}
+                  className="px-3 py-2 text-[11px] text-white/70 hover:bg-white/10 cursor-pointer transition-colors"
+                  onClick={() => { setSelectedOption(opt.label); setDropdownOpen(false); }}
+                  data-testid={`option-preview-${opt.value}`}
+                >
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {showProductSearch && (
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">{productSearchLabel || "Buscar producto"}</label>
+          <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
+            <Search className="w-3 h-3 text-white/20 mr-1.5 flex-shrink-0" />
+            <span className="text-[11px] text-white/25">{productSearchLabel || "Buscar producto..."}</span>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Tu nombre</label>
+        <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
+          <input
+            type="text"
+            value={previewName}
+            onChange={(e) => setPreviewName(e.target.value)}
+            placeholder="Nombre"
+            className="w-full bg-transparent text-[11px] text-white/80 placeholder:text-white/25 outline-none"
+            data-testid="input-preview-name"
+          />
+        </div>
+      </div>
+      <div className="flex-1 min-h-2" />
+      <div className="h-9 rounded-md flex items-center justify-center gap-1.5 text-white text-sm font-medium shrink-0 cursor-pointer hover:opacity-90 transition-opacity" style={{ backgroundColor: widgetColor }}>
+        Iniciar Chat
+        <ArrowRight className="w-3.5 h-3.5" />
+      </div>
     </div>
   );
 }
@@ -626,42 +725,12 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     <h2 className="text-sm font-bold text-white mb-0.5 text-center">{welcomeMessage || "Hola, ¿en que podemos ayudarte?"}</h2>
                     <p className="text-[10px] text-white/50 text-center">{welcomeSubtitle || "Completa tus datos para iniciar la conversacion"}</p>
                   </div>
-                  <div className="flex flex-col gap-2.5 px-4 pb-3 flex-1 overflow-y-auto chat-scrollbar">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Correo electronico</label>
-                      <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
-                        <span className="text-[11px] text-white/25">tu@correo.com</span>
-                      </div>
-                    </div>
-                    {consultationOptions.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Tipo de consulta</label>
-                        <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
-                          <span className="text-[11px] text-white/25">Selecciona una opcion</span>
-                        </div>
-                      </div>
-                    )}
-                    {showProductSearch && productApiUrl.trim() && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">{productSearchLabel || "Buscar producto"}</label>
-                        <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
-                          <Search className="w-3 h-3 text-white/20 mr-1.5 flex-shrink-0" />
-                          <span className="text-[11px] text-white/25">{productSearchLabel || "Buscar producto..."}</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Tu nombre</label>
-                      <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
-                        <span className="text-[11px] text-white/25">Nombre</span>
-                      </div>
-                    </div>
-                    <div className="flex-1 min-h-2" />
-                    <div className="h-9 rounded-md flex items-center justify-center gap-1.5 text-white text-sm font-medium shrink-0" style={{ backgroundColor: widgetColor }}>
-                      Iniciar Chat
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+                  <PreviewFormBody
+                    consultationOptions={consultationOptions}
+                    showProductSearch={showProductSearch}
+                    productSearchLabel={productSearchLabel}
+                    widgetColor={widgetColor}
+                  />
                 </div>
               ) : (
                 <div className="flex flex-col h-full" style={{ background: "#1a1a1a" }}>
