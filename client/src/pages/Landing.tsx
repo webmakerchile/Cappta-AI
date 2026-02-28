@@ -151,7 +151,27 @@ const pricingPlans = [
   },
 ];
 
-const brandThemes = [
+interface HeroMessage {
+  sender: "user" | "bot";
+  text: string;
+  product?: { name: string; price: string; tag?: string };
+  quickReplies?: string[];
+}
+
+const brandThemes: {
+  name: string;
+  headerBg: string;
+  userBubble: string;
+  accent: string;
+  accentGlow: string;
+  statusColor: string;
+  statusBorder: string;
+  subtitleColor: string;
+  sendBg: string;
+  sendIcon: string;
+  label: string;
+  messages: HeroMessage[];
+}[] = [
   {
     name: "TechStore",
     headerBg: "linear-gradient(135deg, hsl(142, 72%, 29%) 0%, hsl(150, 60%, 22%) 100%)",
@@ -166,9 +186,9 @@ const brandThemes = [
     label: "Verde",
     messages: [
       { sender: "user", text: "Hola, tienen el iPhone 15 Pro disponible?" },
-      { sender: "bot", text: "Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro. Desde $999.990 CLP. Te envio el link?" },
+      { sender: "bot", text: "Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro.", product: { name: "iPhone 15 Pro", price: "$999.990", tag: "En stock" }, quickReplies: ["Ver colores", "Envio gratis?", "Comparar modelos"] },
       { sender: "user", text: "Si, el Titanio Azul por favor" },
-      { sender: "bot", text: "Aqui tienes! tienda.cl/iphone15pro-azul. Envio gratis en compras sobre $500.000. Algo mas?" },
+      { sender: "bot", text: "Envio gratis en compras sobre $500.000. Te envio el link de pago?", quickReplies: ["Si, enviar link", "Agregar funda"] },
     ],
   },
   {
@@ -185,9 +205,9 @@ const brandThemes = [
     label: "Naranja",
     messages: [
       { sender: "user", text: "Hola! Tienen delivery disponible?" },
-      { sender: "bot", text: "Si! Hacemos delivery de Lunes a Sabado de 12:00 a 22:00. Envio gratis sobre $15.000. Quieres ver el menu?" },
+      { sender: "bot", text: "Si! Hacemos delivery de Lunes a Sabado de 12:00 a 22:00. Envio gratis sobre $15.000.", quickReplies: ["Ver menu", "Hacer pedido", "Horarios"] },
       { sender: "user", text: "Si, quiero empanadas y cazuela" },
-      { sender: "bot", text: "Excelente! Empanadas $2.500 c/u y Cazuela $9.990. Total con delivery gratis: $14.990. Confirmo tu pedido?" },
+      { sender: "bot", text: "Excelente eleccion!", product: { name: "Combo Criollo", price: "$14.990", tag: "Delivery gratis" }, quickReplies: ["Confirmar pedido", "Agregar postre"] },
     ],
   },
   {
@@ -204,9 +224,9 @@ const brandThemes = [
     label: "Azul",
     messages: [
       { sender: "user", text: "Quiero agendar un blanqueamiento dental" },
-      { sender: "bot", text: "Con gusto! Nuestro blanqueamiento tiene un valor de $89.990. Tenemos horas disponibles esta semana. Que dia te acomoda?" },
+      { sender: "bot", text: "Con gusto! Nuestro blanqueamiento tiene un valor de $89.990.", product: { name: "Blanqueamiento LED", price: "$89.990", tag: "Horas disponibles" }, quickReplies: ["Agendar hora", "Ver otros tratamientos"] },
       { sender: "user", text: "El viernes en la tarde" },
-      { sender: "bot", text: "Perfecto! Te agendo para el Viernes a las 16:00. Recuerda que la primera evaluacion es gratuita. Te envio confirmacion por email?" },
+      { sender: "bot", text: "Perfecto! Te agendo para el Viernes a las 16:00. La primera evaluacion es gratuita.", quickReplies: ["Confirmar", "Cambiar hora", "Hablar con recepcion"] },
     ],
   },
   {
@@ -223,9 +243,9 @@ const brandThemes = [
     label: "Morado",
     messages: [
       { sender: "user", text: "Hola! Busco zapatillas talla 42" },
-      { sender: "bot", text: "Tenemos varias opciones en talla 42! Zapatillas urbanas desde $39.990 y deportivas desde $54.990. Te muestro las mas vendidas?" },
+      { sender: "bot", text: "Tenemos varias opciones en talla 42!", product: { name: "Nike Air Force 1", price: "$59.990", tag: "Mas vendido" }, quickReplies: ["Ver mas modelos", "Solo urbanas", "Ofertas"] },
       { sender: "user", text: "Si, las urbanas por favor" },
-      { sender: "bot", text: "Estas son top: Nike Air Force $59.990, Adidas Stan Smith $54.990. Envio gratis sobre $40.000. Quieres agregar algo al carrito?" },
+      { sender: "bot", text: "Envio gratis sobre $40.000. Quieres agregar algo al carrito?", quickReplies: ["Agregar al carrito", "Seguir viendo", "Hablar con vendedor"] },
     ],
   },
 ];
@@ -826,7 +846,7 @@ function AnimatedChat() {
           </div>
           <div className="relative p-4 space-y-3 min-h-[220px]">
             {theme.messages.slice(0, visibleMessages).map((msg, i) => (
-              <div key={`${themeIndex}-${i}`} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`} style={{ animation: "count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+              <div key={`${themeIndex}-${i}`} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`} style={{ animation: "count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
                 <div className={`max-w-[82%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.sender === "user" ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-white/90"}`} style={{ background: msg.sender === "user" ? theme.userBubble : "rgba(255,255,255,0.07)" }}>
                   {msg.sender === "bot" && (
                     <div className="flex items-center gap-1 mb-1">
@@ -835,7 +855,30 @@ function AnimatedChat() {
                     </div>
                   )}
                   {msg.text}
+                  {msg.product && (
+                    <div className="mt-2 rounded-xl border border-white/[0.08] overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                      <div className="px-3 py-2 flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <ShoppingBag className="w-3 h-3 flex-shrink-0" style={{ color: theme.accent }} />
+                            <span className="text-[11px] font-semibold text-white/90 truncate">{msg.product.name}</span>
+                          </div>
+                          <span className="text-[12px] font-bold mt-0.5 block" style={{ color: theme.accent }}>{msg.product.price}</span>
+                        </div>
+                        {msg.product.tag && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium ml-2 whitespace-nowrap" style={{ background: `${theme.accent}20`, color: theme.accent }}>{msg.product.tag}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
+                {msg.quickReplies && i === visibleMessages - 1 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5 max-w-[90%]" style={{ animation: "count-fade 0.3s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards", opacity: 0 }}>
+                    {msg.quickReplies.map((qr) => (
+                      <span key={qr} className="text-[10px] px-2.5 py-1 rounded-full border cursor-default" style={{ borderColor: `${theme.accent}40`, color: theme.accent, background: `${theme.accent}0a` }}>{qr}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             {visibleMessages < theme.messages.length && (
@@ -850,12 +893,26 @@ function AnimatedChat() {
               </div>
             )}
           </div>
-          <div className="relative px-4 pb-3.5">
-            <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-2.5">
-              <span className="text-white/25 text-sm flex-1">Escribe un mensaje...</span>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: theme.sendBg, transition: "background-color 0.6s" }}>
-                <Send className="w-4 h-4" style={{ color: theme.sendIcon, transition: "color 0.6s" }} />
+          <div className="relative px-4 pb-3.5 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-7 h-7 rounded-full bg-white/[0.05] flex items-center justify-center" style={{ transition: "all 0.6s" }}>
+                <ImagePlus className="w-3.5 h-3.5 text-white/25" />
               </div>
+              <div className="w-7 h-7 rounded-full bg-white/[0.05] flex items-center justify-center" style={{ transition: "all 0.6s" }}>
+                <ShoppingBag className="w-3.5 h-3.5" style={{ color: `${theme.accent}60`, transition: "color 0.6s" }} />
+              </div>
+              <div className="flex-1 flex items-center bg-white/[0.04] border border-white/[0.08] rounded-2xl px-3 py-2">
+                <span className="text-white/25 text-[12px] flex-1">Escribe un mensaje...</span>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.sendBg, transition: "background-color 0.6s" }}>
+                  <Send className="w-3.5 h-3.5" style={{ color: theme.sendIcon, transition: "color 0.6s" }} />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <span className="text-[9px] px-2 py-0.5 rounded-full border border-white/[0.06] text-white/20 flex items-center gap-1">
+                <UserRound className="w-2.5 h-2.5" />
+                Contactar ejecutivo
+              </span>
             </div>
           </div>
         </div>
