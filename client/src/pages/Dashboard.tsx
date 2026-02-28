@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
+import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
@@ -1190,11 +1191,53 @@ function ConversationsSection({ token }: { token: string }) {
   );
 }
 
+interface PlatformGuide {
+  id: string;
+  name: string;
+  icon: any;
+  color: string;
+  difficulty: "facil" | "medio";
+  steps: { title: string; description: string; code?: string; note?: string }[];
+}
+
 function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const [copied, setCopied] = useState<string | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpName, setHelpName] = useState("");
+  const [helpEmail, setHelpEmail] = useState("");
+  const [helpMessage, setHelpMessage] = useState("");
+  const [helpSent, setHelpSent] = useState(false);
+  const { toast } = useToast();
   const isConfigured = tenant.botConfigured === 1;
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  const embedScript = `<script>
+  (function() {
+    var iframe = document.createElement('iframe');
+    iframe.id = 'foxbot-widget';
+    iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
+    iframe.allow = 'microphone';
+    iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+    document.body.appendChild(iframe);
+    window.addEventListener('message', function(e) {
+      if (!e.data || !e.data.type) return;
+      if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
+        var mobile = window.innerWidth <= 480;
+        if (e.data.type === 'open_chat') {
+          if (mobile) {
+            iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+          } else {
+            iframe.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+          }
+        } else {
+          iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+        }
+      }
+    });
+  })();
+</script>`;
 
   const iframeCode = `<iframe
   id="foxbot-widget"
@@ -1221,31 +1264,102 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   });
 </script>`;
 
-  const scriptCode = `<script>
-  (function() {
-    var iframe = document.createElement('iframe');
-    iframe.id = 'foxbot-widget';
-    iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
-    iframe.allow = 'microphone';
-    iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
-    document.body.appendChild(iframe);
-    window.addEventListener('message', function(e) {
-      if (!e.data || !e.data.type) return;
-      if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
-        var mobile = window.innerWidth <= 480;
-        if (e.data.type === 'open_chat') {
-          if (mobile) {
-            iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
-          } else {
-            iframe.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
-          }
-        } else {
-          iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
-        }
-      }
-    });
-  })();
-</script>`;
+  const platforms: PlatformGuide[] = [
+    {
+      id: "wordpress", name: "WordPress", icon: SiWordpress, color: "#21759b", difficulty: "facil",
+      steps: [
+        { title: "Accede a tu panel de WordPress", description: "Ingresa a tu administrador de WordPress (tu-sitio.com/wp-admin)." },
+        { title: "Ve a Apariencia > Editor de temas", description: "En el menu lateral, navega a Apariencia > Editor de temas. Si prefieres no editar archivos, instala el plugin gratuito 'WPCode' o 'Insert Headers and Footers'.", note: "Con WPCode: Ve a Code Snippets > Header & Footer > pega el codigo en el campo 'Footer'." },
+        { title: "Abre el archivo footer.php", description: "En el editor de temas, selecciona footer.php de la lista de archivos del tema." },
+        { title: "Pega el codigo antes de </body>", description: "Agrega el siguiente codigo justo antes de la etiqueta </body>:", code: embedScript },
+        { title: "Guarda los cambios", description: "Haz clic en 'Actualizar archivo'. El chatbot aparecera automaticamente en todas las paginas de tu sitio." },
+      ],
+    },
+    {
+      id: "woocommerce", name: "WooCommerce", icon: SiWoocommerce, color: "#96588a", difficulty: "facil",
+      steps: [
+        { title: "Mismos pasos que WordPress", description: "WooCommerce funciona sobre WordPress, asi que el proceso es identico. Sigue los pasos de WordPress." },
+        { title: "Pega el codigo en footer.php", description: "Ve a Apariencia > Editor de temas > footer.php y pega este codigo antes de </body>:", code: embedScript },
+        { title: "Conecta tu catalogo (opcional)", description: "Para que el bot muestre tus productos, activa el buscador de productos en Configuracion > API de Productos e ingresa tu URL de WooCommerce REST API.", note: "Formato de URL: https://tu-tienda.com/wp-json/wc/v3/products" },
+      ],
+    },
+    {
+      id: "shopify", name: "Shopify", icon: SiShopify, color: "#95bf47", difficulty: "facil",
+      steps: [
+        { title: "Ve a tu panel de Shopify", description: "Ingresa a tu administrador en tu-tienda.myshopify.com/admin." },
+        { title: "Abre el editor de temas", description: "Ve a Tienda Online > Temas > haz clic en '...' junto a tu tema activo > Editar codigo." },
+        { title: "Abre theme.liquid", description: "En el editor de codigo, busca y abre Layout > theme.liquid." },
+        { title: "Pega el codigo antes de </body>", description: "Busca la etiqueta </body> y pega este codigo justo antes:", code: embedScript },
+        { title: "Guarda", description: "Haz clic en 'Guardar'. El chatbot aparecera en tu tienda inmediatamente." },
+      ],
+    },
+    {
+      id: "squarespace", name: "Squarespace", icon: SiSquarespace, color: "#ffffff", difficulty: "facil",
+      steps: [
+        { title: "Accede a tu panel", description: "Ingresa a tu cuenta de Squarespace." },
+        { title: "Ve a Configuracion > Avanzado", description: "Navega a Configuracion > Avanzado > Inyeccion de codigo." },
+        { title: "Pega en el campo 'Footer'", description: "En la seccion Footer, pega el siguiente codigo:", code: embedScript },
+        { title: "Guarda", description: "Haz clic en 'Guardar'. El chatbot estara en todas las paginas.", note: "Requiere plan Business o superior de Squarespace." },
+      ],
+    },
+    {
+      id: "wix", name: "Wix", icon: SiWix, color: "#0c6efc", difficulty: "facil",
+      steps: [
+        { title: "Abre el editor de Wix", description: "Ingresa a tu sitio en Wix y abre el editor." },
+        { title: "Agrega un bloque HTML", description: "Haz clic en Agregar (+) > Embeds > HTML embebido. Arrastralo a cualquier parte." },
+        { title: "Pega el codigo", description: "Haz clic en 'Introducir codigo' y pega lo siguiente:", code: embedScript },
+        { title: "Publica", description: "Haz clic en 'Publicar'. El chatbot aparecera en tu sitio en vivo." },
+      ],
+    },
+    {
+      id: "webflow", name: "Webflow", icon: SiWebflow, color: "#4353ff", difficulty: "facil",
+      steps: [
+        { title: "Abre la configuracion del proyecto", description: "En tu dashboard de Webflow, abre la configuracion de tu proyecto." },
+        { title: "Ve a Custom Code", description: "Navega a la pestana 'Custom Code'." },
+        { title: "Pega en Footer Code", description: "En el campo 'Footer Code', pega el siguiente codigo:", code: embedScript },
+        { title: "Publica", description: "Haz clic en 'Publish'. El chatbot aparecera en tu sitio." },
+      ],
+    },
+    {
+      id: "magento", name: "Magento", icon: SiMagento, color: "#f46f25", difficulty: "medio",
+      steps: [
+        { title: "Accede al panel de administracion", description: "Ve a Content > Design > Configuration en tu panel de Magento." },
+        { title: "Edita el tema", description: "Selecciona tu Store View > Edit > seccion HTML Head o Footer." },
+        { title: "Pega el script", description: "Pega este codigo en 'Miscellaneous Scripts':", code: embedScript },
+        { title: "Limpia la cache", description: "Ve a System > Cache Management y limpia la cache." },
+      ],
+    },
+    {
+      id: "html", name: "HTML / Cualquier web", icon: SiHtml5, color: "#e34f26", difficulty: "facil",
+      steps: [
+        { title: "Abre tu archivo HTML", description: "Abre el archivo principal de tu sitio web (generalmente index.html)." },
+        { title: "Pega antes de </body>", description: "Agrega el siguiente codigo justo antes de la etiqueta de cierre </body>:", code: embedScript },
+        { title: "Sube los cambios", description: "Guarda el archivo y subelo a tu servidor. El chatbot aparecera automaticamente." },
+      ],
+    },
+    {
+      id: "gtm", name: "Google Tag Manager", icon: SiGoogletagmanager, color: "#4285f4", difficulty: "medio",
+      steps: [
+        { title: "Abre Google Tag Manager", description: "Ingresa a tagmanager.google.com y selecciona tu contenedor." },
+        { title: "Crea una nueva etiqueta", description: "Haz clic en 'Etiquetas' > 'Nueva' > tipo 'HTML personalizado'." },
+        { title: "Pega el codigo", description: "En el campo de HTML, pega lo siguiente:", code: embedScript },
+        { title: "Configura el activador", description: "En 'Activacion', selecciona 'All Pages' (Todas las paginas)." },
+        { title: "Publica", description: "Haz clic en 'Enviar' para publicar los cambios." },
+      ],
+    },
+    {
+      id: "prestashop", name: "PrestaShop", icon: Code, color: "#df0067", difficulty: "medio",
+      steps: [
+        { title: "Accede al back office", description: "Ingresa a tu panel de administracion de PrestaShop." },
+        { title: "Ve a Diseno > Posiciones", description: "Navega a Diseno > Posiciones de modulos." },
+        { title: "Agrega un modulo HTML", description: "Usa el modulo 'HTML personalizado' y ancla a la posicion 'displayFooter'." },
+        { title: "Pega el codigo", description: "En el contenido del modulo, pega:", code: embedScript },
+        { title: "Guarda", description: "Guarda los cambios. El chatbot aparecera en tu tienda." },
+      ],
+    },
+  ];
+
+  const selectedGuide = platforms.find(p => p.id === selectedPlatform);
 
   const handleCopy = (code: string, type: string) => {
     navigator.clipboard.writeText(code);
@@ -1271,63 +1385,291 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   }
 
   return (
-    <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
-      <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04), transparent 60%)", animationDelay: "-7s" }} />
+    <div className="space-y-6">
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04), transparent 60%)", animationDelay: "-7s" }} />
 
-      <div className="relative flex items-start justify-between">
+        <div className="relative flex items-start justify-between">
+          <div>
+            <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Instala tu chatbot</h3>
+            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Selecciona donde quieres instalar FoxBot y sigue las instrucciones</p>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+            <CircleCheck className="w-4 h-4 text-green-400" />
+            <span className="text-xs text-green-400">Bot configurado</span>
+          </div>
+        </div>
+
         <div>
-          <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Codigo de Integracion</h3>
-          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Copia y pega este codigo en tu sitio web</p>
+          <p className="text-xs font-medium text-white/50 uppercase tracking-wider mb-3">Selecciona tu plataforma</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {platforms.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPlatform(selectedPlatform === p.id ? null : p.id)}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 ${
+                  selectedPlatform === p.id
+                    ? "border-primary/50 bg-primary/10 ring-1 ring-primary/20"
+                    : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
+                }`}
+                data-testid={`button-platform-${p.id}`}
+              >
+                <p.icon className="w-5 h-5" style={{ color: p.color }} />
+                <span className="text-[11px] font-medium text-white/70">{p.name}</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${p.difficulty === "facil" ? "bg-green-500/10 text-green-400" : "bg-amber-500/10 text-amber-400"}`}>
+                  {p.difficulty === "facil" ? "Facil" : "Intermedio"}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
-          <CircleCheck className="w-4 h-4 text-green-400" />
-          <span className="text-xs text-green-400">Bot configurado</span>
-        </div>
+
+        {selectedGuide && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+              <selectedGuide.icon className="w-5 h-5" style={{ color: selectedGuide.color }} />
+              <h4 className="text-base font-bold text-white/90">Instrucciones para {selectedGuide.name}</h4>
+            </div>
+            <div className="space-y-4">
+              {selectedGuide.steps.map((step, i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="w-7 h-7 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-xs font-bold text-primary">
+                      {i + 1}
+                    </div>
+                    {i < selectedGuide.steps.length - 1 && (
+                      <div className="w-px flex-1 bg-white/[0.06] mt-1" />
+                    )}
+                  </div>
+                  <div className="flex-1 pb-4">
+                    <p className="text-sm font-semibold text-white/80 mb-1">{step.title}</p>
+                    <p className="text-xs text-white/50 leading-relaxed">{step.description}</p>
+                    {step.note && (
+                      <div className="mt-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/15">
+                        <p className="text-[11px] text-amber-300/80 flex items-start gap-1.5">
+                          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+                          {step.note}
+                        </p>
+                      </div>
+                    )}
+                    {step.code && (
+                      <div className="mt-3 space-y-2">
+                        <pre className="rounded-lg bg-black/30 border border-white/[0.06] p-3 text-[11px] overflow-x-auto text-white/50 font-mono max-h-48 overflow-y-auto chat-scrollbar">
+                          <code>{step.code}</code>
+                        </pre>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopy(step.code!, `step-${i}`)}
+                          className="rounded-lg border-white/[0.08] hover:border-primary/30 text-xs h-8"
+                          data-testid={`button-copy-step-${i}`}
+                        >
+                          {copied === `step-${i}` ? <Check className="mr-1.5 h-3 w-3 text-primary" /> : <Copy className="mr-1.5 h-3 w-3" />}
+                          {copied === `step-${i}` ? "Copiado!" : "Copiar codigo"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 flex items-start gap-3">
+              <CircleCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-white/70 mb-0.5">Listo!</p>
+                <p className="text-xs text-white/40">Despues de seguir estos pasos, el chatbot aparecera automaticamente en la esquina inferior derecha de tu sitio web. Se adapta a cualquier pantalla (desktop y movil).</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!selectedPlatform && (
+          <div className="space-y-4">
+            <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5 text-center space-y-2">
+              <Code className="w-8 h-8 text-white/20 mx-auto" />
+              <p className="text-sm text-white/50">Selecciona una plataforma para ver las instrucciones paso a paso</p>
+              <p className="text-xs text-white/30">O copia directamente el codigo de integracion de abajo</p>
+            </div>
+
+            <Tabs defaultValue="script" className="relative">
+              <TabsList className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-1">
+                <TabsTrigger value="script" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-200 text-xs" data-testid="tab-script">Script (recomendado)</TabsTrigger>
+                <TabsTrigger value="iframe" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-200 text-xs" data-testid="tab-iframe">iFrame</TabsTrigger>
+              </TabsList>
+              <TabsContent value="script" className="space-y-3 mt-3">
+                <pre className="rounded-lg bg-black/30 border border-white/[0.06] p-3 text-[11px] overflow-x-auto text-white/50 font-mono max-h-48 overflow-y-auto chat-scrollbar" data-testid="text-script-code">
+                  <code>{embedScript}</code>
+                </pre>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopy(embedScript, "script")}
+                  className="rounded-lg border-white/[0.08] hover:border-primary/30 text-xs h-8"
+                  data-testid="button-copy-script"
+                >
+                  {copied === "script" ? <Check className="mr-1.5 h-3 w-3 text-primary" /> : <Copy className="mr-1.5 h-3 w-3" />}
+                  {copied === "script" ? "Copiado!" : "Copiar codigo"}
+                </Button>
+              </TabsContent>
+              <TabsContent value="iframe" className="space-y-3 mt-3">
+                <pre className="rounded-lg bg-black/30 border border-white/[0.06] p-3 text-[11px] overflow-x-auto text-white/50 font-mono max-h-48 overflow-y-auto chat-scrollbar" data-testid="text-iframe-code">
+                  <code>{iframeCode}</code>
+                </pre>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopy(iframeCode, "iframe")}
+                  className="rounded-lg border-white/[0.08] hover:border-primary/30 text-xs h-8"
+                  data-testid="button-copy-iframe"
+                >
+                  {copied === "iframe" ? <Check className="mr-1.5 h-3 w-3 text-primary" /> : <Copy className="mr-1.5 h-3 w-3" />}
+                  {copied === "iframe" ? "Copiado!" : "Copiar codigo"}
+                </Button>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="iframe" className="relative">
-        <TabsList className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-1 animate-dash-fade-up dash-stagger-1">
-          <TabsTrigger value="iframe" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-200" data-testid="tab-iframe">iFrame</TabsTrigger>
-          <TabsTrigger value="script" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-200" data-testid="tab-script">Script</TabsTrigger>
-        </TabsList>
-        <TabsContent value="iframe" className="space-y-4 mt-4 animate-dash-fade-up">
-          <pre className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 text-xs overflow-x-auto text-white/60 font-mono transition-all duration-300 hover:border-primary/20 hover:bg-white/[0.04]" data-testid="text-iframe-code">
-            <code>{iframeCode}</code>
-          </pre>
+      <div className="rounded-2xl glass-card p-6 space-y-4 animate-dash-fade-up">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Headphones className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white/80">Necesitas ayuda?</h4>
+              <p className="text-[11px] text-white/40">Nuestro equipo te guia en la instalacion</p>
+            </div>
+          </div>
           <Button
             variant="outline"
-            onClick={() => handleCopy(iframeCode, "iframe")}
-            className="rounded-xl border-white/[0.08] hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 hover:scale-[1.02]"
-            data-testid="button-copy-iframe"
+            size="sm"
+            onClick={() => setShowHelp(!showHelp)}
+            className="rounded-lg border-white/[0.08] hover:border-primary/30 text-xs"
+            data-testid="button-toggle-help"
           >
-            {copied === "iframe" ? <Check className="mr-2 h-4 w-4 text-primary animate-icon-pop" /> : <Copy className="mr-2 h-4 w-4" />}
-            {copied === "iframe" ? "Copiado!" : "Copiar codigo"}
+            {showHelp ? "Cerrar" : "Pedir ayuda"}
           </Button>
-        </TabsContent>
-        <TabsContent value="script" className="space-y-4 mt-4 animate-dash-fade-up">
-          <pre className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 text-xs overflow-x-auto text-white/60 font-mono transition-all duration-300 hover:border-primary/20 hover:bg-white/[0.04]" data-testid="text-script-code">
-            <code>{scriptCode}</code>
-          </pre>
-          <Button
-            variant="outline"
-            onClick={() => handleCopy(scriptCode, "script")}
-            className="rounded-xl border-white/[0.08] hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 hover:scale-[1.02]"
-            data-testid="button-copy-script"
-          >
-            {copied === "script" ? <Check className="mr-2 h-4 w-4 text-primary animate-icon-pop" /> : <Copy className="mr-2 h-4 w-4" />}
-            {copied === "script" ? "Copiado!" : "Copiar codigo"}
-          </Button>
-        </TabsContent>
-      </Tabs>
+        </div>
 
-      <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 flex items-start gap-3 animate-dash-fade-up dash-stagger-3 transition-all duration-300 hover:bg-primary/8 hover:border-primary/20 group">
-        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-          <Bot className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-white/70 mb-1">Compatible con cualquier plataforma</p>
-          <p className="text-xs text-white/40">WordPress, WooCommerce, Shopify, Magento, o cualquier sitio web que permita HTML personalizado.</p>
-        </div>
+        {showHelp && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <a
+                href="https://wa.me/56962530976?text=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-green-500/5 hover:border-green-500/20 transition-all group"
+                data-testid="link-whatsapp-help"
+              >
+                <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-4 h-4 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-white/70">WhatsApp</p>
+                  <p className="text-[10px] text-white/40">Respuesta rapida</p>
+                </div>
+              </a>
+
+              <a
+                href="mailto:contacto@webmakerchile.cl?subject=Ayuda%20instalacion%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
+                className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group"
+                data-testid="link-email-help"
+              >
+                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Send className="w-4 h-4 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-white/70">Correo</p>
+                  <p className="text-[10px] text-white/40">contacto@webmakerchile.cl</p>
+                </div>
+              </a>
+
+              <a
+                href="https://www.webmakerchile.cl"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-orange-500/5 hover:border-orange-500/20 transition-all group"
+                data-testid="link-website-help"
+              >
+                <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Bot className="w-4 h-4 text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-white/70">Web Maker Chile</p>
+                  <p className="text-[10px] text-white/40">webmakerchile.cl</p>
+                </div>
+              </a>
+            </div>
+
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+              <p className="text-xs font-medium text-white/60">Enviar solicitud de ayuda</p>
+              {helpSent ? (
+                <div className="text-center py-4 space-y-2">
+                  <CircleCheck className="w-8 h-8 text-primary mx-auto" />
+                  <p className="text-sm font-medium text-white/70">Solicitud enviada!</p>
+                  <p className="text-xs text-white/40">Un ejecutivo se contactara contigo para guiarte en la instalacion.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input
+                      value={helpName}
+                      onChange={(e) => setHelpName(e.target.value)}
+                      placeholder="Tu nombre"
+                      className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
+                      data-testid="input-help-name"
+                    />
+                    <Input
+                      value={helpEmail}
+                      onChange={(e) => setHelpEmail(e.target.value)}
+                      placeholder="Tu correo electronico"
+                      className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
+                      data-testid="input-help-email"
+                    />
+                  </div>
+                  <Textarea
+                    value={helpMessage}
+                    onChange={(e) => setHelpMessage(e.target.value)}
+                    placeholder="Describe en que necesitas ayuda (ej: No se donde pegar el codigo en mi WordPress)..."
+                    className="bg-white/[0.04] border-white/[0.08] resize-none text-xs min-h-[80px]"
+                    rows={3}
+                    data-testid="textarea-help-message"
+                  />
+                  <Button
+                    onClick={async () => {
+                      if (!helpName.trim() || !helpEmail.trim()) {
+                        toast({ title: "Campos requeridos", description: "Ingresa tu nombre y correo", variant: "destructive" });
+                        return;
+                      }
+                      try {
+                        const token = localStorage.getItem("tenant_token");
+                        const res = await fetch("/api/tenant-panel/help-request", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                          body: JSON.stringify({ name: helpName, email: helpEmail, message: helpMessage }),
+                        });
+                        if (!res.ok) throw new Error("Error");
+                        setHelpSent(true);
+                        toast({ title: "Solicitud enviada", description: "Un ejecutivo se contactara contigo pronto" });
+                      } catch {
+                        toast({ title: "Error", description: "No se pudo enviar. Intenta por WhatsApp o correo.", variant: "destructive" });
+                      }
+                    }}
+                    className="bg-primary border-primary w-full sm:w-auto text-xs h-9"
+                    data-testid="button-send-help"
+                  >
+                    <Send className="w-3.5 h-3.5 mr-1.5" />
+                    Solicitar ayuda de un ejecutivo
+                  </Button>
+                  <p className="text-[10px] text-white/30">Si no puedes instalar el chatbot tu mismo, un ejecutivo de Web Maker Chile se contactara contigo para guiarte paso a paso.</p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

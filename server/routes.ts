@@ -2248,6 +2248,23 @@ Reglas:
     }
   });
 
+  app.post("/api/tenant-panel/help-request", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { name, email, message } = req.body;
+    if (!name || !email) {
+      return res.status(400).json({ message: "Nombre y correo son requeridos" });
+    }
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      console.log(`[help-request] Tenant: ${tenant?.companyName} (${auth.id}), Name: ${name}, Email: ${email}, Message: ${message || "Sin mensaje"}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[help-request] Error:", error.message);
+      res.status(500).json({ message: "Error al enviar solicitud" });
+    }
+  });
+
   app.get("/api/admin/tags", async (req, res) => {
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;
