@@ -342,8 +342,8 @@ function ChatWidget() {
       const isMobile = window.innerWidth <= 480;
       const payload = {
         type,
-        width: type === "open_chat" ? (isMobile ? "100%" : 400) : 70,
-        height: type === "open_chat" ? (isMobile ? "100%" : 620) : 70,
+        width: type === "open_chat" ? (isMobile ? "100%" : 400) : 80,
+        height: type === "open_chat" ? (isMobile ? "100%" : 620) : 80,
       };
       window.parent.postMessage(payload, "*");
     } catch {}
@@ -384,7 +384,7 @@ function ChatWidget() {
     return (
       <div className="w-full h-full flex items-end justify-end">
         <div className="p-2">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: widgetColor || "#6200EA" }}>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: widgetColor || "#10b981" }}>
             <MessageCircle className="w-6 h-6 text-white" />
           </div>
         </div>

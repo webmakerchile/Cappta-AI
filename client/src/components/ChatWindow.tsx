@@ -5,6 +5,14 @@ import type { Message, Session } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
 import { ProductSelector } from "@/components/ProductSelector";
 
+function hexToRgba(hex: string, alpha: number): string {
+  const cleaned = hex.replace("#", "");
+  const r = parseInt(cleaned.substring(0, 2), 16);
+  const g = parseInt(cleaned.substring(2, 4), 16);
+  const b = parseInt(cleaned.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 interface BrowseProduct {
   id: number;
   name: string;
@@ -71,7 +79,10 @@ function linkifyText(text: string): (string | JSX.Element)[] {
           target="_blank"
           rel="noopener noreferrer"
           data-testid={`message-link-${i}`}
-          className="text-[#BB86FC] underline break-all hover:text-[#E0B0FF]"
+          className="underline break-all"
+          style={{ color: "rgba(255,255,255,0.7)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.9)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
         >
           {part}
         </a>
@@ -85,7 +96,7 @@ function renderTextWithLinks(text: string) {
   return <>{linkifyText(text)}</>;
 }
 
-function highlightText(text: string, query: string) {
+function highlightText(text: string, query: string, brandColor: string) {
   if (!query || query.length < 2) return renderTextWithLinks(text);
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   const parts = text.split(regex);
@@ -93,7 +104,7 @@ function highlightText(text: string, query: string) {
     <>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <mark key={i} className="bg-[#6200EA]/50 text-white rounded-sm px-0.5">{part}</mark>
+          <mark key={i} className="text-white rounded-sm px-0.5" style={{ backgroundColor: hexToRgba(brandColor, 0.5) }}>{part}</mark>
         ) : (
           <span key={i}>{linkifyText(part)}</span>
         )
@@ -131,7 +142,7 @@ function parseQuickReplies(content: string): { text: string; buttons: QuickReply
   return { text: content, buttons: [] };
 }
 
-function RatingCard({ sessionId, userEmail, userName, onRatingComplete }: { sessionId: string; userEmail: string; userName: string; onRatingComplete?: () => void }) {
+function RatingCard({ sessionId, userEmail, userName, onRatingComplete, brandColor = "#10b981" }: { sessionId: string; userEmail: string; userName: string; onRatingComplete?: () => void; brandColor?: string }) {
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -182,7 +193,7 @@ function RatingCard({ sessionId, userEmail, userName, onRatingComplete }: { sess
 
   if (submitted) {
     return (
-      <div data-testid="rating-submitted" className="p-4 rounded-md bg-[#1e1e1e] border border-[#6200EA]/30">
+      <div data-testid="rating-submitted" className="p-4 rounded-md bg-[#1e1e1e]" style={{ borderWidth: 1, borderStyle: "solid", borderColor: hexToRgba(brandColor, 0.3) }}>
         <div className="flex items-center gap-2 mb-2">
           <CheckCircle className="w-5 h-5 text-green-400" />
           <span className="text-sm font-medium text-white">Gracias por tu calificacion</span>
@@ -205,7 +216,7 @@ function RatingCard({ sessionId, userEmail, userName, onRatingComplete }: { sess
   const displayRating = hoveredRating || selectedRating;
 
   return (
-    <div data-testid="rating-card" className="p-4 rounded-md bg-[#1e1e1e] border border-[#6200EA]/30">
+    <div data-testid="rating-card" className="p-4 rounded-md bg-[#1e1e1e]" style={{ borderWidth: 1, borderStyle: "solid", borderColor: hexToRgba(brandColor, 0.3) }}>
       <p className="text-sm font-medium text-white mb-3">¿Como fue tu experiencia?</p>
       <div className="flex items-center gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
@@ -232,13 +243,17 @@ function RatingCard({ sessionId, userEmail, userName, onRatingComplete }: { sess
         onChange={(e) => setComment(e.target.value)}
         placeholder="Deja un comentario (opcional)"
         rows={2}
-        className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/25 p-2.5 mb-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]"
+        className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/25 p-2.5 mb-3 resize-none focus:outline-none focus:ring-1"
+        style={{ "--tw-ring-color": brandColor, borderColor: undefined } as any}
+        onFocus={(e) => { e.currentTarget.style.borderColor = brandColor; (e.currentTarget.style as any)["--tw-ring-color"] = brandColor; }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = ""; }}
       />
       <Button
         data-testid="button-submit-rating"
         onClick={handleSubmit}
         disabled={selectedRating < 1 || submitting}
-        className="w-full bg-[#6200EA] text-white text-sm"
+        className="w-full text-white text-sm"
+        style={{ backgroundColor: brandColor }}
       >
         {submitting ? "Enviando..." : "Enviar calificacion"}
       </Button>
@@ -253,9 +268,10 @@ interface MessageBubbleProps {
   onQuickReply: (btn: QuickReplyButton) => void;
   onRatingComplete?: () => void;
   onImageClick?: (url: string) => void;
+  brandColor?: string;
 }
 
-const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick }: MessageBubbleProps) {
+const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick, brandColor = "#10b981" }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
@@ -283,11 +299,11 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
         data-testid={`message-bubble-${message.id}`}
         className="flex items-end gap-2 animate-fade-in flex-row"
       >
-        <div className="w-7 h-7 rounded-full bg-[#6200EA]/20 border border-[#6200EA]/30 flex items-center justify-center flex-shrink-0">
-          <Headphones className="w-3.5 h-3.5 text-[#6200EA]" />
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: hexToRgba(brandColor, 0.2), border: `1px solid ${hexToRgba(brandColor, 0.3)}` }}>
+          <Headphones className="w-3.5 h-3.5" style={{ color: brandColor }} />
         </div>
         <div className="flex flex-col gap-1.5 max-w-[80%]">
-          <RatingCard sessionId={sessionId} userEmail={userEmail} userName={uName} onRatingComplete={onRatingComplete} />
+          <RatingCard sessionId={sessionId} userEmail={userEmail} userName={uName} onRatingComplete={onRatingComplete} brandColor={brandColor} />
           <span className="text-[10px] text-white/30 text-left">
             {formatTime(message.timestamp)}
           </span>
@@ -319,11 +335,11 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border"
             style={{
-              backgroundColor: `${msgAdminName ? msgAdminColor : '#6200EA'}20`,
-              borderColor: `${msgAdminName ? msgAdminColor : '#6200EA'}30`,
+              backgroundColor: hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.12),
+              borderColor: hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.19),
             }}
           >
-            <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminName ? msgAdminColor : '#6200EA' }} />
+            <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminName ? msgAdminColor : brandColor }} />
           </div>
         )}
         <div className="flex flex-col gap-1.5 max-w-[80%]">
@@ -331,11 +347,11 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
             className={`
               rounded-md overflow-hidden
               ${isUser
-                ? "bg-[#6200EA] text-white rounded-br-none"
+                ? "text-white rounded-br-none"
                 : "bg-white/5 border border-white/10 text-white/90 rounded-bl-none"
               }
             `}
-            style={!isUser && msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined}
+            style={isUser ? { backgroundColor: brandColor } : ((!isUser && msgAdminName) ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : undefined)}
           >
             {hasImage && (
               (() => {
@@ -368,7 +384,7 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
             )}
             {!isImageOnly && (
               <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words whitespace-pre-line">
-                {searchQuery ? highlightText(displayText, searchQuery) : renderTextWithLinks(displayText)}
+                {searchQuery ? highlightText(displayText, searchQuery, brandColor) : renderTextWithLinks(displayText)}
               </div>
             )}
           </div>
@@ -382,7 +398,8 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
                     target="_blank"
                     rel="noopener noreferrer"
                     data-testid={`quick-reply-link-${i}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF] bg-[#6200EA] text-white shadow-[0_0_8px_rgba(98,0,234,0.4)] transition-opacity hover:opacity-90 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border-2 text-white transition-opacity hover:opacity-90 cursor-pointer"
+                    style={{ backgroundColor: brandColor, borderColor: brandColor, boxShadow: `0 0 8px ${hexToRgba(brandColor, 0.4)}` }}
                   >
                     <ExternalLink className="w-3 h-3" />
                     {btn.label}
@@ -392,7 +409,8 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
                     key={i}
                     data-testid={`quick-reply-btn-${i}`}
                     onClick={() => onQuickReply(btn)}
-                    className="px-3 py-2 text-xs font-semibold rounded-md border-2 border-[#7C4DFF]/60 bg-[#6200EA]/20 text-[#E0B0FF] transition-opacity hover:opacity-80 cursor-pointer"
+                    className="px-3 py-2 text-xs font-semibold rounded-md border-2 transition-opacity hover:opacity-80 cursor-pointer"
+                    style={{ borderColor: hexToRgba(brandColor, 0.6), backgroundColor: hexToRgba(brandColor, 0.2), color: "rgba(255,255,255,0.7)" }}
                   >
                     {btn.label}
                   </button>
@@ -493,7 +511,7 @@ const PROBLEM_TYPES = [
   { value: "otro", label: "Otro" },
 ];
 
-function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, gameName: string) => void }) {
+function NewConsultationPicker({ onSelect, brandColor = "#10b981" }: { onSelect: (problemType: string, gameName: string) => void; brandColor?: string }) {
   const [selectedType, setSelectedType] = useState("");
   const [gameName, setGameName] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -504,7 +522,8 @@ function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, g
         <button
           data-testid="button-new-consultation"
           onClick={() => setExpanded(true)}
-          className="px-4 py-2.5 rounded-md bg-[#6200EA] text-white text-sm font-semibold shadow-[0_0_12px_rgba(98,0,234,0.3)] transition-opacity hover:opacity-90"
+          className="px-4 py-2.5 rounded-md text-white text-sm font-semibold transition-opacity hover:opacity-90"
+          style={{ backgroundColor: brandColor, boxShadow: `0 0 12px ${hexToRgba(brandColor, 0.3)}` }}
         >
           Comenzar nueva consulta
         </button>
@@ -522,14 +541,15 @@ function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, g
   };
 
   return (
-    <div data-testid="new-consultation-form" className="mx-2 my-3 p-3 rounded-md bg-[#1e1e1e] border border-[#6200EA]/30">
+    <div data-testid="new-consultation-form" className="mx-2 my-3 p-3 rounded-md bg-[#1e1e1e]" style={{ borderWidth: 1, borderStyle: "solid", borderColor: hexToRgba(brandColor, 0.3) }}>
       <p className="text-sm font-medium text-white mb-3">Nueva consulta</p>
       <div className="flex flex-col gap-2">
         <select
           data-testid="select-new-problem-type"
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm p-2 focus:outline-none focus:ring-1 focus:ring-[#6200EA]"
+          className="w-full rounded-md bg-white/5 border border-white/10 text-white text-sm p-2 focus:outline-none focus:ring-1"
+          style={{ "--tw-ring-color": brandColor } as any}
         >
           <option value="" disabled>Tipo de consulta</option>
           {PROBLEM_TYPES.map(t => (
@@ -546,7 +566,8 @@ function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, g
           data-testid="button-submit-new-consultation"
           onClick={handleSubmit}
           disabled={!selectedType || !gameName.trim()}
-          className="w-full py-2 rounded-md bg-[#6200EA] text-white text-sm font-semibold disabled:opacity-40 transition-opacity hover:opacity-90"
+          className="w-full py-2 rounded-md text-white text-sm font-semibold disabled:opacity-40 transition-opacity hover:opacity-90"
+          style={{ backgroundColor: brandColor }}
         >
           Iniciar consulta
         </button>
@@ -555,7 +576,7 @@ function NewConsultationPicker({ onSelect }: { onSelect: (problemType: string, g
   );
 }
 
-function SessionDivider({ session }: { session: Session }) {
+function SessionDivider({ session, brandColor = "#10b981" }: { session: Session; brandColor?: string }) {
   const problemLabels: Record<string, string> = {
     compra: "Compra",
     codigo_verificacion: "Codigo verificacion",
@@ -571,7 +592,7 @@ function SessionDivider({ session }: { session: Session }) {
       <div className="flex items-center gap-1.5 text-[10px] text-white/30">
         <span>{session.status === "closed" ? "Consulta finalizada" : "Nueva consulta"}</span>
         {session.problemType && (
-          <span className="text-[#6200EA]/60">({problemLabels[session.problemType] || session.problemType})</span>
+          <span style={{ color: hexToRgba(brandColor, 0.6) }}>({problemLabels[session.problemType] || session.problemType})</span>
         )}
       </div>
       <div className="flex-1 h-px bg-white/10" />
@@ -798,7 +819,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
         background: '#1a1a1a',
       } : { height: '100%' }}
     >
-      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: brandColor || "#6200EA" }}>
+      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: brandColor || "#10b981" }}>
         {brandLogo ? (
           <img src={brandLogo} alt={brandName || "Logo"} className="w-9 h-9 rounded-full object-cover bg-white/15" data-testid="img-brand-logo" />
         ) : (
@@ -878,8 +899,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           </div>
         ) : filteredMessages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <div className="w-14 h-14 rounded-full bg-[#6200EA]/10 border border-[#6200EA]/20 flex items-center justify-center mb-4">
-              <Headphones className="w-7 h-7 text-[#6200EA]/60" />
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: hexToRgba(brandColor || "#10b981", 0.1), border: `1px solid ${hexToRgba(brandColor || "#10b981", 0.2)}` }}>
+              <Headphones className="w-7 h-7" style={{ color: hexToRgba(brandColor || "#10b981", 0.6) }} />
             </div>
             <p className="text-sm text-white/40 mb-1">Sin mensajes aun</p>
             <p className="text-xs text-white/25">
@@ -896,7 +917,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
               if (msg.sessionId !== currentSessionId && currentSessionId !== "") {
                 const newSession = sessionMap.get(msg.sessionId);
                 if (newSession) {
-                  items.push(<SessionDivider key={`divider-${msg.sessionId}`} session={newSession} />);
+                  items.push(<SessionDivider key={`divider-${msg.sessionId}`} session={newSession} brandColor={brandColor} />);
                 }
               }
               currentSessionId = msg.sessionId;
@@ -910,6 +931,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                   onQuickReply={handleQuickReply}
                   onRatingComplete={onRatingComplete}
                   onImageClick={setLightboxImage}
+                  brandColor={brandColor}
                 />
               );
             });
@@ -917,10 +939,10 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             const latestSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
             if (latestSession && latestSession.status === "closed" && onStartNewSession) {
               items.push(
-                <SessionDivider key={`divider-closed-${latestSession.sessionId}`} session={latestSession} />
+                <SessionDivider key={`divider-closed-${latestSession.sessionId}`} session={latestSession} brandColor={brandColor} />
               );
               items.push(
-                <NewConsultationPicker key="new-consultation" onSelect={onStartNewSession} />
+                <NewConsultationPicker key="new-consultation" onSelect={onStartNewSession} brandColor={brandColor} />
               );
             }
 
@@ -937,7 +959,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             target="_blank"
             rel="noopener noreferrer"
             data-testid="button-create-ticket"
-            className="w-full mb-2 font-semibold text-sm flex items-center justify-center gap-2 rounded-md px-4 py-2 bg-[#6200EA] border border-[#6200EA] text-white shadow-[0_0_12px_rgba(98,0,234,0.4)]"
+            className="w-full mb-2 font-semibold text-sm flex items-center justify-center gap-2 rounded-md px-4 py-2 text-white"
+            style={{ backgroundColor: brandColor || "#10b981", borderWidth: 1, borderStyle: "solid", borderColor: brandColor || "#10b981", boxShadow: `0 0 12px ${hexToRgba(brandColor || "#10b981", 0.4)}` }}
           >
             <Ticket className="w-4 h-4" />
             Crear ticket de soporte
@@ -951,10 +974,14 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             className={`
               w-full mb-2 font-semibold text-sm
               ${contactRequested
-                ? "opacity-50 cursor-not-allowed bg-[#6200EA]/10 border-[#6200EA]/30 text-white/50"
-                : "bg-[#6200EA] border-[#6200EA] text-white shadow-[0_0_12px_rgba(98,0,234,0.4)]"
+                ? "opacity-50 cursor-not-allowed text-white/50"
+                : "text-white"
               }
             `}
+            style={contactRequested
+              ? { backgroundColor: hexToRgba(brandColor || "#10b981", 0.1), borderWidth: 1, borderStyle: "solid", borderColor: hexToRgba(brandColor || "#10b981", 0.3) }
+              : { backgroundColor: brandColor || "#10b981", borderWidth: 1, borderStyle: "solid", borderColor: brandColor || "#10b981", boxShadow: `0 0 12px ${hexToRgba(brandColor || "#10b981", 0.4)}` }
+            }
           >
             <UserRound className="w-4 h-4 mr-2" />
             {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
@@ -971,7 +998,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             className="absolute bottom-full left-0 right-0 mx-1 sm:left-3 sm:right-3 sm:mx-0 mb-1 bg-[#1e1e1e] border border-white/10 rounded-md shadow-lg z-50 flex flex-col max-h-60 sm:max-h-72"
           >
             <div className="px-3 py-2 border-b border-white/[0.06] flex items-center gap-2">
-              <ShoppingBag className="w-3.5 h-3.5 text-[#6200EA] flex-shrink-0" />
+              <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" style={{ color: brandColor || "#10b981" }} />
               <span className="text-[11px] text-white/30">Catalogo de productos</span>
               <Button
                 data-testid="button-close-product-browser"
@@ -993,7 +1020,10 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                   value={productSearchQuery}
                   onChange={handleProductSearchChange}
                   placeholder="Buscar producto..."
-                  className="w-full pl-8 pr-3 py-1.5 rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]"
+                  className="w-full pl-8 pr-3 py-1.5 rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/25 focus:outline-none focus:ring-1"
+                  style={{ "--tw-ring-color": brandColor || "#10b981" } as any}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = brandColor || "#10b981"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ""; }}
                   autoComplete="off"
                 />
                 {isLoadingProducts && (
@@ -1016,7 +1046,9 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                           type="button"
                           data-testid={`browse-product-select-${product.id}`}
                           onClick={() => handleProductSelect(product)}
-                          className="w-full px-3 py-2 text-left hover:bg-[#6200EA]/20 transition-colors text-sm"
+                          className="w-full px-3 py-2 text-left transition-colors text-sm"
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hexToRgba(brandColor || "#10b981", 0.2); }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ""; }}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
@@ -1026,7 +1058,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                                   <span className="text-xs text-white/60">{product.price}</span>
                                 )}
                                 {badge && (
-                                  <span className="inline-block px-2 py-0.5 bg-[#6200EA]/30 text-white/80 text-xs rounded">{badge}</span>
+                                  <span className="inline-block px-2 py-0.5 text-white/80 text-xs rounded" style={{ backgroundColor: hexToRgba(brandColor || "#10b981", 0.3) }}>{badge}</span>
                                 )}
                               </div>
                             </div>
@@ -1063,7 +1095,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             className="text-white/40 flex-shrink-0"
           >
             {isUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#6200EA]" />
+              <Loader2 className="w-4 h-4 animate-spin" style={{ color: brandColor || "#10b981" }} />
             ) : (
               <ImagePlus className="w-4 h-4" />
             )}
@@ -1074,7 +1106,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             size="icon"
             variant="ghost"
             onClick={toggleProductBrowser}
-            className={`flex-shrink-0 ${showProductBrowser ? "text-[#6200EA]" : "text-white/40"}`}
+            className="flex-shrink-0"
+            style={{ color: showProductBrowser ? (brandColor || "#10b981") : "rgba(255,255,255,0.4)" }}
           >
             <ShoppingBag className="w-4 h-4" />
           </Button>
@@ -1101,18 +1134,21 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
               flex-1 py-2.5 px-3.5 rounded-md
               bg-white/5 border border-white/10
               text-white text-sm placeholder:text-white/25
-              focus:outline-none focus:ring-1 focus:ring-[#6200EA] focus:border-[#6200EA]
+              focus:outline-none focus:ring-1
               transition-colors disabled:opacity-50
               resize-none overflow-y-auto
             "
-            style={{ maxHeight: "120px" }}
+            style={{ maxHeight: "120px", "--tw-ring-color": brandColor || "#10b981" } as any}
+            onFocus={(e) => { e.currentTarget.style.borderColor = brandColor || "#10b981"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = ""; }}
           />
           <Button
             data-testid="button-send"
             type="submit"
             size="icon"
             disabled={!input.trim() || isSessionClosed}
-            className="bg-[#6200EA] text-white flex-shrink-0"
+            className="text-white flex-shrink-0"
+            style={{ backgroundColor: brandColor || "#10b981" }}
           >
             <Send className="w-4 h-4" />
           </Button>

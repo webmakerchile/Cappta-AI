@@ -40,7 +40,7 @@ export function WelcomeForm({
   const [gameName, setGameName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const color = brandColor || "#6200EA";
+  const color = brandColor || "#10b981";
 
   let parsedOptions: { value: string; label: string }[] = [];
   try {

@@ -1403,6 +1403,65 @@ ${DEMO_BASE_RULES}`,
     }
   });
 
+  app.get("/api/tenants/me/sessions", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenantSessions = await storage.getSessionsByTenantId(auth.id);
+      res.json(tenantSessions);
+    } catch (error: any) {
+      log(`Error obteniendo sesiones tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener sesiones" });
+    }
+  });
+
+  app.get("/api/tenants/me/sessions/:sessionId/messages", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { sessionId } = req.params;
+      const session = await storage.getSession(sessionId);
+      if (!session || session.tenantId !== auth.id) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+      const msgs = await storage.getMessagesBySessionId(sessionId);
+      res.json(msgs);
+    } catch (error: any) {
+      log(`Error obteniendo mensajes sesion tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener mensajes" });
+    }
+  });
+
+  app.post("/api/tenants/me/sessions/:sessionId/reply", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { sessionId } = req.params;
+      const { content } = req.body;
+      if (!content || typeof content !== "string" || !content.trim()) {
+        return res.status(400).json({ message: "Contenido requerido" });
+      }
+      const session = await storage.getSession(sessionId);
+      if (!session || session.tenantId !== auth.id) {
+        return res.status(404).json({ message: "Sesion no encontrada" });
+      }
+      const msg = await storage.createMessage({
+        sessionId,
+        userEmail: session.userEmail,
+        userName: auth.companyName || auth.email,
+        sender: "support",
+        content: content.trim(),
+        imageUrl: null,
+        tenantId: auth.id,
+      });
+      io.to(`session:${sessionId}`).emit("new_message", msg);
+      res.json(msg);
+    } catch (error: any) {
+      log(`Error enviando respuesta tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al enviar respuesta" });
+    }
+  });
+
   app.get("/api/tenants/me/plan-prices", async (_req, res) => {
     const prices = Object.entries(PLAN_PRICES).map(([key, val]) => ({
       plan: key,

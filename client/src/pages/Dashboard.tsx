@@ -459,6 +459,237 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   );
 }
 
+interface TenantSession {
+  sessionId: string;
+  userName: string;
+  userEmail: string;
+  status: string;
+  messageCount: number;
+  lastMessage: string | null;
+  lastMessageContent: string | null;
+  problemType: string | null;
+  createdAt: string | null;
+}
+
+interface TenantMessage {
+  id: number;
+  sessionId: string;
+  userEmail: string;
+  userName: string;
+  sender: string;
+  content: string;
+  imageUrl: string | null;
+  timestamp: string;
+}
+
+function ConversationsSection({ token }: { token: string }) {
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const { data: sessionsList = [], isLoading: sessionsLoading } = useQuery<TenantSession[]>({
+    queryKey: ["/api/tenants/me/sessions"],
+    queryFn: async () => {
+      const res = await fetch("/api/tenants/me/sessions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    refetchInterval: 8000,
+  });
+
+  const { data: chatMessages = [], isLoading: messagesLoading } = useQuery<TenantMessage[]>({
+    queryKey: ["/api/tenants/me/sessions", selectedSession, "messages"],
+    queryFn: async () => {
+      if (!selectedSession) return [];
+      const res = await fetch(`/api/tenants/me/sessions/${selectedSession}/messages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    enabled: !!selectedSession,
+    refetchInterval: 4000,
+  });
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+  }, [chatMessages]);
+
+  const handleReply = async () => {
+    if (!replyText.trim() || !selectedSession || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch(`/api/tenants/me/sessions/${selectedSession}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content: replyText.trim() }),
+      });
+      if (res.ok) {
+        setReplyText("");
+        queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/sessions", selectedSession, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/sessions"] });
+      } else {
+        toast({ title: "Error", description: "No se pudo enviar el mensaje", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Error de conexion", variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const selectedSessionData = sessionsList.find(s => s.sessionId === selectedSession);
+
+  if (selectedSession) {
+    return (
+      <div className="rounded-2xl glass-card overflow-hidden animate-dash-scale-in flex flex-col" style={{ height: "calc(100vh - 200px)", minHeight: "500px" }}>
+        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-3">
+          <button
+            onClick={() => setSelectedSession(null)}
+            className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors"
+            data-testid="button-back-sessions"
+          >
+            <ChevronRight className="w-4 h-4 text-white/50 rotate-180" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white truncate" data-testid="text-chat-user">{selectedSessionData?.userName || "Cliente"}</p>
+            <p className="text-xs text-white/40 truncate">{selectedSessionData?.userEmail}</p>
+          </div>
+          <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${selectedSessionData?.status === "active" ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/40"}`}>
+            {selectedSessionData?.status === "active" ? "Activa" : "Cerrada"}
+          </span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+          {messagesLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : chatMessages.length === 0 ? (
+            <div className="flex items-center justify-center h-32 text-white/30 text-sm">Sin mensajes</div>
+          ) : (
+            chatMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.sender === "support" ? "justify-end" : "justify-start"}`}
+                data-testid={`msg-bubble-${msg.id}`}
+              >
+                <div
+                  className={`max-w-[75%] px-3 py-2 rounded-xl text-sm ${
+                    msg.sender === "support"
+                      ? "bg-primary/20 text-white rounded-br-sm"
+                      : "bg-white/[0.06] text-white/80 rounded-bl-sm"
+                  }`}
+                >
+                  {msg.imageUrl && (
+                    <img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mb-1 max-h-48 object-cover" />
+                  )}
+                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                  <p className="text-[10px] text-white/25 mt-1">
+                    {new Date(msg.timestamp).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {selectedSessionData?.status === "active" && (
+          <div className="px-4 py-3 border-t border-white/[0.06]">
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleReply(); }}
+              className="flex items-end gap-2"
+            >
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleReply();
+                  }
+                }}
+                placeholder="Escribe tu respuesta..."
+                rows={1}
+                className="flex-1 py-2.5 px-3.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+                style={{ maxHeight: "100px" }}
+                data-testid="input-tenant-reply"
+              />
+              <Button
+                type="submit"
+                disabled={!replyText.trim() || sending}
+                className="bg-primary text-white rounded-xl px-4"
+                data-testid="button-send-reply"
+              >
+                {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Enviar"}
+              </Button>
+            </form>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 animate-dash-scale-in">
+      {sessionsLoading ? (
+        <div className="rounded-2xl glass-card p-8 flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : sessionsList.length === 0 ? (
+        <div className="rounded-2xl glass-card p-8 text-center space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20">
+            <MessageSquare className="w-7 h-7 text-primary/60" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Sin conversaciones</h3>
+          <p className="text-sm text-white/40 max-w-md mx-auto">
+            Cuando tus clientes empiecen a chatear a traves de tu widget, las conversaciones apareceran aqui.
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-2xl glass-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-white/[0.06]">
+            <p className="text-sm text-white/40">{sessionsList.length} conversacion{sessionsList.length !== 1 ? "es" : ""}</p>
+          </div>
+          <div className="divide-y divide-white/[0.04]">
+            {sessionsList.map((session) => (
+              <button
+                key={session.sessionId}
+                onClick={() => setSelectedSession(session.sessionId)}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/[0.03] transition-colors text-left group"
+                data-testid={`session-row-${session.sessionId}`}
+              >
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${session.status === "active" ? "bg-green-400" : "bg-white/20"}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-white truncate">{session.userName}</p>
+                    <span className="text-[10px] text-white/25 flex-shrink-0">
+                      {session.lastMessage ? new Date(session.lastMessage).toLocaleDateString("es-CL") : ""}
+                    </span>
+                  </div>
+                  <p className="text-xs text-white/40 truncate">{session.userEmail}</p>
+                  {session.lastMessageContent && (
+                    <p className="text-xs text-white/30 truncate mt-0.5">{session.lastMessageContent}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-[10px] text-white/20 bg-white/[0.04] px-1.5 py-0.5 rounded">{session.messageCount} msgs</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const [copied, setCopied] = useState<string | null>(null);
   const isConfigured = tenant.botConfigured === 1;
@@ -466,27 +697,53 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   const iframeCode = `<iframe
+  id="foxbot-widget"
   src="${baseUrl}/widget?tenantId=${tenant.id}"
-  style="position:fixed;bottom:0;right:0;width:100%;max-width:400px;height:620px;border:none;z-index:9999;border-radius:16px 16px 0 0;"
+  style="position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;"
   allow="microphone"
-></iframe>`;
+></iframe>
+<script>
+  window.addEventListener('message', function(e) {
+    var f = document.getElementById('foxbot-widget');
+    if (!f || !e.data || !e.data.type) return;
+    if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
+      var mobile = window.innerWidth <= 480;
+      if (e.data.type === 'open_chat') {
+        if (mobile) {
+          f.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+        } else {
+          f.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+        }
+      } else {
+        f.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
+      }
+    }
+  });
+</script>`;
 
   const scriptCode = `<script>
   (function() {
     var iframe = document.createElement('iframe');
+    iframe.id = 'foxbot-widget';
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
     iframe.allow = 'microphone';
-    function adjustSize() {
-      var w = window.innerWidth;
-      if (w <= 480) {
-        iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
-      } else {
-        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;';
-      }
-    }
-    adjustSize();
-    window.addEventListener('resize', adjustSize);
+    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
     document.body.appendChild(iframe);
+    window.addEventListener('message', function(e) {
+      if (!e.data || !e.data.type) return;
+      if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
+        var mobile = window.innerWidth <= 480;
+        if (e.data.type === 'open_chat') {
+          if (mobile) {
+            iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+          } else {
+            iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+          }
+        } else {
+          iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
+        }
+      }
+    });
   })();
 </script>`;
 
@@ -757,10 +1014,11 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   );
 }
 
-type DashboardTab = "stats" | "config" | "embed" | "plan" | "guides";
+type DashboardTab = "stats" | "conversations" | "config" | "embed" | "plan" | "guides";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadisticas", value: "stats", icon: BarChart3 },
+  { title: "Conversaciones", value: "conversations", icon: MessageSquare },
   { title: "Configuracion", value: "config", icon: Palette },
   { title: "Integracion", value: "embed", icon: Code },
   { title: "Guias", value: "guides", icon: BookOpen },
@@ -927,6 +1185,7 @@ export default function Dashboard() {
             </h1>
             <p className="text-xs text-white/30">
               {activeTab === "stats" && "Metricas de tu chat en tiempo real"}
+              {activeTab === "conversations" && "Chats de tus clientes en tiempo real"}
               {activeTab === "config" && "Personaliza tu widget de chat"}
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
               {activeTab === "guides" && "Manuales de instalacion paso a paso"}
@@ -958,6 +1217,7 @@ export default function Dashboard() {
 
           <div className="max-w-5xl mx-auto space-y-6 relative" key={activeTab}>
             {activeTab === "stats" && <StatsSection token={token!} />}
+            {activeTab === "conversations" && <ConversationsSection token={token!} />}
             {activeTab === "config" && <WidgetConfigSection tenant={tenant} token={token!} />}
             {activeTab === "embed" && <EmbedCodeSection tenant={tenant} />}
             {activeTab === "guides" && <GuidesPanel />}

@@ -82,6 +82,7 @@ export interface IStorage {
   getAllTenants(): Promise<Tenant[]>;
   getRecentPaymentOrders(limit?: number): Promise<(typeof paymentOrders.$inferSelect)[]>;
   getAllTenantsWithStats(): Promise<{ id: number; name: string; email: string; companyName: string; plan: string; createdAt: Date; sessionsCount: number; messagesCount: number }[]>;
+  getSessionsByTenantId(tenantId: number): Promise<{ sessionId: string; userName: string; userEmail: string; status: string; messageCount: number; lastMessage: Date | null; lastMessageContent: string | null; problemType: string | null; createdAt: Date | null }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1073,6 +1074,33 @@ export class DatabaseStorage implements IStorage {
         (SELECT COUNT(*)::int FROM messages WHERE tenant_id = t.id) AS "messagesCount"
       FROM tenants t
       ORDER BY t.created_at DESC
+    `);
+    return result.rows as any[];
+  }
+
+  async getSessionsByTenantId(tenantId: number) {
+    const result = await db.execute(sql`
+      SELECT
+        s.session_id AS "sessionId",
+        s.user_name AS "userName",
+        s.user_email AS "userEmail",
+        s.status,
+        s.problem_type AS "problemType",
+        s.created_at AS "createdAt",
+        COALESCE(ms.msg_count, 0)::int AS "messageCount",
+        ms.last_msg AS "lastMessage",
+        ms.last_content AS "lastMessageContent"
+      FROM sessions s
+      LEFT JOIN LATERAL (
+        SELECT
+          COUNT(*)::int AS msg_count,
+          MAX(m.timestamp) AS last_msg,
+          (SELECT content FROM messages WHERE session_id = s.session_id ORDER BY timestamp DESC LIMIT 1) AS last_content
+        FROM messages m
+        WHERE m.session_id = s.session_id
+      ) ms ON true
+      WHERE s.tenant_id = ${tenantId}
+      ORDER BY COALESCE(ms.last_msg, s.created_at) DESC
     `);
     return result.rows as any[];
   }
