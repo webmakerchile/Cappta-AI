@@ -35,7 +35,7 @@ Key architectural decisions and features include:
 - **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
 
 ## SaaS Pages & Routing
-- `/` - Landing page (marketing, features, pricing) - FoxBot branding
+- `/` - Landing page (marketing, features, pricing) - FoxBot branding, animated chat demo, platform logos (WooCommerce/Shopify/WordPress/Magento/API), stats section, CLP pricing
 - `/register` - Tenant registration (company signup)
 - `/login` - Tenant login
 - `/dashboard` - Tenant dashboard (widget config, embed code, real stats, plan)
