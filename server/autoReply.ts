@@ -712,13 +712,13 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   if (state.product) {
     const productName = formatGameWithVersion(state.product);
     if (state.product.type === "game") {
-      return `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Veo que te interesa ${productName}. Tenemos juegos digitales disponibles para PS4, PS5, Xbox One y Xbox Series ⚡ ¿Te gustaría saber más sobre ${productName} o buscas otro título?${PERSISTENCE_NOTICE}`;
+      return `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido.${pageContext} Veo que te interesa ${productName}. Tenemos juegos digitales disponibles para PS4, PS5, Xbox One y Xbox Series ⚡ ¿Te gustaría saber más sobre ${productName} o buscas otro título?${PERSISTENCE_NOTICE}`;
     }
   }
 
   if (state.platform === "ps") {
     const text = pickUnused([
-      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos un amplio catálogo para PlayStation 🕹️ ¿Que estas buscando?`,
+      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido.${pageContext} Tenemos un amplio catálogo para PlayStation 🕹️ ¿Que estas buscando?`,
       `👋 ¡Hola${nameGreeting}! 💜 Qué gusto tenerte aquí.${pageContext} Somos tu tienda de juegos digitales para PlayStation 🎮 ¿En qué te puedo ayudar?`,
     ], state.usedResponses);
     return withButtons(text + PERSISTENCE_NOTICE, [
@@ -730,7 +730,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
   if (state.platform === "xbox") {
     const text = pickUnused([
-      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Contamos con juegos y suscripciones para Xbox 🕹️ ¿En qué te puedo ayudar?`,
+      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido.${pageContext} Contamos con juegos y suscripciones para Xbox 🕹️ ¿En qué te puedo ayudar?`,
       `👋 ¡Hola${nameGreeting}! 💜 ¡Qué bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales y Game Pass 🎮`,
     ], state.usedResponses);
     return withButtons(text + PERSISTENCE_NOTICE, [
@@ -741,7 +741,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   }
 
   const text = pickUnused([
-    `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos juegos y suscripciones para PlayStation y Xbox ⚡ ¿En qué puedo ayudarte hoy?`,
+    `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido.${pageContext} Tenemos juegos y suscripciones para PlayStation y Xbox ⚡ ¿En qué puedo ayudarte hoy?`,
     `👋 ¡Hola${nameGreeting}! 💜 Gracias por visitarnos.${pageContext} Somos tu tienda de juegos digitales con catálogo para PlayStation y Xbox 🕹️ ¿¿Qué te gustaría saber?`,
   ], state.usedResponses);
   return withButtons(text + PERSISTENCE_NOTICE, [
@@ -1090,11 +1090,10 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
 
 function getPaymentResponse(state: ConversationState): string {
   const text = pickUnused([
-    `💳 Puedes pagar de dos formas: directamente por nuestra web en cjmdigitales.com al hacer tu pedido, o por transferencia bancaria. Los pagos se procesan en horario de atención.`,
-    `💳 Aceptamos pago por la web (cjmdigitales.com) y transferencia bancaria. Solo se procesan en horario de atención.`,
+    `💳 Puedes pagar de dos formas: directamente por nuestra web al hacer tu pedido, o por transferencia bancaria. Los pagos se procesan en horario de atención.`,
+    `💳 Aceptamos pago por la web y transferencia bancaria. Solo se procesan en horario de atención.`,
   ], state.usedResponses);
   return withButtons(text, [
-    {label: "Ir a la tienda", value: "__qr:link:https://cjmdigitales.com"},
     {label: "Contactar ejecutivo", value: "__qr:contact"},
   ]);
 }
@@ -1460,7 +1459,7 @@ export async function getSmartAutoReply(
   tenantId?: number | null
 ): Promise<string> {
   let isOfflineHours = false;
-  let offlineTicketUrl = "https://cjmdigitales.zohodesk.com/portal/es/newticket";
+  let offlineTicketUrl = "";
   let offlineHoursStart = 12;
   let offlineHoursEnd = 21;
 
@@ -1667,7 +1666,7 @@ async function _processAutoReply(
   }
 
   if (/\bcódigo\s*de\s*verificación\b|\bcódigo\s*de\s*activacion\b|\bverificar\s*código\b|\bcanjear\s*código\b|\bredeem\b|\bverificación\b|\bcódigo\s*de\s*canje\b|\breenviar\s*código\b|\bnuevo\s*código\b|\bno\s*me\s*llego\s*el\s*código\b/.test(msg)) {
-    const text = "Para obtener tu código de verificación, ingresa a https://cjm-codes.cl/ y escribe el correo del juego (el correo de la cuenta que recibiste con tu compra, NO tu correo personal). El sistema te enviara tu código automaticamente.\n\nSi el sistema no te funciona o tienes algún problema, puedes contactar a un ejecutivo para asistencia personalizada.";
+    const text = "Para obtener tu código de verificación, contacta a un ejecutivo quien te guiará en el proceso.\n\nSi tienes algún problema adicional, puedes solicitar asistencia personalizada.";
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
     ]);
@@ -1818,7 +1817,7 @@ async function _processAutoReply(
       );
     }
     return withButtons(
-      "Tu chat ha sido limitado por uso reiterado de lenguaje inapropiado. Si necesitas ayuda, puedes escribirnos a cjmdigitales@gmail.com o crear un ticket de soporte.",
+      "Tu chat ha sido limitado por uso reiterado de lenguaje inapropiado. Si necesitas ayuda, puedes contactar a soporte.",
       [{label: "Crear ticket de soporte", url: offlineTicketUrl}]
     );
   }

@@ -1953,7 +1953,7 @@ ${DEMO_BASE_RULES}`,
       }
       const hoursStart = parseInt(await storage.getSetting("business_hours_start") || "12", 10);
       const hoursEnd = parseInt(await storage.getSetting("business_hours_end") || "21", 10);
-      const ticketUrl = await storage.getSetting("business_hours_ticket_url") || "https://cjmdigitales.zohodesk.com/portal/es/newticket";
+      const ticketUrl = await storage.getSetting("business_hours_ticket_url") || "";
       const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
       const currentHour = nowChile.getHours();
       const isOffline = currentHour < hoursStart || currentHour >= hoursEnd;

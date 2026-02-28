@@ -3,7 +3,7 @@ import { products } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { log } from "./index";
 
-const WC_STORE_URL = process.env.WC_STORE_URL || "https://cjmdigitales.cl";
+const WC_STORE_URL = process.env.WC_STORE_URL || "";
 const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY || "";
 const WC_CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET || "";
 

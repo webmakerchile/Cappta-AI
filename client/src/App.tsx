@@ -120,10 +120,10 @@ function FullScreenChat() {
         style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-[#6200EA]/20 flex items-center justify-center border border-[#6200EA]/30">
-            <Headphones className="w-8 h-8 text-[#6200EA]" />
+          <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+            <Headphones className="w-8 h-8 text-emerald-500" />
           </div>
-          <Loader2 className="w-6 h-6 text-[#6200EA] animate-spin" />
+          <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
           <p className="text-white/50 text-sm" data-testid="text-loading">Conectando al chat...</p>
         </div>
       </div>
@@ -137,20 +137,20 @@ function FullScreenChat() {
         style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
       >
         <div className="flex flex-col items-center gap-6 max-w-md px-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-[#6200EA]/20 flex items-center justify-center border border-[#6200EA]/30">
-            <Headphones className="w-10 h-10 text-[#6200EA]" />
+          <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+            <Headphones className="w-10 h-10 text-emerald-500" />
           </div>
           <h1 data-testid="text-invalid-access-title" className="text-xl font-bold text-white">Acceso al Chat</h1>
           <p data-testid="text-invalid-access-message" className="text-white/60 text-sm leading-relaxed">
             Para acceder al chat, utiliza el enlace que recibiste en tu correo electronico. El enlace contiene tus datos de acceso.
           </p>
           <a
-            href="https://cjmdigitales.cl/"
+            href="/"
             data-testid="link-back-to-store-invalid"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#6200EA] text-white text-sm font-semibold transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-emerald-600 text-white text-sm font-semibold transition-opacity hover:opacity-90"
           >
             <ArrowLeft className="w-4 h-4" />
-            Ir a CJM Digitales
+            Volver al inicio
           </a>
         </div>
       </div>
@@ -168,24 +168,18 @@ function FullScreenChat() {
         style={{ background: "#111111", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div className="flex items-center gap-3">
-          <img
-            src="/cjm-logo.webp"
-            alt="CJM Digitales"
-            className="w-8 h-8 rounded-full object-cover"
-            data-testid="img-cjm-logo"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-          <span className="text-white font-semibold text-sm" data-testid="text-brand-name">CJM Digitales</span>
+          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <Headphones className="w-4 h-4 text-emerald-500" />
+          </div>
+          <span className="text-white font-semibold text-sm" data-testid="text-brand-name">FoxBot Chat</span>
         </div>
         <a
-          href="https://cjmdigitales.cl/"
+          href="/"
           data-testid="link-back-to-store"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-[#6200EA]/20 border border-[#6200EA]/30 text-[#BB86FC] text-xs font-semibold transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-semibold transition-opacity hover:opacity-80"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Volver a CJM Digitales</span>
+          <span className="hidden sm:inline">Volver al inicio</span>
           <span className="sm:hidden">Volver</span>
         </a>
       </div>
@@ -201,10 +195,10 @@ function FullScreenChat() {
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
-            onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
+            onClose={() => { window.location.href = "/"; }}
             onExitChat={() => {
               logout();
-              window.location.href = "https://cjmdigitales.cl/";
+              window.location.href = "/";
             }}
             sessionId={user.sessionId}
             onRatingComplete={handleRatingComplete}
@@ -251,10 +245,10 @@ function ContactChat() {
         style={{ background: "#1a1a1a", fontFamily: "'DM Sans', sans-serif" }}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-[#6200EA]/20 flex items-center justify-center border border-[#6200EA]/30">
-            <Headphones className="w-8 h-8 text-[#6200EA]" />
+          <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+            <Headphones className="w-8 h-8 text-emerald-500" />
           </div>
-          <Loader2 className="w-6 h-6 text-[#6200EA] animate-spin" />
+          <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
           <p className="text-white/50 text-sm">Conectando al chat...</p>
         </div>
       </div>
@@ -272,24 +266,18 @@ function ContactChat() {
         style={{ background: "#111111", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div className="flex items-center gap-3">
-          <img
-            src="/cjm-logo.webp"
-            alt="CJM Digitales"
-            className="w-8 h-8 rounded-full object-cover"
-            data-testid="img-contact-logo"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-          <span className="text-white font-semibold text-sm" data-testid="text-contact-brand">CJM Digitales - Contacto</span>
+          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <Headphones className="w-4 h-4 text-emerald-500" />
+          </div>
+          <span className="text-white font-semibold text-sm" data-testid="text-contact-brand">FoxBot - Contacto</span>
         </div>
         <a
-          href="https://cjmdigitales.cl/"
+          href="/"
           data-testid="link-contact-back"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-[#6200EA]/20 border border-[#6200EA]/30 text-[#BB86FC] text-xs font-semibold transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-semibold transition-opacity hover:opacity-80"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Volver a CJM Digitales</span>
+          <span className="hidden sm:inline">Volver al inicio</span>
           <span className="sm:hidden">Volver</span>
         </a>
       </div>
@@ -305,10 +293,10 @@ function ContactChat() {
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
-            onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
+            onClose={() => { window.location.href = "/"; }}
             onExitChat={() => {
               logout();
-              window.location.href = "https://cjmdigitales.cl/";
+              window.location.href = "/";
             }}
             sessionId={user.sessionId}
             onRatingComplete={handleRatingComplete}
@@ -318,7 +306,7 @@ function ContactChat() {
           <div className="flex-1 flex flex-col">
             <WelcomeForm
               onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
-              onClose={() => { window.location.href = "https://cjmdigitales.cl/"; }}
+              onClose={() => { window.location.href = "/"; }}
             />
           </div>
         )}

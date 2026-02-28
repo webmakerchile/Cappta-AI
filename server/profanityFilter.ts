@@ -209,5 +209,5 @@ export function getProfanityWarningMessage(warningCount: number): string {
   if (warningCount === 2) {
     return "Segundo aviso: necesito que me hables con respeto para poder seguir ayudandote. Si sigues con lenguaje inapropiado, tu chat sera bloqueado. Dale, partamos de nuevo, ¿en que te puedo ayudar?";
   }
-  return "Tu chat ha sido bloqueado por uso reiterado de lenguaje inapropiado. Si necesitas ayuda, puedes escribirnos a cjmdigitales@gmail.com o crear un ticket de soporte en cjmdigitales.zohodesk.com";
+  return "Tu chat ha sido bloqueado por uso reiterado de lenguaje inapropiado. Si necesitas ayuda, puedes contactar a soporte.";
 }

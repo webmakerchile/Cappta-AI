@@ -15,7 +15,7 @@ interface ExtractionResult {
   entries: Array<{ category: string; question: string; answer: string }>;
 }
 
-const EXTRACTION_PROMPT = `Eres un analista de soporte al cliente. Analiza la siguiente conversación de chat entre un cliente y el soporte de CJM Digitales (tienda de juegos digitales chilena).
+const EXTRACTION_PROMPT = `Eres un analista de soporte al cliente. Analiza la siguiente conversación de chat entre un cliente y el equipo de soporte.
 
 Tu tarea es extraer CONOCIMIENTO ÚTIL que pueda ayudar a responder mejor a futuros clientes. Busca:
 

@@ -2,8 +2,8 @@ import { Resend } from "resend";
 import { log } from "./index";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const NOTIFICATION_EMAIL = "ayuda@cjmdigitales.cl";
-const FROM_ADDRESS = "CJM Digitales <noreply@cjmdigitales.cl>";
+const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL || "soporte@foxbot.cl";
+const FROM_ADDRESS = process.env.FROM_EMAIL || "FoxBot <noreply@foxbot.cl>";
 
 interface ContactEmailData {
   userName: string;
@@ -74,25 +74,25 @@ export async function sendChatInviteEmail(data: ChatInviteData): Promise<{ succe
     const { data: result, error } = await resend.emails.send({
       from: fromAddr,
       to: data.userEmail,
-      subject: "Tienes un mensaje pendiente en CJM Digitales",
+      subject: "Tienes un mensaje pendiente en el chat",
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #ffffff; border-radius: 8px; overflow: hidden;">
-          <div style="background: #6200EA; padding: 24px 32px;">
+          <div style="background: #10b981; padding: 24px 32px;">
             <h1 style="margin: 0; font-size: 20px; color: #ffffff;">Mensaje Pendiente</h1>
           </div>
           <div style="padding: 32px;">
             <p style="color: #cccccc; margin-top: 0;">Hola <strong>${data.userName}</strong>,</p>
-            <p style="color: #cccccc;">Un agente de CJM Digitales te ha enviado un mensaje y esta esperando tu respuesta.</p>
+            <p style="color: #cccccc;">Un agente te ha enviado un mensaje y esta esperando tu respuesta.</p>
             <div style="background: #222; border-radius: 6px; padding: 16px; color: #ccc; font-size: 14px; line-height: 1.6; margin: 20px 0;">
-              <strong style="color: #9d6fff;">Agente:</strong> ${data.agentName}
+              <strong style="color: #34d399;">Agente:</strong> ${data.agentName}
             </div>
             <div style="margin-top: 32px; text-align: center;">
-              <a href="${data.chatUrl}" style="display: inline-block; background: #6200EA; color: #fff; padding: 14px 40px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">Volver al Chat</a>
+              <a href="${data.chatUrl}" style="display: inline-block; background: #10b981; color: #fff; padding: 14px 40px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">Volver al Chat</a>
             </div>
             <p style="color: #666; font-size: 12px; margin-top: 24px; word-break: break-all;">Si no puedes acceder al link, copia y pega esta URL en tu navegador: ${data.chatUrl}</p>
           </div>
           <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-            Notificacion enviada desde CJM Digitales
+            Notificacion enviada desde FoxBot
           </div>
         </div>
       `,
