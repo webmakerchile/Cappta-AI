@@ -214,7 +214,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
               <img src={logoSinFondo} alt="FoxBot" className="w-8 h-8 object-contain" />
             </div>
             <h1 className="text-2xl font-black" data-testid="text-onboarding-title">
-              Configura tu <span className="text-primary">FoxBot</span>
+              Configura tu <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
             </h1>
           </div>
           <p className="text-sm text-white/40">3 pasos rapidos y tu chatbot estara listo</p>
