@@ -290,10 +290,18 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 }
 
 function PlanSection({ tenant }: { tenant: TenantProfile }) {
+  const { toast } = useToast();
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+
   const planLabels: Record<string, string> = {
     free: "Gratis",
     basic: "Pro",
     pro: "Enterprise",
+  };
+
+  const planPrices: Record<string, string> = {
+    basic: "$19.990 CLP/mes",
+    pro: "$49.990 CLP/mes",
   };
 
   const planLimits: Record<string, { sessions: string; messages: string; features: string[] }> = {
@@ -316,49 +324,136 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
 
   const currentPlan = planLimits[tenant.plan] || planLimits.free;
 
+  const handleUpgrade = async (targetPlan: string) => {
+    setUpgrading(targetPlan);
+    try {
+      const token = localStorage.getItem("tenant_token");
+      const res = await fetch("/api/tenants/me/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ plan: targetPlan }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Error", description: data.message || "Error al procesar el pago", variant: "destructive" });
+        return;
+      }
+      window.location.href = data.paymentUrl;
+    } catch {
+      toast({ title: "Error", description: "No se pudo conectar con el servidor de pagos", variant: "destructive" });
+    } finally {
+      setUpgrading(null);
+    }
+  };
+
+  const upgradePlans = Object.entries(planLimits).filter(
+    ([key]) => {
+      const order = ["free", "basic", "pro"];
+      return order.indexOf(key) > order.indexOf(tenant.plan);
+    }
+  );
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-        <div>
-          <CardTitle className="text-lg">Tu Plan</CardTitle>
-          <CardDescription>Gestiona tu suscripción</CardDescription>
-        </div>
-        <Badge variant="secondary" data-testid="badge-plan">
-          {planLabels[tenant.plan] || tenant.plan}
-        </Badge>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
           <div>
-            <p className="text-sm text-muted-foreground">Sesiones</p>
-            <p className="text-sm font-medium" data-testid="text-plan-sessions">{currentPlan.sessions}</p>
+            <CardTitle className="text-lg">Tu Plan Actual</CardTitle>
+            <CardDescription>Gestiona tu suscripción</CardDescription>
+          </div>
+          <Badge variant="secondary" data-testid="badge-plan">
+            {planLabels[tenant.plan] || tenant.plan}
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Sesiones</p>
+              <p className="text-sm font-medium" data-testid="text-plan-sessions">{currentPlan.sessions}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Mensajes</p>
+              <p className="text-sm font-medium" data-testid="text-plan-messages">{currentPlan.messages}</p>
+            </div>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Mensajes</p>
-            <p className="text-sm font-medium" data-testid="text-plan-messages">{currentPlan.messages}</p>
+            <p className="text-sm text-muted-foreground mb-2">Funcionalidades incluidas</p>
+            <ul className="space-y-1">
+              {currentPlan.features.map((f) => (
+                <li key={f} className="flex items-center gap-2 text-sm">
+                  <Check className="h-3 w-3 text-primary" />
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
+        </CardContent>
+      </Card>
+
+      {upgradePlans.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {upgradePlans.map(([key, limits]) => (
+            <Card key={key} className="border-primary/30">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{planLabels[key]}</CardTitle>
+                  <Badge variant="outline" data-testid={`badge-price-${key}`}>
+                    {planPrices[key]}
+                  </Badge>
+                </div>
+                <CardDescription>
+                  {key === "basic" ? "Para negocios en crecimiento" : "Para grandes empresas"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Sesiones:</span>{" "}
+                    <span className="font-medium">{limits.sessions}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Mensajes:</span>{" "}
+                    <span className="font-medium">{limits.messages}</span>
+                  </div>
+                </div>
+                <ul className="space-y-1">
+                  {limits.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm">
+                      <Check className="h-3 w-3 text-primary" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="default"
+                  className="w-full"
+                  disabled={upgrading !== null}
+                  onClick={() => handleUpgrade(key)}
+                  data-testid={`button-upgrade-${key}`}
+                >
+                  {upgrading === key ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Procesando...
+                    </span>
+                  ) : (
+                    <>
+                      <Zap className="mr-2 h-4 w-4" />
+                      Contratar {planLabels[key]}
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
-        <div>
-          <p className="text-sm text-muted-foreground mb-2">Funcionalidades incluidas</p>
-          <ul className="space-y-1">
-            {currentPlan.features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm">
-                <Check className="h-3 w-3 text-primary" />
-                {f}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </CardContent>
-      {tenant.plan !== "pro" && (
-        <CardFooter>
-          <Button variant="default" data-testid="button-upgrade-plan">
-            <Zap className="mr-2 h-4 w-4" />
-            Mejorar Plan
-          </Button>
-        </CardFooter>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -374,6 +469,29 @@ const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] 
 export default function Dashboard() {
   const { tenant, isLoading, token } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>("stats");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (payment) {
+      window.history.replaceState({}, "", "/dashboard");
+      if (payment === "success") {
+        toast({ title: "Pago exitoso", description: "Tu plan ha sido actualizado correctamente." });
+        queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+        setActiveTab("plan");
+      } else if (payment === "rejected") {
+        toast({ title: "Pago rechazado", description: "Tu pago fue rechazado. Intenta con otro medio de pago.", variant: "destructive" });
+        setActiveTab("plan");
+      } else if (payment === "pending") {
+        toast({ title: "Pago pendiente", description: "Tu pago está siendo procesado. El plan se actualizará automáticamente." });
+        setActiveTab("plan");
+      } else if (payment === "error") {
+        toast({ title: "Error", description: "Hubo un error procesando tu pago. Intenta nuevamente.", variant: "destructive" });
+        setActiveTab("plan");
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("tenant_token");

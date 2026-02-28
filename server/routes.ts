@@ -11,6 +11,7 @@ import { getSmartAutoReply } from "./autoReply";
 import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuiltinWords, getCustomWords, setCustomWords } from "./profanityFilter";
 import { syncWooCommerceProducts, getWCSyncStatus } from "./woocommerce";
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
+import { getFlowApi, PLAN_PRICES } from "./flow";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
@@ -786,6 +787,153 @@ export async function registerRoutes(
       log(`Error obteniendo stats tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al obtener estadisticas" });
     }
+  });
+
+  app.post("/api/tenants/me/checkout", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { plan } = req.body;
+      if (!plan || !PLAN_PRICES[plan]) {
+        return res.status(400).json({ message: "Plan invalido" });
+      }
+
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+
+      if (tenant.plan === plan) {
+        return res.status(400).json({ message: "Ya tienes este plan activo" });
+      }
+
+      const protocol = req.headers["x-forwarded-proto"] || "https";
+      const host = req.headers.host || "localhost:5000";
+      const baseURL = `${protocol}://${host}`;
+
+      const flowApi = getFlowApi(baseURL);
+      const planInfo = PLAN_PRICES[plan];
+      const commerceOrder = `foxbot_${auth.id}_${plan}_${Date.now()}`;
+
+      const paymentOrder = await storage.createPaymentOrder({
+        tenantId: auth.id,
+        commerceOrder,
+        targetPlan: plan,
+        amount: planInfo.amount,
+      });
+
+      const params = {
+        commerceOrder,
+        subject: planInfo.subject,
+        currency: "CLP",
+        amount: planInfo.amount,
+        email: tenant.email,
+        paymentMethod: 9,
+        urlConfirmation: `${baseURL}/api/flow/confirm`,
+        urlReturn: `${baseURL}/api/flow/return`,
+      };
+
+      const response = await flowApi.send("payment/create", params, "POST");
+
+      if (response.flowOrder) {
+        await storage.updatePaymentOrderStatus(commerceOrder, "pending");
+      }
+
+      const paymentUrl = `${response.url}?token=${response.token}`;
+      log(`Pago Flow creado: order=${commerceOrder} flowOrder=${response.flowOrder} tenant=${auth.id} plan=${plan}`, "api");
+      res.json({ paymentUrl, flowOrder: response.flowOrder });
+    } catch (error: any) {
+      log(`Error al crear pago Flow: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear pago" });
+    }
+  });
+
+  app.post("/api/flow/confirm", async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        log("Flow confirm: token no recibido", "api");
+        return res.status(400).json({ message: "Token requerido" });
+      }
+
+      const protocol = req.headers["x-forwarded-proto"] || "https";
+      const host = req.headers.host || "localhost:5000";
+      const baseURL = `${protocol}://${host}`;
+      const flowApi = getFlowApi(baseURL);
+
+      const flowStatus = await flowApi.send("payment/getStatus", { token }, "GET");
+      log(`Flow confirm: commerceOrder=${flowStatus.commerceOrder} status=${flowStatus.status} amount=${flowStatus.amount}`, "api");
+
+      if (!flowStatus.commerceOrder) {
+        log("Flow confirm: commerceOrder no encontrada en respuesta", "api");
+        return res.json({ status: "ok" });
+      }
+
+      const order = await storage.getPaymentOrderByCommerceOrder(flowStatus.commerceOrder);
+      if (!order) {
+        log(`Flow confirm: orden no encontrada en DB: ${flowStatus.commerceOrder}`, "api");
+        return res.json({ status: "ok" });
+      }
+
+      if (order.status === "paid") {
+        log(`Flow confirm: orden ${flowStatus.commerceOrder} ya fue procesada (idempotente)`, "api");
+        return res.json({ status: "ok" });
+      }
+
+      if (flowStatus.status === 2) {
+        if (flowStatus.amount !== order.amount) {
+          log(`Flow confirm: monto no coincide. Esperado=${order.amount} Recibido=${flowStatus.amount} orden=${flowStatus.commerceOrder}`, "api");
+          return res.json({ status: "ok" });
+        }
+
+        await storage.updatePaymentOrderStatus(flowStatus.commerceOrder, "paid", new Date());
+        await storage.updateTenant(order.tenantId, { plan: order.targetPlan } as any);
+        log(`Tenant ${order.tenantId} actualizado a plan ${order.targetPlan} - Pago Flow #${flowStatus.flowOrder} orden=${flowStatus.commerceOrder}`, "api");
+      } else if (flowStatus.status === 3 || flowStatus.status === 4) {
+        await storage.updatePaymentOrderStatus(flowStatus.commerceOrder, "rejected");
+        log(`Pago rechazado/cancelado: orden=${flowStatus.commerceOrder} tenant=${order.tenantId}`, "api");
+      }
+
+      res.json({ status: "ok" });
+    } catch (error: any) {
+      log(`Error en confirmación Flow: ${error.message}`, "api");
+      res.status(500).json({ message: "Error procesando confirmacion" });
+    }
+  });
+
+  app.get("/api/flow/return", async (req, res) => {
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== "string") {
+        return res.redirect("/dashboard?payment=error");
+      }
+
+      const protocol = req.headers["x-forwarded-proto"] || "https";
+      const host = req.headers.host || "localhost:5000";
+      const baseURL = `${protocol}://${host}`;
+      const flowApi = getFlowApi(baseURL);
+
+      const flowStatus = await flowApi.send("payment/getStatus", { token }, "GET");
+
+      if (flowStatus.status === 2) {
+        return res.redirect("/dashboard?payment=success");
+      } else if (flowStatus.status === 3) {
+        return res.redirect("/dashboard?payment=rejected");
+      } else {
+        return res.redirect("/dashboard?payment=pending");
+      }
+    } catch (error: any) {
+      log(`Error en retorno Flow: ${error.message}`, "api");
+      return res.redirect("/dashboard?payment=error");
+    }
+  });
+
+  app.get("/api/tenants/me/plan-prices", async (_req, res) => {
+    const prices = Object.entries(PLAN_PRICES).map(([key, val]) => ({
+      plan: key,
+      amount: val.amount,
+      label: val.label,
+      formattedPrice: `$${val.amount.toLocaleString("es-CL")} CLP/mes`,
+    }));
+    res.json(prices);
   });
 
   app.get("/api/admin/users", async (req, res) => {

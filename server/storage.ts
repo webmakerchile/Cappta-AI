@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, knowledgeBase, tenants, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -75,6 +75,9 @@ export interface IStorage {
   createTenant(data: InsertTenant): Promise<Tenant>;
   updateTenant(id: number, data: Partial<InsertTenant>): Promise<Tenant | null>;
   getTenantStats(tenantId: number): Promise<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }>;
+  createPaymentOrder(data: { tenantId: number; commerceOrder: string; flowOrder?: number; targetPlan: string; amount: number }): Promise<typeof paymentOrders.$inferSelect>;
+  getPaymentOrderByCommerceOrder(commerceOrder: string): Promise<typeof paymentOrders.$inferSelect | null>;
+  updatePaymentOrderStatus(commerceOrder: string, status: string, paidAt?: Date): Promise<typeof paymentOrders.$inferSelect | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1000,6 +1003,34 @@ export class DatabaseStorage implements IStorage {
       avgRating: row?.avgRating ? parseFloat(row.avgRating) : null,
       activeSessionsCount: row?.activeSessionsCount || 0,
     };
+  }
+
+  async createPaymentOrder(data: { tenantId: number; commerceOrder: string; flowOrder?: number; targetPlan: string; amount: number }) {
+    const [order] = await db
+      .insert(paymentOrders)
+      .values(data)
+      .returning();
+    return order;
+  }
+
+  async getPaymentOrderByCommerceOrder(commerceOrder: string) {
+    const [order] = await db
+      .select()
+      .from(paymentOrders)
+      .where(eq(paymentOrders.commerceOrder, commerceOrder))
+      .limit(1);
+    return order || null;
+  }
+
+  async updatePaymentOrderStatus(commerceOrder: string, status: string, paidAt?: Date) {
+    const updateData: any = { status };
+    if (paidAt) updateData.paidAt = paidAt;
+    const [order] = await db
+      .update(paymentOrders)
+      .set(updateData)
+      .where(eq(paymentOrders.commerceOrder, commerceOrder))
+      .returning();
+    return order || null;
   }
 }
 

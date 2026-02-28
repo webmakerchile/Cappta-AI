@@ -66,6 +66,29 @@ Key architectural decisions and features include:
 - `GET /api/tenants/me/stats` - Get tenant dashboard stats (auth required)
 - `GET /api/tenants/:id/config` - Public endpoint for widget to load tenant config
 
+## Payment Integration (Flow.cl)
+- **Provider**: Flow.cl (Chilean payment gateway, used instead of Stripe)
+- **Package**: `flowcl-node-api-client` (CommonJS, imported via createRequire)
+- **Service File**: `server/flow.ts` - Flow API client configuration and plan pricing
+- **Environment Variables**: `FLOW_API_KEY`, `FLOW_SECRET_KEY`
+- **Plans & Pricing**:
+  - `free` (Gratis): $0 — 50 sessions/month, 500 messages/month
+  - `basic` (Pro): $19,990 CLP/month — 500 sessions, 5,000 messages, AI + catalog + KB
+  - `pro` (Enterprise): $49,990 CLP/month — unlimited, priority support, API, multi-agent
+- **Payment Flow**:
+  1. Tenant clicks "Contratar" → `POST /api/tenants/me/checkout` → creates Flow payment order
+  2. Redirect to Flow.cl hosted checkout page
+  3. Flow.cl calls `POST /api/flow/confirm` webhook on payment completion → updates tenant plan in DB
+  4. User redirected to `GET /api/flow/return` → redirects to `/dashboard?payment=success|rejected|pending|error`
+  5. Dashboard shows toast notification based on payment result and refreshes tenant data
+- **DB Field**: `tenants.flowCustomerId` — reserved for future recurring billing via Flow customer/charge API
+
+## Payment API Routes
+- `POST /api/tenants/me/checkout` - Create Flow.cl payment (auth required, body: { plan })
+- `POST /api/flow/confirm` - Flow.cl webhook (receives token, verifies payment status)
+- `GET /api/flow/return` - Post-payment redirect (redirects to dashboard with status)
+- `GET /api/tenants/me/plan-prices` - Public plan pricing info
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all data persistence.
 - **Resend**: Email API for sending notifications.
@@ -75,3 +98,4 @@ Key architectural decisions and features include:
 - **Replit Object Storage**: For storing image uploads via presigned URLs.
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
+- **Flow.cl**: Chilean payment gateway for plan billing (via flowcl-node-api-client).

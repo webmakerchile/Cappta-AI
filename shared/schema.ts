@@ -129,7 +129,20 @@ export const tenants = pgTable("tenants", {
   welcomeMessage: text("welcome_message").notNull().default("Hola, ¿en qué podemos ayudarte?"),
   logoUrl: text("logo_url"),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
+  flowCustomerId: text("flow_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const paymentOrders = pgTable("payment_orders", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  commerceOrder: text("commerce_order").notNull().unique(),
+  flowOrder: integer("flow_order"),
+  targetPlan: text("target_plan").notNull(),
+  amount: integer("amount").notNull(),
+  status: text("status", { enum: ["pending", "paid", "rejected", "cancelled"] }).notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  paidAt: timestamp("paid_at"),
 });
 
 export const appSettings = pgTable("app_settings", {
