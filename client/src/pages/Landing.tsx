@@ -1714,8 +1714,8 @@ export default function Landing() {
               <span className="text-gradient-green">gana meses gratis</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Recomienda FoxBot a otros negocios. Cuando se registran con tu enlace y tú confirmas la invitación,
-              <span className="text-white/60 font-semibold"> ambos reciben beneficios: tú ganas meses de plan premium y tu referido empieza con ventajas exclusivas.</span>
+              Recomienda FoxBot a otros negocios. Cuando tu referido <span className="text-white/60 font-semibold">compra un plan de pago</span>,
+              <span className="text-white/60 font-semibold"> tú ganas meses de plan premium gratis automáticamente.</span> Sin trámites, sin esperas.
             </p>
           </div>
 
@@ -1740,9 +1740,9 @@ export default function Landing() {
               <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-black text-primary">2</span>
               </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Tu referido se registra</h3>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Tu referido compra un plan</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Cuando el negocio se registra con tu enlace, aparece en tu lista de referidos. Tú confirmas que lo conoces con un clic.
+                Cuando el negocio se registra con tu enlace y luego compra Fox Pro o Fox Enterprise, el referido se confirma automáticamente.
               </p>
             </div>
 
@@ -1753,9 +1753,9 @@ export default function Landing() {
               <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
                 <span className="text-sm font-black text-amber-400">3</span>
               </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Ambos ganan</h3>
+              <h3 className="text-lg font-bold text-white/90 mb-2">Tú ganas automáticamente</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Tú recibes meses de plan premium gratis. Tu referido también recibe un bonus de bienvenida. ¡Todos salen ganando!
+                Al confirmarse la compra, tú recibes meses de plan premium gratis al instante. Sin solicitudes ni trámites.
               </p>
             </div>
           </div>
@@ -1802,9 +1802,9 @@ export default function Landing() {
                 <Handshake className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-white/80 mb-2">¿Qué gana tu referido?</h4>
+                <h4 className="text-base font-bold text-white/80 mb-2">¿Cómo funciona exactamente?</h4>
                 <p className="text-sm text-white/40 leading-relaxed">
-                  Cada negocio que se registra con tu enlace recibe un <span className="text-primary font-semibold">bonus de bienvenida</span>: configuración asistida del chatbot, soporte prioritario en sus primeros 7 días y acceso a todas las guías de entrenamiento. Tu referido empieza con ventaja desde el día uno.
+                  Tu referido se registra gratis con tu enlace y prueba FoxBot sin compromiso. Cuando decide comprar <span className="text-primary font-semibold">Fox Pro o Fox Enterprise</span>, tu recompensa se activa automáticamente al instante. No necesitas hacer nada más: el sistema detecta la compra y te asigna los meses de plan premium correspondientes.
                 </p>
               </div>
             </div>

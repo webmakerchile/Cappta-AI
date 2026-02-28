@@ -1567,7 +1567,7 @@ interface ReferralData {
   code: string;
   confirmedCount: number;
   pendingCount: number;
-  referrals: { id: number; referredName: string; referredEmail: string; confirmed: number; createdAt: string; confirmedAt: string | null }[];
+  referrals: { id: number; referredName: string; referredEmail: string; referredPlan: string; confirmed: number; createdAt: string; confirmedAt: string | null }[];
   currentReward: { plan: string; planLabel: string; expiresAt: string; months: number } | null;
   nextReward: { target: number; current: number; plan: string; months: number } | null;
 }
@@ -1583,38 +1583,6 @@ function ReferidosSection() {
       const res = await fetch("/api/tenants/me/referral", { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error("Error");
       return res.json();
-    },
-  });
-
-  const confirmMutation = useMutation({
-    mutationFn: async (referralId: number) => {
-      const res = await fetch("/api/tenants/me/referral/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ referralId }),
-      });
-      if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.message || "Error");
-      }
-      return res.json();
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/referral"] });
-      if (result.confirmedCount === 1) {
-        toast({ title: "1 mes de Fox Pro desbloqueado", description: "Tu primer referido fue confirmado. Disfruta 1 mes de Fox Pro gratis." });
-      } else if (result.confirmedCount === 3) {
-        toast({ title: "2 meses de Fox Pro desbloqueados", description: "Llegaste a 3 referidos confirmados. Disfruta 2 meses de Fox Pro gratis." });
-      } else if (result.confirmedCount === 5) {
-        toast({ title: "3 meses de Fox Enterprise desbloqueados", description: "Llegaste a 5 referidos confirmados. Disfruta 3 meses de Fox Enterprise gratis." });
-      } else if (result.confirmedCount === 10) {
-        toast({ title: "6 meses de Fox Enterprise desbloqueados", description: "Eres embajador FoxBot. Disfruta 6 meses de Fox Enterprise gratis." });
-      } else {
-        toast({ title: "Referido confirmado" });
-      }
-    },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
     },
   });
 
@@ -1656,7 +1624,7 @@ function ReferidosSection() {
             </div>
             <div>
               <h3 className="text-lg font-bold" data-testid="text-referidos-title">Programa de Referidos</h3>
-              <p className="text-sm text-white/40">Invita negocios a FoxBot y gana meses de plan premium gratis</p>
+              <p className="text-sm text-white/40">Invita negocios. Cuando compren un plan de pago, tú ganas meses gratis</p>
             </div>
           </div>
 
@@ -1762,10 +1730,10 @@ function ReferidosSection() {
                     Confirmado
                   </span>
                 ) : (
-                  <Button size="sm" onClick={() => confirmMutation.mutate(ref.id)} disabled={confirmMutation.isPending} className="bg-primary hover:bg-primary/80 text-xs gap-1 shrink-0" data-testid={`button-confirm-referral-${ref.id}`}>
-                    {confirmMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                    Confirmar
-                  </Button>
+                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0" data-testid={`status-referral-${ref.id}`}>
+                    <Clock className="w-3 h-3" />
+                    {ref.referredPlan === "free" ? "Esperando compra" : "Pendiente"}
+                  </span>
                 )}
               </div>
             ))}
@@ -1776,8 +1744,8 @@ function ReferidosSection() {
       {data.referrals.length === 0 && (
         <div className="rounded-2xl glass-card p-8 text-center animate-dash-fade-up dash-stagger-4">
           <UserPlus className="w-12 h-12 text-white/10 mx-auto mb-4" />
-          <p className="text-sm text-white/40 mb-1">Aun no tienes referidos</p>
-          <p className="text-xs text-white/25">Comparte tu link con otros negocios para empezar a ganar recompensas</p>
+          <p className="text-sm text-white/40 mb-1">Aún no tienes referidos</p>
+          <p className="text-xs text-white/25">Comparte tu link con otros negocios. Cuando compren un plan de pago, tú ganas meses gratis</p>
         </div>
       )}
     </div>

@@ -119,6 +119,7 @@ export interface IStorage {
   countTenantAgents(tenantId: number): Promise<number>;
   updateTenantAgentLastLogin(id: number): Promise<void>;
   getReferralsByReferrerId(referrerId: number): Promise<Referral[]>;
+  getReferralByReferredId(referredId: number): Promise<Referral | null>;
   createReferral(data: InsertReferral): Promise<Referral>;
   confirmReferral(referrerId: number, referredId: number): Promise<Referral | null>;
   getConfirmedReferralCount(referrerId: number): Promise<number>;
@@ -1417,6 +1418,11 @@ export class DatabaseStorage implements IStorage {
 
   async getReferralsByReferrerId(referrerId: number): Promise<Referral[]> {
     return await db.select().from(referrals).where(eq(referrals.referrerId, referrerId)).orderBy(desc(referrals.createdAt));
+  }
+
+  async getReferralByReferredId(referredId: number): Promise<Referral | null> {
+    const [ref] = await db.select().from(referrals).where(eq(referrals.referredId, referredId));
+    return ref || null;
   }
 
   async createReferral(data: InsertReferral): Promise<Referral> {

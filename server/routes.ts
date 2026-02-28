@@ -1638,6 +1638,32 @@ ${DEMO_BASE_RULES}`,
         await storage.updatePaymentOrderStatus(flowStatus.commerceOrder, "paid", new Date());
         await storage.updateTenant(order.tenantId, { plan: order.targetPlan } as any);
         log(`Tenant ${order.tenantId} actualizado a plan ${order.targetPlan} - Pago Flow #${flowStatus.flowOrder} orden=${flowStatus.commerceOrder}`, "api");
+
+        try {
+          const referral = await storage.getReferralByReferredId(order.tenantId);
+          const isPaidPlan = order.targetPlan === "basic" || order.targetPlan === "pro";
+          if (referral && referral.confirmed === 0 && isPaidPlan) {
+            await storage.confirmReferral(referral.referrerId, order.tenantId);
+            const confirmedCount = await storage.getConfirmedReferralCount(referral.referrerId);
+            if (confirmedCount === 1) {
+              await storage.applyReferralReward(referral.referrerId, "basic", 1);
+              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 1 month Fox Pro (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            } else if (confirmedCount === 3) {
+              await storage.applyReferralReward(referral.referrerId, "basic", 2);
+              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 2 months Fox Pro (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            } else if (confirmedCount === 5) {
+              await storage.applyReferralReward(referral.referrerId, "pro", 3);
+              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 3 months Fox Enterprise (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            } else if (confirmedCount === 10) {
+              await storage.applyReferralReward(referral.referrerId, "pro", 6);
+              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 6 months Fox Enterprise (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            } else {
+              log(`Referral auto-confirmed: referrer ${referral.referrerId} now has ${confirmedCount} confirmed (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            }
+          }
+        } catch (refErr: any) {
+          log(`Error procesando referido en pago: ${refErr.message}`, "referral");
+        }
       } else if (flowStatus.status === 3 || flowStatus.status === 4) {
         await storage.updatePaymentOrderStatus(flowStatus.commerceOrder, "rejected");
         log(`Pago rechazado/cancelado: orden=${flowStatus.commerceOrder} tenant=${order.tenantId}`, "api");
@@ -1765,6 +1791,7 @@ ${DEMO_BASE_RULES}`,
           id: r.id,
           referredName: referred?.companyName || referred?.name || "Desconocido",
           referredEmail: referred?.email || "",
+          referredPlan: referred?.plan || "free",
           confirmed: r.confirmed,
           createdAt: r.createdAt,
           confirmedAt: r.confirmedAt,
@@ -1797,36 +1824,8 @@ ${DEMO_BASE_RULES}`,
     }
   });
 
-  app.post("/api/tenants/me/referral/confirm", async (req, res) => {
-    const auth = requireTenantAuth(req, res);
-    if (!auth) return;
-    try {
-      const { referralId } = req.body;
-      if (!referralId) return res.status(400).json({ message: "ID de referido requerido" });
-      const allReferrals = await storage.getReferralsByReferrerId(auth.id);
-      const referral = allReferrals.find(r => r.id === referralId);
-      if (!referral) return res.status(404).json({ message: "Referido no encontrado" });
-      if (referral.confirmed === 1) return res.status(400).json({ message: "Este referido ya fue confirmado" });
-      await storage.confirmReferral(auth.id, referral.referredId);
-      const confirmedCount = await storage.getConfirmedReferralCount(auth.id);
-      if (confirmedCount === 1) {
-        await storage.applyReferralReward(auth.id, "basic", 1);
-        log(`Referral reward: tenant ${auth.id} earned 1 month of Fox Pro (1 confirmed referral)`, "referral");
-      } else if (confirmedCount === 3) {
-        await storage.applyReferralReward(auth.id, "basic", 2);
-        log(`Referral reward: tenant ${auth.id} earned 2 months of Fox Pro (3 confirmed referrals)`, "referral");
-      } else if (confirmedCount === 5) {
-        await storage.applyReferralReward(auth.id, "pro", 3);
-        log(`Referral reward: tenant ${auth.id} earned 3 months of Fox Enterprise (5 confirmed referrals)`, "referral");
-      } else if (confirmedCount === 10) {
-        await storage.applyReferralReward(auth.id, "pro", 6);
-        log(`Referral reward: tenant ${auth.id} earned 6 months of Fox Enterprise (10 confirmed referrals - Ambassador)`, "referral");
-      }
-      res.json({ success: true, confirmedCount });
-    } catch (error: any) {
-      log(`Error confirmando referido: ${error.message}`, "referral");
-      res.status(500).json({ message: "Error al confirmar referido" });
-    }
+  app.post("/api/tenants/me/referral/confirm", async (_req, res) => {
+    res.status(400).json({ message: "Los referidos se confirman automáticamente cuando compran un plan de pago" });
   });
 
   app.get("/api/admin/users", async (req, res) => {
