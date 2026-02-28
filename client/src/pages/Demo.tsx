@@ -641,11 +641,11 @@ export default function Demo() {
   const remaining = MAX_DEMO_MESSAGES - messageCount;
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col relative overflow-hidden" data-testid="demo-page">
+    <div className="fixed inset-0 bg-background text-foreground flex flex-col" data-testid="demo-page">
       <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}06, transparent 60%)` }} />
       <div className="absolute bottom-[-150px] left-[-100px] w-[350px] h-[350px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}04, transparent 60%)`, animationDelay: "-10s" }} />
 
-      <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-xl animate-dash-fade-in" data-testid="demo-nav">
+      <nav className="shrink-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl animate-dash-fade-in" data-testid="demo-nav">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={changeContext} className="flex items-center gap-1 text-white/30 hover:text-white/60 transition-colors duration-300" data-testid="button-change-context">
@@ -676,10 +676,10 @@ export default function Demo() {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full relative min-h-0">
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 min-h-0" data-testid="demo-messages">
+      <div className="flex-1 overflow-y-auto" data-testid="demo-messages">
+        <div className="max-w-2xl mx-auto w-full px-4 py-6 space-y-4">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-4">
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
               <div
                 className="flex items-center justify-center w-16 h-16 rounded-2xl mb-5 animate-dash-scale-in animate-float"
                 style={{ backgroundColor: `${ctx.color}10`, animationDuration: "6s" }}
@@ -757,8 +757,10 @@ export default function Demo() {
 
           <div ref={messagesEndRef} />
         </div>
+      </div>
 
-        <div className="border-t border-white/[0.06] px-4 py-3 bg-background/60 backdrop-blur-xl">
+      <div className="shrink-0 border-t border-white/[0.06] bg-background/80 backdrop-blur-xl">
+        <div className="max-w-2xl mx-auto w-full px-4 py-3">
           {remaining <= 0 ? (
             <div className="text-center py-3 animate-dash-fade-up">
               <p className="text-sm text-white/35 mb-3">
