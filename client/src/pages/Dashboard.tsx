@@ -145,10 +145,10 @@ function StatsSection({ token }: { token: string }) {
       glowClass: "glass-card-glow-green",
     },
     {
-      label: "Satisfaccion",
+      label: "Satisfacción",
       value: statsLoading ? "..." : statsData?.avgRating ? `${statsData.avgRating}/5` : "0/5",
       icon: Star,
-      sub: statsData?.avgRating ? "Promedio de calificaciones" : "Sin calificaciones aun",
+      sub: statsData?.avgRating ? "Promedio de calificaciones" : "Sin calificaciones aún",
       color: "hsl(30, 90%, 52%)",
       trend: statsData?.avgRating && statsData.avgRating >= 4 ? `${statsData.avgRating >= 4.5 ? "Excelente" : "Bueno"}` : null,
       glowClass: "glass-card-glow-orange",
@@ -224,7 +224,7 @@ function PreviewFormBody({ consultationOptions, showProductSearch, productSearch
   return (
     <div className="flex flex-col gap-2.5 px-4 pb-3 flex-1 overflow-y-auto chat-scrollbar">
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Correo electronico</label>
+        <label className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Correo electrónico</label>
         <div className="h-9 rounded-md bg-white/5 border border-white/10 flex items-center px-3">
           <input
             type="text"
@@ -245,7 +245,7 @@ function PreviewFormBody({ consultationOptions, showProductSearch, productSearch
             data-testid="button-preview-consultation-dropdown"
           >
             <span className={`text-[11px] flex-1 ${selectedOption ? "text-white/80" : "text-white/25"}`}>
-              {selectedOption || "Selecciona una opcion"}
+              {selectedOption || "Selecciona una opción"}
             </span>
             <ChevronDown className={`w-3 h-3 text-white/30 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
           </div>
@@ -305,7 +305,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [botTextColor, setBotTextColor] = useState(tenant.botTextColor || "#e0e0e0");
   const [userTextColor, setUserTextColor] = useState(tenant.userTextColor || "#ffffff");
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage);
-  const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
+  const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -335,7 +335,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setBotTextColor(tenant.botTextColor || "#e0e0e0");
     setUserTextColor(tenant.userTextColor || "#ffffff");
     setWelcomeMessage(tenant.welcomeMessage);
-    setWelcomeSubtitle(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
+    setWelcomeSubtitle(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
     setLogoUrl(tenant.logoUrl || "");
     setShowProductSearch(tenant.showProductSearch === 1);
     setProductSearchLabel(tenant.productSearchLabel || "Buscar producto");
@@ -362,7 +362,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
-      toast({ title: "Configuracion guardada", description: "Los cambios se han aplicado correctamente." });
+      toast({ title: "Configuración guardada", description: "Los cambios se han aplicado correctamente." });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
@@ -452,7 +452,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       });
       if (settingsRes.ok) {
         queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
-        toast({ title: "Sitio web analizado", description: "La informacion se guardo automaticamente en el entrenamiento del bot. Puedes editarla en Entrenar Bot." });
+        toast({ title: "Sitio web analizado", description: "La información se guardo automáticamente en el entrenamiento del bot. Puedes editarla en Entrenar Bot." });
       }
     } catch (err: any) {
       toast({ title: "Error al analizar", description: err.message || "Verifica que la URL sea accesible", variant: "destructive" });
@@ -511,7 +511,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             <Globe className="w-5 h-5 text-primary" />
             Tu Negocio
           </h3>
-          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Ingresa tu sitio web y FoxBot aprendera sobre tu negocio automaticamente</p>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Ingresa tu sitio web y FoxBot aprendera sobre tu negocio automáticamente</p>
         </div>
 
         <div className="space-y-2 animate-dash-fade-up dash-stagger-1 relative">
@@ -544,7 +544,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               )}
             </Button>
           </div>
-          <p className="text-xs text-white/30">Al analizar tu sitio web, FoxBot extraera automaticamente la informacion de tu negocio (productos, servicios, contacto, horarios) y entrenara el chatbot por ti.</p>
+          <p className="text-xs text-white/30">Al analizar tu sitio web, FoxBot extraera automáticamente la información de tu negocio (productos, servicios, contacto, horarios) y entrenara el chatbot por ti.</p>
         </div>
 
         {analyzedResult && (
@@ -553,14 +553,14 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               <CircleCheck className="w-4 h-4 text-green-400" />
               <p className="text-sm font-medium text-green-400">Sitio analizado correctamente</p>
             </div>
-            <p className="text-xs text-white/40">La informacion extraida se guardo en el entrenamiento del bot. Puedes revisarla y editarla en la seccion "Entrenar Bot" del Panel de Soporte.</p>
+            <p className="text-xs text-white/40">La información extraida se guardo en el entrenamiento del bot. Puedes revisarla y editarla en la sección "Entrenar Bot" del Panel de Soporte.</p>
           </div>
         )}
 
         {!tenant.botContext && !analyzedResult && domain.trim() && (
           <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 flex items-start gap-2">
             <Wand2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-300/80">Haz clic en "Analizar sitio" para que el bot aprenda sobre tu negocio automaticamente. Solo toma unos segundos.</p>
+            <p className="text-xs text-amber-300/80">Haz clic en "Analizar sitio" para que el bot aprenda sobre tu negocio automáticamente. Solo toma unos segundos.</p>
           </div>
         )}
 
@@ -692,7 +692,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             data-testid="input-welcome-message"
             value={welcomeMessage}
             onChange={(e) => setWelcomeMessage(e.target.value)}
-            placeholder="Hola, ¿en que podemos ayudarte?"
+            placeholder="Hola, ¿en qué podemos ayudarte?"
             className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
           />
         </div>
@@ -703,7 +703,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             data-testid="input-welcome-subtitle"
             value={welcomeSubtitle}
             onChange={(e) => setWelcomeSubtitle(e.target.value)}
-            placeholder="Completa tus datos para iniciar la conversacion"
+            placeholder="Completa tus datos para iniciar la conversación"
             className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
           />
         </div>
@@ -824,7 +824,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             <Search className="w-5 h-5 text-primary" />
             API de Productos
           </h3>
-          <p className="text-sm text-white/40">Conecta tu catalogo de productos para que los clientes puedan buscar en el chat</p>
+          <p className="text-sm text-white/40">Conecta tu catálogo de productos para que los clientes puedan buscar en el chat</p>
         </div>
 
         <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
@@ -895,7 +895,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               Guardando...
             </span>
-          ) : "Guardar Configuracion"}
+          ) : "Guardar Configuración"}
         </Button>
         <div
           className="h-11 w-11 rounded-xl border border-white/[0.08] flex items-center justify-center transition-all duration-500 hover:scale-110 animate-float"
@@ -962,8 +962,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                         <Headphones className="w-6 h-6" style={{ color: widgetColor }} />
                       )}
                     </div>
-                    <h2 className="text-sm font-bold text-white mb-0.5 text-center">{welcomeMessage || "Hola, ¿en que podemos ayudarte?"}</h2>
-                    <p className="text-[10px] text-white/50 text-center">{welcomeSubtitle || "Completa tus datos para iniciar la conversacion"}</p>
+                    <h2 className="text-sm font-bold text-white mb-0.5 text-center">{welcomeMessage || "Hola, ¿en qué podemos ayudarte?"}</h2>
+                    <p className="text-[10px] text-white/50 text-center">{welcomeSubtitle || "Completa tus datos para iniciar la conversación"}</p>
                   </div>
                   <PreviewFormBody
                     consultationOptions={consultationOptions}
@@ -986,7 +986,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       <h3 className="text-sm font-semibold truncate" style={{ color: headerTextColor }}>{companyName || "Mi Empresa"}</h3>
                       <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-300" />
-                        <span className="text-[10px] text-green-200">En linea</span>
+                        <span className="text-[10px] text-green-200">En línea</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -1009,7 +1009,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       </div>
                       <div className="max-w-[75%]">
                         <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>
-                          <p className="text-[12px] leading-relaxed" style={{ color: botTextColor }}>Hola! Bienvenido a {companyName || "nuestra tienda"}. ¿En que puedo ayudarte hoy?</p>
+                          <p className="text-[12px] leading-relaxed" style={{ color: botTextColor }}>¡Hola! Bienvenido a {companyName || "nuestra tienda"}. ¿En qué puedo ayudarte hoy?</p>
                         </div>
                         <span className="text-[9px] text-white/25 mt-0.5 block">11:30 a.m.</span>
                       </div>
@@ -1017,7 +1017,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     <div className="flex items-end gap-1.5 flex-row-reverse">
                       <div className="max-w-[75%]">
                         <div className="rounded-md rounded-br-none px-3 py-2" style={{ backgroundColor: widgetColor, color: userTextColor }}>
-                          <p className="text-[12px] leading-relaxed">Hola, quiero informacion sobre sus productos</p>
+                          <p className="text-[12px] leading-relaxed">Hola, quiero información sobre sus productos</p>
                         </div>
                         <span className="text-[9px] text-white/25 mt-0.5 block text-right">11:31 a.m.</span>
                       </div>
@@ -1032,10 +1032,10 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       </div>
                       <div className="max-w-[75%]">
                         <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>
-                          <p className="text-[12px] leading-relaxed" style={{ color: botTextColor }}>Claro! Aqui tienes nuestras opciones:</p>
+                          <p className="text-[12px] leading-relaxed" style={{ color: botTextColor }}>Claro! Aquí tienes nuestras opciones:</p>
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1 pl-0.5">
-                          <span className="px-2 py-1 text-[10px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Ver catalogo</span>
+                          <span className="px-2 py-1 text-[10px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Ver catálogo</span>
                           <span className="px-2 py-1 text-[10px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Precios</span>
                         </div>
                         <span className="text-[9px] text-white/25 mt-0.5 block">11:31 a.m.</span>
@@ -1084,7 +1084,7 @@ interface PlatformGuide {
   name: string;
   icon: any;
   color: string;
-  difficulty: "facil" | "medio";
+  difficulty: "fácil" | "medio";
   steps: { title: string; description: string; code?: string; note?: string }[];
 }
 
@@ -1154,75 +1154,75 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   const platforms: PlatformGuide[] = [
     {
-      id: "wordpress", name: "WordPress", icon: SiWordpress, color: "#21759b", difficulty: "facil",
+      id: "wordpress", name: "WordPress", icon: SiWordpress, color: "#21759b", difficulty: "fácil",
       steps: [
         { title: "Accede a tu panel de WordPress", description: "Ingresa a tu administrador de WordPress (tu-sitio.com/wp-admin)." },
-        { title: "Ve a Apariencia > Editor de temas", description: "En el menu lateral, navega a Apariencia > Editor de temas. Si prefieres no editar archivos, instala el plugin gratuito 'WPCode' o 'Insert Headers and Footers'.", note: "Con WPCode: Ve a Code Snippets > Header & Footer > pega el codigo en el campo 'Footer'." },
+        { title: "Ve a Apariencia > Editor de temas", description: "En el menú lateral, navega a Apariencia > Editor de temas. Si prefieres no editar archivos, instala el plugin gratuito 'WPCode' o 'Insert Headers and Footers'.", note: "Con WPCode: Ve a Code Snippets > Header & Footer > pega el código en el campo 'Footer'." },
         { title: "Abre el archivo footer.php", description: "En el editor de temas, selecciona footer.php de la lista de archivos del tema." },
-        { title: "Pega el codigo antes de </body>", description: "Agrega el siguiente codigo justo antes de la etiqueta </body>:", code: embedScript },
-        { title: "Guarda los cambios", description: "Haz clic en 'Actualizar archivo'. El chatbot aparecera automaticamente en todas las paginas de tu sitio." },
+        { title: "Pega el código antes de </body>", description: "Agrega el siguiente código justo antes de la etiqueta </body>:", code: embedScript },
+        { title: "Guarda los cambios", description: "Haz clic en 'Actualizar archivo'. El chatbot aparecerá automáticamente en todas las paginas de tu sitio." },
       ],
     },
     {
-      id: "woocommerce", name: "WooCommerce", icon: SiWoocommerce, color: "#96588a", difficulty: "facil",
+      id: "woocommerce", name: "WooCommerce", icon: SiWoocommerce, color: "#96588a", difficulty: "fácil",
       steps: [
-        { title: "Mismos pasos que WordPress", description: "WooCommerce funciona sobre WordPress, asi que el proceso es identico. Sigue los pasos de WordPress." },
-        { title: "Pega el codigo en footer.php", description: "Ve a Apariencia > Editor de temas > footer.php y pega este codigo antes de </body>:", code: embedScript },
-        { title: "Conecta tu catalogo (opcional)", description: "Para que el bot muestre tus productos, activa el buscador de productos en Configuracion > API de Productos e ingresa tu URL de WooCommerce REST API.", note: "Formato de URL: https://tu-tienda.com/wp-json/wc/v3/products" },
+        { title: "Mismos pasos que WordPress", description: "WooCommerce funciona sobre WordPress, así que el proceso es idéntico. Sigue los pasos de WordPress." },
+        { title: "Pega el código en footer.php", description: "Ve a Apariencia > Editor de temas > footer.php y pega este código antes de </body>:", code: embedScript },
+        { title: "Conecta tu catálogo (opcional)", description: "Para que el bot muestre tus productos, activa el buscador de productos en Configuración > API de Productos e ingresa tu URL de WooCommerce REST API.", note: "Formato de URL: https://tu-tienda.com/wp-json/wc/v3/products" },
       ],
     },
     {
-      id: "shopify", name: "Shopify", icon: SiShopify, color: "#95bf47", difficulty: "facil",
+      id: "shopify", name: "Shopify", icon: SiShopify, color: "#95bf47", difficulty: "fácil",
       steps: [
         { title: "Ve a tu panel de Shopify", description: "Ingresa a tu administrador en tu-tienda.myshopify.com/admin." },
-        { title: "Abre el editor de temas", description: "Ve a Tienda Online > Temas > haz clic en '...' junto a tu tema activo > Editar codigo." },
-        { title: "Abre theme.liquid", description: "En el editor de codigo, busca y abre Layout > theme.liquid." },
-        { title: "Pega el codigo antes de </body>", description: "Busca la etiqueta </body> y pega este codigo justo antes:", code: embedScript },
-        { title: "Guarda", description: "Haz clic en 'Guardar'. El chatbot aparecera en tu tienda inmediatamente." },
+        { title: "Abre el editor de temas", description: "Ve a Tienda Online > Temas > haz clic en '...' junto a tu tema activo > Editar código." },
+        { title: "Abre theme.liquid", description: "En el editor de código, busca y abre Layout > theme.liquid." },
+        { title: "Pega el código antes de </body>", description: "Busca la etiqueta </body> y pega este código justo antes:", code: embedScript },
+        { title: "Guarda", description: "Haz clic en 'Guardar'. El chatbot aparecerá en tu tienda inmediatamente." },
       ],
     },
     {
-      id: "squarespace", name: "Squarespace", icon: SiSquarespace, color: "#ffffff", difficulty: "facil",
+      id: "squarespace", name: "Squarespace", icon: SiSquarespace, color: "#ffffff", difficulty: "fácil",
       steps: [
         { title: "Accede a tu panel", description: "Ingresa a tu cuenta de Squarespace." },
-        { title: "Ve a Configuracion > Avanzado", description: "Navega a Configuracion > Avanzado > Inyeccion de codigo." },
-        { title: "Pega en el campo 'Footer'", description: "En la seccion Footer, pega el siguiente codigo:", code: embedScript },
-        { title: "Guarda", description: "Haz clic en 'Guardar'. El chatbot estara en todas las paginas.", note: "Requiere plan Business o superior de Squarespace." },
+        { title: "Ve a Configuración > Avanzado", description: "Navega a Configuración > Avanzado > Inyeccion de código." },
+        { title: "Pega en el campo 'Footer'", description: "En la sección Footer, pega el siguiente código:", code: embedScript },
+        { title: "Guarda", description: "Haz clic en 'Guardar'. El chatbot estará en todas las paginas.", note: "Requiere plan Business o superior de Squarespace." },
       ],
     },
     {
-      id: "wix", name: "Wix", icon: SiWix, color: "#0c6efc", difficulty: "facil",
+      id: "wix", name: "Wix", icon: SiWix, color: "#0c6efc", difficulty: "fácil",
       steps: [
         { title: "Abre el editor de Wix", description: "Ingresa a tu sitio en Wix y abre el editor." },
         { title: "Agrega un bloque HTML", description: "Haz clic en Agregar (+) > Embeds > HTML embebido. Arrastralo a cualquier parte." },
-        { title: "Pega el codigo", description: "Haz clic en 'Introducir codigo' y pega lo siguiente:", code: embedScript },
-        { title: "Publica", description: "Haz clic en 'Publicar'. El chatbot aparecera en tu sitio en vivo." },
+        { title: "Pega el código", description: "Haz clic en 'Introducir código' y pega lo siguiente:", code: embedScript },
+        { title: "Publica", description: "Haz clic en 'Publicar'. El chatbot aparecerá en tu sitio en vivo." },
       ],
     },
     {
-      id: "webflow", name: "Webflow", icon: SiWebflow, color: "#4353ff", difficulty: "facil",
+      id: "webflow", name: "Webflow", icon: SiWebflow, color: "#4353ff", difficulty: "fácil",
       steps: [
-        { title: "Abre la configuracion del proyecto", description: "En tu dashboard de Webflow, abre la configuracion de tu proyecto." },
-        { title: "Ve a Custom Code", description: "Navega a la pestana 'Custom Code'." },
-        { title: "Pega en Footer Code", description: "En el campo 'Footer Code', pega el siguiente codigo:", code: embedScript },
-        { title: "Publica", description: "Haz clic en 'Publish'. El chatbot aparecera en tu sitio." },
+        { title: "Abre la configuración del proyecto", description: "En tu dashboard de Webflow, abre la configuración de tu proyecto." },
+        { title: "Ve a Custom Code", description: "Navega a la pestaña 'Custom Code'." },
+        { title: "Pega en Footer Code", description: "En el campo 'Footer Code', pega el siguiente código:", code: embedScript },
+        { title: "Publica", description: "Haz clic en 'Publish'. El chatbot aparecerá en tu sitio." },
       ],
     },
     {
       id: "magento", name: "Magento", icon: SiMagento, color: "#f46f25", difficulty: "medio",
       steps: [
-        { title: "Accede al panel de administracion", description: "Ve a Content > Design > Configuration en tu panel de Magento." },
-        { title: "Edita el tema", description: "Selecciona tu Store View > Edit > seccion HTML Head o Footer." },
-        { title: "Pega el script", description: "Pega este codigo en 'Miscellaneous Scripts':", code: embedScript },
+        { title: "Accede al panel de administración", description: "Ve a Content > Design > Configuration en tu panel de Magento." },
+        { title: "Edita el tema", description: "Selecciona tu Store View > Edit > sección HTML Head o Footer." },
+        { title: "Pega el script", description: "Pega este código en 'Miscellaneous Scripts':", code: embedScript },
         { title: "Limpia la cache", description: "Ve a System > Cache Management y limpia la cache." },
       ],
     },
     {
-      id: "html", name: "HTML / Cualquier web", icon: SiHtml5, color: "#e34f26", difficulty: "facil",
+      id: "html", name: "HTML / Cualquier web", icon: SiHtml5, color: "#e34f26", difficulty: "fácil",
       steps: [
         { title: "Abre tu archivo HTML", description: "Abre el archivo principal de tu sitio web (generalmente index.html)." },
-        { title: "Pega antes de </body>", description: "Agrega el siguiente codigo justo antes de la etiqueta de cierre </body>:", code: embedScript },
-        { title: "Sube los cambios", description: "Guarda el archivo y subelo a tu servidor. El chatbot aparecera automaticamente." },
+        { title: "Pega antes de </body>", description: "Agrega el siguiente código justo antes de la etiqueta de cierre </body>:", code: embedScript },
+        { title: "Sube los cambios", description: "Guarda el archivo y subelo a tu servidor. El chatbot aparecerá automáticamente." },
       ],
     },
     {
@@ -1230,7 +1230,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
       steps: [
         { title: "Abre Google Tag Manager", description: "Ingresa a tagmanager.google.com y selecciona tu contenedor." },
         { title: "Crea una nueva etiqueta", description: "Haz clic en 'Etiquetas' > 'Nueva' > tipo 'HTML personalizado'." },
-        { title: "Pega el codigo", description: "En el campo de HTML, pega lo siguiente:", code: embedScript },
+        { title: "Pega el código", description: "En el campo de HTML, pega lo siguiente:", code: embedScript },
         { title: "Configura el activador", description: "En 'Activacion', selecciona 'All Pages' (Todas las paginas)." },
         { title: "Publica", description: "Haz clic en 'Enviar' para publicar los cambios." },
       ],
@@ -1238,11 +1238,11 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
     {
       id: "prestashop", name: "PrestaShop", icon: Code, color: "#df0067", difficulty: "medio",
       steps: [
-        { title: "Accede al back office", description: "Ingresa a tu panel de administracion de PrestaShop." },
-        { title: "Ve a Diseno > Posiciones", description: "Navega a Diseno > Posiciones de modulos." },
+        { title: "Accede al back office", description: "Ingresa a tu panel de administración de PrestaShop." },
+        { title: "Ve a Diseño > Posiciones", description: "Navega a Diseño > Posiciones de modulos." },
         { title: "Agrega un modulo HTML", description: "Usa el modulo 'HTML personalizado' y ancla a la posicion 'displayFooter'." },
-        { title: "Pega el codigo", description: "En el contenido del modulo, pega:", code: embedScript },
-        { title: "Guarda", description: "Guarda los cambios. El chatbot aparecera en tu tienda." },
+        { title: "Pega el código", description: "En el contenido del modulo, pega:", code: embedScript },
+        { title: "Guarda", description: "Guarda los cambios. El chatbot aparecerá en tu tienda." },
       ],
     },
   ];
@@ -1263,10 +1263,10 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         </div>
         <h3 className="text-lg font-bold">Configura tu bot primero</h3>
         <p className="text-sm text-white/50 max-w-md mx-auto">
-          Antes de obtener el codigo de integracion, debes configurar tu chatbot en la seccion de Configuracion. Define el nombre de tu empresa, color, mensaje de bienvenida y opciones de consulta.
+          Antes de obtener el código de integración, debes configurar tu chatbot en la sección de Configuración. Define el nombre de tu empresa, color, mensaje de bienvenida y opciones de consulta.
         </p>
         <p className="text-xs text-white/30">
-          Ve a Configuracion → completa los datos → guarda → vuelve aqui para obtener tu codigo.
+          Ve a Configuración → completa los datos → guarda → vuelve aquí para obtener tu código.
         </p>
       </div>
     );
@@ -1280,7 +1280,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         <div className="relative flex items-start justify-between">
           <div>
             <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Instala tu chatbot</h3>
-            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">FoxBot se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeno codigo y tu asistente estara listo.</p>
+            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">FoxBot se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeno código y tu asistente estará listo.</p>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 shrink-0 ml-4">
             <CircleCheck className="w-4 h-4 text-green-400" />
@@ -1304,8 +1304,8 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               >
                 <p.icon className="w-5 h-5" style={{ color: p.color }} />
                 <span className="text-[11px] font-medium text-white/70">{p.name}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${p.difficulty === "facil" ? "bg-green-500/10 text-green-400" : "bg-amber-500/10 text-amber-400"}`}>
-                  {p.difficulty === "facil" ? "Facil" : "Intermedio"}
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${p.difficulty === "fácil" ? "bg-green-500/10 text-green-400" : "bg-amber-500/10 text-amber-400"}`}>
+                  {p.difficulty === "fácil" ? "Fácil" : "Intermedio"}
                 </span>
               </button>
             ))}
@@ -1353,7 +1353,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                           data-testid={`button-copy-step-${i}`}
                         >
                           {copied === `step-${i}` ? <Check className="mr-1.5 h-3 w-3 text-primary" /> : <Copy className="mr-1.5 h-3 w-3" />}
-                          {copied === `step-${i}` ? "Copiado!" : "Copiar codigo"}
+                          {copied === `step-${i}` ? "Copiado!" : "Copiar código"}
                         </Button>
                       </div>
                     )}
@@ -1366,7 +1366,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               <CircleCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-white/70 mb-0.5">Listo!</p>
-                <p className="text-xs text-white/40">Despues de seguir estos pasos, el chatbot aparecera automaticamente en la esquina inferior derecha de tu sitio web. Se adapta a cualquier pantalla (desktop y movil).</p>
+                <p className="text-xs text-white/40">Después de seguir estos pasos, el chatbot aparecerá automáticamente en la esquina inferior derecha de tu sitio web. Se adapta a cualquier pantalla (desktop y móvil).</p>
               </div>
             </div>
           </div>
@@ -1377,7 +1377,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
             <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5 text-center space-y-2">
               <Code className="w-8 h-8 text-white/20 mx-auto" />
               <p className="text-sm text-white/50">Selecciona una plataforma para ver las instrucciones paso a paso</p>
-              <p className="text-xs text-white/30">O copia directamente el codigo de integracion de abajo</p>
+              <p className="text-xs text-white/30">O copia directamente el código de integración de abajo</p>
             </div>
 
             <Tabs defaultValue="script" className="relative">
@@ -1397,7 +1397,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                   data-testid="button-copy-script"
                 >
                   {copied === "script" ? <Check className="mr-1.5 h-3 w-3 text-primary" /> : <Copy className="mr-1.5 h-3 w-3" />}
-                  {copied === "script" ? "Copiado!" : "Copiar codigo"}
+                  {copied === "script" ? "Copiado!" : "Copiar código"}
                 </Button>
               </TabsContent>
               <TabsContent value="iframe" className="space-y-3 mt-3">
@@ -1412,7 +1412,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                   data-testid="button-copy-iframe"
                 >
                   {copied === "iframe" ? <Check className="mr-1.5 h-3 w-3 text-primary" /> : <Copy className="mr-1.5 h-3 w-3" />}
-                  {copied === "iframe" ? "Copiado!" : "Copiar codigo"}
+                  {copied === "iframe" ? "Copiado!" : "Copiar código"}
                 </Button>
               </TabsContent>
             </Tabs>
@@ -1428,7 +1428,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
             </div>
             <div>
               <h4 className="text-sm font-bold text-white/80">Necesitas ayuda?</h4>
-              <p className="text-[11px] text-white/40">Nuestro equipo te guia en la instalacion</p>
+              <p className="text-[11px] text-white/40">Nuestro equipo te guia en la instalación</p>
             </div>
           </div>
           <Button
@@ -1457,12 +1457,12 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-white/70">WhatsApp</p>
-                  <p className="text-[10px] text-white/40">Respuesta rapida</p>
+                  <p className="text-[10px] text-white/40">Respuesta rápida</p>
                 </div>
               </a>
 
               <a
-                href="mailto:contacto@webmakerchile.cl?subject=Ayuda%20instalacion%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
+                href="mailto:contacto@webmakerchile.cl?subject=Ayuda%20instalaci%C3%B3n%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group"
                 data-testid="link-email-help"
               >
@@ -1498,7 +1498,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                 <div className="text-center py-4 space-y-2">
                   <CircleCheck className="w-8 h-8 text-primary mx-auto" />
                   <p className="text-sm font-medium text-white/70">Solicitud enviada!</p>
-                  <p className="text-xs text-white/40">Un ejecutivo se contactara contigo para guiarte en la instalacion.</p>
+                  <p className="text-xs text-white/40">Un ejecutivo se contactara contigo para guiarte en la instalación.</p>
                 </div>
               ) : (
                 <>
@@ -1513,7 +1513,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                     <Input
                       value={helpEmail}
                       onChange={(e) => setHelpEmail(e.target.value)}
-                      placeholder="Tu correo electronico"
+                      placeholder="Tu correo electrónico"
                       className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
                       data-testid="input-help-email"
                     />
@@ -1521,7 +1521,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                   <Textarea
                     value={helpMessage}
                     onChange={(e) => setHelpMessage(e.target.value)}
-                    placeholder="Describe en que necesitas ayuda (ej: No se donde pegar el codigo en mi WordPress)..."
+                    placeholder="Describe en qué necesitas ayuda (ej: No sé dónde pegar el código en mi WordPress)..."
                     className="bg-white/[0.04] border-white/[0.08] resize-none text-xs min-h-[80px]"
                     rows={3}
                     data-testid="textarea-help-message"
@@ -1626,7 +1626,7 @@ function ReferidosSection() {
   const copyCode = () => {
     if (!data?.code) return;
     navigator.clipboard.writeText(data.code);
-    toast({ title: "Codigo copiado" });
+    toast({ title: "Código copiado" });
   };
 
   if (isLoading) {
@@ -1671,7 +1671,7 @@ function ReferidosSection() {
                 <span className="text-sm font-semibold text-amber-400">5 referidos confirmados</span>
               </div>
               <p className="text-2xl font-black text-white mb-1">3 meses de Fox Enterprise</p>
-              <p className="text-xs text-white/40">Alcanza los 5 referidos confirmados y disfruta 3 meses del plan mas completo</p>
+              <p className="text-xs text-white/40">Alcanza los 5 referidos confirmados y disfruta 3 meses del plan más completo</p>
             </div>
           </div>
 
@@ -1721,7 +1721,7 @@ function ReferidosSection() {
         <div className="flex items-center gap-4 mt-3">
           <button onClick={copyCode} className="flex items-center gap-2 text-xs text-white/40 hover:text-white/60 transition-colors" data-testid="button-copy-referral-code">
             <Copy className="w-3 h-3" />
-            Codigo: <span className="font-mono font-bold text-primary">{data.code}</span>
+            Código: <span className="font-mono font-bold text-primary">{data.code}</span>
           </button>
           <div className="flex items-center gap-2 text-xs text-white/30">
             <UserPlus className="w-3 h-3" />
@@ -1791,7 +1791,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
     basic: {
       sessions: "500 / mes",
       messages: "5.000 / mes",
-      features: ["Chat en vivo", "IA avanzada con GPT", "Catalogo de productos", "Base de conocimiento", "Analiticas completas"],
+      features: ["Chat en vivo", "IA avanzada con GPT", "Catálogo de productos", "Base de conocimiento", "Analíticas completas"],
     },
     pro: {
       sessions: "Ilimitadas",
@@ -1843,7 +1843,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
         <div className="flex items-center justify-between mb-6 relative">
           <div className="animate-dash-slide-right">
             <h3 className="text-lg font-bold mb-1">Tu Plan Actual</h3>
-            <p className="text-sm text-white/40">Gestiona tu suscripcion</p>
+            <p className="text-sm text-white/40">Gestiona tu suscripción</p>
           </div>
           <div className="px-4 py-2 rounded-xl text-sm font-bold animate-icon-pop transition-all duration-300 hover:scale-105" style={{ backgroundColor: `${currentColor}15`, color: currentColor, boxShadow: `0 0 20px ${currentColor}10` }} data-testid="badge-plan">
             <span className="flex items-center gap-1.5">
@@ -2001,7 +2001,7 @@ function DownloadAppSection() {
             <CircleCheck className="w-5 h-5 text-green-400 shrink-0" />
             <div>
               <p className="text-sm font-medium text-green-400">App instalada</p>
-              <p className="text-xs text-white/40">FoxBot ya esta instalado en este dispositivo. Puedes abrirlo desde tu escritorio o pantalla de inicio.</p>
+              <p className="text-xs text-white/40">FoxBot ya está instalado en este dispositivo. Puedes abrirlo desde tu escritorio o pantalla de inicio.</p>
             </div>
           </div>
         )}
@@ -2020,7 +2020,7 @@ function DownloadAppSection() {
               <Monitor className="w-6 h-6 text-blue-400" />
             </div>
             <h4 className="text-sm font-bold text-white/90">Computador (PC / Mac)</h4>
-            <p className="text-xs text-white/40 leading-relaxed">Instala FoxBot como aplicacion de escritorio en Chrome, Edge o Brave. Se abre como una ventana independiente.</p>
+            <p className="text-xs text-white/40 leading-relaxed">Instala FoxBot como aplicación de escritorio en Chrome, Edge o Brave. Se abre como una ventana independiente.</p>
           </div>
 
           <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 transition-all duration-300 hover:bg-white/[0.05] hover:border-white/[0.1] group">
@@ -2074,11 +2074,11 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">Android (Chrome)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Chrome y visita esta pagina" },
-              { step: "2", text: 'Toca el menu (3 puntos arriba a la derecha)' },
-              { step: "3", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicacion"' },
+              { step: "1", text: "Abre Chrome y visita esta página" },
+              { step: "2", text: 'Toca el menú (3 puntos arriba a la derecha)' },
+              { step: "3", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicación"' },
               { step: "4", text: 'Confirma tocando "Agregar"' },
-              { step: "5", text: "FoxBot aparecera como una app en tu celular" },
+              { step: "5", text: "FoxBot aparecerá como una app en tu celular" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
@@ -2095,11 +2095,11 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">iPhone / iPad (Safari)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Safari y visita esta pagina" },
-              { step: "2", text: 'Toca el boton de compartir (cuadrado con flecha hacia arriba)' },
+              { step: "1", text: "Abre Safari y visita esta página" },
+              { step: "2", text: 'Toca el botón de compartir (cuadrado con flecha hacia arriba)' },
               { step: "3", text: 'Desplazate y selecciona "Agregar a pantalla de inicio"' },
               { step: "4", text: 'Toca "Agregar" en la esquina superior derecha' },
-              { step: "5", text: "FoxBot aparecera como una app en tu iPhone" },
+              { step: "5", text: "FoxBot aparecerá como una app en tu iPhone" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-blue-400">{item.step}</div>
@@ -2121,9 +2121,9 @@ function DownloadAppSection() {
 
         <div className="space-y-4">
           {[
-            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita esta pagina" },
-            { step: "2", text: 'Busca el icono de instalar en la barra de direcciones (un monitor con flecha hacia abajo) o ve al menu del navegador' },
-            { step: "3", text: 'Haz clic en "Instalar FoxBot" o "Instalar aplicacion"' },
+            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita esta página" },
+            { step: "2", text: 'Busca el icono de instalar en la barra de direcciones (un monitor con flecha hacia abajo) o ve al menú del navegador' },
+            { step: "3", text: 'Haz clic en "Instalar FoxBot" o "Instalar aplicación"' },
             { step: "4", text: "FoxBot se abrira como una ventana independiente, como cualquier otra app de tu computador" },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
@@ -2168,12 +2168,12 @@ function DownloadAppSection() {
 type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
-  { title: "Estadisticas", value: "stats", icon: BarChart3 },
-  { title: "Configuracion", value: "config", icon: Palette },
-  { title: "Integracion", value: "embed", icon: Code },
+  { title: "Estadísticas", value: "stats", icon: BarChart3 },
+  { title: "Configuración", value: "config", icon: Palette },
+  { title: "Integración", value: "embed", icon: Code },
   { title: "Descargar App", value: "download", icon: Download },
   { title: "Referidos", value: "referidos", icon: Gift },
-  { title: "Guias", value: "guides", icon: BookOpen },
+  { title: "Guías", value: "guides", icon: BookOpen },
   { title: "Plan", value: "plan", icon: CreditCard },
 ];
 
@@ -2205,7 +2205,7 @@ export default function Dashboard() {
         toast({ title: "Pago rechazado", description: "Tu pago fue rechazado. Intenta con otro medio de pago.", variant: "destructive" });
         setActiveTab("plan");
       } else if (payment === "pending") {
-        toast({ title: "Pago pendiente", description: "Tu pago esta siendo procesado. El plan se actualizara automaticamente." });
+        toast({ title: "Pago pendiente", description: "Tu pago está siendo procesado. El plan se actualizará automáticamente." });
         setActiveTab("plan");
       } else if (payment === "error") {
         toast({ title: "Error", description: "Hubo un error procesando tu pago. Intenta nuevamente.", variant: "destructive" });
@@ -2454,7 +2454,7 @@ export default function Dashboard() {
             data-testid="button-logout"
           >
             <LogOut className="w-4 h-4 transition-transform duration-300 group-hover/logout:-translate-x-0.5" />
-            <span>Cerrar Sesion</span>
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
@@ -2478,20 +2478,20 @@ export default function Dashboard() {
               {navItems.find((n) => n.value === activeTab)?.title || "Dashboard"}
             </h1>
             <p className="text-xs text-white/30">
-              {activeTab === "stats" && "Metricas de tu chat en tiempo real"}
+              {activeTab === "stats" && "Métricas de tu chat en tiempo real"}
               {activeTab === "config" && "Personaliza tu widget de chat"}
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
               {activeTab === "download" && "Instala FoxBot en tu celular o computador"}
-              {activeTab === "guides" && "Manuales de instalacion paso a paso"}
+              {activeTab === "guides" && "Manuales de instalación paso a paso"}
               {activeTab === "referidos" && "Invita negocios y gana meses gratis"}
-              {activeTab === "plan" && "Gestiona tu suscripcion"}
+              {activeTab === "plan" && "Gestiona tu suscripción"}
             </p>
           </div>
 
           <div className="ml-auto flex items-center gap-3 relative">
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] transition-all duration-300 hover:bg-white/[0.05]">
               <div className="w-2 h-2 rounded-full bg-primary animate-glow-pulse" />
-              <span className="text-xs text-white/40">En linea</span>
+              <span className="text-xs text-white/40">En línea</span>
             </div>
             <span className="text-sm text-white/30 hidden md:block" data-testid="text-tenant-email">{tenant.email}</span>
             {tenant.avatarUrl && (

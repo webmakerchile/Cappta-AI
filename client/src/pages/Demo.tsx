@@ -117,12 +117,12 @@ const DEMO_PRODUCTS: Record<string, DemoProduct[]> = {
   realestate: [{ id: 1, name: "Depto 2D+2B Providencia", price: "4.200 UF", badge: "Nuevo" }, { id: 2, name: "Casa 4D La Florida", price: "5.800 UF" }, { id: 3, name: "Arriendo Depto Ñuñoa", price: "$650.000/mes" }],
   education: [{ id: 1, name: "Preparacion PAES Completa", price: "$159.990/sem" }, { id: 2, name: "Ingles Intensivo B2", price: "$89.990/mes", badge: "Popular" }, { id: 3, name: "Taller Matematicas", price: "$49.990/mes" }],
   automotive: [{ id: 1, name: "Toyota RAV4 2024", price: "$18.990.000", badge: "Nuevo" }, { id: 2, name: "Hyundai Tucson 2023", price: "$15.490.000" }, { id: 3, name: "Kia Sportage Semi-Nuevo", price: "$12.990.000" }],
-  gym: [{ id: 1, name: "Plan Premium + Clases", price: "$39.990/mes", badge: "Popular" }, { id: 2, name: "Plan Basico", price: "$24.990/mes" }, { id: 3, name: "Plan VIP + Nutricionista", price: "$59.990/mes" }],
+  gym: [{ id: 1, name: "Plan Premium + Clases", price: "$39.990/mes", badge: "Popular" }, { id: 2, name: "Plan Básico", price: "$24.990/mes" }, { id: 3, name: "Plan VIP + Nutricionista", price: "$59.990/mes" }],
   veterinary: [{ id: 1, name: "Consulta General", price: "$18.000" }, { id: 2, name: "Vacunacion Completa", price: "$25.000" }, { id: 3, name: "Esterilizacion", price: "$89.990", badge: "Popular" }],
-  travel: [{ id: 1, name: "Cancun All Inclusive 7 dias", price: "$899.990", badge: "Oferta" }, { id: 2, name: "Patagonia 5 dias", price: "$649.990" }, { id: 3, name: "Europa 15 dias", price: "$2.490.000" }],
+  travel: [{ id: 1, name: "Cancun All Inclusive 7 días", price: "$899.990", badge: "Oferta" }, { id: 2, name: "Patagonia 5 días", price: "$649.990" }, { id: 3, name: "Europa 15 días", price: "$2.490.000" }],
   mechanic: [{ id: 1, name: "Cambio de Aceite Sintetico", price: "$45.000" }, { id: 2, name: "Alineacion + Balanceo", price: "$18.000" }, { id: 3, name: "Scanner Automotriz", price: "$15.000", badge: "Popular" }],
-  legal: [{ id: 1, name: "Consulta Legal Inicial", price: "$30.000" }, { id: 2, name: "Redaccion de Contrato", price: "$120.000" }, { id: 3, name: "Defensa Laboral", price: "Desde $350.000" }],
-  photography: [{ id: 1, name: "Sesion Individual", price: "$89.990" }, { id: 2, name: "Cobertura Matrimonio", price: "$490.000", badge: "Premium" }, { id: 3, name: "Book Profesional", price: "$149.990" }],
+  legal: [{ id: 1, name: "Consulta Legal Inicial", price: "$30.000" }, { id: 2, name: "Redacción de Contrato", price: "$120.000" }, { id: 3, name: "Defensa Laboral", price: "Desde $350.000" }],
+  photography: [{ id: 1, name: "Sesión Individual", price: "$89.990" }, { id: 2, name: "Cobertura Matrimonio", price: "$490.000", badge: "Premium" }, { id: 3, name: "Book Profesional", price: "$149.990" }],
   florist: [{ id: 1, name: "Ramo Rosas Premium", price: "$39.990", badge: "Popular" }, { id: 2, name: "Arreglo Cumpleaños", price: "$25.990" }, { id: 3, name: "Centro de Mesa Evento", price: "$89.990" }],
   music: [{ id: 1, name: "Clases de Guitarra (4/mes)", price: "$35.990" }, { id: 2, name: "Clases de Piano (4/mes)", price: "$39.990", badge: "Popular" }, { id: 3, name: "Clases de Canto (4/mes)", price: "$45.000" }],
   barbershop: [{ id: 1, name: "Corte Fade/Degradado", price: "$10.990", badge: "Popular" }, { id: 2, name: "Combo Corte + Barba", price: "$14.990" }, { id: 3, name: "Tratamiento Capilar", price: "$19.990" }],
@@ -149,7 +149,7 @@ const DEMO_FILES: Record<string, DemoFile> = {
   automotive: { name: "Especificaciones_RAV4_2024.pdf", size: "4.2 MB", type: "PDF" },
   gym: { name: "Plan_Entrenamiento_Personalizado.pdf", size: "890 KB", type: "PDF" },
   veterinary: { name: "Cartilla_Vacunacion_Mascota.pdf", size: "650 KB", type: "PDF" },
-  travel: { name: "Itinerario_Cancun_7dias.pdf", size: "2.8 MB", type: "PDF" },
+  travel: { name: "Itinerario_Cancun_7días.pdf", size: "2.8 MB", type: "PDF" },
   mechanic: { name: "Diagnostico_Vehiculo.pdf", size: "1.1 MB", type: "PDF" },
   legal: { name: "Modelo_Contrato_Tipo.pdf", size: "750 KB", type: "PDF" },
   photography: { name: "Portfolio_Sesiones_2024.pdf", size: "5.2 MB", type: "PDF" },
@@ -190,9 +190,9 @@ function generateDemoSessions(ctx: DemoContext): DemoSession[] {
       productName: p0?.name,
       messages: [
         { sender: "user", content: `Hola! Me interesa saber sobre ${p0?.name || "sus productos"}` },
-        { sender: "bot", content: `Hola Maria! 👋 ${p0?.name} tiene un precio de ${p0?.price}. Es una excelente opcion! Te interesa?`, quickReplies: ["Ver detalles", "Ver mas opciones", "Contactar ejecutivo"] },
-        { sender: "user", content: "Tienen stock disponible?" },
-        { sender: "bot", content: `Si! Tenemos stock disponible de ${p0?.name} 📦 Envio gratis en compras sobre $50.000. Quieres que te ayude con la compra?`, quickReplies: ["Si, quiero comprarlo", "Ver otros productos"] },
+        { sender: "bot", content: `Hola Maria! 👋 ${p0?.name} tiene un precio de ${p0?.price}. Es una excelente opción! Te interesa?`, quickReplies: ["Ver detalles", "Ver más opciones", "Contactar ejecutivo"] },
+        { sender: "user", content: "¿Tienen stock disponible?" },
+        { sender: "bot", content: `¡Sí! Tenemos stock disponible de ${p0?.name} 📦 Envío gratis en compras sobre $50.000. ¿Quieres que te ayude con la compra?`, quickReplies: ["¡Sí, quiero comprarlo", "Ver otros productos"] },
       ],
     },
     {
@@ -209,11 +209,11 @@ function generateDemoSessions(ctx: DemoContext): DemoSession[] {
       productName: p1?.name,
       messages: [
         { sender: "user", content: `Quiero comprar ${p1?.name || "un producto"}` },
-        { sender: "bot", content: `Excelente eleccion! 🔥 ${p1?.name} esta disponible a ${p1?.price}. Te gustaria proceder con la compra?`, quickReplies: ["Si, comprar ahora", "Mas informacion", "Hablar con ejecutivo"] },
+        { sender: "bot", content: `¡Excelente elección! 🔥 ${p1?.name} está disponible a ${p1?.price}. ¿Te gustaría proceder con la compra?`, quickReplies: ["¡Sí, comprar ahora", "Más información", "Hablar con ejecutivo"] },
         { sender: "user", content: "Quiero hablar con un ejecutivo por favor" },
         { sender: "system", content: "Cliente solicita ejecutivo" },
-        { sender: "executive", content: `Hola Carlos! Soy ejecutivo de ${ctx.business}. Vi que te interesa ${p1?.name}. Te envio la informacion completa 📋` },
-        { sender: "executive", content: "Aqui tienes toda la informacion detallada:", file },
+        { sender: "executive", content: `¡Hola Carlos! Soy ejecutivo de ${ctx.business}. Vi que te interesa ${p1?.name}. Te envío la información completa 📋` },
+        { sender: "executive", content: "Aquí tienes toda la información detallada:", file },
       ],
     },
     {
@@ -228,10 +228,10 @@ function generateDemoSessions(ctx: DemoContext): DemoSession[] {
       tags: ["Resuelto"],
       problemType: "Consulta general",
       messages: [
-        { sender: "user", content: "Hola, consulta rapida sobre precios" },
-        { sender: "bot", content: `Con gusto! 😊 Nuestros productos parten desde ${products[2]?.price || "$9.990"}. Que estas buscando especificamente?` },
+        { sender: "user", content: "Hola, consulta rápida sobre precios" },
+        { sender: "bot", content: `¡Con gusto! 😊 Nuestros productos parten desde ${products[2]?.price || "$9.990"}. ¿Qué estás buscando específicamente?` },
         { sender: "user", content: "Perfecto, muchas gracias por la info!" },
-        { sender: "bot", content: "De nada! 🙌 Si necesitas algo mas, aqui estamos. Que tengas un excelente dia!" },
+        { sender: "bot", content: "De nada! 🙌 Si necesitas algo más, aquí estamos. ¡Que tengas un excelente día!" },
       ],
     },
   ];
@@ -247,18 +247,18 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#0ea5e9",
     colorAccent: "#38bdf8",
     category: "Retail",
-    suggestions: ["Que smartphones tienen?", "Tienen el iPhone 15 Pro?", "Busco un notebook gamer", "Precios de audifonos"],
+    suggestions: ["¿Qué smartphones tienen?", "¿Tienen el iPhone 15 Pro?", "Busco un notebook gamer", "Precios de audífonos"],
   },
   {
     id: "restaurant",
     name: "Restaurante",
     business: "Sabor Criollo",
-    description: "Comida chilena, menu del dia, delivery y reservas",
+    description: "Comida chilena, menú del día, delivery y reservas",
     icon: UtensilsCrossed,
     color: "#ef4444",
     colorAccent: "#f87171",
     category: "Gastronomia",
-    suggestions: ["Cual es el menu del dia?", "Tienen delivery?", "Quiero pedir empanadas", "Hacen reservas para grupos?"],
+    suggestions: ["Cuál es el menú del día?", "¿Tienen delivery?", "Quiero pedir empanadas", "¿Hacen reservas para grupos?"],
   },
   {
     id: "clothing",
@@ -269,7 +269,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#a855f7",
     colorAccent: "#c084fc",
     category: "Retail",
-    suggestions: ["Que zapatillas tienen?", "Busco jeans talla 32", "Tienen descuentos?", "Politica de cambios?"],
+    suggestions: ["¿Qué zapatillas tienen?", "Busco jeans talla 32", "¿Tienen descuentos?", "Política de cambios?"],
   },
   {
     id: "health",
@@ -280,7 +280,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#06b6d4",
     colorAccent: "#22d3ee",
     category: "Salud",
-    suggestions: ["Cuanto cuesta un blanqueamiento?", "Quiero agendar una hora", "Tienen ortodoncia invisible?", "La primera consulta es gratis?"],
+    suggestions: ["¿Cuánto cuesta un blanqueamiento?", "Quiero agendar una hora", "¿Tienen ortodoncia invisible?", "¿La primera consulta es gratis?"],
   },
   {
     id: "realestate",
@@ -291,18 +291,18 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#f59e0b",
     colorAccent: "#fbbf24",
     category: "Servicios",
-    suggestions: ["Busco depto en Providencia", "Tienen casas en arriendo?", "Rango de precios en Las Condes?", "Puedo agendar una visita?"],
+    suggestions: ["Busco depto en Providencia", "¿Tienen casas en arriendo?", "¿Rango de precios en Las Condes?", "¿Puedo agendar una visita?"],
   },
   {
     id: "education",
     name: "Centro de Estudios",
     business: "AcademiaTop",
-    description: "Cursos, talleres, preparacion PSU y clases particulares",
+    description: "Cursos, talleres, preparación PSU y clases particulares",
     icon: GraduationCap,
     color: "#8b5cf6",
     colorAccent: "#a78bfa",
     category: "Educacion",
-    suggestions: ["Que cursos tienen?", "Cuanto cuesta la preparacion PSU?", "Tienen clases de ingles?", "Horarios disponibles?"],
+    suggestions: ["¿Qué cursos tienen?", "¿Cuánto cuesta la preparación PSU?", "¿Tienen clases de inglés?", "¿Horarios disponibles?"],
   },
   {
     id: "automotive",
@@ -313,7 +313,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#64748b",
     colorAccent: "#94a3b8",
     category: "Automotriz",
-    suggestions: ["Que autos tienen?", "Busco un SUV familiar", "Ofrecen financiamiento?", "Puedo agendar una prueba de manejo?"],
+    suggestions: ["¿Qué autos tienen?", "Busco un SUV familiar", "¿Ofrecen financiamiento?", "¿Puedo agendar una prueba de manejo?"],
   },
   {
     id: "gym",
@@ -324,18 +324,18 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#f97316",
     colorAccent: "#fb923c",
     category: "Deporte",
-    suggestions: ["Cuales son los planes?", "Tienen clases de crossfit?", "Horarios de apertura?", "Ofrecen nutricionista?"],
+    suggestions: ["¿Cuáles son los planes?", "¿Tienen clases de crossfit?", "¿Horarios de apertura?", "¿Ofrecen nutricionista?"],
   },
   {
     id: "veterinary",
     name: "Veterinaria",
     business: "PetCare",
-    description: "Consultas, vacunas, cirugia y peluqueria canina",
+    description: "Consultas, vacunas, cirugia y peluquería canina",
     icon: PawPrint,
     color: "#84cc16",
     colorAccent: "#a3e635",
     category: "Mascotas",
-    suggestions: ["Cuanto cuesta una consulta?", "Necesito vacunar a mi perro", "Tienen peluqueria canina?", "Atienden emergencias?"],
+    suggestions: ["¿Cuánto cuesta una consulta?", "Necesito vacunar a mi perro", "¿Tienen peluquería canina?", "¿Atienden emergencias?"],
   },
   {
     id: "travel",
@@ -346,7 +346,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#0891b2",
     colorAccent: "#22d3ee",
     category: "Turismo",
-    suggestions: ["Paquetes a Cancun?", "Busco vuelos baratos a Europa", "Tienen tours en Patagonia?", "All inclusive en Caribe?"],
+    suggestions: ["¿Paquetes a Cancún?", "Busco vuelos baratos a Europa", "¿Tienen tours en Patagonia?", "All inclusive en Caribe?"],
   },
   {
     id: "mechanic",
@@ -357,7 +357,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#78716c",
     colorAccent: "#a8a29e",
     category: "Automotriz",
-    suggestions: ["Cuanto cuesta un cambio de aceite?", "Necesito alineacion y balanceo", "Hacen scanner automotriz?", "Tienen servicio de grua?"],
+    suggestions: ["¿Cuánto cuesta un cambio de aceite?", "Necesito alineación y balanceo", "¿Hacen scanner automotriz?", "¿Tienen servicio de grúa?"],
   },
   {
     id: "legal",
@@ -368,7 +368,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#1e293b",
     colorAccent: "#475569",
     category: "Servicios",
-    suggestions: ["Necesito un abogado laboral", "Cuanto cobra la consulta?", "Ayudan con divorcios?", "Pueden revisar un contrato?"],
+    suggestions: ["Necesito un abogado laboral", "¿Cuánto cobra la consulta?", "¿Ayudan con divorcios?", "¿Pueden revisar un contrato?"],
   },
   {
     id: "photography",
@@ -379,7 +379,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#be185d",
     colorAccent: "#ec4899",
     category: "Creativos",
-    suggestions: ["Cuanto cuesta una sesion?", "Cubren matrimonios?", "Hacen fotos para CV?", "Tienen estudio propio?"],
+    suggestions: ["¿Cuánto cuesta una sesión?", "¿Cubren matrimonios?", "¿Hacen fotos para CV?", "¿Tienen estudio propio?"],
   },
   {
     id: "florist",
@@ -390,7 +390,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#e11d48",
     colorAccent: "#fb7185",
     category: "Retail",
-    suggestions: ["Ramos para cumpleanos?", "Hacen arreglos para eventos?", "Tienen delivery hoy?", "Flores para funeral?"],
+    suggestions: ["¿Ramos para cumpleaños?", "¿Hacen arreglos para eventos?", "¿Tienen delivery hoy?", "¿Flores para funeral?"],
   },
   {
     id: "music",
@@ -401,7 +401,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#7c3aed",
     colorAccent: "#a78bfa",
     category: "Educacion",
-    suggestions: ["Cuanto cuestan las clases de guitarra?", "Tienen clases para ninos?", "Ofrecen clases de canto?", "Horarios disponibles?"],
+    suggestions: ["¿Cuánto cuestan las clases de guitarra?", "¿Tienen clases para niños?", "¿Ofrecen clases de canto?", "¿Horarios disponibles?"],
   },
   {
     id: "barbershop",
@@ -412,7 +412,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#b45309",
     colorAccent: "#d97706",
     category: "Belleza",
-    suggestions: ["Cuanto cuesta un corte?", "Hacen tratamientos de barba?", "Puedo agendar hora?", "Trabajan los domingos?"],
+    suggestions: ["¿Cuánto cuesta un corte?", "¿Hacen tratamientos de barba?", "¿Puedo agendar hora?", "¿Trabajan los domingos?"],
   },
   {
     id: "bookstore",
@@ -423,18 +423,18 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#0f766e",
     colorAccent: "#14b8a6",
     category: "Retail",
-    suggestions: ["Busco libros de fantasia", "Tienen el ultimo de Colleen Hoover?", "Hacen envios a regiones?", "Libros para ninos de 8 anos?"],
+    suggestions: ["Busco libros de fantasía", "¿Tienen el último de Colleen Hoover?", "¿Hacen envíos a regiones?", "Libros para niños de 8 años?"],
   },
   {
     id: "daycare",
     name: "Jardin Infantil",
     business: "PequeExplora",
-    description: "Cuidado infantil, estimulacion temprana y talleres",
+    description: "Cuidado infantil, estimulación temprana y talleres",
     icon: Baby,
     color: "#ec4899",
     colorAccent: "#f472b6",
     category: "Educacion",
-    suggestions: ["Desde que edad reciben ninos?", "Cual es la mensualidad?", "Tienen estimulacion temprana?", "Horario de funcionamiento?"],
+    suggestions: ["¿Desde qué edad reciben niños?", "¿Cuál es la mensualidad?", "¿Tienen estimulación temprana?", "¿Horario de funcionamiento?"],
   },
   {
     id: "construction",
@@ -445,7 +445,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#ea580c",
     colorAccent: "#f97316",
     category: "Servicios",
-    suggestions: ["Cuanto cuesta remodelar un bano?", "Hacen ampliaciones?", "Trabajan con permisos municipales?", "Tienen portfolio?"],
+    suggestions: ["¿Cuánto cuesta remodelar un baño?", "¿Hacen ampliaciones?", "¿Trabajan con permisos municipales?", "¿Tienen portfolio?"],
   },
   {
     id: "coworking",
@@ -456,7 +456,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#2563eb",
     colorAccent: "#3b82f6",
     category: "Servicios",
-    suggestions: ["Cuanto cuesta un escritorio?", "Tienen salas de reunion?", "Planes mensuales?", "Hay wifi incluido?"],
+    suggestions: ["¿Cuánto cuesta un escritorio?", "¿Tienen salas de reunión?", "¿Planes mensuales?", "¿Hay wifi incluido?"],
   },
   {
     id: "pizza",
@@ -467,7 +467,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#dc2626",
     colorAccent: "#ef4444",
     category: "Gastronomia",
-    suggestions: ["Cual es la pizza mas vendida?", "Tienen delivery?", "Hacen pizzas sin gluten?", "Combo familiar?"],
+    suggestions: ["¿Cuál es la pizza más vendida?", "¿Tienen delivery?", "¿Hacen pizzas sin gluten?", "¿Combo familiar?"],
   },
   {
     id: "winery",
@@ -478,7 +478,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#7f1d1d",
     colorAccent: "#991b1b",
     category: "Gastronomia",
-    suggestions: ["Que vinos recomiendan?", "Hacen degustaciones?", "Tienen Carmenere reserva?", "Envian a domicilio?"],
+    suggestions: ["¿Qué vinos recomiendan?", "¿Hacen degustaciones?", "¿Tienen Carménère reserva?", "¿Envían a domicilio?"],
   },
   {
     id: "supermarket",
@@ -489,7 +489,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#16a34a",
     colorAccent: "#22c55e",
     category: "Retail",
-    suggestions: ["Hacen delivery?", "Tienen ofertas hoy?", "Venden frutas organicas?", "Hasta que hora estan abiertos?"],
+    suggestions: ["¿Hacen delivery?", "¿Tienen ofertas hoy?", "¿Venden frutas orgánicas?", "¿Hasta qué hora están abiertos?"],
   },
   {
     id: "jewelry",
@@ -500,7 +500,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#ca8a04",
     colorAccent: "#eab308",
     category: "Retail",
-    suggestions: ["Busco un anillo de compromiso", "Hacen grabados personalizados?", "Tienen relojes?", "Precios de cadenas de oro?"],
+    suggestions: ["Busco un anillo de compromiso", "¿Hacen grabados personalizados?", "¿Tienen relojes?", "¿Precios de cadenas de oro?"],
   },
   {
     id: "gaming",
@@ -511,18 +511,18 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#7c3aed",
     colorAccent: "#8b5cf6",
     category: "Entretenimiento",
-    suggestions: ["Tienen PS5 en stock?", "Busco un teclado mecanico", "Juegos de Nintendo Switch?", "Arman PCs a medida?"],
+    suggestions: ["¿Tienen PS5 en stock?", "Busco un teclado mecánico", "¿Juegos de Nintendo Switch?", "¿Arman PCs a medida?"],
   },
   {
     id: "bikeshop",
     name: "Tienda de Bicicletas",
     business: "PedalChile",
-    description: "Bicicletas, repuestos, servicio tecnico y arriendo",
+    description: "Bicicletas, repuestos, servicio técnico y arriendo",
     icon: Bike,
     color: "#059669",
     colorAccent: "#10b981",
     category: "Deporte",
-    suggestions: ["Tienen bicicletas de ruta?", "Cuanto cuesta una mantencion?", "Arriendan bicicletas?", "Repuestos Shimano?"],
+    suggestions: ["¿Tienen bicicletas de ruta?", "¿Cuánto cuesta una mantención?", "¿Arriendan bicicletas?", "¿Repuestos Shimano?"],
   },
   {
     id: "art",
@@ -533,7 +533,7 @@ const DEMO_CONTEXTS: DemoContext[] = [
     color: "#c026d3",
     colorAccent: "#d946ef",
     category: "Creativos",
-    suggestions: ["Que exposiciones tienen?", "Venden cuadros originales?", "Ofrecen talleres de pintura?", "Hacen enmarcado?"],
+    suggestions: ["¿Qué exposiciones tienen?", "¿Venden cuadros originales?", "¿Ofrecen talleres de pintura?", "¿Hacen enmarcado?"],
   },
 ];
 
@@ -697,7 +697,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
           )}
 
           <p className="text-center text-xs text-white/20 mt-10 animate-dash-fade-in max-w-lg mx-auto">
-            Esto es solo una muestra. Con FoxBot puedes crear el chatbot perfecto para tu negocio, con tu propia base de conocimiento y catalogo real.
+            Esto es solo una muestra. Con FoxBot puedes crear el chatbot perfecto para tu negocio, con tu propia base de conocimiento y catálogo real.
           </p>
         </div>
       </div>
@@ -732,7 +732,7 @@ function DemoProductBrowser({ products, color, onSelect, onClose }: { products: 
     <div className="absolute bottom-full left-0 right-0 mb-2 z-50 animate-dash-fade-up" data-testid="demo-product-browser">
       <div className="rounded-2xl border border-white/[0.08] overflow-hidden" style={{ background: "rgba(15,15,15,0.98)", boxShadow: "0 -10px 40px rgba(0,0,0,0.5)" }}>
         <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
-          <span className="text-[11px] font-bold text-white/60 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Catalogo</span>
+          <span className="text-[11px] font-bold text-white/60 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Catálogo</span>
           <button onClick={onClose} className="text-white/30 hover:text-white/60" data-testid="button-close-product-browser"><X className="w-3.5 h-3.5" /></button>
         </div>
         <div className="p-2">
@@ -851,7 +851,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
       setStoredDemoCount(ctx.id, newCount);
       setMessages([...newMessages, { role: "assistant", content: data.reply }]);
     } catch {
-      setError("Error de conexion. Intenta de nuevo.");
+      setError("Error de conexión. Intenta de nuevo.");
     } finally {
       setIsLoading(false);
     }
@@ -924,7 +924,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
             <div className="text-[13px] font-bold text-white leading-tight" data-testid="text-chat-brand">{ctx.business}</div>
             <div className="flex items-center gap-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-              <span className="text-[10px] text-white/70">En linea</span>
+              <span className="text-[10px] text-white/70">En línea</span>
             </div>
           </div>
         </div>
@@ -945,7 +945,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
               <ctx.icon className="w-7 h-7" style={{ color: ctx.color }} />
             </div>
             <h3 className="text-base font-bold mb-1.5 text-white/80" data-testid="text-demo-greeting">Bienvenido a {ctx.business}!</h3>
-            <p className="text-[11px] text-white/30 mb-4 max-w-xs">En que podemos ayudarte hoy?</p>
+            <p className="text-[11px] text-white/30 mb-4 max-w-xs">¿En qué podemos ayudarte hoy?</p>
             <div className="flex flex-wrap gap-1.5 justify-center max-w-md">
               {ctx.suggestions.map((s, i) => (
                 <button
@@ -1025,7 +1025,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
             </button>
             <button
               onClick={() => {
-                const rating = "Gracias por la atencion, excelente servicio!";
+                const rating = "Gracias por la atención, excelente servicio!";
                 setMessages(prev => [...prev, { role: "user", content: rating }]);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold border border-white/[0.08] text-white/40 hover:text-white/60 transition-all"
@@ -1142,7 +1142,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
 
   function handleSendFile() {
     if (!claimed || !file) return;
-    setLocalMsgs(prev => [...prev, { sender: "executive", content: "Te envio la informacion detallada:", file }]);
+    setLocalMsgs(prev => [...prev, { sender: "executive", content: "Te envío la información detallada:", file }]);
   }
 
   const TAG_COLORS: Record<string, string> = {

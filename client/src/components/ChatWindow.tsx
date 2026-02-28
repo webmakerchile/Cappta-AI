@@ -202,7 +202,7 @@ function RatingCard({ sessionId, userEmail, userName, onRatingComplete, brandCol
       <div data-testid="rating-submitted" className="p-4 rounded-md bg-[#1e1e1e]" style={{ borderWidth: 1, borderStyle: "solid", borderColor: hexToRgba(brandColor, 0.3) }}>
         <div className="flex items-center gap-2 mb-2">
           <CheckCircle className="w-5 h-5 text-green-400" />
-          <span className="text-sm font-medium text-white">Gracias por tu calificacion</span>
+          <span className="text-sm font-medium text-white">Gracias por tu calificación</span>
         </div>
         <div className="flex items-center gap-0.5 mb-2">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -223,7 +223,7 @@ function RatingCard({ sessionId, userEmail, userName, onRatingComplete, brandCol
 
   return (
     <div data-testid="rating-card" className="p-4 rounded-md bg-[#1e1e1e]" style={{ borderWidth: 1, borderStyle: "solid", borderColor: hexToRgba(brandColor, 0.3) }}>
-      <p className="text-sm font-medium text-white mb-3">¿Como fue tu experiencia?</p>
+      <p className="text-sm font-medium text-white mb-3">¿Cómo fue tu experiencia?</p>
       <div className="flex items-center gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -261,7 +261,7 @@ function RatingCard({ sessionId, userEmail, userName, onRatingComplete, brandCol
         className="w-full text-white text-sm"
         style={{ backgroundColor: brandColor }}
       >
-        {submitting ? "Enviando..." : "Enviar calificacion"}
+        {submitting ? "Enviando..." : "Enviar calificación"}
       </Button>
     </div>
   );
@@ -521,7 +521,7 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
 
 const PROBLEM_TYPES = [
   { value: "compra", label: "Quiero comprar un producto" },
-  { value: "codigo_verificacion", label: "Necesito un nuevo codigo de verificacion" },
+  { value: "codigo_verificacion", label: "Necesito un nuevo código de verificación" },
   { value: "candado_juego", label: "Me aparece un candado en mi juego" },
   { value: "estado_pedido", label: "Quiero saber el estado de mi pedido" },
   { value: "problema_plus", label: "Tengo problemas con mi plus" },
@@ -597,7 +597,7 @@ function NewConsultationPicker({ onSelect, brandColor = "#10b981" }: { onSelect:
 function SessionDivider({ session, brandColor = "#10b981" }: { session: Session; brandColor?: string }) {
   const problemLabels: Record<string, string> = {
     compra: "Compra",
-    codigo_verificacion: "Codigo verificacion",
+    codigo_verificacion: "Código verificación",
     candado_juego: "Candado en juego",
     estado_pedido: "Estado de pedido",
     problema_plus: "Problema Plus",
@@ -893,7 +893,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             data-testid="input-chat-search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar en la conversacion..."
+            placeholder="Buscar en la conversación..."
             className="flex-1 bg-transparent text-white text-sm placeholder:text-white/25 focus:outline-none"
           />
           {searchQuery.length >= 2 && (
@@ -923,7 +923,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             </div>
             <p className="text-sm text-white/40 mb-1">Sin mensajes aun</p>
             <p className="text-xs text-white/25">
-              Envia un mensaje para iniciar la conversacion
+              Envia un mensaje para iniciar la conversación
             </p>
           </div>
         ) : (
@@ -1021,7 +1021,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           >
             <div className="px-3 py-2 border-b border-white/[0.06] flex items-center gap-2">
               <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" style={{ color: brandColor || "#10b981" }} />
-              <span className="text-[11px] text-white/30">Catalogo de productos</span>
+              <span className="text-[11px] text-white/30">Catálogo de productos</span>
               <Button
                 data-testid="button-close-product-browser"
                 size="icon"

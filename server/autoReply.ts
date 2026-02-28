@@ -204,8 +204,8 @@ function normalize(text: string): string {
 function extractProductKeywords(message: string): string | null {
   const normalized = normalize(message);
   const conversationalPrefixes = [
-    /^(?:hola\s*,?\s*)?(?:quiero|necesito|busco|me interesa|tienen|tendran|hay|donde encuentro|como consigo|donde esta|ando buscando|estoy buscando|me gustaria|quisiera|dame|mandame|mostrame|pasame)\s+(?:el|la|un|una|los|las|unos|unas|algun|alguna)?\s*/i,
-    /^(?:quiero comprar|quiero ver|quiero saber|me puedes mostrar|me pueden mostrar|tienen disponible|esta disponible|hay stock de|tienen stock de)\s+(?:el|la|un|una|los|las)?\s*/i,
+    /^(?:hola\s*,?\s*)?(?:quiero|necesito|busco|me interesa|tienen|tendran|hay|donde encuentro|como consigo|donde esta|ando buscando|estoy buscando|me gustaría|quisiera|dame|mandame|mostrame|pasame)\s+(?:el|la|un|una|los|las|unos|unas|algún|alguna)?\s*/i,
+    /^(?:quiero comprar|quiero ver|quiero saber|me puedes mostrar|me pueden mostrar|tienen disponible|está disponible|hay stock de|tienen stock de)\s+(?:el|la|un|una|los|las)?\s*/i,
     /^(?:cuanto (?:cuesta|vale|sale)|que precio tiene|precio de|precio del)\s+(?:el|la|un|una|los|las)?\s*/i,
     /^(?:info(?:rmacion)? (?:de|del|sobre))\s+(?:el|la|un|una|los|las)?\s*/i,
   ];
@@ -318,7 +318,7 @@ function detectSubscription(msg: string, platform: Platform): DetectedProduct | 
 }
 
 function detectCard(msg: string, platform: Platform): DetectedProduct | null {
-  if (!/\btarjeta\b|\bgift\s*card\b|\bgiftcard\b|\bcodigo\b|\bsaldo\b|\brecarga\b|\bwallet\b/.test(msg)) {
+  if (!/\btarjeta\b|\bgift\s*card\b|\bgiftcard\b|\bcódigo\b|\bsaldo\b|\brecarga\b|\bwallet\b/.test(msg)) {
     return null;
   }
   const duration = extractDuration(msg);
@@ -351,7 +351,7 @@ function detectPlatformFromMessage(msg: string): Platform {
 
 function detectIntent(msg: string, history: ConversationEntry[], product: DetectedProduct | null): Intent {
   const hasPostPurchaseContext = /\bya\s*compre\b|\bya\s*pague\b|\bcompre\s+un\b|\bpague\s+por\b|\bmi\s*compra\b|\bmi\s*pedido\b|\bmi\s*orden\b|\bno\s*me\s*llego\b|\bno\s*me\s*ha\s*llegado\b|\bque\s*compre\b|\blo\s*compre\b/.test(msg);
-  const hasVerificationCode = /\bcodigo\s*de\s*verificacion\b|\bcodigo\s*de\s*activacion\b|\bnuevo\s*codigo\b|\breenviar\s*codigo\b|\bno\s*me\s*llego\s*el\s*codigo\b/.test(msg);
+  const hasVerificationCode = /\bcódigo\s*de\s*verificación\b|\bcódigo\s*de\s*activacion\b|\bnuevo\s*código\b|\breenviar\s*código\b|\bno\s*me\s*llego\s*el\s*código\b/.test(msg);
   const hasActivationWithContext = /\b(activar|canjear|redimir)\b/.test(msg) && hasPostPurchaseContext;
   const hasProblemSignal = /\bno\s*funciona\b|\bno\s*sirve\b|\bproblema\b|\breclamo\b|\bno\s*puedo\b/.test(msg);
   const hasPostPurchaseSupport = hasVerificationCode || hasPostPurchaseContext || hasActivationWithContext;
@@ -361,11 +361,11 @@ function detectIntent(msg: string, history: ConversationEntry[], product: Detect
     return "support_issue";
   }
 
-  if (hasProblemSignal && /\bcodigo\b|\bproducto\b|\bjuego\b|\bsuscripcion\b|\bcuenta\b/.test(msg)) {
+  if (hasProblemSignal && /\bcódigo\b|\bproducto\b|\bjuego\b|\bsuscripción\b|\bcuenta\b/.test(msg)) {
     return "support_issue";
   }
 
-  const hasSupportWords = /\bcodigo\b|\bverificacion\b|\bactivacion\b|\bproblema\b|\bayuda\b|\bno\s*me\s*llego\b|\bno\s*funciona\b|\bno\s*sirve\b|\bsoporte\b|\breclamo\b/.test(msg);
+  const hasSupportWords = /\bcódigo\b|\bverificación\b|\bactivacion\b|\bproblema\b|\bayuda\b|\bno\s*me\s*llego\b|\bno\s*funciona\b|\bno\s*sirve\b|\bsoporte\b|\breclamo\b/.test(msg);
   const hasGreeting = /\bhola\b|\bbuenas?\b|\bhey\b|\bhello\b|\bhi\b|\bbuen\s*dia\b|\bbuenos\s*dias\b/.test(msg);
 
   if (hasGreeting && hasSupportWords) {
@@ -381,7 +381,7 @@ function detectIntent(msg: string, history: ConversationEntry[], product: Detect
   }
 
   const lastBotMsg = [...history].reverse().find(h => h.sender === "support");
-  if (lastBotMsg && /te\s*gustaria\s*comprar|quieres\s*(que\s*te\s*ayude|proceder)|quieres\s*comprar|gustaria\s*proceder/i.test(lastBotMsg.content)) {
+  if (lastBotMsg && /te\s*gustaría\s*comprar|quieres\s*(que\s*te\s*ayude|proceder)|quieres\s*comprar|gustaría\s*proceder/i.test(lastBotMsg.content)) {
     if (/^\s*(si|sí|dale|ok|claro|bueno|va|vale|por\s*favor|porfa|afirmativo|obvio|de\s*una|hagale|listo)\s*$/i.test(msg) ||
         /\b(si|sí)\b.*\b(quiero|porfa|favor|dale)\b/i.test(msg)) {
       return "purchase_intent";
@@ -420,7 +420,7 @@ function detectIntent(msg: string, history: ConversationEntry[], product: Detect
     return "product_inquiry";
   }
 
-  if (/\btienen\b|\bhay\b|\bdisponible\b|\bcatalogo\b|\bjuego\b|\bgame\b|\btitulo\b/.test(msg)) {
+  if (/\btienen\b|\bhay\b|\bdisponible\b|\bcatálogo\b|\bjuego\b|\bgame\b|\btítulo\b/.test(msg)) {
     return "product_inquiry";
   }
 
@@ -505,7 +505,7 @@ function buildConversationState(
       const cleanContent = entry.content.replace(/\{\{QUICK_REPLIES:.*\}\}$/, "").trim();
       usedResponses.add(cleanContent);
       usedResponses.add(entry.content);
-      if (cleanContent.includes("Estoy aqui para ayudarte con nuestros productos") ||
+      if (cleanContent.includes("Estoy aquí para ayudarte con nuestros productos") ||
           cleanContent.includes("puedo ayudarte") && cleanContent.length < 100) {
         genericCount++;
       }
@@ -546,7 +546,7 @@ function pickUnused(options: string[], used: Set<string>): string {
   for (const opt of options) {
     if (!used.has(opt)) return opt;
   }
-  return options[options.length - 1] + " Si necesitas mas ayuda, haz clic en 'Contactar un Ejecutivo' para hablar con un agente.";
+  return options[options.length - 1] + " Si necesitas más ayuda, haz clic en 'Contactar un Ejecutivo' para hablar con un agente.";
 }
 
 function formatPlatformName(p: Platform): string {
@@ -622,12 +622,12 @@ function formatProductDetail(product: { name: string; price: string | null; avai
 }
 
 const ESCALATION_RESPONSES = [
-  "💬 Entiendo que es dificil explicar lo que buscas por chat. No te preocupes, un ejecutivo te atendera directamente aqui en este mismo chat. Por favor, quedate conectado y recibiras una notificacion con sonido cuando te respondan.",
-  "💬 Parece que necesitas atencion personalizada. Un ejecutivo te va a atender directamente por este chat. Quedate conectado para recibir la respuesta al instante.",
-  "💬 Para brindarte la mejor atencion, un ejecutivo se conectara contigo por este mismo chat. Solo quedate aqui, recibiras un sonido de notificacion cuando te escriban.",
+  "💬 Entiendo que es difícil explicar lo que buscas por chat. No te preocupes, un ejecutivo te atenderá directamente aquí en este mismo chat. Por favor, quédate conectado y recibirás una notificación con sonido cuando te respondan.",
+  "💬 Parece que necesitas atención personalizada. Un ejecutivo te va a atender directamente por este chat. Quédate conectado para recibir la respuesta al instante.",
+  "💬 Para brindarte la mejor atención, un ejecutivo se conectará contigo por este mismo chat. Solo quédate aquí, recibirás un sonido de notificación cuando te escriban.",
 ];
 
-const PERSISTENCE_NOTICE = "\n\n💡 Puedes salir y volver cuando quieras, tu conversacion no se pierde. Si un agente te responde mientras no estas conectado, la respuesta te estara esperando aqui.";
+const PERSISTENCE_NOTICE = "\n\n💡 Puedes salir y volver cuando quieras, tu conversación no se pierde. Si un agente te responde mientras no estás conectado, la respuesta te estará esperando aquí.";
 
 function getGreetingResponse(state: ConversationState, sessionData?: SessionData, catalogProduct?: CatalogProduct | null): string {
   const userName = sessionData?.userName;
@@ -647,7 +647,7 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         const priceInfo = catalogPrice ? ` 💰 Precio: ${catalogPrice}.` : "";
         const text = pickUnused([
           `👋 ¡Hola${nameGreeting}! 🛒 ¡Que emocion que quieras comprar ${productName}${platSuffix}!${priceInfo} ⚡ Tenemos entrega digital inmediata a tu correo 📧 ¿Te ayudo con la compra?`,
-          `👋 ¡Hola${nameGreeting}! 🎮 ¡Excelente eleccion! ${productName}${platSuffix} esta disponible en nuestra tienda.${priceInfo} ⚡ Entrega instantanea por correo 📧 ¿Quieres proceder con la compra?`,
+          `👋 ¡Hola${nameGreeting}! 🎮 ¡Excelente eleccion! ${productName}${platSuffix} está disponible en nuestra tienda.${priceInfo} ⚡ Entrega instantánea por correo 📧 ¿Quieres proceder con la compra?`,
         ], state.usedResponses);
         const buttons: Array<{label: string, value?: string, url?: string}> = [];
         if (catalogProduct?.productUrl) {
@@ -658,8 +658,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
         return withButtons(text + PERSISTENCE_NOTICE, buttons);
       }
       const text = pickUnused([
-        `👋 ¡Hola${nameGreeting}! 🛒 ¡Bienvenido a nuestra tienda! Estamos listos para ayudarte con tu compra.${pageContext} 🎮 ¿Que producto te interesa?`,
-        `👋 ¡Hola${nameGreeting}! 💜 ¡Que bueno que nos visitas! Tenemos juegos y suscripciones digitales con entrega inmediata ⚡${pageContext} 🎮 ¿Que te gustaria comprar?`,
+        `👋 ¡Hola${nameGreeting}! 🛒 ¡Bienvenido a nuestra tienda! Estamos listos para ayudarte con tu compra.${pageContext} 🎮 ¿¿Qué producto te interesa?`,
+        `👋 ¡Hola${nameGreeting}! 💜 ¡¡Qué bueno que nos visitas! Tenemos juegos y suscripciones digitales con entrega inmediata ⚡${pageContext} 🎮 ¿¿Qué te gustaría comprar?`,
       ], state.usedResponses);
       return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Juegos PS5", value: "__qr:platform:ps5"},
@@ -670,8 +670,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "codigo_verificacion") {
       const text = pickUnused([
-        `👋 ¡Hola${nameGreeting}! 🔑 Entiendo que necesitas un nuevo codigo de verificacion. No te preocupes, un ejecutivo te ayudara con eso directamente aqui en el chat. Por favor, no te desconectes ni cierres la ventana para que podamos atenderte. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
-        `👋 ¡Hola${nameGreeting}! 🔑 Veo que necesitas un codigo de verificacion nuevo. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
+        `👋 ¡Hola${nameGreeting}! 🔑 Entiendo que necesitas un nuevo código de verificación. No te preocupes, un ejecutivo te ayudará con eso directamente aquí en el chat. Por favor, no te desconectes ni cierres la ventana para que podamos atenderte. Recibiras una notificación con sonido cada vez que haya una respuesta nueva.`,
+        `👋 ¡Hola${nameGreeting}! 🔑 Veo que necesitas un código de verificación nuevo. Nuestro equipo está listo para ayudarte. Un agente te responderá directamente aquí en el chat. Te pedimos que no te salgas de esta conversación para poder asistirte. Si no estás viendo el chat, escucharás un sonido de notificación cuando recibas una respuesta.`,
       ], state.usedResponses);
       return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -680,8 +680,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "candado_juego") {
       const text = pickUnused([
-        `👋 ¡Hola${nameGreeting}! 🔒 Lamento que te aparezca un candado en tu juego. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat para ayudarte. Por favor, no te desconectes ni cierres la ventana. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
-        `👋 ¡Hola${nameGreeting}! 🔒 Entiendo que tienes un problema con un candado en tu juego. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
+        `👋 ¡Hola${nameGreeting}! 🔒 Lamento que te aparezca un candado en tu juego. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat para ayudarte. Por favor, no te desconectes ni cierres la ventana. Recibiras una notificación con sonido cada vez que haya una respuesta nueva.`,
+        `👋 ¡Hola${nameGreeting}! 🔒 Entiendo que tienes un problema con un candado en tu juego. Nuestro equipo está listo para ayudarte. Un agente te responderá directamente aquí en el chat. Te pedimos que no te salgas de esta conversación para poder asistirte. Si no estás viendo el chat, escucharás un sonido de notificación cuando recibas una respuesta.`,
       ], state.usedResponses);
       return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -690,8 +690,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "estado_pedido") {
       const text = pickUnused([
-        `👋 ¡Hola${nameGreeting}! 📦 Entiendo que quieres saber el estado de tu pedido. Recuerda que todos nuestros productos son digitales y la entrega es instantanea a tu correo electronico ⚡📧 Si no has recibido tu producto, quedate en este chat y un ejecutivo te ayudara directamente aqui. Recibiras un sonido de notificacion cuando haya una respuesta nueva.`,
-        `👋 ¡Hola${nameGreeting}! 📦 Veo que quieres consultar el estado de tu pedido. Nuestros productos digitales se entregan al instante por email ⚡ Si hay algun inconveniente, no te desconectes de este chat, un ejecutivo revisara tu caso directamente aqui. Te notificaremos con sonido cuando recibas una respuesta.`,
+        `👋 ¡Hola${nameGreeting}! 📦 Entiendo que quieres saber el estado de tu pedido. Recuerda que todos nuestros productos son digitales y la entrega es instantánea a tu correo electrónico ⚡📧 Si no has recibido tu producto, quédate en este chat y un ejecutivo te ayudará directamente aquí. Recibiras un sonido de notificación cuando haya una respuesta nueva.`,
+        `👋 ¡Hola${nameGreeting}! 📦 Veo que quieres consultar el estado de tu pedido. Nuestros productos digitales se entregan al instante por email ⚡ Si hay algún inconveniente, no te desconectes de este chat, un ejecutivo revisará tu caso directamente aquí. Te notificaremos con sonido cuando recibas una respuesta.`,
       ], state.usedResponses);
       return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -700,8 +700,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
     if (problemType === "problema_plus") {
       const text = pickUnused([
-        `👋 ¡Hola${nameGreeting}! 🎮 Lamento que estes teniendo problemas con tu Plus. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat. Por favor, no te desconectes ni cierres la ventana para que podamos atender tu problema. Recibiras una notificacion con sonido cada vez que haya una respuesta nueva.`,
-        `👋 ¡Hola${nameGreeting}! 🎮 Entiendo que tienes un inconveniente con tu Plus. Nuestro equipo esta listo para ayudarte. Un agente te respondera directamente aqui en el chat. Te pedimos que no te salgas de esta conversacion para poder asistirte. Si no estas viendo el chat, escucharas un sonido de notificacion cuando recibas una respuesta.`,
+        `👋 ¡Hola${nameGreeting}! 🎮 Lamento que estes teniendo problemas con tu Plus. No te preocupes, vamos a resolverlo. Un ejecutivo se pondra en contacto contigo desde este mismo chat. Por favor, no te desconectes ni cierres la ventana para que podamos atender tu problema. Recibiras una notificación con sonido cada vez que haya una respuesta nueva.`,
+        `👋 ¡Hola${nameGreeting}! 🎮 Entiendo que tienes un inconveniente con tu Plus. Nuestro equipo está listo para ayudarte. Un agente te responderá directamente aquí en el chat. Te pedimos que no te salgas de esta conversación para poder asistirte. Si no estás viendo el chat, escucharás un sonido de notificación cuando recibas una respuesta.`,
       ], state.usedResponses);
       return withButtons(text + PERSISTENCE_NOTICE, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -712,14 +712,14 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   if (state.product) {
     const productName = formatGameWithVersion(state.product);
     if (state.product.type === "game") {
-      return `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Veo que te interesa ${productName}. Tenemos juegos digitales disponibles para PS4, PS5, Xbox One y Xbox Series ⚡ ¿Te gustaria saber mas sobre ${productName} o buscas otro titulo?${PERSISTENCE_NOTICE}`;
+      return `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Veo que te interesa ${productName}. Tenemos juegos digitales disponibles para PS4, PS5, Xbox One y Xbox Series ⚡ ¿Te gustaría saber más sobre ${productName} o buscas otro título?${PERSISTENCE_NOTICE}`;
     }
   }
 
   if (state.platform === "ps") {
     const text = pickUnused([
-      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos un amplio catalogo para PlayStation 🕹️ ¿Que estas buscando?`,
-      `👋 ¡Hola${nameGreeting}! 💜 Que gusto tenerte aqui.${pageContext} Somos tu tienda de juegos digitales para PlayStation 🎮 ¿En que te puedo ayudar?`,
+      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos un amplio catálogo para PlayStation 🕹️ ¿Que estas buscando?`,
+      `👋 ¡Hola${nameGreeting}! 💜 Qué gusto tenerte aquí.${pageContext} Somos tu tienda de juegos digitales para PlayStation 🎮 ¿En qué te puedo ayudar?`,
     ], state.usedResponses);
     return withButtons(text + PERSISTENCE_NOTICE, [
       {label: "Juegos PS5", value: "__qr:platform:ps5"},
@@ -730,8 +730,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
 
   if (state.platform === "xbox") {
     const text = pickUnused([
-      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Contamos con juegos y suscripciones para Xbox 🕹️ ¿En que te puedo ayudar?`,
-      `👋 ¡Hola${nameGreeting}! 💜 Que bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales y Game Pass 🎮`,
+      `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Contamos con juegos y suscripciones para Xbox 🕹️ ¿En qué te puedo ayudar?`,
+      `👋 ¡Hola${nameGreeting}! 💜 ¡Qué bueno verte.${pageContext} Tenemos todo para Xbox: juegos digitales y Game Pass 🎮`,
     ], state.usedResponses);
     return withButtons(text + PERSISTENCE_NOTICE, [
       {label: "Juegos Xbox", value: "__qr:platform:xbox_series"},
@@ -741,8 +741,8 @@ function getGreetingResponse(state: ConversationState, sessionData?: SessionData
   }
 
   const text = pickUnused([
-    `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos juegos y suscripciones para PlayStation y Xbox ⚡ ¿En que puedo ayudarte hoy?`,
-    `👋 ¡Hola${nameGreeting}! 💜 Gracias por visitarnos.${pageContext} Somos tu tienda de juegos digitales con catalogo para PlayStation y Xbox 🕹️ ¿Que te gustaria saber?`,
+    `👋 ¡Hola${nameGreeting}! 🎮 Bienvenido a CJM Digitales.${pageContext} Tenemos juegos y suscripciones para PlayStation y Xbox ⚡ ¿En qué puedo ayudarte hoy?`,
+    `👋 ¡Hola${nameGreeting}! 💜 Gracias por visitarnos.${pageContext} Somos tu tienda de juegos digitales con catálogo para PlayStation y Xbox 🕹️ ¿¿Qué te gustaría saber?`,
   ], state.usedResponses);
   return withButtons(text + PERSISTENCE_NOTICE, [
     {label: "Juegos PS5", value: "__qr:platform:ps5"},
@@ -755,7 +755,7 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
   if (!state.product || state.product.type !== "game") {
     const platSuffix = state.platform === "ps" ? " para PS4 y PS5" : state.platform === "xbox" ? " para Xbox One y Xbox Series" : " para PS4, PS5, Xbox One y Xbox Series";
     const text = pickUnused([
-      `🎮 Tenemos un amplio catalogo de juegos digitales${platSuffix}. ¿Buscas algun titulo en particular? Dime el nombre del juego y te doy toda la info 🕹️`,
+      `🎮 Tenemos un amplio catálogo de juegos digitales${platSuffix}. ¿Buscas algún título en particular? Dime el nombre del juego y te doy toda la info 🕹️`,
       `🎮 ¡Claro! Contamos con muchos titulos${platSuffix}. ¿Cual juego te interesa? 🕹️`,
     ], state.usedResponses);
     return withButtons(text, [
@@ -772,10 +772,10 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
     const priceInfo = catalogProduct.price ? ` Precio: ${catalogProduct.price}.` : "";
 
     if (catalogProduct.availability !== "available" && catalogProduct.availability !== "preorder") {
-      const text = `🎮 ${displayName}${platSuffix}.${priceInfo}\n\n❌ Este producto no esta disponible actualmente. Un ejecutivo puede verificar disponibilidad o buscarte una alternativa directamente aqui en el chat 💬`;
+      const text = `🎮 ${displayName}${platSuffix}.${priceInfo}\n\n❌ Este producto no está disponible actualmente. Un ejecutivo puede verificar disponibilidad o buscarte una alternativa directamente aquí en el chat 💬`;
       return withButtons(text, [
         {label: "Contactar ejecutivo", value: "__qr:contact"},
-        {label: "Buscar en catalogo", value: "__qr:browse"},
+        {label: "Buscar en catálogo", value: "__qr:browse"},
         {label: "Ver categorias", value: "__qr:back"},
       ]);
     }
@@ -785,7 +785,7 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
       : " 🔜 Disponible para pre-orden.";
 
     const responseText = pickUnused([
-      `🎮 ¡${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Te gustaria comprarlo?`,
+      `🎮 ¡${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Te gustaría comprarlo?`,
       `🕹️ ¡Tenemos ${displayName}${platSuffix}!${priceInfo}${availInfo} ¿Quieres que te ayude con la compra?`,
     ], state.usedResponses);
 
@@ -801,9 +801,9 @@ function getGameInquiryResponse(state: ConversationState, catalogProduct?: Catal
   }
 
   const text = pickUnused([
-    `🎮 ¡${gameName}${platSuffix}! Es un excelente titulo 🔥 Tenemos juegos digitales con entrega inmediata por correo ⚡📧 ¿Te gustaria comprarlo o necesitas mas informacion?`,
-    `🕹️ ¡Buena eleccion! ${gameName} es un juegazo 🔥 Lo manejamos en version digital${platSuffix} con entrega instantanea ⚡ ¿Quieres que te ayude con la compra?`,
-    `🎮 ${gameName}${platSuffix}, entendido. Trabajamos con cuentas digitales que incluyen el juego listo para descargar, entrega al instante por email ⚡📧 ¿Te gustaria proceder con la compra?`,
+    `🎮 ¡${gameName}${platSuffix}! Es un excelente título 🔥 Tenemos juegos digitales con entrega inmediata por correo ⚡📧 ¿Te gustaría comprarlo o necesitas más información?`,
+    `🕹️ ¡Buena eleccion! ${gameName} es un juegazo 🔥 Lo manejamos en version digital${platSuffix} con entrega instantánea ⚡ ¿Quieres que te ayude con la compra?`,
+    `🎮 ${gameName}${platSuffix}, entendido. Trabajamos con cuentas digitales que incluyen el juego listo para descargar, entrega al instante por email ⚡📧 ¿Te gustaría proceder con la compra?`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
@@ -826,7 +826,7 @@ function getSubscriptionResponse(state: ConversationState): string {
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
-    const text = `🎮 PS Plus Essential es el plan base de PlayStation: juego online, juegos mensuales gratis y descuentos en PS Store. ¿De que duracion lo necesitas?`;
+    const text = `🎮 PS Plus Essential es el plan base de PlayStation: juego online, juegos mensuales gratis y descuentos en PS Store. ¿De que duración lo necesitas?`;
     return withButtons(text, [
       {label: "1 mes", value: "1 mes"},
       {label: "3 meses", value: "3 meses"},
@@ -836,13 +836,13 @@ function getSubscriptionResponse(state: ConversationState): string {
 
   if (sub.name === "PS Plus Extra") {
     if (sub.duration) {
-      const text = `🕹️ PS Plus Extra de ${sub.duration}: todo lo de Essential mas un catalogo de ~400 juegos de PS4 y PS5 para descargar 🔥 ⚡ Entrega digital inmediata 📧`;
+      const text = `🕹️ PS Plus Extra de ${sub.duration}: todo lo de Essential más un catálogo de ~400 juegos de PS4 y PS5 para descargar 🔥 ⚡ Entrega digital inmediata 📧`;
       return withButtons(text, [
         {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
-    const text = `🕹️ PS Plus Extra incluye todo lo de Essential mas acceso a un catalogo de ~400 juegos descargables 🔥 ¿Que duracion prefieres?`;
+    const text = `🕹️ PS Plus Extra incluye todo lo de Essential más acceso a un catálogo de ~400 juegos descargables 🔥 ¿Que duración prefieres?`;
     return withButtons(text, [
       {label: "1 mes", value: "1 mes"},
       {label: "3 meses", value: "3 meses"},
@@ -852,13 +852,13 @@ function getSubscriptionResponse(state: ConversationState): string {
 
   if (sub.name === "PS Plus Premium") {
     if (sub.duration) {
-      const text = `⭐ PS Plus Premium de ${sub.duration}: todo lo de Extra mas streaming en la nube, juegos clasicos de PS1/PS2/PS3/PSP y pruebas de juegos 🔥 ⚡ Entrega digital inmediata 📧`;
+      const text = `⭐ PS Plus Premium de ${sub.duration}: todo lo de Extra más streaming en la nube, juegos clásicos de PS1/PS2/PS3/PSP y pruebas de juegos 🔥 ⚡ Entrega digital inmediata 📧`;
       return withButtons(text, [
         {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
-    const text = `⭐ PS Plus Premium es el plan mas completo: todo de Extra mas clasicos retro, streaming y demos anticipadas 🔥 ¿De cuantos meses lo necesitas?`;
+    const text = `⭐ PS Plus Premium es el plan más completo: todo de Extra más clásicos retro, streaming y demos anticipadas 🔥 ¿De cuántos meses lo necesitas?`;
     return withButtons(text, [
       {label: "1 mes", value: "1 mes"},
       {label: "3 meses", value: "3 meses"},
@@ -867,7 +867,7 @@ function getSubscriptionResponse(state: ConversationState): string {
   }
 
   if (sub.name === "PS Plus") {
-    const text = `🎮 PS Plus viene en 3 niveles:\n\n🟢 Essential: juego online + juegos gratis\n🔵 Extra: + catalogo de ~400 juegos\n⭐ Premium: + clasicos + streaming\n\nCada uno en 1, 3 y 12 meses. ¿Cual nivel te interesa?`;
+    const text = `🎮 PS Plus viene en 3 niveles:\n\n🟢 Essential: juego online + juegos gratis\n🔵 Extra: + catálogo de ~400 juegos\n⭐ Premium: + clásicos + streaming\n\nCada uno en 1, 3 y 12 meses. ¿¿Cuál nivel te interesa?`;
     return withButtons(text, [
       {label: "Essential", value: "PS Plus Essential"},
       {label: "Extra", value: "PS Plus Extra"},
@@ -883,7 +883,7 @@ function getSubscriptionResponse(state: ConversationState): string {
         {label: "Contactar ejecutivo", value: "__qr:contact"},
       ]);
     }
-    const text = `⭐ Xbox Game Pass Ultimate incluye juegos en consola + PC + nube, juego online, EA Play y juegos day-one de Microsoft 🔥 ¿De cuantos meses lo necesitas?`;
+    const text = `⭐ Xbox Game Pass Ultimate incluye juegos en consola + PC + nube, juego online, EA Play y juegos day-one de Microsoft 🔥 ¿De cuántos meses lo necesitas?`;
     return withButtons(text, [
       {label: "1 mes", value: "1 mes"},
       {label: "3 meses", value: "3 meses"},
@@ -892,7 +892,7 @@ function getSubscriptionResponse(state: ConversationState): string {
   }
 
   if (sub.name === "Game Pass Core") {
-    const text = `🎮 Game Pass Core reemplaza a Xbox Live Gold: juego online y acceso a un catalogo selecto de juegos. Es lo minimo para jugar online en Xbox 🕹️`;
+    const text = `🎮 Game Pass Core reemplaza a Xbox Live Gold: juego online y acceso a un catálogo selecto de juegos. Es lo minimo para jugar online en Xbox 🕹️`;
     return withButtons(text, [
       {label: "Si, quiero comprarlo", value: "si quiero comprarlo"},
       {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -900,7 +900,7 @@ function getSubscriptionResponse(state: ConversationState): string {
   }
 
   if (sub.name === "Game Pass") {
-    const text = `🎮 Game Pass viene en 3 planes:\n\n🟢 Core: juego online\n🔵 Standard: catalogo de juegos\n⭐ Ultimate: todo incluido + PC + nube + EA Play\n\n¿Cual plan te interesa?`;
+    const text = `🎮 Game Pass viene en 3 planes:\n\n🟢 Core: juego online\n🔵 Standard: catálogo de juegos\n⭐ Ultimate: todo incluido + PC + nube + EA Play\n\n¿¿Cuál plan te interesa?`;
     return withButtons(text, [
       {label: "Core", value: "Game Pass Core"},
       {label: "Standard", value: "Game Pass Standard"},
@@ -948,7 +948,7 @@ function getCardResponse(state: ConversationState): string {
     ]);
   }
 
-  const text = `💳 Manejamos tarjetas de saldo para PlayStation (PSN) y Xbox (Microsoft Store). ¿Cual plataforma necesitas?`;
+  const text = `💳 Manejamos tarjetas de saldo para PlayStation (PSN) y Xbox (Microsoft Store). ¿¿Cuál plataforma necesitas?`;
   return withButtons(text, [
     {label: "Tarjeta PSN", value: "quiero tarjeta PSN"},
     {label: "Tarjeta Xbox", value: "quiero tarjeta Xbox"},
@@ -970,7 +970,7 @@ function getProductInquiryGeneric(state: ConversationState): string {
 
   const platSuffix = state.platform === "ps" ? " para PS4 y PS5" : state.platform === "xbox" ? " para Xbox One y Xbox Series" : " para PS4, PS5, Xbox One y Xbox Series";
   const text = pickUnused([
-    `🎮 Tenemos un amplio catalogo de juegos digitales${platSuffix}, ademas de suscripciones. ¿Que producto te interesa? 🕹️`,
+    `🎮 Tenemos un amplio catálogo de juegos digitales${platSuffix}, además de suscripciones. ¿¿Qué producto te interesa? 🕹️`,
     `🎮 Contamos con juegos y suscripciones${platSuffix}. Si me dices que buscas, te doy toda la info 🕹️`,
   ], state.usedResponses);
   return withButtons(text, [
@@ -1015,8 +1015,8 @@ function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogP
     }
 
     const text = pickUnused([
-      `🛒 ¡Perfecto! Para comprar ${productName}${platSuffix}, realizas el pago y recibiras tu cuenta con el juego por correo de forma inmediata ⚡📧 ¿Te gustaria saber los metodos de pago?`,
-      `🛒 ¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantanea ⚡ Un ejecutivo te puede asistir aqui en el chat para completar la compra 💬`,
+      `🛒 ¡Perfecto! Para comprar ${productName}${platSuffix}, realizas el pago y recibirás tu cuenta con el juego por correo de forma inmediata ⚡📧 ¿Te gustaría saber los metodos de pago?`,
+      `🛒 ¡Genial que quieras ${productName}${platSuffix}! La entrega es digital e instantánea ⚡ Un ejecutivo te puede asistir aquí en el chat para completar la compra 💬`,
     ], state.usedResponses);
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1026,7 +1026,7 @@ function getPurchaseResponse(state: ConversationState, catalogProduct?: CatalogP
 
   const text = pickUnused([
     `🛒 ¡Genial que quieras comprar! ¿Me puedes indicar que producto te interesa? 🎮`,
-    `🛒 ¡Claro! ¿Que producto buscas? ¿Es un juego o una suscripcion? 🕹️`,
+    `🛒 ¡Claro! ¿¿Qué producto buscas? ¿Es un juego o una suscripción? 🕹️`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Juegos PS5", value: "__qr:platform:ps5"},
@@ -1045,7 +1045,7 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
     if (catalogProduct && catalogProduct.price) {
       const displayName = catalogProduct.name;
       const responseText = pickUnused([
-        `💰 El precio de ${displayName}${platSuffix} es ${catalogProduct.price}. ⚡ Entrega digital inmediata. ¿Te gustaria comprarlo?`,
+        `💰 El precio de ${displayName}${platSuffix} es ${catalogProduct.price}. ⚡ Entrega digital inmediata. ¿Te gustaría comprarlo?`,
         `💰 ${displayName}${platSuffix} tiene un precio de ${catalogProduct.price}. ¿Quieres proceder con la compra? 🛒`,
       ], state.usedResponses);
 
@@ -1056,8 +1056,8 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
     }
 
     const text = pickUnused([
-      `💰 Para el precio exacto de ${productName}${platSuffix}, un ejecutivo te puede ayudar directamente aqui en el chat con la info actualizada 💬`,
-      `💰 El precio de ${productName}${platSuffix} puede variar. Un ejecutivo te atendera por este mismo chat con el precio actual y ofertas disponibles 💬`,
+      `💰 Para el precio exacto de ${productName}${platSuffix}, un ejecutivo te puede ayudar directamente aquí en el chat con la info actualizada 💬`,
+      `💰 El precio de ${productName}${platSuffix} puede variar. Un ejecutivo te atenderá por este mismo chat con el precio actual y ofertas disponibles 💬`,
     ], state.usedResponses);
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1065,7 +1065,7 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
   }
 
   if (state.platform === "ps") {
-    const text = `💰 Los precios de PlayStation varian segun el titulo. ¿Me dices que producto te interesa para darte la info exacta? 🎮`;
+    const text = `💰 Los precios de PlayStation varian segun el título. ¿Me dices que producto te interesa para darte la info exacta? 🎮`;
     return withButtons(text, [
       {label: "Juegos PS5", value: "__qr:platform:ps5"},
       {label: "PS Plus", value: "__qr:category:subscription"},
@@ -1090,8 +1090,8 @@ function getPriceResponse(state: ConversationState, catalogProduct?: CatalogProd
 
 function getPaymentResponse(state: ConversationState): string {
   const text = pickUnused([
-    `💳 Puedes pagar de dos formas: directamente por nuestra web en cjmdigitales.com al hacer tu pedido, o por transferencia bancaria. Los pagos se procesan en horario de atencion.`,
-    `💳 Aceptamos pago por la web (cjmdigitales.com) y transferencia bancaria. Solo se procesan en horario de atencion.`,
+    `💳 Puedes pagar de dos formas: directamente por nuestra web en cjmdigitales.com al hacer tu pedido, o por transferencia bancaria. Los pagos se procesan en horario de atención.`,
+    `💳 Aceptamos pago por la web (cjmdigitales.com) y transferencia bancaria. Solo se procesan en horario de atención.`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ir a la tienda", value: "__qr:link:https://cjmdigitales.com"},
@@ -1101,8 +1101,8 @@ function getPaymentResponse(state: ConversationState): string {
 
 function getDeliveryResponse(state: ConversationState): string {
   const text = pickUnused([
-    `⚡ La entrega de todos nuestros productos es digital e inmediata. Recibiras los datos de tu cuenta con el juego por correo electronico al completar la compra, en cuestion de minutos 📧`,
-    `⚡ ¡Todo es digital! Al completar la compra, recibiras tu cuenta con el juego por email en minutos 📧 Sin envio fisico, todo es instantaneo.`,
+    `⚡ La entrega de todos nuestros productos es digital e inmediata. Recibiras los datos de tu cuenta con el juego por correo electrónico al completar la compra, en cuestion de minutos 📧`,
+    `⚡ ¡Todo es digital! Al completar la compra, recibirás tu cuenta con el juego por email en minutos 📧 Sin envio fisico, todo es instantaneo.`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ver productos", value: "__qr:back"},
@@ -1114,8 +1114,8 @@ function getSupportResponse(state: ConversationState, sessionData?: SessionData)
   const problemContext = sessionData?.problemType ? ` Veo que tu consulta es sobre: ${sessionData.problemType}.` : "";
 
   const text = pickUnused([
-    `🔧 Lamentamos si tienes algun inconveniente.${problemContext} Todos nuestros productos tienen garantia ✅ Un ejecutivo te atendera directamente aqui en el chat para resolver tu caso 💬`,
-    `🔧 Sentimos los problemas.${problemContext} Queremos resolverlo lo antes posible. Un ejecutivo revisara tu caso por este mismo chat 💬`,
+    `🔧 Lamentamos si tienes algún inconveniente.${problemContext} Todos nuestros productos tienen garantia ✅ Un ejecutivo te atenderá directamente aquí en el chat para resolver tu caso 💬`,
+    `🔧 Sentimos los problemas.${problemContext} Queremos resolverlo lo antes posible. Un ejecutivo revisará tu caso por este mismo chat 💬`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Contactar ejecutivo", value: "__qr:contact"},
@@ -1135,15 +1135,15 @@ function getTrustResponse(state: ConversationState): string {
 
 function getGratitudeResponse(state: ConversationState): string {
   return pickUnused([
-    `🙏 ¡Con gusto! Me alegra haberte ayudado 💜 Si deseas, puedes finalizar el chat y dejarnos tu valoracion usando el boton al final del chat ⭐`,
-    `🙏 ¡De nada! Fue un placer ayudarte 💜 Recuerda que puedes valorar tu experiencia con el boton "Finalizar y Valorar" que aparece abajo ⭐`,
+    `🙏 ¡Con gusto! Me alegra haberte ayudado 💜 Si deseas, puedes finalizar el chat y dejarnos tu valoracion usando el botón al final del chat ⭐`,
+    `🙏 ¡De nada! Fue un placer ayudarte 💜 Recuerda que puedes valorar tu experiencia con el botón "Finalizar y Valorar" que aparece abajo ⭐`,
   ], state.usedResponses);
 }
 
 function getFarewellResponse(state: ConversationState): string {
   return pickUnused([
-    `👋 ¡Hasta pronto! Si lo deseas, puedes calificarnos usando el boton "Finalizar y Valorar" al final del chat ⭐ ¡Que tengas un excelente dia! 💜`,
-    `👋 ¡Chao! Nos encantaria saber que te parecio nuestra atencion. Usa el boton "Finalizar y Valorar" abajo para dejarnos tu opinion ⭐ ¡Hasta la proxima! 💜`,
+    `👋 ¡Hasta pronto! Si lo deseas, puedes calificarnos usando el botón "Finalizar y Valorar" al final del chat ⭐ ¡Que tengas un excelente dia! 💜`,
+    `👋 ¡Chao! Nos encantaría saber que te pareció nuestra atención. Usa el botón "Finalizar y Valorar" abajo para dejarnos tu opinión ⭐ ¡Hasta la próxima! 💜`,
   ], state.usedResponses);
 }
 
@@ -1168,8 +1168,8 @@ function getFollowupResponse(state: ConversationState, msg: string): string {
 
     if (/\bno\b|\bgracias\b.*\bno\b|\bno\s*gracias\b|\bnah\b/.test(msg)) {
       const text = pickUnused([
-        `🎮 Entendido. ¿Hay algo mas en lo que pueda ayudarte?`,
-        `🎮 Sin problema. ¿Te gustaria ver otro producto? 🕹️`,
+        `🎮 Entendido. ¿Hay algo más en lo que pueda ayudarte?`,
+        `🎮 Sin problema. ¿Te gustaría ver otro producto? 🕹️`,
       ], state.usedResponses);
       return withButtons(text, [
         {label: "Ver otros productos", value: "__qr:back"},
@@ -1178,7 +1178,7 @@ function getFollowupResponse(state: ConversationState, msg: string): string {
     }
 
     const text = pickUnused([
-      `🎮 Sobre ${productName}${platSuffix}, ¿en que mas puedo ayudarte?`,
+      `🎮 Sobre ${productName}${platSuffix}, ¿en que más puedo ayudarte?`,
       `🎮 Siguiendo con ${productName}${platSuffix}, ¿tienes alguna otra duda?`,
     ], state.usedResponses);
     return withButtons(text, [
@@ -1189,8 +1189,8 @@ function getFollowupResponse(state: ConversationState, msg: string): string {
   }
 
   const text = pickUnused([
-    `🎯 ¿Hay algo especifico en lo que pueda ayudarte? 🎮`,
-    `🎯 ¿En que mas te puedo ayudar? Dime que producto te interesa 🕹️`,
+    `🎯 ¿Hay algo específico en lo que pueda ayudarte? 🎮`,
+    `🎯 ¿En qué más te puedo ayudar? Dime que producto te interesa 🕹️`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ver juegos", value: "__qr:category:game"},
@@ -1205,9 +1205,9 @@ function getUnknownResponse(state: ConversationState): string {
   }
 
   const text = pickUnused([
-    `🎯 Gracias por tu mensaje. Estoy aqui para ayudarte con juegos digitales y suscripciones 🎮 ¿Que te gustaria saber?`,
-    `🎯 No estoy seguro de entender tu consulta. ¿Puedes decirme si buscas un juego o una suscripcion? 🕹️`,
-    `🎯 Disculpa, ¿me puedes dar mas detalles? Vendemos juegos digitales, PS Plus y Game Pass 🎮`,
+    `🎯 Gracias por tu mensaje. Estoy aquí para ayudarte con juegos digitales y suscripciones 🎮 ¿¿Qué te gustaría saber?`,
+    `🎯 No estoy seguro de entender tu consulta. ¿Puedes decirme si buscas un juego o una suscripción? 🕹️`,
+    `🎯 Disculpa, ¿me puedes dar más detalles? Vendemos juegos digitales, PS Plus y Game Pass 🎮`,
   ], state.usedResponses);
   return withButtons(text, [
     {label: "Ver juegos", value: "__qr:category:game"},
@@ -1327,7 +1327,7 @@ function getDurationResponse(state: ConversationState, msg: string): string | nu
   }
 
   if (state.platform === "ps") {
-    const text = `🎮 Tenemos suscripciones de ${duration} para PS Plus. ¿Cual nivel te interesa?`;
+    const text = `🎮 Tenemos suscripciones de ${duration} para PS Plus. ¿¿Cuál nivel te interesa?`;
     return withButtons(text, [
       {label: "Essential", value: "PS Plus Essential"},
       {label: "Extra", value: "PS Plus Extra"},
@@ -1336,7 +1336,7 @@ function getDurationResponse(state: ConversationState, msg: string): string | nu
   }
 
   if (state.platform === "xbox") {
-    const text = `🎮 Tenemos suscripciones de ${duration} para Xbox Game Pass. ¿Cual plan te interesa?`;
+    const text = `🎮 Tenemos suscripciones de ${duration} para Xbox Game Pass. ¿¿Cuál plan te interesa?`;
     return withButtons(text, [
       {label: "Core", value: "Game Pass Core"},
       {label: "Standard", value: "Game Pass Standard"},
@@ -1344,7 +1344,7 @@ function getDurationResponse(state: ConversationState, msg: string): string | nu
     ]);
   }
 
-  const text = `🎮 Tenemos suscripciones de ${duration} para PS Plus y Game Pass. ¿Cual plataforma prefieres?`;
+  const text = `🎮 Tenemos suscripciones de ${duration} para PS Plus y Game Pass. ¿¿Cuál plataforma prefieres?`;
   return withButtons(text, [
     {label: "PS Plus", value: "PS Plus"},
     {label: "Game Pass", value: "Game Pass"},
@@ -1358,10 +1358,10 @@ function detectPurchaseStage(conversationHistory: ConversationEntry[]): number {
   for (const entry of conversationHistory) {
     if (entry.sender === "support") {
       const content = entry.content.toLowerCase();
-      if (content.includes("precio:") || content.includes("precio de") || content.includes("tiene un precio") || content.includes("puedes verlo aqui") || content.includes("entrega digital inmediata")) {
+      if (content.includes("precio:") || content.includes("precio de") || content.includes("tiene un precio") || content.includes("puedes verlo aquí") || content.includes("entrega digital inmediata")) {
         hasShownProductInfo = true;
       }
-      if (content.includes("puedes comprarlo directamente") || content.includes("comprarlo aqui") || content.includes("link de compra") || content.includes("comprar ahora") || content.includes("ir a comprar")) {
+      if (content.includes("puedes comprarlo directamente") || content.includes("comprarlo aquí") || content.includes("link de compra") || content.includes("comprar ahora") || content.includes("ir a comprar")) {
         hasShownPurchaseLink = true;
       }
     }
@@ -1552,11 +1552,11 @@ async function _processTenantAutoReply(
         [{label: "Dejar mensaje", url: offlineTicketUrl}]
       );
     }
-    return "{{CONTACT_REQUEST}} ¡Perfecto! Un agente se conectara contigo en breve por este mismo chat. Mientras tanto, ¿hay algo mas en lo que pueda ayudarte?";
+    return "{{CONTACT_REQUEST}} ¡Perfecto! Un agente se conectará contigo en breve por este mismo chat. Mientras tanto, ¿hay algo más en lo que pueda ayudarte?";
   }
 
   if (msg === "__qr:farewell_skip") {
-    return "👋 ¡Hasta pronto! Si necesitas algo mas, no dudes en volver a escribirnos.";
+    return "👋 ¡Hasta pronto! Si necesitas algo más, no dudes en volver a escribirnos.";
   }
 
   let catalogProducts: CatalogProduct[] = [];
@@ -1663,11 +1663,11 @@ async function _processAutoReply(
   }
 
   if (msg === "__qr:farewell_skip") {
-    return "👋 ¡Hasta pronto! Si necesitas algo mas, no dudes en volver a escribirnos. ¡Que tengas un excelente dia! 💜";
+    return "👋 ¡Hasta pronto! Si necesitas algo más, no dudes en volver a escribirnos. ¡Que tengas un excelente dia! 💜";
   }
 
-  if (/\bcodigo\s*de\s*verificacion\b|\bcodigo\s*de\s*activacion\b|\bverificar\s*codigo\b|\bcanjear\s*codigo\b|\bredeem\b|\bverificacion\b|\bcodigo\s*de\s*canje\b|\breenviar\s*codigo\b|\bnuevo\s*codigo\b|\bno\s*me\s*llego\s*el\s*codigo\b/.test(msg)) {
-    const text = "Para obtener tu codigo de verificacion, ingresa a https://cjm-codes.cl/ y escribe el correo del juego (el correo de la cuenta que recibiste con tu compra, NO tu correo personal). El sistema te enviara tu codigo automaticamente.\n\nSi el sistema no te funciona o tienes algun problema, puedes contactar a un ejecutivo para asistencia personalizada.";
+  if (/\bcódigo\s*de\s*verificación\b|\bcódigo\s*de\s*activacion\b|\bverificar\s*código\b|\bcanjear\s*código\b|\bredeem\b|\bverificación\b|\bcódigo\s*de\s*canje\b|\breenviar\s*código\b|\bnuevo\s*código\b|\bno\s*me\s*llego\s*el\s*código\b/.test(msg)) {
+    const text = "Para obtener tu código de verificación, ingresa a https://cjm-codes.cl/ y escribe el correo del juego (el correo de la cuenta que recibiste con tu compra, NO tu correo personal). El sistema te enviara tu código automaticamente.\n\nSi el sistema no te funciona o tienes algún problema, puedes contactar a un ejecutivo para asistencia personalizada.";
     return withButtons(text, [
       {label: "Contactar ejecutivo", value: "__qr:contact"},
     ]);
@@ -1692,7 +1692,7 @@ async function _processAutoReply(
       productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
       const platformName = platform.includes("ps") ? "PlayStation" : "Xbox";
       const totalCount = await catalogLookup.getTotalCount();
-      const text = `📋 Catalogo ${platformName} 🎮\n\nContamos con ${products.length} productos disponibles para ${platformName}.\n\nA continuacion te mostramos algunos de nuestros titulos destacados 🔥\n\n🎯 ¿Buscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del juego que te interesa para encontrarlo rapidamente.`;
+      const text = `📋 Catalogo ${platformName} 🎮\n\nContamos con ${products.length} productos disponibles para ${platformName}.\n\nA continuacion te mostramos algunos de nuestros titulos destacados 🔥\n\n🎯 ¿Buscas algo en específico? Contamos con más de ${totalCount} productos en nuestra tienda. Escribe el nombre del juego que te interesa para encontrarlo rapidamente.`;
       return withButtons(text, productButtons);
     }
 
@@ -1720,7 +1720,7 @@ async function _processAutoReply(
       const categoryName = categoryNames[category] || category;
       productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
       const totalCount = await catalogLookup.getTotalCount();
-      const text = `📋 Catalogo de ${categoryName} 🎮\n\nContamos con ${products.length} productos disponibles en esta categoria.\n\nA continuacion te mostramos algunas opciones destacadas 🔥\n\n🎯 ¿Buscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del producto que te interesa para encontrarlo rapidamente.`;
+      const text = `📋 Catalogo de ${categoryName} 🎮\n\nContamos con ${products.length} productos disponibles en esta categoria.\n\nA continuacion te mostramos algunas opciones destacadas 🔥\n\n🎯 ¿Buscas algo en específico? Contamos con más de ${totalCount} productos en nuestra tienda. Escribe el nombre del producto que te interesa para encontrarlo rapidamente.`;
       return withButtons(text, productButtons);
     }
 
@@ -1732,10 +1732,10 @@ async function _processAutoReply(
 
         if (p.availability !== "available" && p.availability !== "preorder") {
           const detail = formatProductDetail(p);
-          const text = `${detail}\n\n❌ Este producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, contacta a uno de nuestros ejecutivos 💬`;
+          const text = `${detail}\n\n❌ Este producto no está disponible actualmente. Para consultar disponibilidad o buscar una alternativa, contacta a uno de nuestros ejecutivos 💬`;
           return withButtons(text, [
             {label: "Contactar ejecutivo", value: "__qr:contact"},
-            {label: "Buscar en catalogo", value: "__qr:browse"},
+            {label: "Buscar en catálogo", value: "__qr:browse"},
             {label: "Ver categorias", value: "__qr:back"},
           ]);
         }
@@ -1748,14 +1748,14 @@ async function _processAutoReply(
           buttons.push({label: "Comprar ahora", url: p.productUrl});
         }
         buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
-        buttons.push({label: "Ver mas productos", value: "__qr:back"});
+        buttons.push({label: "Ver más productos", value: "__qr:back"});
 
         return withButtons(text, buttons);
       }
       return withButtons(
-        "🎯 No encontre ese producto en nuestro catalogo. Puedes buscar directamente en nuestro catalogo completo o darme mas detalles del producto que buscas.",
+        "🎯 No encontre ese producto en nuestro catálogo. Puedes buscar directamente en nuestro catálogo completo o darme más detalles del producto que buscas.",
         [
-          {label: "Buscar en catalogo", value: "__qr:browse"},
+          {label: "Buscar en catálogo", value: "__qr:browse"},
           {label: "Ver categorias", value: "__qr:back"},
           {label: "Contactar ejecutivo", value: "__qr:contact"},
         ]
@@ -1773,7 +1773,7 @@ async function _processAutoReply(
         );
       }
       return withButtons(
-        "💬 Un ejecutivo te atendera directamente aqui en este chat. Solo quedate conectado y recibiras una notificacion con sonido cuando te respondan. Si no puedes esperar, tambien podemos contactarte por correo como respaldo.",
+        "💬 Un ejecutivo te atenderá directamente aquí en este chat. Solo quédate conectado y recibirás una notificación con sonido cuando te respondan. Si no puedes esperar, también podemos contactarte por correo como respaldo.",
         [
           {label: "Ver productos", value: "__qr:back"},
         ]
@@ -1781,7 +1781,7 @@ async function _processAutoReply(
     }
 
     if (msg === "__qr:back") {
-      const text = `📋 ¿Que categoria te gustaria explorar? 🎮\n\nContamos con un amplio catalogo de juegos digitales, suscripciones y mas para PlayStation y Xbox.`;
+      const text = `📋 ¿¿Qué categoría te gustaría explorar? 🎮\n\nContamos con un amplio catálogo de juegos digitales, suscripciones y más para PlayStation y Xbox.`;
       return withButtons(text, [
         {label: "Juegos PS5", value: "__qr:platform:ps5"},
         {label: "Juegos PS4", value: "__qr:platform:ps4"},
@@ -1797,7 +1797,7 @@ async function _processAutoReply(
   if (profanityResult.hasProfanity) {
     const previousWarnings = conversationHistory.filter(h => 
       h.sender === "support" && (
-        h.content.includes("mantengamos una conversacion respetuosa") ||
+        h.content.includes("mantengamos una conversación respetuosa") ||
         h.content.includes("lenguaje inapropiado") ||
         h.content.includes("vocabulario ofensivo") ||
         h.content.includes("Segundo aviso") ||
@@ -1807,7 +1807,7 @@ async function _processAutoReply(
 
     if (previousWarnings === 0) {
       return withButtons(
-        "Oye, te pido que mantengamos una conversacion respetuosa. Estoy aqui para ayudarte de verdad, pero con vocabulario ofensivo no podemos avanzar. Dime tranqui en que te puedo ayudar.",
+        "Oye, te pido que mantengamos una conversación respetuosa. Estoy aquí para ayudarte de verdad, pero con vocabulario ofensivo no podemos avanzar. Dime tranqui en que te puedo ayudar.",
         [{label: "Ver productos", value: "__qr:back"}, {label: "Contactar ejecutivo", value: "__qr:contact"}]
       );
     }
@@ -1841,11 +1841,11 @@ async function _processAutoReply(
 
   if (catalogLookup && !aiAvailable && !msg.startsWith("__qr:") && state.intent !== "greeting" && state.intent !== "farewell" && state.intent !== "gratitude" && state.intent !== "payment_question" && state.intent !== "delivery_question" && state.intent !== "support_issue" && state.intent !== "trust_question") {
     const categoryKeywords: Record<string, string> = {
-      "suscripcion": "subscription", "suscripciones": "subscription", "subscripcion": "subscription",
+      "suscripción": "subscription", "suscripciones": "subscription", "suscripción": "subscription",
       "plus": "subscription", "ps plus": "subscription", "game pass": "subscription", "gamepass": "subscription",
       "membresia": "subscription", "membresias": "subscription",
       "tarjeta": "card", "tarjetas": "card", "gift card": "card", "giftcard": "card",
-      "saldo": "card", "recarga": "card", "recargas": "card", "codigo": "card", "codigos": "card",
+      "saldo": "card", "recarga": "card", "recargas": "card", "código": "card", "codigos": "card",
       "wallet": "card",
     };
 
@@ -1872,7 +1872,7 @@ async function _processAutoReply(
         productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
         const totalCount = await catalogLookup.getTotalCount();
         const catDisplayName = categoryNames[matchedCategory] || matchedCategory;
-        const text = `📋 Catalogo de ${catDisplayName} 🎮\n\nContamos con ${categoryProducts.length} productos disponibles en esta categoria.\n\nA continuacion te mostramos algunas opciones destacadas 🔥\n\n🎯 ¿Buscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del producto que te interesa para encontrarlo rapidamente.`;
+        const text = `📋 Catalogo de ${catDisplayName} 🎮\n\nContamos con ${categoryProducts.length} productos disponibles en esta categoria.\n\nA continuacion te mostramos algunas opciones destacadas 🔥\n\n🎯 ¿Buscas algo en específico? Contamos con más de ${totalCount} productos en nuestra tienda. Escribe el nombre del producto que te interesa para encontrarlo rapidamente.`;
         return withButtons(text, productButtons);
       }
     }
@@ -1889,7 +1889,7 @@ async function _processAutoReply(
     if (isProductQuery) {
       const skipWords = new Set(["hola", "quiero", "busco", "necesito", "tienen", "hay", "ver", "dame", "dime", "muestrame",
         "los", "las", "para", "con", "del", "una", "uno", "mas", "que", "como", "por", "favor",
-        "productos", "juegos", "catalogo", "informacion", "info", "porfavor",
+        "productos", "juegos", "catálogo", "información", "info", "porfavor",
         "si", "no", "ok", "vale", "bueno", "claro", "listo", "dale", "obvio", "afirmativo",
         "digital", "ps4", "ps5", "xbox", "xone", "xseries", "nintendo", "switch", "pc",
         "playstation", "play", "comprar", "comprarlo", "compralo", "comprarle", "adquirir", "adquirirlo",
@@ -1911,7 +1911,7 @@ async function _processAutoReply(
                     label: `${p.name} - ${p.price || "Consultar"}`,
                     value: `__qr:product:${p.name}`
                   }));
-                  productButtons.push({label: "Ver mas opciones", value: "__qr:back"});
+                  productButtons.push({label: "Ver más opciones", value: "__qr:back"});
                   productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
                   return withButtons(
                     `🎯 Encontre estos productos relacionados con "${word}":`,
@@ -1927,10 +1927,10 @@ async function _processAutoReply(
 
             if (p.availability !== "available" && p.availability !== "preorder") {
               const detail = formatProductDetail(p);
-              const text = `${detail}\n\n❌ Este producto no esta disponible actualmente. Para consultar disponibilidad o buscar una alternativa, contacta a uno de nuestros ejecutivos 💬`;
+              const text = `${detail}\n\n❌ Este producto no está disponible actualmente. Para consultar disponibilidad o buscar una alternativa, contacta a uno de nuestros ejecutivos 💬`;
               return withButtons(text, [
                 {label: "Contactar ejecutivo", value: "__qr:contact"},
-                {label: "Buscar en catalogo", value: "__qr:browse"},
+                {label: "Buscar en catálogo", value: "__qr:browse"},
                 {label: "Ver categorias", value: "__qr:back"},
               ]);
             }
@@ -1942,7 +1942,7 @@ async function _processAutoReply(
               buttons.push({label: "Comprar ahora", url: p.productUrl});
             }
             buttons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
-            buttons.push({label: "Ver mas productos", value: "__qr:back"});
+            buttons.push({label: "Ver más productos", value: "__qr:back"});
             return withButtons(text, buttons);
           }
 
@@ -1954,15 +1954,15 @@ async function _processAutoReply(
             productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
             productButtons.push({label: "Contactar ejecutivo", value: "__qr:contact"});
             return withButtons(
-              `🎯 Encontramos ${catalogResults.length} resultados para tu busqueda.\n\nSelecciona el producto que te interesa para ver mas detalles:`,
+              `🎯 Encontramos ${catalogResults.length} resultados para tu busqueda.\n\nSelecciona el producto que te interesa para ver más detalles:`,
               productButtons
             );
           }
           if (catalogResults.length === 0 && searchQuery.length >= 3) {
             return withButtons(
-              `🎯 No encontre "${searchQuery}" en nuestro catalogo. Puedes buscar en nuestro catalogo completo, o un ejecutivo te puede ayudar directamente aqui en el chat 💬`,
+              `🎯 No encontre "${searchQuery}" en nuestro catálogo. Puedes buscar en nuestro catálogo completo, o un ejecutivo te puede ayudar directamente aquí en el chat 💬`,
               [
-                {label: "Buscar en catalogo", value: "__qr:browse"},
+                {label: "Buscar en catálogo", value: "__qr:browse"},
                 {label: "Ver categorias", value: "__qr:back"},
                 {label: "Contactar ejecutivo", value: "__qr:contact"},
               ]
@@ -1991,7 +1991,7 @@ async function _processAutoReply(
         }));
         productButtons.push({label: "Buscar otro producto", value: "__qr:back"});
         const totalCount = await catalogLookup.getTotalCount();
-        const text = `📋 Catalogo ${platformDisplayName} 🎮\n\nContamos con ${platformProducts.length} productos disponibles para ${platformDisplayName}.\n\nA continuacion te mostramos algunos de nuestros titulos destacados 🔥\n\n🎯 ¿Buscas algo en especifico? Contamos con mas de ${totalCount} productos en nuestra tienda. Escribe el nombre del juego que te interesa para encontrarlo rapidamente.`;
+        const text = `📋 Catalogo ${platformDisplayName} 🎮\n\nContamos con ${platformProducts.length} productos disponibles para ${platformDisplayName}.\n\nA continuacion te mostramos algunos de nuestros titulos destacados 🔥\n\n🎯 ¿Buscas algo en específico? Contamos con más de ${totalCount} productos en nuestra tienda. Escribe el nombre del juego que te interesa para encontrarlo rapidamente.`;
         return withButtons(text, productButtons);
       } else {
         return withButtons(

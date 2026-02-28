@@ -37,7 +37,7 @@ interface OnboardingWizardProps {
 const STEPS = [
   { title: "Tu Negocio", icon: Globe, description: "Dinos sobre tu empresa" },
   { title: "Personaliza", icon: Palette, description: "Dale estilo a tu chat" },
-  { title: "Listo!", icon: Rocket, description: "Tu chatbot esta listo" },
+  { title: "¡Listo!", icon: Rocket, description: "Tu chatbot está listo" },
 ];
 
 export default function OnboardingWizard({ tenant, token, onComplete }: OnboardingWizardProps) {
@@ -91,7 +91,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
         body: JSON.stringify({ botContext: organized }),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
-      toast({ title: "Sitio analizado", description: "Tu bot ya aprendio sobre tu negocio automaticamente." });
+      toast({ title: "Sitio analizado", description: "Tu bot ya aprendió sobre tu negocio automáticamente." });
     } catch (err: any) {
       toast({ title: "Error al analizar", description: err.message || "Verifica que la URL sea accesible", variant: "destructive" });
     }
@@ -198,7 +198,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const copyEmbed = () => {
     navigator.clipboard.writeText(embedCode);
     setCopied(true);
-    toast({ title: "Codigo copiado!" });
+    toast({ title: "Código copiado!" });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -217,7 +217,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
               Configura tu <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
             </h1>
           </div>
-          <p className="text-sm text-white/40">3 pasos rapidos y tu chatbot estara listo</p>
+          <p className="text-sm text-white/40">3 pasos rápidos y tu chatbot estará listo</p>
         </div>
 
         <div className="flex items-center justify-center gap-0 mb-8" data-testid="onboarding-progress">
@@ -255,7 +255,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                   <Globe className="w-5 h-5 text-primary" />
                   Cuentanos sobre tu negocio
                 </h2>
-                <p className="text-sm text-white/40">FoxBot aprendera de tu sitio web automaticamente</p>
+                <p className="text-sm text-white/40">FoxBot aprendera de tu sitio web automáticamente</p>
               </div>
 
               <div className="space-y-2">
@@ -293,7 +293,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-white/30">Al analizar tu sitio, FoxBot extraera automaticamente productos, servicios, contacto y horarios para entrenar el chatbot.</p>
+                <p className="text-xs text-white/30">Al analizar tu sitio, FoxBot extraera automáticamente productos, servicios, contacto y horarios para entrenar el chatbot.</p>
               </div>
 
               {analyzedResult && (
@@ -301,7 +301,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                   <CircleCheck className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-green-400">Sitio analizado correctamente</p>
-                    <p className="text-xs text-white/40 mt-1">Tu bot ya aprendio sobre tu negocio. Podras editar esta informacion despues en el Panel de Soporte.</p>
+                    <p className="text-xs text-white/40 mt-1">Tu bot ya aprendió sobre tu negocio. Podrás editar esta información después en el Panel de Soporte.</p>
                   </div>
                 </div>
               )}
@@ -309,7 +309,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
               {!analyzedResult && domain.trim() && !analyzingUrl && (
                 <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 flex items-center gap-2">
                   <Wand2 className="w-4 h-4 text-amber-400 shrink-0" />
-                  <p className="text-xs text-amber-300/80">Haz clic en "Analizar" para que FoxBot aprenda sobre tu negocio automaticamente.</p>
+                  <p className="text-xs text-amber-300/80">Haz clic en "Analizar" para que FoxBot aprenda sobre tu negocio automáticamente.</p>
                 </div>
               )}
 
@@ -506,7 +506,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                           )}
                         </div>
                         <h2 className="text-xs font-bold text-white mb-0.5 text-center">{welcomeMessage || "Hola, ¿en que podemos ayudarte?"}</h2>
-                        <p className="text-[9px] text-white/50 text-center">Completa tus datos para iniciar la conversacion</p>
+                        <p className="text-[9px] text-white/50 text-center">Completa tus datos para iniciar la conversación</p>
                       </div>
                       <div className="flex-1 overflow-y-auto px-4 pb-3 space-y-2">
                         <div className="space-y-1.5">
@@ -523,7 +523,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                         </div>
                         <div className="pt-1">
                           <div className="h-8 rounded-md flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: widgetColor, color: headerTextColor }}>
-                            Iniciar Conversacion
+                            Iniciar Conversación
                           </div>
                         </div>
                       </div>
@@ -550,14 +550,14 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                           </div>
                           <div className="max-w-[80%]">
                             <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>
-                              <p className="text-[11px] leading-relaxed" style={{ color: botTextColor }}>Hola! Bienvenido a {companyName || "nuestra empresa"}. ¿En que puedo ayudarte?</p>
+                              <p className="text-[11px] leading-relaxed" style={{ color: botTextColor }}>¡Hola! Bienvenido a {companyName || "nuestra empresa"}. ¿En qué puedo ayudarte?</p>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-end gap-1.5 flex-row-reverse">
                           <div className="max-w-[80%]">
                             <div className="rounded-md rounded-br-none px-3 py-2" style={{ backgroundColor: widgetColor, color: userTextColor }}>
-                              <p className="text-[11px] leading-relaxed">Hola, quiero informacion</p>
+                              <p className="text-[11px] leading-relaxed">Hola, quiero información</p>
                             </div>
                           </div>
                         </div>
@@ -567,10 +567,10 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                           </div>
                           <div className="max-w-[80%]">
                             <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>
-                              <p className="text-[11px] leading-relaxed" style={{ color: botTextColor }}>Claro! Aqui tienes nuestras opciones:</p>
+                              <p className="text-[11px] leading-relaxed" style={{ color: botTextColor }}>Claro! Aquí tienes nuestras opciones:</p>
                             </div>
                             <div className="flex flex-wrap gap-1 mt-1 pl-0.5">
-                              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Ver catalogo</span>
+                              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Ver catálogo</span>
                               <span className="px-2 py-0.5 text-[9px] font-semibold rounded-md border" style={{ borderColor: `${widgetColor}90`, backgroundColor: `${widgetColor}30`, color: "rgba(255,255,255,0.7)" }}>Precios</span>
                             </div>
                           </div>
@@ -600,14 +600,14 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20 animate-float">
                   <Rocket className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="text-xl font-bold mb-1">Tu FoxBot esta listo!</h2>
-                <p className="text-sm text-white/40">Copia el codigo y pegalo en tu sitio web para activar el chat</p>
+                <h2 className="text-xl font-bold mb-1">¡Tu FoxBot está listo!</h2>
+                <p className="text-sm text-white/40">Copia el código y pegalo en tu sitio web para activar el chat</p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Code className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-white/80">Codigo de integracion</span>
+                  <span className="text-sm font-medium text-white/80">Código de integración</span>
                 </div>
                 <div className="relative">
                   <pre className="p-4 rounded-lg bg-black/40 text-xs text-green-400 font-mono overflow-x-auto border border-white/[0.06]" data-testid="onboarding-embed-code">
@@ -622,7 +622,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                     {copied ? <><Check className="w-3 h-3 mr-1" /> Copiado</> : <><Copy className="w-3 h-3 mr-1" /> Copiar</>}
                   </Button>
                 </div>
-                <p className="text-xs text-white/30">Pega este codigo antes del cierre &lt;/body&gt; en tu sitio web. Funciona con WordPress, Shopify, Wix, y cualquier sitio HTML.</p>
+                <p className="text-xs text-white/30">Pega este código antes del cierre &lt;/body&gt; en tu sitio web. Funciona con WordPress, Shopify, Wix, y cualquier sitio HTML.</p>
               </div>
 
               <div className="rounded-xl bg-primary/5 border border-primary/15 p-4 flex items-start gap-3">
@@ -630,9 +630,9 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-white/80">¿Que sigue?</p>
                   <ul className="text-xs text-white/50 space-y-1">
-                    <li>Entrena tu bot con mas informacion en el Panel de Soporte</li>
-                    <li>Personaliza mas opciones en la seccion Configuracion</li>
-                    <li>Revisa las guias para instalar en tu plataforma</li>
+                    <li>Entrena tu bot con más información en el Panel de Soporte</li>
+                    <li>Personaliza más opciones en la sección Configuración</li>
+                    <li>Revisa las guías para instalar en tu plataforma</li>
                   </ul>
                 </div>
               </div>

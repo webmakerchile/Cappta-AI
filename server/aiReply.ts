@@ -87,7 +87,7 @@ function buildTenantSystemPrompt(
 
 ===== IDENTIDAD Y MISION =====
 - Eres "${botName}", el asistente oficial de ${companyName}
-- Tu mision principal: ayudar a cada cliente con la mejor atencion posible, resolver sus dudas completamente
+- Tu mision principal: ayudar a cada cliente con la mejor atención posible, resolver sus dudas completamente
 - Nunca rompas el personaje. Siempre eres ${botName}, nunca reveles que eres una IA o ChatGPT
 - Si no sabes algo con certeza, se honesto y di que un agente humano puede ayudar`;
 
@@ -95,14 +95,14 @@ function buildTenantSystemPrompt(
     systemPrompt += `
 
 ===== INFORMACION DEL NEGOCIO (ENTRENAMIENTO) =====
-A continuacion esta la informacion que el negocio ha proporcionado para que entiendas el contexto completo. Usa esto como tu base de conocimiento principal:
+A continuacion esta la información que el negocio ha proporcionado para que entiendas el contexto completo. Usa esto como tu base de conocimiento principal:
 
 ${tenantCtx.botContext}`;
   } else {
     systemPrompt += `
 
 ===== NOTA IMPORTANTE =====
-El negocio "${companyName}" aun no ha proporcionado informacion detallada sobre su operacion. Responde de forma amable y general. Si el cliente pregunta algo especifico que no puedes responder, sugiere contactar al equipo directamente.`;
+El negocio "${companyName}" aun no ha proporcionado información detallada sobre su operación. Responde de forma amable y general. Si el cliente pregunta algo específico que no puedes responder, sugiere contactar al equipo directamente.`;
   }
 
   systemPrompt += `
@@ -121,7 +121,7 @@ El negocio "${companyName}" aun no ha proporcionado informacion detallada sobre 
 ===== REGLAS CRITICAS =====
 1. NUNCA inventes precios. Solo menciona precios de los datos del catalogo
 2. NUNCA inventes productos que no existan
-3. NUNCA inventes informacion sobre politicas o promociones
+3. NUNCA inventes información sobre politicas o promociones
 4. Comprende el CONTEXTO completo de la conversacion
 5. Si no sabes algo: "No tengo esa info, pero el equipo te puede ayudar"`;
 
@@ -129,16 +129,16 @@ El negocio "${companyName}" aun no ha proporcionado informacion detallada sobre 
     systemPrompt += `
 
 ===== MODO FUERA DE HORARIO =====
-Actualmente estamos FUERA del horario de atencion (${options.offlineHoursStart || 9}:00 a ${options.offlineHoursEnd || 18}:00 hrs).
+Actualmente estamos FUERA del horario de atención (${options.offlineHoursStart || 9}:00 a ${options.offlineHoursEnd || 18}:00 hrs).
 - NO sugieras "contactar un agente" porque no hay agentes disponibles ahora
-${options.offlineTicketUrl ? `- Sugiere crear un ticket de soporte: ${options.offlineTicketUrl}` : "- Sugiere que vuelva en horario de atencion"}
+${options.offlineTicketUrl ? `- Sugiere crear un ticket de soporte: ${options.offlineTicketUrl}` : "- Sugiere que vuelva en horario de atención"}
 - Se especialmente util ya que eres la unica fuente de ayuda ahora`;
   } else {
     systemPrompt += `
 
 ===== AGENTES DISPONIBLES =====
-Estamos dentro del horario de atencion. Los agentes estan disponibles para atender por este mismo chat.
-- La atencion del agente es SIEMPRE por este mismo chat
+Estamos dentro del horario de atención. Los agentes estan disponibles para atender por este mismo chat.
+- La atención del agente es SIEMPRE por este mismo chat
 - Cuando sugieras contactar un agente, di: "Un agente te atendera directamente aqui en el chat"`;
   }
 
@@ -187,7 +187,7 @@ Estamos dentro del horario de atencion. Los agentes estan disponibles para atend
     });
     systemPrompt += "\nUsa esta info al recomendar productos. NO incluyas links en el texto - se agregan automaticamente como botones.";
   } else {
-    systemPrompt += "\n\n===== PRODUCTOS =====\nNo se encontraron productos del catalogo para esta consulta. Si el cliente busca algo especifico, sugiere buscar en el catalogo o contactar al equipo.";
+    systemPrompt += "\n\n===== PRODUCTOS =====\nNo se encontraron productos del catalogo para esta consulta. Si el cliente busca algo específico, sugiere buscar en el catalogo o contactar al equipo.";
   }
 
   if (options?.tenantFiles && options.tenantFiles.length > 0) {
@@ -195,7 +195,7 @@ Estamos dentro del horario de atencion. Los agentes estan disponibles para atend
     systemPrompt += "\n\n===== ARCHIVOS DISPONIBLES PARA ENVIAR =====\n";
     systemPrompt += "Tienes estos archivos/documentos que puedes compartir con el cliente cuando sea relevante.\n";
     systemPrompt += "Para enviar un archivo, incluye en tu respuesta la etiqueta: {{FILE:ID}} donde ID es el numero del archivo.\n";
-    systemPrompt += "IMPORTANTE: Solo envia archivos cuando el cliente pregunte algo relacionado con las palabras clave o descripcion del archivo.\n\n";
+    systemPrompt += "IMPORTANTE: Solo envia archivos cuando el cliente pregunte algo relacionado con las palabras clave o descripción del archivo.\n\n";
     options.tenantFiles.forEach((file) => {
       systemPrompt += `- Archivo #${file.id}: "${file.fileName}" (${file.fileType})`;
       if (file.description) systemPrompt += ` - ${file.description}`;
@@ -209,7 +209,7 @@ Estamos dentro del horario de atencion. Los agentes estan disponibles para atend
     options.knowledgeEntries.forEach((entry, index) => {
       systemPrompt += `${index + 1}. [${entry.category}] P: ${entry.question}\n   R: ${entry.answer}\n`;
     });
-    systemPrompt += "\nUsa esta informacion como referencia, adaptala al contexto actual.";
+    systemPrompt += "\nUsa esta información como referencia, adáptala al contexto actual.";
   }
 
   return systemPrompt;
@@ -228,7 +228,7 @@ function buildSystemPrompt(
 
 ===== IDENTIDAD Y MISION =====
 - Eres "CJM Bot", el asistente oficial de CJM Digitales
-- Tu mision principal: ayudar a cada cliente con la mejor atencion posible, resolver sus dudas completamente, y guiarlos en su experiencia de compra
+- Tu mision principal: ayudar a cada cliente con la mejor atención posible, resolver sus dudas completamente, y guiarlos en su experiencia de compra
 - Actua como un experto gamer chileno que trabaja en la tienda y conoce cada detalle del negocio
 - Nunca rompas el personaje. Siempre eres CJM Bot, nunca reveles que eres una IA o ChatGPT
 
@@ -307,7 +307,7 @@ function buildSystemPrompt(
 ===== REGLAS CRITICAS =====
 1. NUNCA inventes precios
 2. NUNCA inventes productos
-3. NUNCA inventes informacion sobre politicas o pagos
+3. NUNCA inventes información sobre politicas o pagos
 3b. NUNCA menciones PayPal, criptomonedas ni metodos no aceptados
 4. Comprende el CONTEXTO completo de la conversacion
 5. Si no sabes algo: "No tengo esa info ahora, pero un ejecutivo te puede ayudar"
@@ -317,7 +317,7 @@ function buildSystemPrompt(
     systemPrompt += `
 
 ===== MODO FUERA DE HORARIO =====
-Actualmente estamos FUERA del horario de atencion de ejecutivos (${options.offlineHoursStart || 12}:00 a ${options.offlineHoursEnd || 21}:00 hrs, hora de Chile).
+Actualmente estamos FUERA del horario de atención de ejecutivos (${options.offlineHoursStart || 12}:00 a ${options.offlineHoursEnd || 21}:00 hrs, hora de Chile).
 - NO sugieras "contactar un ejecutivo" porque NO hay ejecutivos disponibles ahora
 - Sugiere crear un ticket de soporte: ${options.offlineTicketUrl || "https://cjmdigitales.zohodesk.com/portal/es/newticket"}
 - Se especialmente util ya que eres la unica fuente de ayuda ahora`;
@@ -325,8 +325,8 @@ Actualmente estamos FUERA del horario de atencion de ejecutivos (${options.offli
     systemPrompt += `
 
 ===== EJECUTIVOS DISPONIBLES =====
-Estamos dentro del horario de atencion. Los ejecutivos estan disponibles.
-- La atencion del ejecutivo es SIEMPRE por este mismo chat
+Estamos dentro del horario de atención. Los ejecutivos estan disponibles.
+- La atención del ejecutivo es SIEMPRE por este mismo chat
 - NUNCA digas "te contactaremos por correo" como via principal
 - Di: "Un ejecutivo te atendera directamente aqui en el chat"`;
   }
@@ -386,7 +386,7 @@ Estamos dentro del horario de atencion. Los ejecutivos estan disponibles.
     options.knowledgeEntries.forEach((entry, index) => {
       systemPrompt += `${index + 1}. [${entry.category}] Pregunta: ${entry.question}\n   Respuesta: ${entry.answer}\n`;
     });
-    systemPrompt += "\nUsa esta informacion como referencia, adaptala al contexto actual.";
+    systemPrompt += "\nUsa esta información como referencia, adáptala al contexto actual.";
   }
 
   return systemPrompt;

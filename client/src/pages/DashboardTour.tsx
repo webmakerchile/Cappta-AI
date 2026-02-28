@@ -26,43 +26,43 @@ interface TourStep {
 const TOUR_STEPS: TourStep[] = [
   {
     targetTestId: "nav-stats",
-    title: "Estadisticas",
-    description: "Aqui puedes ver las metricas de tu chatbot en tiempo real: sesiones, mensajes, calificaciones y sesiones activas.",
+    title: "Estadísticas",
+    description: "Aquí puedes ver las métricas de tu chatbot en tiempo real: sesiones, mensajes, calificaciones y sesiones activas.",
     icon: BarChart3,
     position: "right",
   },
   {
     targetTestId: "nav-config",
-    title: "Configuracion",
+    title: "Configuración",
     description: "Personaliza los colores, logo, mensajes y opciones de tu widget de chat. Los cambios se reflejan en vivo.",
     icon: Palette,
     position: "right",
   },
   {
     targetTestId: "nav-embed",
-    title: "Integracion",
-    description: "Copia el codigo para instalar el chat en tu sitio web. Funciona con WordPress, Shopify, Wix y cualquier pagina HTML.",
+    title: "Integración",
+    description: "Copia el código para instalar el chat en tu sitio web. Funciona con WordPress, Shopify, Wix y cualquier página HTML.",
     icon: Code,
     position: "right",
   },
   {
     targetTestId: "nav-download",
     title: "Descargar App",
-    description: "Instala FoxBot como aplicacion en tu celular o computador para recibir notificaciones y responder mas rapido.",
+    description: "Instala FoxBot como aplicación en tu celular o computador para recibir notificaciones y responder más rápido.",
     icon: Download,
     position: "right",
   },
   {
     targetTestId: "nav-guides",
-    title: "Guias",
-    description: "Manuales paso a paso para instalar el chat en cada plataforma: WordPress, Shopify, Wix, Squarespace y mas.",
+    title: "Guías",
+    description: "Manuales paso a paso para instalar el chat en cada plataforma: WordPress, Shopify, Wix, Squarespace y más.",
     icon: BookOpen,
     position: "right",
   },
   {
     targetTestId: "nav-plan",
     title: "Plan",
-    description: "Gestiona tu suscripcion. Mejora tu plan para obtener mas sesiones, mensajes y funciones avanzadas.",
+    description: "Gestiona tu suscripción. Mejora tu plan para obtener más sesiones, mensajes y funciones avanzadas.",
     icon: CreditCard,
     position: "right",
   },
@@ -249,8 +249,8 @@ export function TourPrompt({ onStart, onSkip }: { onStart: () => void; onSkip: (
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20 animate-float">
             <MousePointer className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="text-lg font-bold mb-1">¿Quieres un recorrido rapido?</h2>
-          <p className="text-sm text-white/40">Te mostramos cada seccion del dashboard en 30 segundos</p>
+          <h2 className="text-lg font-bold mb-1">¿Quieres un recorrido rápido?</h2>
+          <p className="text-sm text-white/40">Te mostramos cada sección del dashboard en 30 segundos</p>
         </div>
 
         <div className="flex flex-col gap-2">

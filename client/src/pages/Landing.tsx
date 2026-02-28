@@ -59,15 +59,15 @@ import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 const features = [
   {
     icon: Brain,
-    title: "IA Conversacional Avanzada",
+    title: "IA Conversaciónal Avanzada",
     description: "Respuestas inteligentes potenciadas por GPT que entienden contexto, historial y la personalidad de tu marca.",
     iconColor: "#10b981",
     glow: "rgba(16, 185, 129, 0.15)",
   },
   {
     icon: Globe,
-    title: "Configuracion Automatica",
-    description: "Pega la URL de tu sitio web y FoxBot extrae productos, servicios, contacto y horarios automaticamente. Cero configuracion manual.",
+    title: "Configuración Automática",
+    description: "Pega la URL de tu sitio web y FoxBot extrae productos, servicios, contacto y horarios automáticamente. Cero configuración manual.",
     iconColor: "#f59e0b",
     glow: "rgba(245, 158, 11, 0.15)",
   },
@@ -81,56 +81,56 @@ const features = [
   {
     icon: FileText,
     title: "Entrena con tus Documentos",
-    description: "Sube PDFs, manuales, catalogos o archivos Excel. La IA los usa como contexto para dar respuestas precisas y actualizadas.",
+    description: "Sube PDFs, manuales, catálogos o archivos Excel. La IA los usa como contexto para dar respuestas precisas y actualizadas.",
     iconColor: "#a855f7",
     glow: "rgba(168, 85, 247, 0.15)",
   },
   {
     icon: ShoppingCart,
-    title: "Catalogo en el Chat",
-    description: "Tus clientes exploran productos, ven precios y disponibilidad sin salir de la conversacion. Conecta WooCommerce, Shopify o tu API.",
+    title: "Catálogo en el Chat",
+    description: "Tus clientes exploran productos, ven precios y disponibilidad sin salir de la conversación. Conecta WooCommerce, Shopify o tu API.",
     iconColor: "#ef4444",
     glow: "rgba(239, 68, 68, 0.15)",
   },
   {
     icon: Headphones,
-    title: "Intervencion de Ejecutivos",
-    description: "Cuando el cliente necesita atencion humana, un ejecutivo toma el control del chat en tiempo real sin que el cliente note el cambio.",
+    title: "Intervención de Ejecutivos",
+    description: "Cuando el cliente necesita atención humana, un ejecutivo toma el control del chat en tiempo real sin que el cliente note el cambio.",
     iconColor: "#6366f1",
     glow: "rgba(99, 102, 241, 0.15)",
   },
   {
     icon: Bell,
     title: "Notificaciones Push",
-    description: "Recibe alertas instantaneas cuando un cliente escribe o pide atencion. Nunca pierdas una venta por no responder a tiempo.",
+    description: "Recibe alertas instantáneas cuando un cliente escribe o pide atención. Nunca pierdas una venta por no responder a tiempo.",
     iconColor: "#ec4899",
     glow: "rgba(236, 72, 153, 0.15)",
   },
   {
     icon: BarChart3,
-    title: "Dashboard y Analiticas",
-    description: "Metricas de sesiones, satisfaccion, rendimiento del bot y consumo mensual. Calificaciones con estrellas de tus clientes.",
+    title: "Dashboard y Analíticas",
+    description: "Métricas de sesiones, satisfacción, rendimiento del bot y consumo mensual. Calificaciones con estrellas de tus clientes.",
     iconColor: "#06b6d4",
     glow: "rgba(6, 182, 212, 0.15)",
   },
   {
     icon: Smartphone,
     title: "App Descargable (PWA)",
-    description: "Instala FoxBot en tu celular o PC como una app nativa. Funciona offline, recibe notificaciones y responde desde donde estes.",
+    description: "Instala FoxBot en tu celular o PC como una app nativa. Funciona offline, recibe notificaciones y responde desde donde estés.",
     iconColor: "#14b8a6",
     glow: "rgba(20, 184, 166, 0.15)",
   },
 ];
 
 const sharedFeatures = [
-  { text: "Chat en vivo con IA + intervencion humana", icon: Bot },
+  { text: "Chat en vivo con IA + intervención humana", icon: Bot },
   { text: "Widget 100% personalizable en tu sitio", icon: Palette },
-  { text: "Configuracion automatica desde tu URL", icon: Globe },
+  { text: "Configuración automática desde tu URL", icon: Globe },
   { text: "App descargable (PWA) + notificaciones push", icon: Smartphone },
   { text: "Base de conocimiento y entrenamiento con docs", icon: Brain },
-  { text: "Catalogo de productos en el chat", icon: ShoppingBag },
+  { text: "Catálogo de productos en el chat", icon: ShoppingBag },
   { text: "Atajos, etiquetas y horario comercial", icon: Tag },
-  { text: "Multi-agente con asignacion y colores", icon: Users },
+  { text: "Multi-agente con asignación y colores", icon: Users },
   { text: "Conecta WooCommerce, Shopify o tu API", icon: Plug },
   { text: "Nuestro equipo te ayuda a instalarlo", icon: Handshake },
 ];
@@ -164,7 +164,7 @@ const pricingPlans = [
     name: "Fox Pro",
     price: "$19.990",
     period: " CLP/mes",
-    description: "Para negocios que necesitan mas volumen",
+    description: "Para negocios que necesitan más volumen",
     highlights: [
       { text: "500 sesiones / mes", bold: true },
       { text: "5.000 mensajes / mes", bold: true },
@@ -188,7 +188,7 @@ const pricingPlans = [
     name: "Fox Enterprise",
     price: "$49.990",
     period: " CLP/mes",
-    description: "Para empresas con alto volumen de atencion",
+    description: "Para empresas con alto volumen de atención",
     highlights: [
       { text: "Sesiones ilimitadas", bold: true },
       { text: "Mensajes ilimitados", bold: true },
@@ -196,9 +196,9 @@ const pricingPlans = [
     ],
     extras: [
       "Todas las funcionalidades incluidas",
-      "Analiticas avanzadas y calificaciones",
+      "Analíticas avanzadas y calificaciones",
       "Onboarding personalizado 1 a 1",
-      "Ejecutivo dedicado que te acompana siempre",
+      "Ejecutivo dedicado que te acompaña siempre",
       "Soporte prioritario 24/7",
     ],
     supportLine: "Tu ejecutivo dedicado se encarga de todo",
@@ -248,9 +248,9 @@ const brandThemes: {
     label: "Verde",
     messages: [
       { sender: "user", text: "Hola, tienen el iPhone 15 Pro disponible?" },
-      { sender: "bot", text: "Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro.", product: { name: "iPhone 15 Pro", price: "$999.990", tag: "En stock" }, quickReplies: ["Ver colores", "Envio gratis?", "Comparar modelos"] },
-      { sender: "user", text: "Si, el Titanio Azul por favor" },
-      { sender: "bot", text: "Envio gratis en compras sobre $500.000. Te envio el link de pago?", quickReplies: ["Si, enviar link", "Agregar funda"] },
+      { sender: "bot", text: "¡Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro.", product: { name: "iPhone 15 Pro", price: "$999.990", tag: "En stock" }, quickReplies: ["Ver colores", "Envío gratis?", "Comparar modelos"] },
+      { sender: "user", text: "¡Sí, el Titanio Azul por favor" },
+      { sender: "bot", text: "Envío gratis en compras sobre $500.000. Te envío el link de pago?", quickReplies: ["¡Sí, enviar link", "Agregar funda"] },
     ],
   },
   {
@@ -266,9 +266,9 @@ const brandThemes: {
     sendIcon: "#f97316",
     label: "Naranja",
     messages: [
-      { sender: "user", text: "Hola! Tienen delivery disponible?" },
-      { sender: "bot", text: "Si! Hacemos delivery de Lunes a Sabado de 12:00 a 22:00. Envio gratis sobre $15.000.", quickReplies: ["Ver menu", "Hacer pedido", "Horarios"] },
-      { sender: "user", text: "Si, quiero empanadas y cazuela" },
+      { sender: "user", text: "¡Hola! Tienen delivery disponible?" },
+      { sender: "bot", text: "¡Sí! Hacemos delivery de Lunes a Sábado de 12:00 a 22:00. Envío gratis sobre $15.000.", quickReplies: ["Ver menú", "Hacer pedido", "Horarios"] },
+      { sender: "user", text: "¡Sí, quiero empanadas y cazuela" },
       { sender: "bot", text: "Excelente eleccion!", product: { name: "Combo Criollo", price: "$14.990", tag: "Delivery gratis" }, quickReplies: ["Confirmar pedido", "Agregar postre"] },
     ],
   },
@@ -304,10 +304,10 @@ const brandThemes: {
     sendIcon: "#a855f7",
     label: "Morado",
     messages: [
-      { sender: "user", text: "Hola! Busco zapatillas talla 42" },
-      { sender: "bot", text: "Tenemos varias opciones en talla 42!", product: { name: "Nike Air Force 1", price: "$59.990", tag: "Mas vendido" }, quickReplies: ["Ver mas modelos", "Solo urbanas", "Ofertas"] },
-      { sender: "user", text: "Si, las urbanas por favor" },
-      { sender: "bot", text: "Envio gratis sobre $40.000. Quieres agregar algo al carrito?", quickReplies: ["Agregar al carrito", "Seguir viendo", "Hablar con vendedor"] },
+      { sender: "user", text: "¡Hola! Busco zapatillas talla 42" },
+      { sender: "bot", text: "Tenemos varias opciones en talla 42!", product: { name: "Nike Air Force 1", price: "$59.990", tag: "Más vendido" }, quickReplies: ["Ver más modelos", "Solo urbanas", "Ofertas"] },
+      { sender: "user", text: "¡Sí, las urbanas por favor" },
+      { sender: "bot", text: "Envío gratis sobre $40.000. Quieres agregar algo al carrito?", quickReplies: ["Agregar al carrito", "Seguir viendo", "Hablar con vendedor"] },
     ],
   },
 ];
@@ -327,7 +327,7 @@ function ChatbotPreview() {
             <p className="text-[13px] font-bold text-white" data-testid="text-preview-brand">Equipo de Soporte</p>
             <div className="flex items-center gap-1">
               <Wifi className="w-2.5 h-2.5 text-green-300" />
-              <span className="text-[10px] text-green-200/80" data-testid="status-preview-online">En linea</span>
+              <span className="text-[10px] text-green-200/80" data-testid="status-preview-online">En línea</span>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -343,7 +343,7 @@ function ChatbotPreview() {
                 <Headphones className="w-2.5 h-2.5 text-[#6200EA]" />
                 <span className="text-[9px] font-semibold text-[#6200EA]">Soporte IA</span>
               </div>
-              <p className="text-[12px] text-white/80 leading-relaxed">Hola! Bienvenido a nuestra tienda. En que puedo ayudarte hoy?</p>
+              <p className="text-[12px] text-white/80 leading-relaxed">¡Hola! Bienvenido a nuestra tienda. ¿En qué puedo ayudarte hoy?</p>
             </div>
           </div>
           <div className="flex justify-end">
@@ -357,7 +357,7 @@ function ChatbotPreview() {
                 <Headphones className="w-2.5 h-2.5 text-[#6200EA]" />
                 <span className="text-[9px] font-semibold text-[#6200EA]">Soporte IA</span>
               </div>
-              <p className="text-[12px] text-white/80 leading-relaxed">Tenemos la PS5 Slim + 2 DualSense a $459.990. Envio gratis! Te interesa?</p>
+              <p className="text-[12px] text-white/80 leading-relaxed">Tenemos la PS5 Slim + 2 DualSense a $459.990. Envío gratis! Te interesa?</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 <span className="text-[10px] px-2 py-1 rounded-lg bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/20 cursor-default">Ver detalles</span>
                 <span className="text-[10px] px-2 py-1 rounded-lg bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/20 cursor-default">Agregar al carrito</span>
@@ -375,7 +375,7 @@ function ChatbotPreview() {
                 <div className="w-3 h-3 rounded-full bg-emerald-500/30 flex items-center justify-center"><UserRound className="w-2 h-2 text-emerald-400" /></div>
                 <span className="text-[9px] font-semibold text-emerald-400">Carlos M. — Ejecutivo</span>
               </div>
-              <p className="text-[12px] text-white/80 leading-relaxed">Hola! Soy Carlos, vi que te interesa la PS5 Slim. Te puedo ofrecer un descuento especial hoy!</p>
+              <p className="text-[12px] text-white/80 leading-relaxed">¡Hola! Soy Carlos, vi que te interesa la PS5 Slim. Te puedo ofrecer un descuento especial hoy!</p>
             </div>
           </div>
         </div>
@@ -460,7 +460,7 @@ function DashboardPreview() {
               {[
                 { name: "Maria Lopez", msg: "Quiero hablar con alguien", status: "request", unread: 3 },
                 { name: "Juan Perez", msg: "Gracias por la info!", status: "agent", unread: 0 },
-                { name: "Ana Torres", msg: "Tienen envio a regiones?", status: "bot", unread: 1 },
+                { name: "Ana Torres", msg: "Tienen envío a regiones?", status: "bot", unread: 1 },
                 { name: "Pedro Soto", msg: "Me llego danado el producto", status: "request", unread: 5 },
               ].map((chat, i) => (
                 <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl cursor-default transition-colors ${i === 0 ? "bg-white/[0.06] border border-white/[0.06]" : "hover:bg-white/[0.03]"}`} data-testid={`card-preview-chat-${i}`}>
@@ -510,7 +510,7 @@ function DashboardPreview() {
             <div className="px-4 py-2">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/15">
                 <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-xs text-emerald-300/80" data-testid="status-preview-intervention">Chat asignado a ti — El bot esta pausado</span>
+                <span className="text-xs text-emerald-300/80" data-testid="status-preview-intervention">Chat asignado a ti — El bot está pausado</span>
               </div>
             </div>
 
@@ -521,7 +521,7 @@ function DashboardPreview() {
                     <Bot className="w-3 h-3 text-[#6200EA]" />
                     <span className="text-[10px] font-semibold text-[#a78bfa]">Bot IA</span>
                   </div>
-                  <p className="text-[13px] text-white/70 leading-relaxed">Hola Maria! En que puedo ayudarte?</p>
+                  <p className="text-[13px] text-white/70 leading-relaxed">Hola Maria! ¿En qué puedo ayudarte?</p>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -579,11 +579,11 @@ function WelcomeFormPreview() {
               <Headphones className="w-7 h-7 text-[#6200EA]" />
             </div>
             <h3 className="text-base font-bold text-white/90" data-testid="text-form-title">Bienvenido!</h3>
-            <p className="text-[11px] text-white/35 mt-1">Completa tus datos para iniciar la conversacion</p>
+            <p className="text-[11px] text-white/35 mt-1">Completa tus datos para iniciar la conversación</p>
           </div>
 
           <div>
-            <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">Correo electronico</label>
+            <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">Correo electrónico</label>
             <div className="flex items-center gap-2 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5">
               <Mail className="w-3.5 h-3.5 text-white/25" />
               <span className="text-[12px] text-white/70">carlos@empresa.cl</span>
@@ -678,7 +678,7 @@ function ExecutiveRequestPreview() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-semibold text-white/60 truncate block">Laura P.</span>
-                  <p className="text-[10px] text-white/25 truncate mt-0.5">Bot: Le envio las opciones...</p>
+                  <p className="text-[10px] text-white/25 truncate mt-0.5">Bot: Le envío las opciones...</p>
                 </div>
                 <span className="w-2.5 h-2.5 rounded-full bg-[#6200EA] block shrink-0" />
               </div>
@@ -738,7 +738,7 @@ function ExecutiveRequestPreview() {
                     <Bot className="w-3 h-3 text-[#6200EA]" />
                     <span className="text-[10px] font-semibold text-[#a78bfa]">Bot IA</span>
                   </div>
-                  <p className="text-[13px] text-white/70 leading-relaxed">Hola Carlos! La PS5 Slim Digital esta disponible a $459.990.</p>
+                  <p className="text-[13px] text-white/70 leading-relaxed">Hola Carlos! La PS5 Slim Digital está disponible a $459.990.</p>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -775,7 +775,7 @@ function PreviewTabs() {
     { id: "form" as const, label: "Formulario Pre-Chat", icon: FileText, desc: "El cliente completa sus datos antes de iniciar el chat" },
     { id: "widget" as const, label: "Chat Widget", icon: MessageSquare, desc: "Widget embebido en tu sitio web — Totalmente personalizable" },
     { id: "executive" as const, label: "Vista Ejecutivo", icon: Bell, desc: "El ejecutivo ve la solicitud, el formulario pre-chat y el historial completo" },
-    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones, desc: "Panel de administracion donde los ejecutivos gestionan chats en tiempo real" },
+    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones, desc: "Panel de administración donde los ejecutivos gestionan chats en tiempo real" },
   ];
 
   const currentIndex = tabs.findIndex((t) => t.id === activeTab);
@@ -804,7 +804,7 @@ function PreviewTabs() {
   return (
     <div data-testid="preview-tabs">
       <div className="text-center mb-8">
-        <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90" data-testid="text-preview-heading">Asi se ve en la practica</h3>
+        <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90" data-testid="text-preview-heading">Así se ve en la práctica</h3>
         <p className="text-sm text-white/35 max-w-lg mx-auto">Explora cada pantalla del sistema: desde el formulario inicial hasta el panel de ejecutivos.</p>
       </div>
 
@@ -879,9 +879,9 @@ function MobileNav() {
           <a href="#features"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button></a>
           <a href="#pricing"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button></a>
           <a href="/demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button></a>
-          <a href="/guias"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guias</Button></a>
+          <a href="/guías"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guías</Button></a>
           <div className="w-px h-5 bg-white/10 mx-1" />
-          <a href="/login"><Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesion</Button></a>
+          <a href="/login"><Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesión</Button></a>
           <a href="/register"><Button size="sm" className="rounded-xl px-4" data-testid="link-register">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></a>
         </div>
         <button onClick={() => setOpen(!open)} className="md:hidden p-2 text-white/60 hover:text-white transition-colors" data-testid="button-mobile-menu">
@@ -893,10 +893,10 @@ function MobileNav() {
           <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Funciones</a>
           <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
           <a href="/demo" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Demo</a>
-          <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guias</a>
+          <a href="/guías" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guías</a>
           <div className="h-px bg-white/[0.06] my-2" />
           <a href="/login" className="block">
-            <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10" data-testid="link-login-mobile">Iniciar Sesion</Button>
+            <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10" data-testid="link-login-mobile">Iniciar Sesión</Button>
           </a>
           <a href="/register" className="block mt-2">
             <Button size="sm" className="w-full rounded-xl">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
@@ -1185,7 +1185,7 @@ export default function Landing() {
 
             <p className="text-base sm:text-lg text-white/50 max-w-lg mb-8 sm:mb-10 leading-relaxed" data-testid="text-hero-description">
               <span className="text-white/80 font-medium">FoxBot</span> es un asistente con inteligencia artificial que atiende, recomienda y cierra ventas.
-              Y cuando el cliente necesita atencion humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
+              Y cuando el cliente necesita atención humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
               Funciona con <span className="text-white/80 font-medium">cualquier plataforma</span>.
             </p>
 
@@ -1231,10 +1231,10 @@ export default function Landing() {
           <div className="flex flex-col items-center gap-2 mb-8">
             <div className="flex items-center justify-center gap-2">
               <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-white/10" />
-              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciones</p>
+              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciónes</p>
               <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
             </div>
-            <p className="text-sm text-white/25 text-center max-w-md">Compatible con cualquier sitio web o plataforma. Solo pega un codigo y listo.</p>
+            <p className="text-sm text-white/25 text-center max-w-md">Compatible con cualquier sitio web o plataforma. Solo pega un código y listo.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 sm:gap-8" data-testid="platform-logos">
             {[
@@ -1276,8 +1276,8 @@ export default function Landing() {
             {[
               { value: "24/7", label: "Disponibilidad", icon: Clock, desc: "Tu bot nunca descansa", color: "#10b981" },
               { value: "<2s", label: "Respuesta", icon: Zap, desc: "Velocidad de IA", color: "#f59e0b" },
-              { value: "5min", label: "Configuracion", icon: TrendingUp, desc: "Sin conocimiento tecnico", color: "#3b82f6" },
-              { value: "+90%", label: "Consultas resueltas", icon: Users, desc: "Sin intervencion humana", color: "#a855f7" },
+              { value: "5min", label: "Configuración", icon: TrendingUp, desc: "Sin conocimiento técnico", color: "#3b82f6" },
+              { value: "+90%", label: "Consultas resueltas", icon: Users, desc: "Sin intervención humana", color: "#a855f7" },
             ].map(({ value, label, icon: Icon, desc, color }, i) => (
               <div key={label} className="group" data-testid={`stat-${label}`}>
                 <div className="rounded-2xl glass-card glass-card-hover p-6 text-center transition-all duration-500 h-full" style={{ transitionDelay: `${i * 80}ms` }}>
@@ -1356,7 +1356,7 @@ export default function Landing() {
               <span className="text-gradient-green">cierra la venta</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              FoxBot resuelve el 90% de las consultas automaticamente. Pero cuando tu cliente necesita atencion humana,
+              FoxBot resuelve el 90% de las consultas automáticamente. Pero cuando tu cliente necesita atención humana,
               un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente se de cuenta del cambio.
             </p>
           </div>
@@ -1374,7 +1374,7 @@ export default function Landing() {
               {
                 step: "2",
                 title: "El cliente pide ayuda",
-                desc: "Si necesita algo mas complejo, el cliente solicita hablar con un ejecutivo con un solo clic.",
+                desc: "Si necesita algo más complejo, el cliente solicita hablar con un ejecutivo con un solo clic.",
                 icon: MessageSquare,
                 color: "#f59e0b",
                 gradient: "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.02) 100%)",
@@ -1382,7 +1382,7 @@ export default function Landing() {
               {
                 step: "3",
                 title: "El ejecutivo toma el control",
-                desc: "Un agente humano entra al chat en vivo, ve todo el historial y continua la conversacion sin interrupciones.",
+                desc: "Un agente humano entra al chat en vivo, ve todo el historial y continua la conversación sin interrupciones.",
                 icon: Headphones,
                 color: "#6366f1",
                 gradient: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%)",
@@ -1421,9 +1421,9 @@ export default function Landing() {
           <div className="rounded-2xl glass-card p-8 max-w-3xl mx-auto mb-16">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
-                { value: "90%", label: "Consultas resueltas por IA", desc: "Sin intervencion humana", color: "#10b981" },
+                { value: "90%", label: "Consultas resueltas por IA", desc: "Sin intervención humana", color: "#10b981" },
                 { value: "0s", label: "Tiempo de traspaso", desc: "El ejecutivo entra al instante", color: "#6366f1" },
-                { value: "100%", label: "Historial visible", desc: "El agente ve toda la conversacion", color: "#f59e0b" },
+                { value: "100%", label: "Historial visible", desc: "El agente ve toda la conversación", color: "#f59e0b" },
               ].map(({ value, label, desc, color }) => (
                 <div key={label}>
                   <p className="text-3xl font-black mb-1" style={{ color }}>{value}</p>
@@ -1453,7 +1453,7 @@ export default function Landing() {
               <span className="text-gradient-orange">3 pasos</span> y listo
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
-              No necesitas ser tecnico. De cero al chat en vivo en minutos.
+              No necesitas ser técnico. De cero al chat en vivo en minutos.
             </p>
           </div>
 
@@ -1479,7 +1479,7 @@ export default function Landing() {
                 {
                   step: "03",
                   title: "Copia y pega",
-                  desc: "Agrega una linea de codigo a tu sitio web y FoxBot atiende clientes al instante.",
+                  desc: "Agrega una línea de código a tu sitio web y FoxBot atiende clientes al instante.",
                   icon: Code,
                   color: "#a855f7",
                 },
@@ -1712,7 +1712,7 @@ export default function Landing() {
             <span className="text-gradient-green">soporte que merece</span>
           </h2>
           <p className="text-white/40 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
-            Negocios de todos los tamanos ya usan FoxBot para vender mas y atender mejor.
+            Negocios de todos los tamaños ya usan FoxBot para vender más y atender mejor.
             Empieza gratis hoy.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -1746,7 +1746,7 @@ export default function Landing() {
                 </span>
               </div>
               <p className="text-sm text-white/30 leading-relaxed mb-4">
-                Chatbot con IA para atencion al cliente.
+                Chatbot con IA para atención al cliente.
                 Funciona con cualquier plataforma.
               </p>
               <p className="text-xs text-white/15">Un producto de Web Maker Chile</p>
@@ -1757,11 +1757,11 @@ export default function Landing() {
                 <li><a href="#features" className="hover:text-primary transition-colors" data-testid="link-footer-features">Caracteristicas</a></li>
                 <li><a href="#pricing" className="hover:text-primary transition-colors" data-testid="link-footer-pricing">Precios</a></li>
                 <li><a href="/demo" className="hover:text-primary transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
-                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-guides">Guias de instalacion</a></li>
+                <li><a href="/guías" className="hover:text-primary transition-colors" data-testid="link-footer-guides">Guías de instalación</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Integraciones</h4>
+              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Integraciónes</h4>
               <ul className="space-y-3 text-sm text-white/30">
                 <li><span data-testid="link-footer-woo">WooCommerce</span></li>
                 <li><span data-testid="link-footer-shopify">Shopify</span></li>

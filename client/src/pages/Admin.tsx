@@ -222,7 +222,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
         setError(data.message || "Credenciales incorrectas");
       }
     } catch {
-      setError("Error de conexion");
+      setError("Error de conexión");
     }
     setLoading(false);
   };
@@ -233,7 +233,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
         <div className="text-center mb-6">
           <img src={logoSinFondo} alt="FoxBot" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
           <h1 className="text-xl font-bold text-white mb-1">FoxBot Admin</h1>
-          <p className="text-sm text-white/40">Inicia sesion para acceder al panel</p>
+          <p className="text-sm text-white/40">Inicia sesión para acceder al panel</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <Input
@@ -241,7 +241,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(""); }}
-            placeholder="Correo electronico"
+            placeholder="Correo electrónico"
             className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus-visible:ring-[#10b981] focus-visible:border-[#10b981]"
             autoFocus
           />
@@ -371,7 +371,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
                 data-testid={`delete-btn-${session.sessionId}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (window.confirm(`¿Eliminar el chat de ${session.userName || session.userEmail}? Esta accion no se puede deshacer.`)) {
+                  if (window.confirm(`¿Eliminar el chat de ${session.userName || session.userEmail}? Esta acción no se puede deshacer.`)) {
                     onDelete(session.sessionId);
                   }
                 }}
@@ -456,7 +456,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
           </span>
         )}
         {session.lastAutoEmailAt && (
-          <span data-testid={`badge-auto-email-${session.sessionId}`} className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" title={`Correo automatico: ${new Date(session.lastAutoEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}`}>
+          <span data-testid={`badge-auto-email-${session.sessionId}`} className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" title={`Correo automático: ${new Date(session.lastAutoEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}`}>
             <Mail className="w-2.5 h-2.5" />
             Auto
           </span>
@@ -491,14 +491,14 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
             <p className="text-[13px] text-[#34d399] font-medium break-all">{session.userEmail || "No proporcionado"}</p>
           </div>
           <div>
-            <p className="text-[10px] text-white/40">En que necesitas ayuda?</p>
+            <p className="text-[10px] text-white/40">¿En qué necesitas ayuda?</p>
             <p className="text-[13px] text-white/90 font-medium">{session.problemType ? ({
               compra: "Quiero comprar un producto",
-              codigo_verificacion: "Necesito un nuevo codigo de verificacion",
+              codigo_verificacion: "Necesito un nuevo código de verificación",
               candado_juego: "Me aparece un candado en mi juego",
               estado_pedido: "Quiero saber el estado de mi pedido",
               problema_plus: "Tengo problemas con mi plus",
-              problema_cuenta: "Problemas con mi cuenta",
+              problema_cuenta: "Problemás con mi cuenta",
               otro: "Otro",
             } as Record<string, string>)[session.problemType] || session.problemType : "No especificado"}</p>
           </div>
@@ -513,7 +513,7 @@ const SessionCard = memo(function SessionCard({ session, onClick, isSelected, ra
               data-testid={`delete-session-${session.sessionId}`}
               onClick={(e) => {
                 e.stopPropagation();
-                if (window.confirm(`¿Eliminar el chat de ${session.userName || session.userEmail}? Esta accion no se puede deshacer.`)) {
+                if (window.confirm(`¿Eliminar el chat de ${session.userName || session.userEmail}? Esta acción no se puede deshacer.`)) {
                   onDelete(session.sessionId);
                   setShowPreview(false);
                 }
@@ -990,7 +990,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Correccion guardada", description: "El bot aprendera de esta correccion." });
+      toast({ title: "Corrección guardada", description: "El bot aprenderá de esta corrección." });
       setCorrectingMessageId(null);
       setCorrectingQuestion("");
       setCorrectingAnswer("");
@@ -1052,7 +1052,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       context?.queries.forEach(([key, old]) => {
         if (old) queryClient.setQueryData(key, old);
       });
-      toast({ title: "Error", description: (err as Error).message || "Error en la operacion", variant: "destructive" });
+      toast({ title: "Error", description: (err as Error).message || "Error en la operación", variant: "destructive" });
     },
     onSuccess: (result) => {
       const allQueries = queryClient.getQueriesData<SessionSummary[]>({ queryKey: ["/api/admin/sessions"] })
@@ -1355,7 +1355,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               data-testid="button-send-rating"
               variant="ghost"
               size="icon"
-              onClick={() => { if (confirm("¿Enviar encuesta de satisfaccion?")) sendRatingMutation.mutate(); }}
+              onClick={() => { if (confirm("¿Enviar encuesta de satisfacción?")) sendRatingMutation.mutate(); }}
               disabled={sendRatingMutation.isPending || !!sessionRating}
               title="Enviar encuesta"
               className={`h-7 w-7 flex-shrink-0 ${sessionRating ? "text-yellow-400" : "text-white/40"}`}
@@ -1367,7 +1367,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
               data-testid="button-manual-email"
               variant="ghost"
               size="icon"
-              onClick={() => { if (confirm("¿Enviar notificacion por correo ahora?")) sendEmailMutation.mutate(); }}
+              onClick={() => { if (confirm("¿Enviar notificación por correo ahora?")) sendEmailMutation.mutate(); }}
               disabled={sendEmailMutation.isPending}
               title="Notificar por correo"
               className="h-7 w-7 text-[#34d399] flex-shrink-0"
@@ -1441,7 +1441,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
             {currentSession.lastAutoEmailAt && (
               <div data-testid="auto-email-log" className="flex items-center gap-1.5 text-[11px] text-cyan-400/80">
                 <Mail className="w-3 h-3 flex-shrink-0" />
-                <span>Correo automatico enviado: {new Date(currentSession.lastAutoEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</span>
+                <span>Correo automático enviado: {new Date(currentSession.lastAutoEmailAt).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</span>
               </div>
             )}
             {currentSession.lastManualEmailAt && (
@@ -1470,15 +1470,15 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
                   <p className="text-sm text-[#34d399] font-medium break-all">{userEmail || "No proporcionado"}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-white/40 mb-0.5">En que necesitas ayuda?</p>
+                  <p className="text-[11px] text-white/40 mb-0.5">¿En qué necesitas ayuda?</p>
                   <p className="text-sm text-white/90 font-medium">
                     {currentSession.problemType && (({
                       compra: "Quiero comprar un producto",
-                      codigo_verificacion: "Necesito un nuevo codigo de verificacion",
+                      codigo_verificacion: "Necesito un nuevo código de verificación",
                       candado_juego: "Me aparece un candado en mi juego",
                       estado_pedido: "Quiero saber el estado de mi pedido",
                       problema_plus: "Tengo problemas con mi plus",
-                      problema_cuenta: "Problemas con mi cuenta",
+                      problema_cuenta: "Problemás con mi cuenta",
                       otro: "Otro",
                     } as Record<string, string>)[currentSession.problemType] || currentSession.problemType)}
                     {!currentSession.problemType && "No especificado"}
@@ -1875,7 +1875,7 @@ const PLATFORM_OPTIONS = [
 
 const CATEGORY_OPTIONS = [
   { value: "game", label: "Juego" },
-  { value: "subscription", label: "Suscripcion" },
+  { value: "subscription", label: "Suscripción" },
   { value: "card", label: "Tarjeta" },
   { value: "bundle", label: "Bundle" },
   { value: "console", label: "Consola" },
@@ -1949,7 +1949,7 @@ function WCSyncSection() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Error en sincronizacion");
+        throw new Error(data.message || "Error en sincronización");
       }
       return res.json() as Promise<WCSyncResult>;
     },
@@ -2277,7 +2277,7 @@ function ProductsPanel() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="p-3 border-b border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
-        <h2 className="text-sm font-semibold text-white">Catalogo de Productos</h2>
+        <h2 className="text-sm font-semibold text-white">Catálogo de Productos</h2>
         <div className="flex items-center gap-2 flex-wrap">
           <WCSyncSection />
           <Button
@@ -2303,7 +2303,7 @@ function ProductsPanel() {
         {productsList.length === 0 && !isAdding ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
             <Package className="w-10 h-10 text-white/10 mb-3" />
-            <p className="text-sm text-white/30">No hay productos en el catalogo</p>
+            <p className="text-sm text-white/30">No hay productos en el catálogo</p>
             <p className="text-xs text-white/20 mt-1">Agrega productos para que el bot responda con precios y links</p>
           </div>
         ) : (
@@ -2543,7 +2543,7 @@ function CannedResponsesPanel() {
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
             <Zap className="w-10 h-10 text-white/10 mb-3" />
             <p className="text-sm text-white/30">No hay respuestas rapidas</p>
-            <p className="text-xs text-white/20 mt-1">Crea atajos para responder mas rapido</p>
+            <p className="text-xs text-white/20 mt-1">Crea atajos para responder más rápido</p>
           </div>
         ) : (
           responses.map((r) => (
@@ -3109,7 +3109,7 @@ function SettingsPanel() {
     queryKey: ["/api/settings", "ai_enabled"],
     queryFn: async () => {
       const res = await adminFetch("/api/settings/ai_enabled");
-      if (!res.ok) throw new Error("Error al obtener configuracion");
+      if (!res.ok) throw new Error("Error al obtener configuración");
       return res.json();
     },
   });
@@ -3120,7 +3120,7 @@ function SettingsPanel() {
         method: "PUT",
         body: JSON.stringify({ value: enabled ? "true" : "false" }),
       });
-      if (!res.ok) throw new Error("Error al guardar configuracion");
+      if (!res.ok) throw new Error("Error al guardar configuración");
       return res.json();
     },
     onSuccess: () => {
@@ -3222,17 +3222,17 @@ function SettingsPanel() {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-      <h2 className="text-lg font-semibold text-white mb-4">Configuracion</h2>
+      <h2 className="text-lg font-semibold text-white mb-4">Configuración</h2>
       <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg">
         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
           <Zap className="w-4 h-4 text-[#34d399]" />
-          Configuracion de IA
+          Configuración de IA
         </h3>
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-white/80">Respuestas con IA</p>
             <p className="text-xs text-white/40 mt-0.5">
-              Cuando esta activado, el bot utiliza inteligencia artificial para generar respuestas mas naturales y contextuales. Si se desactiva, solo se usaran respuestas predefinidas.
+              Cuando esta activado, el bot utiliza inteligencia artificial para generar respuestas más naturales y contextuales. Si se desactiva, solo se usaran respuestas predefinidas.
             </p>
           </div>
           <div className="flex-shrink-0">
@@ -3249,21 +3249,21 @@ function SettingsPanel() {
           </div>
         </div>
         {toggleMutation.isError && (
-          <p data-testid="text-settings-error" className="text-xs text-red-400 mt-2">Error al guardar la configuracion</p>
+          <p data-testid="text-settings-error" className="text-xs text-red-400 mt-2">Error al guardar la configuración</p>
         )}
         {toggleMutation.isSuccess && (
-          <p data-testid="text-settings-success" className="text-xs text-emerald-400 mt-2">Configuracion guardada</p>
+          <p data-testid="text-settings-success" className="text-xs text-emerald-400 mt-2">Configuración guardada</p>
         )}
       </div>
 
       <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-4 max-w-lg mt-4">
         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
           <Clock className="w-4 h-4 text-[#34d399]" />
-          Horario de Atencion
+          Horario de Atención
         </h3>
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-white/80">Activar horario de atencion</p>
+            <p className="text-sm text-white/80">Activar horario de atención</p>
             <p className="text-xs text-white/40 mt-0.5">
               Cuando esta activado, el bot solo responde dentro del horario configurado. Fuera de horario, se sugiere crear un ticket de soporte.
             </p>
@@ -3785,7 +3785,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="Correo electronico"
+                placeholder="Correo electrónico"
                 className="bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25 focus-visible:ring-[#10b981]"
               />
               <Input
@@ -4465,7 +4465,7 @@ export default function AdminPage() {
       }
       showForegroundNotification(
         "Nuevo chat de soporte",
-        "Se ha iniciado una nueva conversacion de soporte",
+        "Se ha iniciado una nueva conversación de soporte",
         "new-session",
         selectedSessionRef
       );
@@ -4600,7 +4600,7 @@ export default function AdminPage() {
         alert(data.message || "Error al eliminar chat");
       }
     } catch {
-      alert("Error de conexion");
+      alert("Error de conexión");
     }
   }, [selectedSession]);
 
@@ -4735,7 +4735,7 @@ export default function AdminPage() {
             data-testid="button-admin-logout"
             onClick={handleLogout}
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors flex-shrink-0"
-            title="Cerrar sesion"
+            title="Cerrar sesión"
           >
             <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
           </button>
@@ -4816,7 +4816,7 @@ export default function AdminPage() {
           }`}
         >
           <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-          Guias
+          Guías
           {adminTab === "guides" && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
           )}
@@ -4908,7 +4908,7 @@ export default function AdminPage() {
               </div>
               {isSearching && (
                 <p className="text-[11px] text-white/30 mt-2 px-1">
-                  {searchLoading ? "Buscando..." : `${searchResults.length} conversacion${searchResults.length !== 1 ? "es" : ""} encontrada${searchResults.length !== 1 ? "s" : ""}`}
+                  {searchLoading ? "Buscando..." : `${searchResults.length} conversación${searchResults.length !== 1 ? "es" : ""} encontrada${searchResults.length !== 1 ? "s" : ""}`}
                 </p>
               )}
             </div>
@@ -4934,7 +4934,7 @@ export default function AdminPage() {
                     <button
                       data-testid="button-clear-all-chats"
                       onClick={async () => {
-                        if (!window.confirm("¿Estas seguro de eliminar TODOS los chats? Esta accion no se puede deshacer.")) return;
+                        if (!window.confirm("¿Estas seguro de eliminar TODOS los chats? Esta acción no se puede deshacer.")) return;
                         try {
                           const res = await adminFetch("/api/admin/sessions/all", { method: "DELETE" });
                           if (res.ok) {
@@ -4945,7 +4945,7 @@ export default function AdminPage() {
                             alert(data.message || "Error al eliminar chats");
                           }
                         } catch {
-                          alert("Error de conexion");
+                          alert("Error de conexión");
                         }
                       }}
                       className="ml-auto p-1 text-white/30 hover:text-red-400 transition-colors"
@@ -5049,8 +5049,8 @@ export default function AdminPage() {
                 <div className="w-16 h-16 rounded-full bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center mb-4">
                   <MessageSquare className="w-8 h-8 text-[#34d399]/40" />
                 </div>
-                <p className="text-sm text-white/30 mb-1">Selecciona una conversacion</p>
-                <p className="text-xs text-white/20">Haz clic en una sesion para ver el historial de chat</p>
+                <p className="text-sm text-white/30 mb-1">Selecciona una conversación</p>
+                <p className="text-xs text-white/20">Haz clic en una sesión para ver el historial de chat</p>
               </div>
             )}
           </div>

@@ -67,7 +67,7 @@ export function GoogleSignIn({ onSuccess, text = "Continuar con Google" }: Googl
           });
           const data = await res.json();
           if (!res.ok) {
-            toast({ title: "Error", description: data.message || "Error de autenticacion", variant: "destructive" });
+            toast({ title: "Error", description: data.message || "Error de autenticación", variant: "destructive" });
             return;
           }
           onSuccess(data.token);

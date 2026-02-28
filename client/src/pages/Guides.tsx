@@ -77,7 +77,7 @@ interface Guide {
   icon: any;
   iconColor: string;
   category: "ecommerce" | "cms" | "builder" | "framework" | "other";
-  difficulty: "facil" | "medio";
+  difficulty: "fácil" | "medio";
   steps: { title: string; description: string; code?: string; codeLanguage?: string; note?: string }[];
 }
 
@@ -88,22 +88,22 @@ const guides: Guide[] = [
     icon: SiHtml5,
     iconColor: "#e34f26",
     category: "other",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
-        title: "Copia el codigo de instalacion",
+        title: "Copia el código de instalación",
         description: "Agrega este script justo antes de la etiqueta </body> en tu archivo HTML.",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Reemplaza TU_TENANT_ID",
-        description: "Cambia TU_TENANT_ID por el ID de tu cuenta. Lo encuentras en tu Dashboard > Integracion.",
+        description: "Cambia TU_TENANT_ID por el ID de tu cuenta. Lo encuentras en tu Dashboard > Integración.",
         note: "Si no tienes cuenta aun, registrate gratis en foxbot.cl para obtener tu ID.",
       },
       {
         title: "Sube los cambios",
-        description: "Guarda el archivo y sube los cambios a tu servidor. El chatbot aparecera automaticamente en la esquina inferior derecha.",
+        description: "Guarda el archivo y sube los cambios a tu servidor. El chatbot aparecerá automáticamente en la esquina inferior derecha.",
       },
     ],
   },
@@ -113,7 +113,7 @@ const guides: Guide[] = [
     icon: SiWordpress,
     iconColor: "#21759b",
     category: "cms",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Ve a Apariencia > Editor de temas",
@@ -124,14 +124,14 @@ const guides: Guide[] = [
         description: "Selecciona el archivo footer.php en el editor de temas.",
       },
       {
-        title: "Pega el codigo antes de </body>",
-        description: "Agrega el siguiente codigo justo antes de la linea <?php wp_footer(); ?> o antes de </body>:",
+        title: "Pega el código antes de </body>",
+        description: "Agrega el siguiente código justo antes de la línea <?php wp_footer(); ?> o antes de </body>:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Guarda los cambios",
-        description: "Haz clic en 'Actualizar archivo'. El chatbot aparecera en todas las paginas de tu WordPress.",
+        description: "Haz clic en 'Actualizar archivo'. El chatbot aparecerá en todas las paginas de tu WordPress.",
         note: "Alternativa: Usa el plugin 'WPCode' para insertar el script sin editar archivos del tema.",
       },
     ],
@@ -142,21 +142,21 @@ const guides: Guide[] = [
     icon: SiWoocommerce,
     iconColor: "#96588a",
     category: "ecommerce",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Instala igual que WordPress",
-        description: "WooCommerce funciona sobre WordPress, asi que el proceso es identico. Ve a Apariencia > Editor de temas.",
+        description: "WooCommerce funciona sobre WordPress, así que el proceso es idéntico. Ve a Apariencia > Editor de temas.",
       },
       {
         title: "Agrega el script en footer.php",
-        description: "Pega este codigo antes de </body>:",
+        description: "Pega este código antes de </body>:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
-        title: "Conecta tu catalogo (opcional)",
-        description: "Para que el bot muestre productos de tu tienda, ve a tu Dashboard de FoxBot > Integracion y conecta tu API de WooCommerce con las credenciales de tu tienda.",
+        title: "Conecta tu catálogo (opcional)",
+        description: "Para que el bot muestre productos de tu tienda, ve a tu Dashboard de FoxBot > Integración y conecta tu API de WooCommerce con las credenciales de tu tienda.",
         note: "Necesitas las claves de API de WooCommerce: ve a WooCommerce > Ajustes > Avanzado > API REST para generarlas.",
       },
     ],
@@ -167,25 +167,25 @@ const guides: Guide[] = [
     icon: SiShopify,
     iconColor: "#95bf47",
     category: "ecommerce",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Ve a Tienda Online > Temas",
-        description: "En tu panel de Shopify, navega a Tienda Online > Temas y haz clic en 'Editar codigo' en tu tema activo.",
+        description: "En tu panel de Shopify, navega a Tienda Online > Temas y haz clic en 'Editar código' en tu tema activo.",
       },
       {
         title: "Abre theme.liquid",
-        description: "En el editor de codigo, busca y abre el archivo Layout > theme.liquid.",
+        description: "En el editor de código, busca y abre el archivo Layout > theme.liquid.",
       },
       {
-        title: "Pega el codigo antes de </body>",
+        title: "Pega el código antes de </body>",
         description: "Agrega este script justo antes de la etiqueta </body>:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Guarda y publica",
-        description: "Haz clic en 'Guardar'. El chatbot aparecera en tu tienda Shopify inmediatamente.",
+        description: "Haz clic en 'Guardar'. El chatbot aparecerá en tu tienda Shopify inmediatamente.",
       },
     ],
   },
@@ -198,22 +198,22 @@ const guides: Guide[] = [
     difficulty: "medio",
     steps: [
       {
-        title: "Accede al panel de administracion",
+        title: "Accede al panel de administración",
         description: "Ve a Content > Design > Configuration en tu panel de Magento.",
       },
       {
         title: "Edita el tema predeterminado",
-        description: "Selecciona tu Store View y haz clic en 'Edit'. Ve a la seccion 'HTML Head' o 'Footer'.",
+        description: "Selecciona tu Store View y haz clic en 'Edit'. Ve a la sección 'HTML Head' o 'Footer'.",
       },
       {
         title: "Agrega el script en 'Miscellaneous Scripts'",
-        description: "Pega el siguiente codigo en el campo 'Scripts and Style Sheets' o 'Miscellaneous HTML':",
+        description: "Pega el siguiente código en el campo 'Scripts and Style Sheets' o 'Miscellaneous HTML':",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Limpia la cache",
-        description: "Ve a System > Cache Management y limpia la cache. El chatbot aparecera en tu tienda.",
+        description: "Ve a System > Cache Management y limpia la cache. El chatbot aparecerá en tu tienda.",
       },
     ],
   },
@@ -223,22 +223,22 @@ const guides: Guide[] = [
     icon: SiSquarespace,
     iconColor: "#ffffff",
     category: "builder",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
-        title: "Ve a Configuracion > Avanzado",
-        description: "En tu panel de Squarespace, navega a Configuracion > Avanzado > Inyeccion de codigo.",
+        title: "Ve a Configuración > Avanzado",
+        description: "En tu panel de Squarespace, navega a Configuración > Avanzado > Inyeccion de código.",
       },
       {
         title: "Pega en el campo 'Footer'",
-        description: "En la seccion 'Footer', pega el siguiente codigo:",
+        description: "En la sección 'Footer', pega el siguiente código:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Guarda los cambios",
-        description: "Haz clic en 'Guardar'. El chatbot estara disponible en todas las paginas de tu sitio.",
-        note: "La inyeccion de codigo requiere un plan Business o superior en Squarespace.",
+        description: "Haz clic en 'Guardar'. El chatbot estará disponible en todas las paginas de tu sitio.",
+        note: "La inyeccion de código requiere un plan Business o superior en Squarespace.",
       },
     ],
   },
@@ -248,7 +248,7 @@ const guides: Guide[] = [
     icon: SiWix,
     iconColor: "#0c6efc",
     category: "builder",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Ve al editor de Wix",
@@ -256,11 +256,11 @@ const guides: Guide[] = [
       },
       {
         title: "Agrega un Embed HTML",
-        description: "Haz clic en Agregar (+) > Embeds > HTML embebido. Arrastralo a cualquier parte de tu pagina.",
+        description: "Haz clic en Agregar (+) > Embeds > HTML embebido. Arrastralo a cualquier parte de tu página.",
       },
       {
-        title: "Pega el codigo del widget",
-        description: "Haz clic en 'Introducir codigo' y pega lo siguiente:",
+        title: "Pega el código del widget",
+        description: "Haz clic en 'Introducir código' y pega lo siguiente:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
@@ -277,7 +277,7 @@ const guides: Guide[] = [
     icon: SiWebflow,
     iconColor: "#4353ff",
     category: "builder",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Ve a Project Settings",
@@ -285,14 +285,14 @@ const guides: Guide[] = [
       },
       {
         title: "Pega en Footer Code",
-        description: "En la seccion 'Footer Code', pega el siguiente script:",
+        description: "En la sección 'Footer Code', pega el siguiente script:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Publica el sitio",
-        description: "Haz clic en 'Publish'. El chatbot aparecera en todas las paginas del sitio publicado.",
-        note: "El codigo personalizado solo funciona en sitios publicados, no en el editor de Webflow.",
+        description: "Haz clic en 'Publish'. El chatbot aparecerá en todas las paginas del sitio publicado.",
+        note: "El código personalizado solo funciona en sitios publicados, no en el editor de Webflow.",
       },
     ],
   },
@@ -313,7 +313,7 @@ const guides: Guide[] = [
       {
         title: "Agrega el componente en tu App",
         description: "Importa y usa el componente en tu App.jsx o layout principal:",
-        code: `import FoxBotWidget from './components/FoxBotWidget';\n\nfunction App() {\n  return (\n    <div>\n      {/* Tu aplicacion */}\n      <FoxBotWidget tenantId="TU_TENANT_ID" />\n    </div>\n  );\n}`,
+        code: `import FoxBotWidget from './components/FoxBotWidget';\n\nfunction App() {\n  return (\n    <div>\n      {/* Tu aplicación */}\n      <FoxBotWidget tenantId="TU_TENANT_ID" />\n    </div>\n  );\n}`,
         codeLanguage: "jsx",
       },
     ],
@@ -334,7 +334,7 @@ const guides: Guide[] = [
       },
       {
         title: "Agregalo en tu layout.tsx",
-        description: "Importa el widget en tu layout principal o en la pagina que quieras:",
+        description: "Importa el widget en tu layout principal o en la página que quieras:",
         code: `// app/layout.tsx\nimport FoxBotWidget from '@/components/FoxBotWidget';\n\nexport default function RootLayout({ children }) {\n  return (\n    <html>\n      <body>\n        {children}\n        <FoxBotWidget tenantId="TU_TENANT_ID" />\n      </body>\n    </html>\n  );\n}`,
         codeLanguage: "tsx",
       },
@@ -357,7 +357,7 @@ const guides: Guide[] = [
       {
         title: "Usa el componente en tu App",
         description: "Agregalo en tu App.vue o layout principal:",
-        code: `<template>\n  <div>\n    <!-- Tu aplicacion -->\n    <FoxBotWidget tenantId="TU_TENANT_ID" />\n  </div>\n</template>\n\n<script setup>\nimport FoxBotWidget from './components/FoxBotWidget.vue';\n</script>`,
+        code: `<template>\n  <div>\n    <!-- Tu aplicación -->\n    <FoxBotWidget tenantId="TU_TENANT_ID" />\n  </div>\n</template>\n\n<script setup>\nimport FoxBotWidget from './components/FoxBotWidget.vue';\n</script>`,
         codeLanguage: "vue",
       },
     ],
@@ -372,13 +372,13 @@ const guides: Guide[] = [
     steps: [
       {
         title: "Agrega el script en index.html",
-        description: "La forma mas simple es agregar el script directamente en src/index.html antes de </body>:",
+        description: "La forma más simple es agregar el script directamente en src/index.html antes de </body>:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
       {
         title: "Alternativa: Usa un componente",
-        description: "Para mas control, crea un componente Angular que inyecte el iframe usando Renderer2 en ngOnInit y lo remueva en ngOnDestroy.",
+        description: "Para más control, crea un componente Angular que inyecte el iframe usando Renderer2 en ngOnInit y lo remueva en ngOnDestroy.",
       },
     ],
   },
@@ -388,7 +388,7 @@ const guides: Guide[] = [
     icon: Globe,
     iconColor: "#4285f4",
     category: "other",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Crea una nueva etiqueta",
@@ -396,7 +396,7 @@ const guides: Guide[] = [
       },
       {
         title: "Pega el script",
-        description: "En el campo HTML, pega el siguiente codigo:",
+        description: "En el campo HTML, pega el siguiente código:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
       },
@@ -416,18 +416,18 @@ const guides: Guide[] = [
     icon: ShoppingBag,
     iconColor: "#df0067",
     category: "ecommerce",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
-        title: "Ve a Diseno > Posiciones",
-        description: "En tu panel de PrestaShop, navega a Diseno > Posiciones.",
+        title: "Ve a Diseño > Posiciones",
+        description: "En tu panel de PrestaShop, navega a Diseño > Posiciones.",
       },
       {
         title: "Conecta un modulo al hook 'displayFooter'",
         description: "Busca el hook 'displayFooter' o usa el modulo 'Custom text blocks' para insertar HTML personalizado.",
       },
       {
-        title: "Pega el codigo del widget",
+        title: "Pega el código del widget",
         description: "Inserta el siguiente script:",
         code: EMBED_SCRIPT,
         codeLanguage: "html",
@@ -444,18 +444,18 @@ const guides: Guide[] = [
     icon: Layout,
     iconColor: "#8b5cf6",
     category: "other",
-    difficulty: "facil",
+    difficulty: "fácil",
     steps: [
       {
         title: "Usa el iframe con postMessage",
-        description: "Inserta el iframe y el script para que el widget se abra y cierre automaticamente:",
+        description: "Inserta el iframe y el script para que el widget se abra y cierre automáticamente:",
         code: `<iframe\n  id="foxbot-widget"\n  src="${WIDGET_BASE_URL}/widget?tenantId=TU_TENANT_ID"\n  style="position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;"\n  allow="microphone"\n></iframe>\n<script>\n  window.addEventListener('message', function(e) {\n    var f = document.getElementById('foxbot-widget');\n    if (!f || !e.data || !e.data.type) return;\n    var mobile = window.innerWidth <= 480;\n    if (e.data.type === 'open_chat') {\n      f.style.cssText = mobile\n        ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n        : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n    } else if (e.data.type === 'close_chat') {\n      f.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    }\n  });\n</script>`,
         codeLanguage: "html",
       },
       {
         title: "Coloca antes de </body>",
-        description: "Pega el codigo justo antes de la etiqueta de cierre </body> en tu pagina.",
-        note: "Este metodo es mas simple pero no permite ocultar/mostrar el widget dinamicamente.",
+        description: "Pega el código justo antes de la etiqueta de cierre </body> en tu página.",
+        note: "Este método es más simple pero no permite ocultar/mostrar el widget dinamicamente.",
       },
     ],
   },
@@ -485,7 +485,7 @@ export function GuidesPanel() {
     <div className="flex-1 overflow-y-auto p-4 sm:p-6" data-testid="guides-panel">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-guides-panel-title">Guias de Instalacion</h2>
+          <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-guides-panel-title">Guías de Instalación</h2>
           <p className="text-sm text-white/40">Manuales paso a paso para integrar tu chatbot en cualquier plataforma.</p>
         </div>
 
@@ -524,7 +524,7 @@ export function GuidesPanel() {
         <div className="space-y-2">
           {filtered.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-white/30 text-sm" data-testid="text-panel-no-results">No se encontraron guias para "{search}"</p>
+              <p className="text-white/30 text-sm" data-testid="text-panel-no-results">No se encontraron guías para "{search}"</p>
             </div>
           )}
           {filtered.map((guide) => {
@@ -544,11 +544,11 @@ export function GuidesPanel() {
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-white/90">{guide.name}</h3>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
-                        guide.difficulty === "facil"
+                        guide.difficulty === "fácil"
                           ? "bg-emerald-500/15 text-emerald-400"
                           : "bg-amber-500/15 text-amber-400"
                       }`}>
-                        {guide.difficulty === "facil" ? "Facil" : "Medio"}
+                        {guide.difficulty === "fácil" ? "Fácil" : "Medio"}
                       </span>
                     </div>
                     <p className="text-xs text-white/30 mt-0.5">{guide.steps.length} pasos</p>
@@ -650,7 +650,7 @@ export default function Guides() {
               <span className="text-gradient-green">cualquier plataforma</span>
             </h1>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-guides-description">
-              Manuales paso a paso para integrar tu chatbot con IA en tu sitio web, tienda online o aplicacion.
+              Manuales paso a paso para integrar tu chatbot con IA en tu sitio web, tienda online o aplicación.
               Copia, pega y listo.
             </p>
           </div>
@@ -690,7 +690,7 @@ export default function Guides() {
           <div className="space-y-3">
             {filtered.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-white/30 text-lg" data-testid="text-no-results">No se encontraron guias para "{search}"</p>
+                <p className="text-white/30 text-lg" data-testid="text-no-results">No se encontraron guías para "{search}"</p>
               </div>
             )}
             {filtered.map((guide) => {
@@ -710,11 +710,11 @@ export default function Guides() {
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-white/90" data-testid={`text-guide-name-${guide.id}`}>{guide.name}</h3>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                          guide.difficulty === "facil"
+                          guide.difficulty === "fácil"
                             ? "bg-emerald-500/15 text-emerald-400"
                             : "bg-amber-500/15 text-amber-400"
                         }`} data-testid={`badge-difficulty-${guide.id}`}>
-                          {guide.difficulty === "facil" ? "Facil" : "Medio"}
+                          {guide.difficulty === "fácil" ? "Fácil" : "Medio"}
                         </span>
                       </div>
                       <p className="text-sm text-white/30 mt-0.5">{guide.steps.length} pasos</p>

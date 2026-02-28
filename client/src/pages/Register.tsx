@@ -20,12 +20,12 @@ import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 const registerSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Ingresa un correo valido"),
+  email: z.string().email("Ingresa un correo válido"),
   companyName: z.string().min(2, "El nombre de la empresa debe tener al menos 2 caracteres"),
-  password: z.string().min(6, "La contrasena debe tener al menos 6 caracteres"),
-  confirmPassword: z.string().min(1, "Confirma tu contrasena"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirma tu contraseña"),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Las contrasenas no coinciden",
+  message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
 });
 
@@ -216,7 +216,7 @@ export default function Register() {
                   name="email"
                   render={({ field }) => (
                     <FormItem className="animate-dash-fade-up dash-stagger-4">
-                      <FormLabel className="text-white/60 text-sm font-medium">Correo electronico</FormLabel>
+                      <FormLabel className="text-white/60 text-sm font-medium">Correo electrónico</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
@@ -237,7 +237,7 @@ export default function Register() {
                     name="password"
                     render={({ field }) => (
                       <FormItem className="animate-dash-fade-up dash-stagger-5">
-                        <FormLabel className="text-white/60 text-sm font-medium">Contrasena</FormLabel>
+                        <FormLabel className="text-white/60 text-sm font-medium">Contraseña</FormLabel>
                         <FormControl>
                           <Input
                             type="password"
@@ -261,7 +261,7 @@ export default function Register() {
                         <FormControl>
                           <Input
                             type="password"
-                            placeholder="Repite la contrasena"
+                            placeholder="Repite la contraseña"
                             className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
                             data-testid="input-register-confirm-password"
                             {...field}
@@ -296,7 +296,7 @@ export default function Register() {
               <span data-testid="text-register-login-link">
                 Ya tienes cuenta?{" "}
                 <a href="/login" className="text-primary font-semibold hover:text-primary/80 transition-colors" data-testid="link-go-to-login">
-                  Inicia sesion
+                  Inicia sesión
                 </a>
               </span>
             </div>

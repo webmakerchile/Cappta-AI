@@ -222,7 +222,7 @@ interface TenantSettings {
   botContext: string;
 }
 
-type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "entrenar" | "guias" | "equipo" | "ajustes";
+type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "entrenar" | "guías" | "equipo" | "ajustes";
 
 const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any; minRole?: "owner" | "admin" }[] = [
   { id: "chats", label: "Chats", icon: MessageSquare },
@@ -232,7 +232,7 @@ const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any; minRole?: "owner" | 
   { id: "productos", label: "Productos", icon: Package, minRole: "admin" },
   { id: "conocimiento", label: "Conocimiento", icon: BookOpen },
   { id: "equipo", label: "Equipo", icon: Users, minRole: "admin" },
-  { id: "guias", label: "Guias", icon: FileText },
+  { id: "guías", label: "Guías", icon: FileText },
   { id: "ajustes", label: "Ajustes", icon: Settings, minRole: "admin" },
 ];
 
@@ -381,13 +381,13 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
   const handleClaim = async (sessionId: string) => {
     await tenantFetch(`/api/tenant-panel/sessions/${sessionId}/claim`, { method: "POST" });
     queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
-    toast({ title: "Sesion tomada", description: "Ahora controlas esta conversacion" });
+    toast({ title: "Sesión tomada", description: "Ahora controlas esta conversación" });
   };
 
   const handleUnclaim = async (sessionId: string) => {
     await tenantFetch(`/api/tenant-panel/sessions/${sessionId}/unclaim`, { method: "POST" });
     queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
-    toast({ title: "Sesion liberada", description: "El bot retomara la conversacion" });
+    toast({ title: "Sesión liberada", description: "El bot retomara la conversación" });
   };
 
   const handleCloseSession = async (sessionId: string) => {
@@ -396,18 +396,18 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
       body: JSON.stringify({ status: "closed" }),
     });
     queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
-    toast({ title: "Sesion cerrada" });
+    toast({ title: "Sesión cerrada" });
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    if (!window.confirm("Eliminar esta sesion? Esta accion no se puede deshacer.")) return;
+    if (!window.confirm("¿Eliminar esta sesión? Esta acción no se puede deshacer.")) return;
     await tenantFetch(`/api/tenant-panel/sessions/${sessionId}`, { method: "DELETE" });
     if (selectedSession === sessionId) {
       setSelectedSession(null);
       setMobileShowChat(false);
     }
     queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
-    toast({ title: "Sesion eliminada" });
+    toast({ title: "Sesión eliminada" });
   };
 
   const handleCorrection = async () => {
@@ -424,7 +424,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
         }),
       });
       if (res.ok) {
-        toast({ title: "Correccion guardada", description: "El bot aprendio de esta correccion" });
+        toast({ title: "Corrección guardada", description: "El bot aprendió de esta corrección" });
         queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge"] });
       }
     } catch {
@@ -627,9 +627,9 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                         {session.status === "active" && (
                           <button
                             data-testid={`button-card-close-${session.sessionId}`}
-                            onClick={(e) => { e.stopPropagation(); if (window.confirm("Cerrar esta sesion?")) handleCloseSession(session.sessionId); }}
+                            onClick={(e) => { e.stopPropagation(); if (window.confirm("¿Cerrar esta sesión?")) handleCloseSession(session.sessionId); }}
                             className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-amber-500/20 text-white/20 hover:text-amber-400 transition-colors"
-                            title="Cerrar sesion"
+                            title="Cerrar sesión"
                           >
                             <XCircle className="w-3.5 h-3.5" />
                           </button>
@@ -638,7 +638,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                           data-testid={`button-card-delete-${session.sessionId}`}
                           onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.sessionId); }}
                           className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-colors"
-                          title="Eliminar sesion"
+                          title="Eliminar sesión"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -749,7 +749,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                     data-testid="input-chat-search"
                     value={chatSearchQuery}
                     onChange={(e) => setChatSearchQuery(e.target.value)}
-                    placeholder="Buscar en esta conversacion..."
+                    placeholder="Buscar en esta conversación..."
                     className="pl-8 h-8 text-xs bg-white/[0.04] border-white/[0.08]"
                     autoFocus
                   />
@@ -885,7 +885,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                       return (
                         <div key={msg.id} className="flex justify-end" data-testid={`message-${msg.id}`}>
                           <div className="max-w-[75%] rounded-xl px-3 py-2 bg-amber-500/10 border border-amber-500/20">
-                            <p className="text-[10px] font-semibold text-amber-400 mb-1">Encuesta de satisfaccion</p>
+                            <p className="text-[10px] font-semibold text-amber-400 mb-1">Encuesta de satisfacción</p>
                             {selectedSessionData.sessionRating ? (
                               <div className="flex items-center gap-2">
                                 <StarRating rating={selectedSessionData.sessionRating} />
@@ -894,7 +894,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                                 )}
                               </div>
                             ) : (
-                              <p className="text-xs text-white/40">Esperando calificacion...</p>
+                              <p className="text-xs text-white/40">Esperando calificación...</p>
                             )}
                             <p className="text-[10px] text-white/25 mt-1">{formatDateTime(msg.timestamp)}</p>
                           </div>
@@ -1066,7 +1066,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
           <div className="flex-1 flex items-center justify-center" data-testid="text-no-chat-selected">
             <div className="text-center">
               <MessageSquare className="w-12 h-12 text-white/10 mx-auto mb-3" />
-              <p className="text-white/30 text-sm">Selecciona una conversacion</p>
+              <p className="text-white/30 text-sm">Selecciona una conversación</p>
             </div>
           </div>
         )}
@@ -1181,7 +1181,7 @@ function AtajosTab() {
           <Zap className="w-5 h-5 text-[#10b981]" />
           Respuestas Rapidas
         </h2>
-        <p className="text-sm text-white/40">Crea atajos para responder mas rapido en tus conversaciones.</p>
+        <p className="text-sm text-white/40">Crea atajos para responder más rápido en tus conversaciones.</p>
       </div>
 
       <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 p-4">
@@ -1190,8 +1190,8 @@ function AtajosTab() {
             <Zap className="w-4 h-4 text-[#10b981]" />
           </div>
           <div className="text-sm text-white/60 space-y-1">
-            <p className="text-white/80 font-medium">Como funcionan los atajos</p>
-            <p>Los atajos te permiten responder al instante con mensajes predefinidos. Cuando estes en una conversacion en el tab <strong className="text-white/70">"Chats"</strong>, escribe <span className="font-mono text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded">/</span> seguido del nombre del atajo para insertar la respuesta automaticamente.</p>
+            <p className="text-white/80 font-medium">Cómo funcionan los atajos</p>
+            <p>Los atajos te permiten responder al instante con mensajes predefinidos. Cuando estés en una conversación en el tab <strong className="text-white/70">"Chats"</strong>, escribe <span className="font-mono text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded">/</span> seguido del nombre del atajo para insertar la respuesta automáticamente.</p>
             <p className="text-[#10b981]">Ejemplo: Si creas el atajo "saludo", al escribir /saludo en el chat se insertara el mensaje completo.</p>
           </div>
         </div>
@@ -1301,9 +1301,9 @@ function EtiquetasTab() {
             <Tag className="w-4 h-4 text-[#10b981]" />
           </div>
           <div className="text-sm text-white/60 space-y-1">
-            <p className="text-white/80 font-medium">Como funcionan las etiquetas</p>
-            <p>Las etiquetas te ayudan a clasificar y filtrar conversaciones. Puedes asignar etiquetas a cada chat desde el tab <strong className="text-white/70">"Chats"</strong> usando el boton <span className="text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded text-xs">+ Etiqueta</span> en la barra superior de cada conversacion.</p>
-            <p className="text-[#10b981]">Tip: Crea etiquetas como "urgente", "venta_cerrada", "seguimiento" para organizar mejor tu atencion.</p>
+            <p className="text-white/80 font-medium">Cómo funcionan las etiquetas</p>
+            <p>Las etiquetas te ayudan a clasificar y filtrar conversaciones. Puedes asignar etiquetas a cada chat desde el tab <strong className="text-white/70">"Chats"</strong> usando el botón <span className="text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded text-xs">+ Etiqueta</span> en la barra superior de cada conversación.</p>
+            <p className="text-[#10b981]">Tip: Crea etiquetas como "urgente", "venta_cerrada", "seguimiento" para organizar mejor tu atención.</p>
           </div>
         </div>
       </div>
@@ -1418,7 +1418,7 @@ function ProductosTab() {
     setShowForm(true);
   };
 
-  const categoryLabels: Record<string, string> = { game: "Juego", subscription: "Suscripcion", card: "Tarjeta", bundle: "Bundle", console: "Consola", accessory: "Accesorio", other: "Otro" };
+  const categoryLabels: Record<string, string> = { game: "Juego", subscription: "Suscripción", card: "Tarjeta", bundle: "Bundle", console: "Consola", accessory: "Accesorio", other: "Otro" };
   const availLabels: Record<string, string> = { available: "Disponible", out_of_stock: "Sin stock", preorder: "Pre-orden" };
 
   return (
@@ -1426,7 +1426,7 @@ function ProductosTab() {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-productos-title">Productos</h2>
-          <p className="text-sm text-white/40">Gestiona tu catalogo de productos.</p>
+          <p className="text-sm text-white/40">Gestiona tu catálogo de productos.</p>
         </div>
         <Button data-testid="button-add-product" onClick={() => { resetForm(); setShowForm(true); }} className="bg-[#10b981] border-[#10b981]">
           <Plus className="w-4 h-4 mr-1" />Nuevo Producto
@@ -1447,7 +1447,7 @@ function ProductosTab() {
               <SelectTrigger data-testid="select-product-category" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="game">Juego</SelectItem>
-                <SelectItem value="subscription">Suscripcion</SelectItem>
+                <SelectItem value="subscription">Suscripción</SelectItem>
                 <SelectItem value="card">Tarjeta</SelectItem>
                 <SelectItem value="bundle">Bundle</SelectItem>
                 <SelectItem value="console">Consola</SelectItem>
@@ -1703,7 +1703,7 @@ function EntrenarBotTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/settings"] });
-      toast({ title: "Entrenamiento guardado", description: "El bot usara esta informacion en sus respuestas" });
+      toast({ title: "Entrenamiento guardado", description: "El bot usará esta información en sus respuestas" });
     },
     onError: () => {
       toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
@@ -1712,7 +1712,7 @@ function EntrenarBotTab() {
 
   const handleAnalyzeText = async () => {
     if (!rawText.trim() || rawText.trim().length < 20) {
-      toast({ title: "Texto muy corto", description: "Pega al menos un parrafo con informacion de tu negocio", variant: "destructive" });
+      toast({ title: "Texto muy corto", description: "Pega al menos un parrafo con información de tu negocio", variant: "destructive" });
       return;
     }
     setAnalyzing(true);
@@ -1725,7 +1725,7 @@ function EntrenarBotTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error");
       setAnalyzedResult(data.organized);
-      toast({ title: "Analisis completado", description: "Revisa el resultado y elige como aplicarlo" });
+      toast({ title: "Análisis completado", description: "Revisa el resultado y elige como aplicarlo" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "No se pudo analizar", variant: "destructive" });
     } finally {
@@ -1735,7 +1735,7 @@ function EntrenarBotTab() {
 
   const handleAnalyzeUrl = async () => {
     if (!scrapeUrl.trim()) {
-      toast({ title: "URL requerida", description: "Ingresa la URL de tu pagina web", variant: "destructive" });
+      toast({ title: "URL requerida", description: "Ingresa la URL de tu página web", variant: "destructive" });
       return;
     }
     setAnalyzing(true);
@@ -1748,7 +1748,7 @@ function EntrenarBotTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error");
       setAnalyzedResult(data.organized);
-      toast({ title: "Analisis web completado", description: "Se extrajo la informacion de tu sitio web" });
+      toast({ title: "Análisis web completado", description: "Se extrajo la información de tu sitio web" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "No se pudo analizar la URL", variant: "destructive" });
     } finally {
@@ -1788,7 +1788,7 @@ function EntrenarBotTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error");
       setBotContext(data.beautified);
-      toast({ title: "Texto embellecido", description: "Se mejoro la redaccion. Revisa y guarda los cambios." });
+      toast({ title: "Texto embellecido", description: "Se mejoro la redacción. Revisa y guarda los cambios." });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "No se pudo embellecer el texto", variant: "destructive" });
     } finally {
@@ -1825,14 +1825,14 @@ function EntrenarBotTab() {
             <Bot className="w-4 h-4 text-[#10b981]" />
           </div>
           <div className="text-sm text-white/60 space-y-1">
-            <p className="text-white/80 font-medium">Como funciona el entrenamiento</p>
+            <p className="text-white/80 font-medium">Cómo funciona el entrenamiento</p>
             <p>Puedes entrenar tu bot de 3 formas:</p>
             <div className="flex flex-col gap-1 pl-1">
-              <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Pegar texto</strong> — Copia informacion de tu negocio y la IA la organiza automaticamente</span>
-              <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Analizar web</strong> — Pega la URL de tu sitio y la IA extrae toda la informacion</span>
-              <span className="flex items-center gap-1.5"><Pencil className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Escribir manual</strong> — Edita directamente el campo de informacion</span>
+              <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Pegar texto</strong> — Copia información de tu negocio y la IA la organiza automáticamente</span>
+              <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Analizar web</strong> — Pega la URL de tu sitio y la IA extrae toda la información</span>
+              <span className="flex items-center gap-1.5"><Pencil className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Escribir manual</strong> — Edita directamente el campo de información</span>
             </div>
-            <p className="text-[#10b981]">Tip: Tambien puedes corregir respuestas del bot en el tab "Chats" usando el boton "Corregir".</p>
+            <p className="text-[#10b981]">Tip: También puedes corregir respuestas del bot en el tab "Chats" usando el botón "Corregir".</p>
           </div>
         </div>
       </div>
@@ -1866,7 +1866,7 @@ function EntrenarBotTab() {
             </div>
             <div>
               <p className="text-sm font-medium text-white/80">Analizar sitio web</p>
-              <p className="text-[11px] text-white/40">Extrae info desde tu pagina</p>
+              <p className="text-[11px] text-white/40">Extrae info desde tu página</p>
             </div>
           </button>
         </div>
@@ -1877,7 +1877,7 @@ function EntrenarBotTab() {
               data-testid="textarea-raw-text"
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Pega aqui toda la informacion de tu negocio (copiada de tu web, documentos, redes sociales, etc.)... La IA la organizara automaticamente."
+              placeholder="Pega aquí toda la información de tu negocio (copiada de tu web, documentos, redes sociales, etc.)... La IA la organizara automáticamente."
               className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[200px] text-sm"
               rows={10}
             />
@@ -1913,7 +1913,7 @@ function EntrenarBotTab() {
                 {analyzing ? "Analizando..." : "Analizar web"}
               </Button>
             </div>
-            <p className="text-[11px] text-white/30">La IA visitara tu pagina, extraera toda la informacion del negocio y la organizara automaticamente. Puede tardar hasta 30 segundos.</p>
+            <p className="text-[11px] text-white/30">La IA visitara tu página, extraera toda la información del negocio y la organizara automáticamente. Puede tardar hasta 30 segundos.</p>
           </div>
         )}
 
@@ -1931,7 +1931,7 @@ function EntrenarBotTab() {
           <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-[#10b981]" />
-              <p className="text-sm font-medium text-white/80">Resultado del analisis</p>
+              <p className="text-sm font-medium text-white/80">Resultado del análisis</p>
             </div>
             <div className="rounded-lg border border-[#10b981]/20 bg-black/20 p-3 max-h-[300px] overflow-y-auto chat-scrollbar">
               <pre className="text-xs text-white/70 whitespace-pre-wrap font-mono">{analyzedResult}</pre>
@@ -1970,14 +1970,14 @@ function EntrenarBotTab() {
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-white/80">Informacion del negocio (editada por el bot)</label>
+          <label className="text-sm font-medium text-white/80">Información del negocio (editada por el bot)</label>
           <span className="text-[10px] text-white/30">{botContext.length} caracteres</span>
         </div>
         <Textarea
           data-testid="textarea-bot-context"
           value={botContext}
           onChange={(e) => setBotContext(e.target.value)}
-          placeholder="Aqui aparecera la informacion organizada de tu negocio despues de usar el analisis con IA, o puedes escribirla manualmente..."
+          placeholder="Aquí aparecerá la información organizada de tu negocio después de usar el análisis con IA, o puedes escribirla manualmente..."
           className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[300px] text-sm font-mono"
           rows={18}
         />
@@ -2067,7 +2067,7 @@ function CatalogQuickEdit() {
       setNewName("");
       setNewPrice("");
       setNewBadge("");
-      toast({ title: "Producto agregado al catalogo" });
+      toast({ title: "Producto agregado al catálogo" });
     },
   });
 
@@ -2111,14 +2111,14 @@ function CatalogQuickEdit() {
     !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const badgeSuggestions = ["Nuevo", "Popular", "Oferta", "Destacado", "Mas vendido", "Exclusivo"];
+  const badgeSuggestions = ["Nuevo", "Popular", "Oferta", "Destacado", "Más vendido", "Exclusivo"];
 
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <ShoppingBag className="w-4 h-4 text-[#10b981]" />
-          <p className="text-sm font-medium text-white/80">Catalogo del widget</p>
+          <p className="text-sm font-medium text-white/80">Catálogo del widget</p>
           <Badge variant="outline" className="text-[10px] border-white/10 text-white/40" data-testid="badge-catalog-count">{products.length}</Badge>
         </div>
         <Button
@@ -2132,7 +2132,7 @@ function CatalogQuickEdit() {
         </Button>
       </div>
       <p className="text-xs text-white/40">
-        Estos productos aparecen en el catalogo del chat. Puedes personalizar nombre, precio y etiqueta.
+        Estos productos aparecen en el catálogo del chat. Puedes personalizar nombre, precio y etiqueta.
       </p>
 
       {showAddForm && (
@@ -2213,7 +2213,7 @@ function CatalogQuickEdit() {
         <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-6 text-white/30 text-sm">
-          {products.length === 0 ? "No hay productos en el catalogo. Agrega uno para que aparezca en el chat." : "Sin resultados"}
+          {products.length === 0 ? "No hay productos en el catálogo. Agrega uno para que aparezca en el chat." : "Sin resultados"}
         </div>
       ) : (
         <div className="space-y-1 max-h-[400px] overflow-y-auto chat-scrollbar">
@@ -2310,7 +2310,7 @@ function AjustesTab() {
   const [bhStart, setBhStart] = useState("09:00");
   const [bhEnd, setBhEnd] = useState("18:00");
   const [bhDays, setBhDays] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [bhMessage, setBhMessage] = useState("Estamos fuera del horario de atencion. Te responderemos pronto.");
+  const [bhMessage, setBhMessage] = useState("Estamos fuera del horario de atención. Te responderemos pronto.");
 
   useEffect(() => {
     if (settings) {
@@ -2357,7 +2357,7 @@ function AjustesTab() {
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6 overflow-y-auto h-full">
       <div>
         <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-ajustes-title">Ajustes</h2>
-        <p className="text-sm text-white/40">Configuracion general del panel.</p>
+        <p className="text-sm text-white/40">Configuración general del panel.</p>
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
@@ -2373,7 +2373,7 @@ function AjustesTab() {
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-white/80">Horario de Atencion</p>
+            <p className="text-sm font-medium text-white/80">Horario de Atención</p>
             <p className="text-xs text-white/40 mt-0.5">Define cuando esta disponible tu equipo</p>
           </div>
           <Switch data-testid="switch-bh-enabled" checked={bhEnabled} onCheckedChange={setBhEnabled} />
@@ -2470,7 +2470,7 @@ function EquipoTab({ currentRole }: { currentRole: string }) {
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/agents"] });
       setShowForm(false);
       setFormData({ displayName: "", email: "", password: "", role: "ejecutivo", color: "#10b981" });
-      toast({ title: "Ejecutivo creado", description: "El nuevo miembro del equipo ya puede iniciar sesion" });
+      toast({ title: "Ejecutivo creado", description: "El nuevo miembro del equipo ya puede iniciar sesión" });
     },
     onError: (err: any) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -2653,7 +2653,7 @@ function EquipoTab({ currentRole }: { currentRole: string }) {
                     </div>
                     <p className="text-xs text-white/30 truncate">{agent.email}</p>
                     {agent.lastLoginAt && (
-                      <p className="text-[10px] text-white/20 mt-0.5">Ultimo acceso: {formatDateTime(agent.lastLoginAt)}</p>
+                      <p className="text-[10px] text-white/20 mt-0.5">Último acceso: {formatDateTime(agent.lastLoginAt)}</p>
                     )}
                   </div>
 
@@ -2675,7 +2675,7 @@ function EquipoTab({ currentRole }: { currentRole: string }) {
                           <button data-testid={`button-edit-agent-${agent.id}`} onClick={() => setEditingId(agent.id)} className="p-1.5 rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05]">
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button data-testid={`button-delete-agent-${agent.id}`} onClick={() => { if (window.confirm(`Eliminar a ${agent.displayName}? Esta accion no se puede deshacer.`)) deleteMutation.mutate(agent.id); }} className="p-1.5 rounded-md text-red-400/30 hover:text-red-400 hover:bg-red-500/10">
+                          <button data-testid={`button-delete-agent-${agent.id}`} onClick={() => { if (window.confirm(`Eliminar a ${agent.displayName}? Esta acción no se puede deshacer.`)) deleteMutation.mutate(agent.id); }} className="p-1.5 rounded-md text-red-400/30 hover:text-red-400 hover:bg-red-500/10">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </>
@@ -2865,7 +2865,7 @@ export default function TenantPanel() {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            Cerrar sesion
+            Cerrar sesión
           </button>
         </div>
       </aside>
@@ -2890,7 +2890,7 @@ export default function TenantPanel() {
           {activeTab === "productos" && canAccessTab({ id: "productos", label: "", icon: null, minRole: "admin" }) && <ProductosTab />}
           {activeTab === "conocimiento" && <ConocimientoTab />}
           {activeTab === "entrenar" && canAccessTab({ id: "entrenar", label: "", icon: null, minRole: "admin" }) && <EntrenarBotTab />}
-          {activeTab === "guias" && <GuidesPanel />}
+          {activeTab === "guías" && <GuidesPanel />}
           {activeTab === "equipo" && canAccessTab({ id: "equipo", label: "", icon: null, minRole: "admin" }) && <EquipoTab currentRole={role} />}
           {activeTab === "ajustes" && canAccessTab({ id: "ajustes", label: "", icon: null, minRole: "admin" }) && <AjustesTab />}
         </main>

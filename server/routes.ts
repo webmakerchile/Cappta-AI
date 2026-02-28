@@ -577,7 +577,7 @@ ${DEMO_BASE_RULES}`,
       const ctxKey = (typeof context === "string" && VALID_DEMO_CONTEXTS.includes(context)) ? context : "tech";
 
       if (messages.length > 20) {
-        return res.status(400).json({ message: "Demasiados mensajes en la conversacion. Inicia una nueva." });
+        return res.status(400).json({ message: "Demasiados mensajes en la conversación. Inicia una nueva." });
       }
 
       const lastMessage = messages[messages.length - 1];
@@ -729,7 +729,7 @@ ${DEMO_BASE_RULES}`,
         res.json({ sessionId: null });
       }
     } catch (error) {
-      res.status(500).json({ message: "Error al resolver sesion" });
+      res.status(500).json({ message: "Error al resolver sesión" });
     }
   });
 
@@ -1052,7 +1052,7 @@ ${DEMO_BASE_RULES}`,
         userName: "Soporte",
         sender: "support",
         content: emailSent
-          ? "Tu solicitud ha sido enviada. Un ejecutivo se pondra en contacto contigo por correo electronico lo antes posible."
+          ? "Tu solicitud ha sido enviada. Un ejecutivo se pondrá en contacto contigo por correo electrónico lo antes posible."
           : "Hemos registrado tu solicitud. Un ejecutivo se comunicara contigo pronto.",
         tenantId: contactTenantId,
       });
@@ -1360,7 +1360,7 @@ ${DEMO_BASE_RULES}`,
       res.json({ token, agent: { id: agent.id, displayName: agent.displayName, email: agent.email, role: agent.role, color: agent.color }, tenantId: tenant.id, companyName: tenant.companyName });
     } catch (error: any) {
       log(`Error agent login: ${error.message}`, "api");
-      res.status(500).json({ message: "Error al iniciar sesion" });
+      res.status(500).json({ message: "Error al iniciar sesión" });
     }
   });
 
@@ -1524,7 +1524,7 @@ ${DEMO_BASE_RULES}`,
         productSearchLabel: tenant.productSearchLabel,
       });
     } catch (error: any) {
-      res.status(500).json({ message: "Error al obtener configuracion" });
+      res.status(500).json({ message: "Error al obtener configuración" });
     }
   });
 
@@ -1701,7 +1701,7 @@ ${DEMO_BASE_RULES}`,
       const msgs = await storage.getMessagesBySessionId(sessionId);
       res.json(msgs);
     } catch (error: any) {
-      log(`Error obteniendo mensajes sesion tenant: ${error.message}`, "api");
+      log(`Error obteniendo mensajes sesión tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al obtener mensajes" });
     }
   });
@@ -1942,7 +1942,7 @@ ${DEMO_BASE_RULES}`,
       res.json({ value });
     } catch (error: any) {
       log(`Error al obtener setting: ${error.message}`, "api");
-      res.status(500).json({ message: "Error al obtener configuracion" });
+      res.status(500).json({ message: "Error al obtener configuración" });
     }
   });
 
@@ -1958,7 +1958,7 @@ ${DEMO_BASE_RULES}`,
       res.json({ success: true });
     } catch (error: any) {
       log(`Error al guardar setting: ${error.message}`, "api");
-      res.status(500).json({ message: "Error al guardar configuracion" });
+      res.status(500).json({ message: "Error al guardar configuración" });
     }
   });
 
@@ -1972,7 +1972,7 @@ ${DEMO_BASE_RULES}`,
     try {
       const { endpoint, keys } = req.body;
       if (!endpoint || !keys?.p256dh || !keys?.auth) {
-        return res.status(400).json({ message: "Datos de suscripcion invalidos" });
+        return res.status(400).json({ message: "Datos de suscripción inválidos" });
       }
       try {
         await storage.deletePushSubscription(endpoint);
@@ -1999,7 +1999,7 @@ ${DEMO_BASE_RULES}`,
       await storage.deletePushSubscription(endpoint);
       res.json({ success: true });
     } catch (error: any) {
-      res.status(500).json({ message: "Error al eliminar suscripcion" });
+      res.status(500).json({ message: "Error al eliminar suscripción" });
     }
   });
 
@@ -2009,7 +2009,7 @@ ${DEMO_BASE_RULES}`,
     try {
       const { endpoint, keys } = req.body;
       if (!endpoint || !keys?.p256dh || !keys?.auth) {
-        return res.status(400).json({ message: "Datos de suscripcion invalidos" });
+        return res.status(400).json({ message: "Datos de suscripción inválidos" });
       }
       try {
         await storage.deleteTenantPushSubscription(endpoint);
@@ -2036,7 +2036,7 @@ ${DEMO_BASE_RULES}`,
       await storage.deleteTenantPushSubscription(endpoint, auth.id);
       res.json({ success: true });
     } catch (error: any) {
-      res.status(500).json({ message: "Error al eliminar suscripcion" });
+      res.status(500).json({ message: "Error al eliminar suscripción" });
     }
   });
 
@@ -2148,7 +2148,7 @@ ${DEMO_BASE_RULES}`,
         userEmail: session?.userEmail || "support@system",
         userName: "Soporte",
         sender: "support",
-        content: "Un agente de soporte se ha unido a la conversacion. A partir de ahora seras atendido personalmente.",
+        content: "Un agente de soporte se ha unido a la conversación. A partir de ahora seras atendido personalmente.",
         tenantId: auth.id,
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
@@ -2177,7 +2177,7 @@ ${DEMO_BASE_RULES}`,
         userEmail: session?.userEmail || "support@system",
         userName: "Soporte",
         sender: "support",
-        content: "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.",
+        content: "El agente de soporte ha salido de la conversación. El asistente automático seguirá ayudándote.",
         tenantId: auth.id,
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
@@ -2431,7 +2431,7 @@ ${DEMO_BASE_RULES}`,
       const updated = await storage.updateTenant(auth.id, update);
       res.json({ success: true, tenant: updated });
     } catch (error: any) {
-      res.status(500).json({ message: "Error al actualizar configuracion" });
+      res.status(500).json({ message: "Error al actualizar configuración" });
     }
   });
 
@@ -2440,7 +2440,7 @@ ${DEMO_BASE_RULES}`,
     if (!auth) return;
     const { text } = req.body;
     if (!text || typeof text !== "string" || text.trim().length < 20) {
-      return res.status(400).json({ message: "Texto muy corto. Pega al menos un parrafo con informacion de tu negocio." });
+      return res.status(400).json({ message: "Texto muy corto. Pega al menos un párrafo con información de tu negocio." });
     }
     try {
       const OpenAI = (await import("openai")).default;
@@ -2554,7 +2554,7 @@ Reglas CRITICAS:
     if (!auth) return;
     const { text } = req.body;
     if (!text || typeof text !== "string" || text.trim().length < 30) {
-      return res.status(400).json({ message: "El texto es muy corto para embellecer. Necesita al menos un parrafo de contenido." });
+      return res.status(400).json({ message: "El texto es muy corto para embellecer. Necesita al menos un párrafo de contenido." });
     }
     try {
       const OpenAI = (await import("openai")).default;
@@ -2941,7 +2941,7 @@ Reglas CRITICAS:
       await storage.markSessionRead(req.params.sessionId);
       res.json(msgs);
     } catch (error: any) {
-      log(`Error al obtener mensajes de sesion: ${error.message}`, "api");
+      log(`Error al obtener mensajes de sesión: ${error.message}`, "api");
       res.status(500).json({ message: "Error al obtener mensajes" });
     }
   });
@@ -3284,7 +3284,7 @@ Reglas CRITICAS:
       }
       const existing = await storage.getRatingBySessionId(parsed.data.sessionId);
       if (existing) {
-        return res.status(409).json({ message: "Ya existe una calificacion para esta sesion", rating: existing });
+        return res.status(409).json({ message: "Ya existe una calificación para esta sesión", rating: existing });
       }
       const ratingSession = await storage.getSession(parsed.data.sessionId);
       const ratingData = { ...parsed.data, tenantId: ratingSession?.tenantId ?? null };
@@ -3369,7 +3369,7 @@ Reglas CRITICAS:
     if (!adminUser) return;
     try {
       const rating = await storage.getRatingBySessionId(req.params.sessionId);
-      if (!rating) return res.status(404).json({ message: "No hay calificacion para esta sesion" });
+      if (!rating) return res.status(404).json({ message: "No hay calificación para esta sesión" });
       res.json(rating);
     } catch (error: any) {
       log(`Error al obtener calificacion: ${error.message}`, "api");
@@ -3430,8 +3430,8 @@ Reglas CRITICAS:
 
       const session = await storage.getSession(req.params.sessionId);
       const notifyContent = adminActive
-        ? "Un agente de soporte se ha unido a la conversacion. A partir de ahora seras atendido personalmente."
-        : "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.";
+        ? "Un agente de soporte se ha unido a la conversación. A partir de ahora seras atendido personalmente."
+        : "El agente de soporte ha salido de la conversación. El asistente automático seguirá ayudándote.";
 
       const notifyMsg = await storage.createMessage({
         sessionId: req.params.sessionId,
@@ -3516,7 +3516,7 @@ Reglas CRITICAS:
         userEmail: sessionCheck?.userEmail || "support@system",
         userName: "Soporte",
         sender: "support",
-        content: "El agente de soporte ha salido de la conversacion. El asistente automatico seguira ayudandote.",
+        content: "El agente de soporte ha salido de la conversación. El asistente automático seguirá ayudándote.",
         tenantId: sessionCheck?.tenantId ?? null,
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", notifyMsg);
@@ -3608,7 +3608,7 @@ Reglas CRITICAS:
 
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Error al bloquear sesion" });
+      res.status(500).json({ message: "Error al bloquear sesión" });
     }
   });
 
@@ -3624,7 +3624,7 @@ Reglas CRITICAS:
         userEmail: session?.userEmail || "",
         userName: "Soporte",
         sender: "support",
-        content: "Tu chat ha sido desbloqueado. Puedes continuar la conversacion.",
+        content: "Tu chat ha sido desbloqueado. Puedes continuar la conversación.",
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", unblockMsg);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: unblockMsg });
@@ -3632,7 +3632,7 @@ Reglas CRITICAS:
 
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Error al desbloquear sesion" });
+      res.status(500).json({ message: "Error al desbloquear sesión" });
     }
   });
 
@@ -3734,7 +3734,7 @@ Reglas CRITICAS:
 
       const existingRating = await storage.getRatingBySessionId(req.params.sessionId);
       if (existingRating) {
-        return res.status(409).json({ message: "Ya existe una calificacion para esta sesion" });
+        return res.status(409).json({ message: "Ya existe una calificación para esta sesión" });
       }
 
       const message = await storage.createMessage({
@@ -4139,7 +4139,7 @@ Reglas CRITICAS:
           userName: "Soporte",
           sender: "support",
           content: emailSent
-            ? "Tu solicitud ha sido enviada. Un ejecutivo se pondra en contacto contigo por correo electronico lo antes posible."
+            ? "Tu solicitud ha sido enviada. Un ejecutivo se pondrá en contacto contigo por correo electrónico lo antes posible."
             : "Hemos registrado tu solicitud. Un ejecutivo se comunicara contigo pronto.",
           tenantId: socketTenantId || null,
         });
@@ -4171,7 +4171,7 @@ Reglas CRITICAS:
         try {
           const activeConns = sessionConnections.get(disconnectedSessionId);
           if (activeConns && activeConns.size > 0) {
-            log(`Usuario reconectado a session ${disconnectedSessionId}, no se envia correo automatico`, "auto-email");
+            log(`Usuario reconectado a session ${disconnectedSessionId}, no se envia correo automático`, "auto-email");
             return;
           }
 
@@ -4206,12 +4206,12 @@ Reglas CRITICAS:
           if (lastAutoEmail) {
             const lastAutoEmailTime = new Date(lastAutoEmail).getTime();
             if (lastAutoEmailTime > latestAdminMsgTime) {
-              log(`Ya se envio correo automatico para estos mensajes en session ${disconnectedSessionId}`, "auto-email");
+              log(`Ya se envio correo automático para estos mensajes en session ${disconnectedSessionId}`, "auto-email");
               return;
             }
             const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
             if (new Date(lastAutoEmail) > twoHoursAgo) {
-              log(`Cooldown activo para session ${disconnectedSessionId}, ultimo correo automatico: ${lastAutoEmail}`, "auto-email");
+              log(`Cooldown activo para session ${disconnectedSessionId}, ultimo correo automático: ${lastAutoEmail}`, "auto-email");
               return;
             }
           }
@@ -4222,7 +4222,7 @@ Reglas CRITICAS:
             userName: disconnectedName || "Usuario",
             userEmail: disconnectedEmail,
             sessionId: disconnectedSessionId,
-            agentName: "Sistema automatico",
+            agentName: "Sistema automático",
             chatUrl,
           });
 
@@ -4244,7 +4244,7 @@ Reglas CRITICAS:
 
             log(`Correo automatico enviado a ${disconnectedEmail} para session ${disconnectedSessionId}`, "auto-email");
           } else {
-            log(`Error al enviar correo automatico a ${disconnectedEmail}: ${result.error}`, "auto-email");
+            log(`Error al enviar correo automático a ${disconnectedEmail}: ${result.error}`, "auto-email");
           }
         } catch (error: any) {
           log(`Error en auto-email para session ${disconnectedSessionId}: ${error.message}`, "auto-email");

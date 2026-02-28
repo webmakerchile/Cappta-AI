@@ -20,13 +20,13 @@ import { GoogleSignIn } from "@/components/GoogleSignIn";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 const loginSchema = z.object({
-  email: z.string().email("Ingresa un correo valido"),
-  password: z.string().min(1, "Ingresa tu contrasena"),
+  email: z.string().email("Ingresa un correo válido"),
+  password: z.string().min(1, "Ingresa tu contraseña"),
 });
 
 const agentLoginSchema = z.object({
-  email: z.string().email("Ingresa un correo valido"),
-  password: z.string().min(1, "Ingresa tu contrasena"),
+  email: z.string().email("Ingresa un correo válido"),
+  password: z.string().min(1, "Ingresa tu contraseña"),
   tenantId: z.string().min(1, "Ingresa el ID de empresa"),
 });
 
@@ -62,14 +62,14 @@ export default function Login() {
     onSuccess: (data: { token: string }) => {
       localStorage.setItem("tenant_token", data.token);
       toast({
-        title: "Sesion iniciada",
+        title: "Sesión iniciada",
         description: "Bienvenido de vuelta.",
       });
       window.location.href = "/dashboard";
     },
     onError: (error: Error) => {
       toast({
-        title: "Error al iniciar sesion",
+        title: "Error al iniciar sesión",
         description: error.message,
         variant: "destructive",
       });
@@ -84,14 +84,14 @@ export default function Login() {
     onSuccess: (data: { token: string; companyName: string }) => {
       localStorage.setItem("tenant_token", data.token);
       toast({
-        title: "Sesion iniciada",
+        title: "Sesión iniciada",
         description: `Bienvenido al panel de ${data.companyName}`,
       });
       window.location.href = "/panel";
     },
     onError: (error: Error) => {
       toast({
-        title: "Error al iniciar sesion",
+        title: "Error al iniciar sesión",
         description: error.message,
         variant: "destructive",
       });
@@ -134,7 +134,7 @@ export default function Login() {
             <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
           </h2>
           <p className="text-white/40 text-sm leading-relaxed mb-8 animate-dash-fade-up dash-stagger-2">
-            Tu asistente de ventas con IA que nunca duerme. Atiende, recomienda y cierra ventas automaticamente.
+            Tu asistente de ventas con IA que nunca duerme. Atiende, recomienda y cierra ventas automáticamente.
           </p>
 
           <div className="space-y-4">
@@ -173,7 +173,7 @@ export default function Login() {
               Bienvenido de vuelta
             </h1>
             <p className="text-white/40" data-testid="text-login-subtitle">
-              Inicia sesion para acceder a tu panel de FoxBot
+              Inicia sesión para acceder a tu panel de FoxBot
             </p>
           </div>
 
@@ -205,7 +205,7 @@ export default function Login() {
                   <GoogleSignIn
                     onSuccess={(token) => {
                       localStorage.setItem("tenant_token", token);
-                      toast({ title: "Sesion iniciada", description: "Bienvenido de vuelta." });
+                      toast({ title: "Sesión iniciada", description: "Bienvenido de vuelta." });
                       window.location.href = "/dashboard";
                     }}
                   />
@@ -223,7 +223,7 @@ export default function Login() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-white/60 text-sm font-medium">Correo electronico</FormLabel>
+                          <FormLabel className="text-white/60 text-sm font-medium">Correo electrónico</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -243,11 +243,11 @@ export default function Login() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-white/60 text-sm font-medium">Contrasena</FormLabel>
+                          <FormLabel className="text-white/60 text-sm font-medium">Contraseña</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
-                              placeholder="Tu contrasena"
+                              placeholder="Tu contraseña"
                               className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
                               data-testid="input-login-password"
                               {...field}
@@ -270,7 +270,7 @@ export default function Login() {
                       ) : (
                         <LogIn className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-0.5" />
                       )}
-                      {loginMutation.isPending ? "Iniciando sesion..." : "Iniciar sesion"}
+                      {loginMutation.isPending ? "Iniciando sesión..." : "Iniciar sesión"}
                     </Button>
                   </form>
                 </Form>
@@ -308,7 +308,7 @@ export default function Login() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-white/60 text-sm font-medium">Correo electronico</FormLabel>
+                          <FormLabel className="text-white/60 text-sm font-medium">Correo electrónico</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -328,11 +328,11 @@ export default function Login() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-white/60 text-sm font-medium">Contrasena</FormLabel>
+                          <FormLabel className="text-white/60 text-sm font-medium">Contraseña</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
-                              placeholder="Tu contrasena"
+                              placeholder="Tu contraseña"
                               className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-blue-400/40 text-white placeholder:text-white/20 transition-all duration-300"
                               data-testid="input-agent-password"
                               {...field}
@@ -354,7 +354,7 @@ export default function Login() {
                       ) : (
                         <UserCog className="w-4 h-4 mr-2" />
                       )}
-                      {agentLoginMutation.isPending ? "Iniciando sesion..." : "Entrar como ejecutivo"}
+                      {agentLoginMutation.isPending ? "Iniciando sesión..." : "Entrar como ejecutivo"}
                     </Button>
                   </form>
                 </Form>
