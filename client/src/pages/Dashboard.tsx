@@ -27,7 +27,9 @@ import {
   Menu,
   X,
   Sparkles,
+  BookOpen,
 } from "lucide-react";
+import { GuidesPanel } from "./Guides";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
@@ -574,12 +576,13 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   );
 }
 
-type DashboardTab = "stats" | "config" | "embed" | "plan";
+type DashboardTab = "stats" | "config" | "embed" | "plan" | "guides";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadisticas", value: "stats", icon: BarChart3 },
   { title: "Configuracion", value: "config", icon: Palette },
   { title: "Integracion", value: "embed", icon: Code },
+  { title: "Guias", value: "guides", icon: BookOpen },
   { title: "Plan", value: "plan", icon: CreditCard },
 ];
 
@@ -595,9 +598,9 @@ export default function Dashboard() {
     if (payment) {
       window.history.replaceState({}, "", "/dashboard");
       if (payment === "success") {
-        toast({ title: "Pago exitoso", description: "Tu plan ha sido actualizado correctamente." });
+        toast({ title: "Pago exitoso!", description: "Tu plan ha sido actualizado. Ahora instala el chat en tu sitio web." });
         queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
-        setActiveTab("plan");
+        setActiveTab("guides");
       } else if (payment === "rejected") {
         toast({ title: "Pago rechazado", description: "Tu pago fue rechazado. Intenta con otro medio de pago.", variant: "destructive" });
         setActiveTab("plan");
@@ -735,6 +738,7 @@ export default function Dashboard() {
               {activeTab === "stats" && "Metricas de tu chat en tiempo real"}
               {activeTab === "config" && "Personaliza tu widget de chat"}
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
+              {activeTab === "guides" && "Manuales de instalacion paso a paso"}
               {activeTab === "plan" && "Gestiona tu suscripcion"}
             </p>
           </div>
@@ -756,6 +760,7 @@ export default function Dashboard() {
             {activeTab === "stats" && <StatsSection token={token!} />}
             {activeTab === "config" && <WidgetConfigSection tenant={tenant} token={token!} />}
             {activeTab === "embed" && <EmbedCodeSection tenant={tenant} />}
+            {activeTab === "guides" && <GuidesPanel />}
             {activeTab === "plan" && <PlanSection tenant={tenant} />}
           </div>
         </main>
