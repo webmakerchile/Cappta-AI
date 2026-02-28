@@ -8,7 +8,7 @@ interface LauncherProps {
 }
 
 export function Launcher({ isOpen, onClick, hasUnread, color }: LauncherProps) {
-  const bgColor = color || "#6200EA";
+  const bgColor = color || "#10b981";
   return (
     <button
       data-testid="button-launcher"

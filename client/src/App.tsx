@@ -297,6 +297,8 @@ function ChatWidget() {
   const [tenantId, setTenantId] = useState<number | null>(null);
   const [tenantConfig, setTenantConfig] = useState<TenantConfig | null>(null);
 
+  const [configLoaded, setConfigLoaded] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tid = params.get("tenantId");
@@ -308,9 +310,14 @@ function ChatWidget() {
           .then(r => r.ok ? r.json() : null)
           .then(data => {
             if (data) setTenantConfig(data);
+            setConfigLoaded(true);
           })
-          .catch(() => {});
+          .catch(() => { setConfigLoaded(true); });
+      } else {
+        setConfigLoaded(true);
       }
+    } else {
+      setConfigLoaded(true);
     }
   }, []);
 
@@ -380,7 +387,8 @@ function ChatWidget() {
     document.documentElement.classList.add("dark");
   }, []);
 
-  if (isLoading) {
+  if (!configLoaded || isLoading) {
+    if (!configLoaded) return null;
     return (
       <div className="w-full h-full flex items-end justify-end">
         <div className="p-2">
