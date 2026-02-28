@@ -696,7 +696,9 @@ ${DEMO_BASE_RULES}`,
       if (!email || !email.includes("@")) {
         return res.status(400).json({ message: "Email invalido" });
       }
-      const msgs = await storage.getMessagesByEmail(email.toLowerCase());
+      const tenantIdParam = req.query.tenantId as string | undefined;
+      const tenantId = tenantIdParam ? parseInt(tenantIdParam, 10) : undefined;
+      const msgs = await storage.getMessagesByEmail(email.toLowerCase(), tenantId !== undefined && !isNaN(tenantId) ? tenantId : undefined);
       res.json(msgs);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener hilo" });
@@ -709,7 +711,9 @@ ${DEMO_BASE_RULES}`,
       if (!email || !email.includes("@")) {
         return res.status(400).json({ message: "Email invalido" });
       }
-      const userSessions = await storage.getSessionsByEmail(email.toLowerCase());
+      const tenantIdParam = req.query.tenantId as string | undefined;
+      const tenantId = tenantIdParam ? parseInt(tenantIdParam, 10) : undefined;
+      const userSessions = await storage.getSessionsByEmail(email.toLowerCase(), tenantId !== undefined && !isNaN(tenantId) ? tenantId : undefined);
       res.json(userSessions);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener sesiones" });
@@ -722,7 +726,9 @@ ${DEMO_BASE_RULES}`,
       if (!email || !email.includes("@")) {
         return res.status(400).json({ message: "Email invalido" });
       }
-      const session = await storage.findActiveSessionByEmail(email.toLowerCase());
+      const tenantIdParam = req.query.tenantId as string | undefined;
+      const tenantId = tenantIdParam ? parseInt(tenantIdParam, 10) : undefined;
+      const session = await storage.findActiveSessionByEmail(email.toLowerCase(), tenantId !== undefined && !isNaN(tenantId) ? tenantId : undefined);
       if (session) {
         res.json({ sessionId: session.sessionId });
       } else {

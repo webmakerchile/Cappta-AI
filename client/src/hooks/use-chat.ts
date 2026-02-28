@@ -180,7 +180,8 @@ export function useChat(tenantId?: number | null) {
     if (isValidParam(email) && isValidParam(name)) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
-      fetch(`/api/session/resolve/${encodeURIComponent(email!.toLowerCase())}`, { signal: controller.signal })
+      const resolveQuery = tenantId ? `?tenantId=${tenantId}` : "";
+      fetch(`/api/session/resolve/${encodeURIComponent(email!.toLowerCase())}${resolveQuery}`, { signal: controller.signal })
         .then(r => r.json())
         .then(data => {
           const sessionId = data.sessionId || generateSessionId();
@@ -222,11 +223,13 @@ export function useChat(tenantId?: number | null) {
     return () => window.removeEventListener("message", handleMessage);
   }, [pageInfo]);
 
+  const tenantQuery = tenantId ? `?tenantId=${tenantId}` : "";
+
   const { data: messages = [] } = useQuery<Message[]>({
-    queryKey: ["/api/messages/thread", user?.email],
+    queryKey: ["/api/messages/thread", user?.email, tenantId],
     queryFn: async () => {
       if (!user) return [];
-      const res = await fetch(`/api/messages/thread/${encodeURIComponent(user.email)}`);
+      const res = await fetch(`/api/messages/thread/${encodeURIComponent(user.email)}${tenantQuery}`);
       if (!res.ok) throw new Error("Error loading messages");
       return res.json();
     },
@@ -236,10 +239,10 @@ export function useChat(tenantId?: number | null) {
   });
 
   const { data: sessions = [] } = useQuery<Session[]>({
-    queryKey: ["/api/sessions/by-email", user?.email],
+    queryKey: ["/api/sessions/by-email", user?.email, tenantId],
     queryFn: async () => {
       if (!user) return [];
-      const res = await fetch(`/api/sessions/by-email/${encodeURIComponent(user.email)}`);
+      const res = await fetch(`/api/sessions/by-email/${encodeURIComponent(user.email)}${tenantQuery}`);
       if (!res.ok) throw new Error("Error loading sessions");
       return res.json();
     },
@@ -437,7 +440,8 @@ export function useChat(tenantId?: number | null) {
   const login = useCallback(async (email: string, name: string, problemType?: string, gameName?: string) => {
     let sessionId: string;
     try {
-      const res = await fetch(`/api/session/resolve/${encodeURIComponent(email.toLowerCase())}`);
+      const loginResolveQuery = tenantId ? `?tenantId=${tenantId}` : "";
+      const res = await fetch(`/api/session/resolve/${encodeURIComponent(email.toLowerCase())}${loginResolveQuery}`);
       const data = await res.json();
       sessionId = data.sessionId || generateSessionId();
     } catch {

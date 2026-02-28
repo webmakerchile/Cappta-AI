@@ -4,8 +4,8 @@ import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
 export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
-  getMessagesByEmail(email: string): Promise<Message[]>;
-  getSessionsByEmail(email: string): Promise<Session[]>;
+  getMessagesByEmail(email: string, tenantId?: number | null): Promise<Message[]>;
+  getSessionsByEmail(email: string, tenantId?: number | null): Promise<Session[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
   getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null; lastAutoEmailAt: Date | null; lastManualEmailAt: Date | null }[]>;
@@ -54,7 +54,7 @@ export interface IStorage {
   getCustomTags(): Promise<string[]>;
   addCustomTag(name: string): Promise<void>;
   deleteCustomTag(name: string): Promise<void>;
-  findActiveSessionByEmail(email: string): Promise<Session | null>;
+  findActiveSessionByEmail(email: string, tenantId?: number | null): Promise<Session | null>;
   deleteSession(sessionId: string): Promise<boolean>;
   deleteAllSessions(): Promise<number>;
   incrementWarningCount(sessionId: string): Promise<number>;
@@ -137,30 +137,42 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(messages.timestamp));
   }
 
-  async findActiveSessionByEmail(email: string): Promise<Session | null> {
+  async findActiveSessionByEmail(email: string, tenantId?: number | null): Promise<Session | null> {
+    const conditions = [eq(sessions.userEmail, email)];
+    if (tenantId !== undefined) {
+      conditions.push(tenantId === null ? sql`${sessions.tenantId} IS NULL` : eq(sessions.tenantId, tenantId));
+    }
     const results = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.userEmail, email))
+      .where(and(...conditions))
       .orderBy(desc(sessions.lastMessageAt))
       .limit(5);
     const active = results.find(s => s.status === "active");
     return active || results[0] || null;
   }
 
-  async getMessagesByEmail(email: string): Promise<Message[]> {
+  async getMessagesByEmail(email: string, tenantId?: number | null): Promise<Message[]> {
+    const conditions = [eq(messages.userEmail, email)];
+    if (tenantId !== undefined) {
+      conditions.push(tenantId === null ? sql`${messages.tenantId} IS NULL` : eq(messages.tenantId, tenantId));
+    }
     return await db
       .select()
       .from(messages)
-      .where(eq(messages.userEmail, email))
+      .where(and(...conditions))
       .orderBy(asc(messages.timestamp));
   }
 
-  async getSessionsByEmail(email: string): Promise<Session[]> {
+  async getSessionsByEmail(email: string, tenantId?: number | null): Promise<Session[]> {
+    const conditions = [eq(sessions.userEmail, email)];
+    if (tenantId !== undefined) {
+      conditions.push(tenantId === null ? sql`${sessions.tenantId} IS NULL` : eq(sessions.tenantId, tenantId));
+    }
     return await db
       .select()
       .from(sessions)
-      .where(eq(sessions.userEmail, email))
+      .where(and(...conditions))
       .orderBy(asc(sessions.createdAt));
   }
 
