@@ -1,6 +1,5 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const FlowApi = require("flowcl-node-api-client");
+// @ts-ignore - flowcl-node-api-client is a CJS module
+import FlowApi from "flowcl-node-api-client";
 
 const FLOW_API_KEY = process.env.FLOW_API_KEY || "";
 const FLOW_SECRET_KEY = process.env.FLOW_SECRET_KEY || "";
