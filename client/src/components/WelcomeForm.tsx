@@ -24,6 +24,9 @@ import { ProductSelector } from "@/components/ProductSelector";
 interface WelcomeFormProps {
   onSubmit: (email: string, name: string, problemType: string, gameName: string) => void;
   onClose: () => void;
+  brandColor?: string;
+  brandName?: string;
+  welcomeMessage?: string;
 }
 
 const PROBLEM_TYPES = [
@@ -35,7 +38,7 @@ const PROBLEM_TYPES = [
   { value: "otro", label: "Otro" },
 ];
 
-export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
+export function WelcomeForm({ onSubmit, onClose, brandColor, brandName, welcomeMessage }: WelcomeFormProps) {
   const form = useForm<GuestForm>({
     resolver: zodResolver(guestFormSchema),
     defaultValues: {
@@ -52,10 +55,10 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 flex items-center justify-between" style={{ background: "#6200EA" }}>
+      <div className="px-4 py-3 flex items-center justify-between" style={{ background: brandColor || "#6200EA" }}>
         <div className="flex items-center gap-2">
           <Headphones className="w-4 h-4 text-white" />
-          <span className="text-sm font-semibold text-white">Chat de Soporte</span>
+          <span className="text-sm font-semibold text-white">{brandName || "Chat de Soporte"}</span>
         </div>
         <button
           data-testid="button-close-welcome"
@@ -69,7 +72,7 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#6200EA]/20 flex items-center justify-center mb-2 sm:mb-3 border border-[#6200EA]/30">
           <Headphones className="w-6 h-6 sm:w-7 sm:h-7 text-[#6200EA]" />
         </div>
-        <h2 data-testid="text-welcome-title" className="text-base sm:text-lg font-bold text-white mb-0.5 sm:mb-1">Bienvenido</h2>
+        <h2 data-testid="text-welcome-title" className="text-base sm:text-lg font-bold text-white mb-0.5 sm:mb-1">{welcomeMessage || "Bienvenido"}</h2>
         <p data-testid="text-welcome-subtitle" className="text-[11px] sm:text-xs text-white/50 text-center">
           Completa tus datos para iniciar la conversacion
         </p>
@@ -185,7 +188,8 @@ export function WelcomeForm({ onSubmit, onClose }: WelcomeFormProps) {
           <Button
             data-testid="button-start-chat"
             type="submit"
-            className="w-full bg-[#6200EA] border-[#6200EA] text-white"
+            className="w-full text-white"
+            style={{ backgroundColor: brandColor || "#6200EA", borderColor: brandColor || "#6200EA" }}
           >
             Iniciar Chat
             <ArrowRight className="w-4 h-4 ml-2" />

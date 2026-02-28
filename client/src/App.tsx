@@ -276,9 +276,37 @@ function ContactChat() {
   );
 }
 
+interface TenantConfig {
+  id: number;
+  companyName: string;
+  widgetColor: string;
+  welcomeMessage: string;
+  logoUrl: string | null;
+}
+
 function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+  const [tenantId, setTenantId] = useState<number | null>(null);
+  const [tenantConfig, setTenantConfig] = useState<TenantConfig | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tid = params.get("tenantId");
+    if (tid) {
+      const parsed = parseInt(tid, 10);
+      if (!isNaN(parsed)) {
+        setTenantId(parsed);
+        fetch(`/api/tenants/${parsed}/config`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) setTenantConfig(data);
+          })
+          .catch(() => {});
+      }
+    }
+  }, []);
+
   const {
     user,
     messages,
@@ -291,7 +319,11 @@ function ChatWidget() {
     login,
     startNewSession,
     logout,
-  } = useChat();
+  } = useChat(tenantId);
+
+  const widgetColor = tenantConfig?.widgetColor || undefined;
+  const widgetName = tenantConfig?.companyName || undefined;
+  const widgetWelcome = tenantConfig?.welcomeMessage || undefined;
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -339,7 +371,7 @@ function ChatWidget() {
     return (
       <div className="w-full h-full flex items-end justify-end">
         <div className="p-2">
-          <div className="w-14 h-14 rounded-full bg-[#6200EA] flex items-center justify-center">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: widgetColor || "#6200EA" }}>
             <MessageCircle className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -376,15 +408,23 @@ function ChatWidget() {
                 sessionId={user.sessionId}
                 onRatingComplete={handleRatingComplete}
                 onStartNewSession={startNewSession}
+                brandColor={widgetColor}
+                brandName={widgetName}
               />
             ) : (
-              <WelcomeForm onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)} onClose={toggleChat} />
+              <WelcomeForm
+                onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
+                onClose={toggleChat}
+                brandColor={widgetColor}
+                brandName={widgetName}
+                welcomeMessage={widgetWelcome}
+              />
             )}
           </div>
         </div>
       ) : (
         <div className="p-2">
-          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} />
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} />
         </div>
       )}
     </div>

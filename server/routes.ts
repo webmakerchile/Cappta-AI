@@ -345,13 +345,15 @@ export async function registerRoutes(
 
       const normalizedEmail = parsed.data.userEmail.toLowerCase();
 
-      const upsertData: { sessionId: string; userEmail: string; userName: string; problemType?: string; gameName?: string } = {
+      const tenantId = req.body.tenantId ? parseInt(req.body.tenantId, 10) : null;
+      const upsertData: { sessionId: string; userEmail: string; userName: string; problemType?: string; gameName?: string; tenantId?: number | null } = {
         sessionId,
         userEmail: normalizedEmail,
         userName: parsed.data.userName,
       };
       if (req.body.problemType) upsertData.problemType = req.body.problemType;
       if (req.body.gameName) upsertData.gameName = req.body.gameName;
+      if (tenantId) upsertData.tenantId = tenantId;
       await storage.upsertSession(upsertData);
 
       if (parsed.data.sender === "user") {
@@ -375,6 +377,7 @@ export async function registerRoutes(
             sender: "user",
             content: "[Mensaje con contenido inapropiado]",
             imageUrl: null,
+            tenantId,
           });
           io.to(`session:${sessionId}`).emit("new_message", blockedMsg);
           io.to("admin_room").emit("admin_new_message", { sessionId, message: blockedMsg });
@@ -385,6 +388,7 @@ export async function registerRoutes(
             userName: "Soporte",
             sender: "support",
             content: warningText,
+            tenantId,
           });
           io.to(`session:${sessionId}`).emit("new_message", warningMsg);
           io.to("admin_room").emit("admin_new_message", { sessionId, message: warningMsg });
@@ -401,6 +405,7 @@ export async function registerRoutes(
         sender: parsed.data.sender,
         content: parsed.data.content,
         imageUrl: req.body.imageUrl || null,
+        tenantId,
       });
 
       await storage.touchSession(sessionId);
@@ -500,6 +505,7 @@ export async function registerRoutes(
               userName: "Soporte",
               sender: "support",
               content: replyContent,
+              tenantId,
             });
             io.to(`session:${sessionId}`).emit("new_message", autoReply);
             io.to("admin_room").emit("admin_new_message", { sessionId, message: autoReply });
@@ -552,6 +558,7 @@ export async function registerRoutes(
 
       const normalizedEmail = parsed.data.userEmail.toLowerCase();
 
+      const contactTenantId = req.body.tenantId ? parseInt(req.body.tenantId, 10) : null;
       const contactRequest = await storage.createContactRequest({
         userEmail: normalizedEmail,
         userName: parsed.data.userName,
@@ -560,6 +567,7 @@ export async function registerRoutes(
         chatSummary: chatSummary || null,
         problemType: parsed.data.problemType || null,
         gameName: parsed.data.gameName || null,
+        tenantId: contactTenantId,
       });
 
       const emailSent = await sendContactNotification({
@@ -580,6 +588,7 @@ export async function registerRoutes(
         content: emailSent
           ? "Tu solicitud ha sido enviada. Un ejecutivo se pondra en contacto contigo por correo electronico lo antes posible."
           : "Hemos registrado tu solicitud. Un ejecutivo se comunicara contigo pronto.",
+        tenantId: contactTenantId,
       });
 
       io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);
@@ -1921,7 +1930,7 @@ export async function registerRoutes(
   });
 
   io.on("connection", (socket) => {
-    const { email, name, sessionId, role } = socket.handshake.auth as { email: string; name: string; sessionId: string; role?: string };
+    const { email, name, sessionId, role, tenantId: socketTenantId } = socket.handshake.auth as { email: string; name: string; sessionId: string; role?: string; tenantId?: number };
 
     if (role === "admin") {
       log(`Admin socket conectado: ${socket.id}`, "socket.io");
@@ -1949,7 +1958,7 @@ export async function registerRoutes(
 
     userSessions.set(socket.id, { email, name, sessionId });
 
-    storage.upsertSession({ sessionId, userEmail: email, userName: name }).catch(() => {});
+    storage.upsertSession({ sessionId, userEmail: email, userName: name, tenantId: socketTenantId || null }).catch(() => {});
 
     storage.getMessagesBySessionId(sessionId).then((history) => {
       socket.emit("chat_history", history);
@@ -1988,6 +1997,7 @@ export async function registerRoutes(
           sessionId: sid,
           userEmail: normalizedEmail,
           userName: parsed.data.userName,
+          tenantId: socketTenantId || null,
         });
 
         if (parsed.data.sender === "user") {
@@ -2011,6 +2021,7 @@ export async function registerRoutes(
               userName: parsed.data.userName,
               sender: "user",
               content: "[Mensaje con contenido inapropiado]",
+              tenantId: socketTenantId || null,
             });
             io.to(`session:${sid}`).emit("new_message", blockedMsg);
             io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: blockedMsg });
@@ -2021,6 +2032,7 @@ export async function registerRoutes(
               userName: "Soporte",
               sender: "support",
               content: warningText,
+              tenantId: socketTenantId || null,
             });
             io.to(`session:${sid}`).emit("new_message", warningMsg);
             io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: warningMsg });
@@ -2035,6 +2047,7 @@ export async function registerRoutes(
           userName: parsed.data.userName,
           sender: parsed.data.sender,
           content: parsed.data.content,
+          tenantId: socketTenantId || null,
         });
 
         await storage.touchSession(sid);
@@ -2126,6 +2139,7 @@ export async function registerRoutes(
                 userName: "Soporte",
                 sender: "support",
                 content: replyContent,
+                tenantId: socketTenantId || null,
               });
               io.to(`session:${sid}`).emit("new_message", autoReply);
               io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: autoReply });
@@ -2164,6 +2178,7 @@ export async function registerRoutes(
           chatSummary: chatSummary || null,
           problemType: parsed.data.problemType || null,
           gameName: parsed.data.gameName || null,
+          tenantId: socketTenantId || null,
         });
 
         const emailSent = await sendContactNotification({
@@ -2194,6 +2209,7 @@ export async function registerRoutes(
           content: emailSent
             ? "Tu solicitud ha sido enviada. Un ejecutivo se pondra en contacto contigo por correo electronico lo antes posible."
             : "Hemos registrado tu solicitud. Un ejecutivo se comunicara contigo pronto.",
+          tenantId: socketTenantId || null,
         });
 
         io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);

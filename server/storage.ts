@@ -12,7 +12,7 @@ export interface IStorage {
   markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
   getContactRequests(): Promise<ContactRequest[]>;
-  upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session>;
+  upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null; tenantId?: number | null }): Promise<Session>;
   getSession(sessionId: string): Promise<Session | null>;
   updateSessionStatus(sessionId: string, status: "active" | "closed"): Promise<Session | null>;
   updateSessionTags(sessionId: string, tags: string[]): Promise<Session | null>;
@@ -123,7 +123,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null }): Promise<Session> {
+  async upsertSession(data: { sessionId: string; userEmail: string; userName: string; problemType?: string | null; gameName?: string | null; tenantId?: number | null }): Promise<Session> {
     const existing = await this.getSession(data.sessionId);
     if (existing) {
       const updateData: Record<string, any> = {
@@ -134,6 +134,7 @@ export class DatabaseStorage implements IStorage {
       if (data.userName) updateData.userName = data.userName;
       if (data.problemType !== undefined) updateData.problemType = data.problemType;
       if (data.gameName !== undefined) updateData.gameName = data.gameName;
+      if (data.tenantId !== undefined && !existing.tenantId) updateData.tenantId = data.tenantId;
       const [updated] = await db
         .update(sessions)
         .set(updateData)
@@ -151,6 +152,7 @@ export class DatabaseStorage implements IStorage {
         tags: [],
         problemType: data.problemType || null,
         gameName: data.gameName || null,
+        tenantId: data.tenantId || null,
       })
       .returning();
     return created;

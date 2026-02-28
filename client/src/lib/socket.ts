@@ -17,17 +17,19 @@ export function getSocket(): Socket {
   return socket;
 }
 
-export function connectSocket(email: string, name: string, sessionId: string): Socket {
+export function connectSocket(email: string, name: string, sessionId: string, tenantId?: number | null): Socket {
   const s = getSocket();
+  const auth: Record<string, any> = { email, name, sessionId };
+  if (tenantId) auth.tenantId = tenantId;
   if (s.connected) {
     const currentAuth = s.auth as any;
     if (currentAuth?.sessionId !== sessionId) {
       s.disconnect();
-      s.auth = { email, name, sessionId };
+      s.auth = auth;
       s.connect();
     }
   } else {
-    s.auth = { email, name, sessionId };
+    s.auth = auth;
     s.connect();
   }
   return s;

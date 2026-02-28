@@ -48,6 +48,8 @@ interface ChatWindowProps {
   sessionId: string;
   onRatingComplete?: () => void;
   onStartNewSession?: (problemType: string, gameName: string) => void;
+  brandColor?: string;
+  brandName?: string;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -576,7 +578,7 @@ function SessionDivider({ session }: { session: Session }) {
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -795,12 +797,12 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
         background: '#1a1a1a',
       } : { height: '100%' }}
     >
-      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: "#6200EA" }}>
+      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: brandColor || "#6200EA" }}>
         <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
           <Headphones className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 data-testid="text-header-title" className="text-sm font-semibold text-white truncate">Equipo de Soporte</h3>
+          <h3 data-testid="text-header-title" className="text-sm font-semibold text-white truncate">{brandName || "Equipo de Soporte"}</h3>
           <div className="flex items-center gap-1.5">
             {isConnected ? (
               <Wifi className="w-3 h-3 text-green-300" />

@@ -138,7 +138,7 @@ function saveStoredUser(email: string, name: string, activeSessionId: string) {
   } catch {}
 }
 
-export function useChat() {
+export function useChat(tenantId?: number | null) {
   const [user, setUser] = useState<ChatUser | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -253,7 +253,7 @@ export function useChat() {
     let socketConnected = false;
 
     try {
-      const socket = connectSocket(user.email, user.name, user.sessionId);
+      const socket = connectSocket(user.email, user.name, user.sessionId, tenantId);
 
       socket.on("connect", () => {
         socketConnected = true;
@@ -332,6 +332,7 @@ export function useChat() {
             productPrice: productContext?.price || undefined,
             productUrl: productContext?.url || undefined,
             quickReplyValue: quickReplyValue || undefined,
+            tenantId: tenantId || undefined,
           }),
         });
 
@@ -365,7 +366,7 @@ export function useChat() {
         } catch {}
       }
     },
-    [user, pageInfo, productContext],
+    [user, pageInfo, productContext, tenantId],
   );
 
   const requestContact = useCallback(async () => {
@@ -383,6 +384,7 @@ export function useChat() {
           pageTitle: pageInfo.title,
           problemType: user.problemType,
           gameName: user.gameName,
+          tenantId: tenantId || undefined,
         }),
       });
 
@@ -408,7 +410,7 @@ export function useChat() {
         }
       } catch {}
     }
-  }, [user, contactRequested, pageInfo]);
+  }, [user, contactRequested, pageInfo, tenantId]);
 
   const login = useCallback(async (email: string, name: string, problemType?: string, gameName?: string) => {
     let sessionId: string;
@@ -450,6 +452,7 @@ export function useChat() {
               pageTitle: pageInfo.title,
               problemType,
               gameName,
+              tenantId: tenantId || undefined,
             }),
           });
           if (res.ok) {
@@ -460,7 +463,7 @@ export function useChat() {
         } catch {}
       }, 500);
     }
-  }, [pageInfo]);
+  }, [pageInfo, tenantId]);
 
   const startNewSession = useCallback((problemType: string, gameName: string) => {
     if (!user) return;
@@ -496,6 +499,7 @@ export function useChat() {
             pageTitle: pageInfo.title,
             problemType,
             gameName,
+            tenantId: tenantId || undefined,
           }),
         });
         if (res.ok) {
@@ -508,7 +512,7 @@ export function useChat() {
         }
       } catch {}
     }, 500);
-  }, [user, pageInfo]);
+  }, [user, pageInfo, tenantId]);
 
   const logout = useCallback(() => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}

@@ -4,9 +4,11 @@ interface LauncherProps {
   isOpen: boolean;
   onClick: () => void;
   hasUnread: boolean;
+  color?: string;
 }
 
-export function Launcher({ isOpen, onClick, hasUnread }: LauncherProps) {
+export function Launcher({ isOpen, onClick, hasUnread, color }: LauncherProps) {
+  const bgColor = color || "#6200EA";
   return (
     <button
       data-testid="button-launcher"
@@ -16,9 +18,9 @@ export function Launcher({ isOpen, onClick, hasUnread }: LauncherProps) {
         flex items-center justify-center
         transition-all duration-300 ease-out
         focus:outline-none
-        bg-[#6200EA] animate-pulse-glow
+        animate-pulse-glow
       "
-      style={{ border: "none" }}
+      style={{ border: "none", backgroundColor: bgColor }}
     >
       <MessageCircle className="w-6 h-6 text-white" />
       {hasUnread && (
