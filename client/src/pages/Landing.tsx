@@ -813,7 +813,7 @@ function AnimatedChat() {
   }, [visibleMessages, theme.messages.length, transitioning, themeIndex]);
 
   return (
-    <div className="w-full max-w-sm mx-auto" data-testid="chat-demo">
+    <div className="w-full max-w-[340px] sm:max-w-sm mx-auto" data-testid="chat-demo">
       <div className="relative">
         <div
           className="rounded-3xl overflow-hidden border border-white/[0.08] relative"
@@ -844,7 +844,7 @@ function AnimatedChat() {
               <span className="w-2 h-2 rounded-full bg-white/20" />
             </div>
           </div>
-          <div className="relative p-4 space-y-3 min-h-[220px]">
+          <div className="relative p-4 space-y-3 h-[280px] overflow-hidden">
             {theme.messages.slice(0, visibleMessages).map((msg, i) => (
               <div key={`${themeIndex}-${i}`} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`} style={{ animation: "count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
                 <div className={`max-w-[82%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.sender === "user" ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-white/90"}`} style={{ background: msg.sender === "user" ? theme.userBubble : "rgba(255,255,255,0.07)" }}>
@@ -1049,7 +1049,7 @@ export default function Landing() {
               <span className="text-xs font-semibold text-primary tracking-wide">POTENCIADO POR IA AVANZADA</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.08] mb-7" data-testid="text-hero-title">
+            <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.08] mb-5 sm:mb-7" data-testid="text-hero-title">
               El chatbot que
               <br />
               <span className="text-gradient-green">vende por ti</span>
@@ -1057,7 +1057,7 @@ export default function Landing() {
               <span className="text-white/60">las 24 horas</span>
             </h1>
 
-            <p className="text-lg text-white/50 max-w-lg mb-10 leading-relaxed" data-testid="text-hero-description">
+            <p className="text-base sm:text-lg text-white/50 max-w-lg mb-8 sm:mb-10 leading-relaxed" data-testid="text-hero-description">
               <span className="text-white/80 font-medium">FoxBot</span> es un asistente con inteligencia artificial que atiende, recomienda y cierra ventas.
               Y cuando el cliente necesita atencion humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
               Funciona con <span className="text-white/80 font-medium">cualquier plataforma</span>.
@@ -1094,7 +1094,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="hidden lg:block" id="demo">
+          <div className="flex justify-center lg:block" id="demo">
             <AnimatedChat />
           </div>
         </div>
