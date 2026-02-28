@@ -127,8 +127,14 @@ export const tenants = pgTable("tenants", {
   domain: text("domain"),
   widgetColor: text("widget_color").notNull().default("#6200EA"),
   welcomeMessage: text("welcome_message").notNull().default("Hola, ¿en qué podemos ayudarte?"),
+  welcomeSubtitle: text("welcome_subtitle").notNull().default("Completa tus datos para iniciar la conversacion"),
   logoUrl: text("logo_url"),
   avatarUrl: text("avatar_url"),
+  formFields: text("form_fields"),
+  consultationOptions: text("consultation_options"),
+  showProductSearch: integer("show_product_search").notNull().default(0),
+  productSearchLabel: text("product_search_label").notNull().default("Buscar producto"),
+  botConfigured: integer("bot_configured").notNull().default(0),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
   flowCustomerId: text("flow_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -225,8 +231,8 @@ export type Tenant = typeof tenants.$inferSelect;
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
   email: z.string().email("Ingresa un correo valido").max(200),
-  problemType: z.string().min(1, "Selecciona un tipo de consulta"),
-  gameName: z.string().min(1, "Ingresa el nombre del juego o producto").max(200),
+  problemType: z.string().optional().default(""),
+  gameName: z.string().optional().default(""),
 });
 
 export type GuestForm = z.infer<typeof guestFormSchema>;

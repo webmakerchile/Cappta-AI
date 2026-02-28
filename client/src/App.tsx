@@ -283,7 +283,12 @@ interface TenantConfig {
   companyName: string;
   widgetColor: string;
   welcomeMessage: string;
+  welcomeSubtitle: string;
   logoUrl: string | null;
+  formFields: string | null;
+  consultationOptions: string | null;
+  showProductSearch: number;
+  productSearchLabel: string;
 }
 
 function ChatWidget() {
@@ -327,6 +332,10 @@ function ChatWidget() {
   const widgetName = tenantConfig?.companyName || undefined;
   const widgetWelcome = tenantConfig?.welcomeMessage || undefined;
   const widgetLogo = tenantConfig?.logoUrl || undefined;
+  const widgetSubtitle = tenantConfig?.welcomeSubtitle || undefined;
+  const widgetConsultationOptions = tenantConfig?.consultationOptions || undefined;
+  const widgetShowProductSearch = tenantConfig?.showProductSearch || 0;
+  const widgetProductSearchLabel = tenantConfig?.productSearchLabel || undefined;
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -423,6 +432,10 @@ function ChatWidget() {
                 brandColor={widgetColor}
                 brandName={widgetName}
                 welcomeMessage={widgetWelcome}
+                welcomeSubtitle={widgetSubtitle}
+                consultationOptions={widgetConsultationOptions}
+                showProductSearch={widgetShowProductSearch}
+                productSearchLabel={widgetProductSearchLabel}
               />
             )}
           </div>

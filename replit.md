@@ -47,7 +47,7 @@ Key architectural decisions and features include:
 - `/admin` - Admin panel (agent dashboard)
 
 ## Database Tables
-- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, logoUrl, plan, createdAt)
+- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, botConfigured, plan, flowCustomerId, createdAt)
 - `sessions` - Chat sessions (has tenantId for multi-tenant isolation)
 - `messages` - Chat messages (has tenantId)
 - `products` - Product catalog (has tenantId)

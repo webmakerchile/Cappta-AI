@@ -28,7 +28,14 @@ import {
   X,
   Sparkles,
   BookOpen,
+  Plus,
+  Trash2,
+  AlertTriangle,
+  CircleCheck,
+  Eye,
+  Search,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -172,18 +179,34 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [companyName, setCompanyName] = useState(tenant.companyName);
   const [widgetColor, setWidgetColor] = useState(tenant.widgetColor);
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage);
+  const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
+  const [showProductSearch, setShowProductSearch] = useState(tenant.showProductSearch === 1);
+  const [productSearchLabel, setProductSearchLabel] = useState(tenant.productSearchLabel || "Buscar producto");
   const [saved, setSaved] = useState(false);
+
+  const [consultationOptions, setConsultationOptions] = useState<{ value: string; label: string }[]>(() => {
+    try {
+      return tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : [];
+    } catch { return []; }
+  });
+  const [newOption, setNewOption] = useState("");
 
   useEffect(() => {
     setCompanyName(tenant.companyName);
     setWidgetColor(tenant.widgetColor);
     setWelcomeMessage(tenant.welcomeMessage);
+    setWelcomeSubtitle(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversacion");
     setLogoUrl(tenant.logoUrl || "");
+    setShowProductSearch(tenant.showProductSearch === 1);
+    setProductSearchLabel(tenant.productSearchLabel || "Buscar producto");
+    try {
+      setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
+    } catch { setConsultationOptions([]); }
   }, [tenant]);
 
   const updateMutation = useMutation({
-    mutationFn: async (data: Partial<TenantProfile>) => {
+    mutationFn: async (data: any) => {
       const res = await fetch("/api/tenants/me", {
         method: "PATCH",
         headers: {
@@ -206,82 +229,207 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     },
   });
 
+  const addOption = () => {
+    const label = newOption.trim();
+    if (!label) return;
+    const value = label.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+    if (consultationOptions.some((o) => o.value === value)) return;
+    setConsultationOptions([...consultationOptions, { value, label }]);
+    setNewOption("");
+  };
+
+  const removeOption = (value: string) => {
+    setConsultationOptions(consultationOptions.filter((o) => o.value !== value));
+  };
+
+  const isConfigComplete = companyName.trim().length > 0 && widgetColor.trim().length > 0;
+
   const handleSave = () => {
-    updateMutation.mutate({ companyName, widgetColor, welcomeMessage, logoUrl: logoUrl || null });
+    const data: any = {
+      companyName,
+      widgetColor,
+      welcomeMessage,
+      welcomeSubtitle,
+      logoUrl: logoUrl || null,
+      consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
+      showProductSearch: showProductSearch ? 1 : 0,
+      productSearchLabel,
+      botConfigured: isConfigComplete ? 1 : 0,
+    };
+    updateMutation.mutate(data);
   };
 
   return (
-    <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
-      <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full animate-orb-drift opacity-30" style={{ background: `radial-gradient(circle, ${widgetColor}10, transparent 60%)` }} />
+    <div className="space-y-6">
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full animate-orb-drift opacity-30" style={{ background: `radial-gradient(circle, ${widgetColor}10, transparent 60%)` }} />
 
-      <div className="relative">
-        <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Configuracion del Widget</h3>
-        <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Personaliza la apariencia de tu chat</p>
-      </div>
+        <div className="relative">
+          <h3 className="text-lg font-bold mb-1 animate-dash-slide-right flex items-center gap-2">
+            <Palette className="w-5 h-5 text-primary" />
+            Apariencia del Widget
+          </h3>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Color, logo y textos de tu chatbot</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-        <div className="space-y-2 animate-dash-fade-up dash-stagger-1">
-          <label className="text-sm font-medium text-white/60">Nombre de la Empresa</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+          <div className="space-y-2 animate-dash-fade-up dash-stagger-1">
+            <label className="text-sm font-medium text-white/60">Nombre de la Empresa</label>
+            <Input
+              data-testid="input-company-name"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Mi Empresa"
+              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+            />
+          </div>
+
+          <div className="space-y-2 animate-dash-fade-up dash-stagger-2">
+            <label className="text-sm font-medium text-white/60">Color del Widget</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                data-testid="input-widget-color"
+                value={widgetColor}
+                onChange={(e) => setWidgetColor(e.target.value)}
+                className="h-11 w-14 rounded-xl border border-white/[0.08] cursor-pointer bg-transparent transition-transform duration-200 hover:scale-105"
+              />
+              <Input
+                value={widgetColor}
+                onChange={(e) => setWidgetColor(e.target.value)}
+                className="max-w-[140px] h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 font-mono text-sm transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+                data-testid="input-widget-color-text"
+              />
+              <div
+                className="h-11 w-11 rounded-xl border border-white/[0.08] shrink-0 transition-all duration-500 hover:scale-110 hover:shadow-lg"
+                style={{ backgroundColor: widgetColor, boxShadow: `0 4px 20px ${widgetColor}30` }}
+                data-testid="widget-color-preview"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-3 relative">
+          <label className="text-sm font-medium text-white/60">Mensaje de Bienvenida</label>
           <Input
-            data-testid="input-company-name"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
+            data-testid="input-welcome-message"
+            value={welcomeMessage}
+            onChange={(e) => setWelcomeMessage(e.target.value)}
+            placeholder="Hola, ¿en que podemos ayudarte?"
             className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
           />
         </div>
 
-        <div className="space-y-2 animate-dash-fade-up dash-stagger-2">
-          <label className="text-sm font-medium text-white/60">Color del Widget</label>
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
+          <label className="text-sm font-medium text-white/60">Subtitulo (texto bajo el mensaje)</label>
+          <Input
+            data-testid="input-welcome-subtitle"
+            value={welcomeSubtitle}
+            onChange={(e) => setWelcomeSubtitle(e.target.value)}
+            placeholder="Completa tus datos para iniciar la conversacion"
+            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+          />
+        </div>
+
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
+          <label className="text-sm font-medium text-white/60">URL del Logo (opcional)</label>
           <div className="flex items-center gap-3">
-            <input
-              type="color"
-              data-testid="input-widget-color"
-              value={widgetColor}
-              onChange={(e) => setWidgetColor(e.target.value)}
-              className="h-11 w-14 rounded-xl border border-white/[0.08] cursor-pointer bg-transparent transition-transform duration-200 hover:scale-105"
-            />
             <Input
-              value={widgetColor}
-              onChange={(e) => setWidgetColor(e.target.value)}
-              className="max-w-[140px] h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 font-mono text-sm transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
-              data-testid="input-widget-color-text"
+              data-testid="input-logo-url"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              placeholder="https://ejemplo.com/logo.png"
+              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
             />
-            <div
-              className="h-11 w-11 rounded-xl border border-white/[0.08] shrink-0 transition-all duration-500 hover:scale-110 hover:shadow-lg"
-              style={{ backgroundColor: widgetColor, boxShadow: `0 4px 20px ${widgetColor}30` }}
-              data-testid="widget-color-preview"
-            />
+            {logoUrl && (
+              <img src={logoUrl} alt="Preview" className="h-11 w-11 rounded-xl object-cover border border-white/[0.08] animate-dash-scale-in" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            )}
           </div>
         </div>
       </div>
 
-      <div className="space-y-2 animate-dash-fade-up dash-stagger-3 relative">
-        <label className="text-sm font-medium text-white/60">Mensaje de Bienvenida</label>
-        <Textarea
-          data-testid="input-welcome-message"
-          value={welcomeMessage}
-          onChange={(e) => setWelcomeMessage(e.target.value)}
-          className="resize-none min-h-[80px] rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
-        />
-      </div>
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="relative">
+          <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Opciones de Consulta
+          </h3>
+          <p className="text-sm text-white/40">Define las opciones que veran tus clientes al iniciar el chat (opcional)</p>
+        </div>
 
-      <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
-        <label className="text-sm font-medium text-white/60">URL del Logo (opcional)</label>
-        <div className="flex items-center gap-3">
-          <Input
-            data-testid="input-logo-url"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            placeholder="https://ejemplo.com/logo.png"
-            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
-          />
-          {logoUrl && (
-            <img src={logoUrl} alt="Preview" className="h-11 w-11 rounded-xl object-cover border border-white/[0.08] animate-dash-scale-in" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-          )}
+        <div className="space-y-3">
+          {consultationOptions.map((opt, i) => (
+            <div key={opt.value} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]" data-testid={`consultation-option-${i}`}>
+              <span className="flex-1 text-sm text-white/80">{opt.label}</span>
+              <button
+                onClick={() => removeOption(opt.value)}
+                className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                data-testid={`button-remove-option-${i}`}
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              </button>
+            </div>
+          ))}
+
+          <div className="flex items-center gap-3">
+            <Input
+              value={newOption}
+              onChange={(e) => setNewOption(e.target.value)}
+              placeholder="Ej: Quiero una cotizacion"
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addOption())}
+              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
+              data-testid="input-new-option"
+            />
+            <Button
+              onClick={addOption}
+              variant="outline"
+              className="h-11 rounded-xl border-white/[0.08] hover:border-primary/30 shrink-0"
+              data-testid="button-add-option"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Agregar
+            </Button>
+          </div>
+          <p className="text-xs text-white/30">Si no agregas opciones, el formulario solo pedira nombre y correo.</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 pt-2 animate-dash-fade-up dash-stagger-5 relative">
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="relative">
+          <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+            <Search className="w-5 h-5 text-primary" />
+            Buscador de Productos
+          </h3>
+          <p className="text-sm text-white/40">Activa el buscador de productos en tu formulario de bienvenida</p>
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div>
+            <p className="text-sm font-medium text-white/80">Mostrar buscador de productos</p>
+            <p className="text-xs text-white/40 mt-0.5">Permite a los clientes buscar productos antes de chatear</p>
+          </div>
+          <Switch
+            checked={showProductSearch}
+            onCheckedChange={setShowProductSearch}
+            data-testid="switch-product-search"
+          />
+        </div>
+
+        {showProductSearch && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white/60">Etiqueta del buscador</label>
+            <Input
+              value={productSearchLabel}
+              onChange={(e) => setProductSearchLabel(e.target.value)}
+              placeholder="Buscar producto..."
+              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
+              data-testid="input-product-search-label"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3 pt-2 animate-dash-fade-up relative">
         <Button
           onClick={handleSave}
           disabled={updateMutation.isPending}
@@ -298,7 +446,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               Guardando...
             </span>
-          ) : "Guardar Cambios"}
+          ) : "Guardar Configuracion"}
         </Button>
         <div
           className="h-11 w-11 rounded-xl border border-white/[0.08] flex items-center justify-center transition-all duration-500 hover:scale-110 animate-float"
@@ -313,6 +461,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
 
 function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const [copied, setCopied] = useState<string | null>(null);
+  const isConfigured = tenant.botConfigured === 1;
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -347,13 +496,36 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  if (!isConfigured) {
+    return (
+      <div className="rounded-2xl glass-card p-8 space-y-4 animate-dash-scale-in relative overflow-hidden text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto border border-amber-500/20">
+          <AlertTriangle className="w-8 h-8 text-amber-400" />
+        </div>
+        <h3 className="text-lg font-bold">Configura tu bot primero</h3>
+        <p className="text-sm text-white/50 max-w-md mx-auto">
+          Antes de obtener el codigo de integracion, debes configurar tu chatbot en la seccion de Configuracion. Define el nombre de tu empresa, color, mensaje de bienvenida y opciones de consulta.
+        </p>
+        <p className="text-xs text-white/30">
+          Ve a Configuracion → completa los datos → guarda → vuelve aqui para obtener tu codigo.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
       <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04), transparent 60%)", animationDelay: "-7s" }} />
 
-      <div className="relative">
-        <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Codigo de Integracion</h3>
-        <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Copia y pega este codigo en tu sitio web</p>
+      <div className="relative flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Codigo de Integracion</h3>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Copia y pega este codigo en tu sitio web</p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+          <CircleCheck className="w-4 h-4 text-green-400" />
+          <span className="text-xs text-green-400">Bot configurado</span>
+        </div>
       </div>
 
       <Tabs defaultValue="iframe" className="relative">

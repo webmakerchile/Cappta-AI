@@ -1200,25 +1200,31 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, botConfigured: tenant.botConfigured, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
-      const { companyName, widgetColor, welcomeMessage, logoUrl, domain } = req.body;
+      const { companyName, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, botConfigured } = req.body;
       const updates: any = {};
       if (companyName !== undefined) updates.companyName = companyName;
       if (widgetColor !== undefined) updates.widgetColor = widgetColor;
       if (welcomeMessage !== undefined) updates.welcomeMessage = welcomeMessage;
+      if (welcomeSubtitle !== undefined) updates.welcomeSubtitle = welcomeSubtitle;
       if (logoUrl !== undefined) updates.logoUrl = logoUrl;
       if (domain !== undefined) updates.domain = domain;
+      if (formFields !== undefined) updates.formFields = formFields;
+      if (consultationOptions !== undefined) updates.consultationOptions = consultationOptions;
+      if (showProductSearch !== undefined) updates.showProductSearch = showProductSearch;
+      if (productSearchLabel !== undefined) updates.productSearchLabel = productSearchLabel;
+      if (botConfigured !== undefined) updates.botConfigured = botConfigured;
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, botConfigured: tenant.botConfigured });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
@@ -1236,7 +1242,12 @@ ${DEMO_BASE_RULES}`,
         companyName: tenant.companyName,
         widgetColor: tenant.widgetColor,
         welcomeMessage: tenant.welcomeMessage,
+        welcomeSubtitle: tenant.welcomeSubtitle,
         logoUrl: tenant.logoUrl,
+        formFields: tenant.formFields,
+        consultationOptions: tenant.consultationOptions,
+        showProductSearch: tenant.showProductSearch,
+        productSearchLabel: tenant.productSearchLabel,
       });
     } catch (error: any) {
       res.status(500).json({ message: "Error al obtener configuracion" });
