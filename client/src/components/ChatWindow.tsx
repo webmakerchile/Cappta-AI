@@ -20,6 +20,7 @@ interface BrowseProduct {
   platform: string;
   category: string;
   availability: string;
+  badgeLabel: string | null;
 }
 
 const getPlatformBadge = (platform: string): string => {
@@ -1042,7 +1043,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
               ) : (
                 <ul className="divide-y divide-white/5">
                   {browseProducts.map((product) => {
-                    const badge = getPlatformBadge(product.platform);
+                    const platformBadge = getPlatformBadge(product.platform);
+                    const displayBadge = product.badgeLabel || platformBadge;
                     return (
                       <li key={product.id} data-testid={`browse-product-item-${product.id}`}>
                         <button
@@ -1060,8 +1062,8 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                                 {product.price && (
                                   <span className="text-xs text-white/60">{product.price}</span>
                                 )}
-                                {badge && (
-                                  <span className="inline-block px-2 py-0.5 text-white/80 text-xs rounded" style={{ backgroundColor: hexToRgba(brandColor || "#10b981", 0.3) }}>{badge}</span>
+                                {displayBadge && (
+                                  <span className="inline-block px-2 py-0.5 text-white/80 text-xs rounded" style={{ backgroundColor: hexToRgba(brandColor || "#10b981", 0.3) }}>{displayBadge}</span>
                                 )}
                               </div>
                             </div>

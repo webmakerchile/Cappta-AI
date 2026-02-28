@@ -80,6 +80,7 @@ export const products = pgTable("products", {
   description: text("description"),
   category: text("category", { enum: ["game", "subscription", "card", "bundle", "console", "accessory", "other"] }).notNull().default("game"),
   accountType: text("account_type", { enum: ["primaria", "secundaria", "no_aplica"] }).notNull().default("no_aplica"),
+  badgeLabel: text("badge_label"),
   wcLastSync: timestamp("wc_last_sync"),
 });
 

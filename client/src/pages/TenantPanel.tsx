@@ -166,6 +166,7 @@ interface ProductItem {
   category: string;
   availability: string;
   description: string | null;
+  badgeLabel: string | null;
 }
 
 interface KnowledgeEntry {
@@ -1866,6 +1867,8 @@ function EntrenarBotTab() {
         </Button>
       </div>
 
+      <CatalogQuickEdit />
+
       {approvedCount > 0 && (
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -1876,6 +1879,276 @@ function EntrenarBotTab() {
           <p className="text-xs text-white/40">
             Tu bot tiene {approvedCount} correcciones guardadas desde el chat. Puedes verlas y editarlas en la pestaña "Conocimiento".
           </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CatalogQuickEdit() {
+  const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editBadge, setEditBadge] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newBadge, setNewBadge] = useState("");
+
+  const { data: products = [], isLoading } = useQuery<ProductItem[]>({
+    queryKey: ["/api/tenant-panel/products"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/products");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await tenantFetch(`/api/tenant-panel/products/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
+      setEditingId(null);
+      toast({ title: "Producto actualizado" });
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await tenantFetch("/api/tenant-panel/products", { method: "POST", body: JSON.stringify(data) });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
+      setShowAddForm(false);
+      setNewName("");
+      setNewPrice("");
+      setNewBadge("");
+      toast({ title: "Producto agregado al catalogo" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await tenantFetch(`/api/tenant-panel/products/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
+      toast({ title: "Producto eliminado" });
+    },
+  });
+
+  const startEdit = (p: ProductItem) => {
+    setEditingId(p.id);
+    setEditName(p.name);
+    setEditPrice(p.price || "");
+    setEditBadge(p.badgeLabel || "");
+  };
+
+  const saveEdit = () => {
+    if (!editName.trim()) return;
+    updateMutation.mutate({
+      id: editingId!,
+      data: { name: editName.trim(), price: editPrice.trim() || null, badgeLabel: editBadge.trim() || null },
+    });
+  };
+
+  const handleCreate = () => {
+    if (!newName.trim()) return;
+    createMutation.mutate({
+      name: newName.trim(),
+      price: newPrice.trim() || null,
+      badgeLabel: newBadge.trim() || null,
+      category: "other",
+      availability: "available",
+    });
+  };
+
+  const filtered = products.filter((p) =>
+    !search || p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const badgeSuggestions = ["Nuevo", "Popular", "Oferta", "Destacado", "Mas vendido", "Exclusivo"];
+
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="w-4 h-4 text-[#10b981]" />
+          <p className="text-sm font-medium text-white/80">Catalogo del widget</p>
+          <Badge variant="outline" className="text-[10px] border-white/10 text-white/40" data-testid="badge-catalog-count">{products.length}</Badge>
+        </div>
+        <Button
+          data-testid="button-add-catalog-product"
+          size="sm"
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="bg-[#10b981] border-[#10b981] text-xs"
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          Agregar
+        </Button>
+      </div>
+      <p className="text-xs text-white/40">
+        Estos productos aparecen en el catalogo del chat. Puedes personalizar nombre, precio y etiqueta.
+      </p>
+
+      {showAddForm && (
+        <div className="rounded-lg border border-[#10b981]/20 bg-[#10b981]/5 p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <p className="text-xs font-medium text-[#10b981]">Nuevo producto</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <Input
+              data-testid="input-new-catalog-name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nombre del producto"
+              className="bg-white/[0.04] border-white/[0.08] text-sm"
+            />
+            <Input
+              data-testid="input-new-catalog-price"
+              value={newPrice}
+              onChange={(e) => setNewPrice(e.target.value)}
+              placeholder="Precio (ej: $19.990)"
+              className="bg-white/[0.04] border-white/[0.08] text-sm"
+            />
+            <Input
+              data-testid="input-new-catalog-badge"
+              value={newBadge}
+              onChange={(e) => setNewBadge(e.target.value)}
+              placeholder="Etiqueta (ej: Nuevo)"
+              className="bg-white/[0.04] border-white/[0.08] text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] text-white/30">Sugerencias:</span>
+            {badgeSuggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => setNewBadge(s)}
+                className={`text-[10px] px-2 py-0.5 rounded-full transition-colors ${newBadge === s ? "bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30" : "bg-white/[0.04] text-white/40 border border-white/[0.06] hover:text-white/60"}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              data-testid="button-save-new-catalog-product"
+              size="sm"
+              onClick={handleCreate}
+              disabled={!newName.trim() || createMutation.isPending}
+              className="bg-[#10b981] border-[#10b981] text-xs"
+            >
+              {createMutation.isPending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Check className="w-3.5 h-3.5 mr-1" />}
+              Guardar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setShowAddForm(false); setNewName(""); setNewPrice(""); setNewBadge(""); }}
+              className="text-white/40 text-xs"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {products.length > 5 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
+          <Input
+            data-testid="input-search-catalog"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar producto..."
+            className="pl-9 bg-white/[0.04] border-white/[0.08] text-sm"
+          />
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-6 text-white/30 text-sm">
+          {products.length === 0 ? "No hay productos en el catalogo. Agrega uno para que aparezca en el chat." : "Sin resultados"}
+        </div>
+      ) : (
+        <div className="space-y-1 max-h-[400px] overflow-y-auto chat-scrollbar">
+          {filtered.map((p) => (
+            <div key={p.id} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]" data-testid={`catalog-item-${p.id}`}>
+              {editingId === p.id ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <Input
+                      data-testid={`input-edit-name-${p.id}`}
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Nombre"
+                      className="bg-white/[0.04] border-white/[0.08] text-sm"
+                    />
+                    <Input
+                      data-testid={`input-edit-price-${p.id}`}
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(e.target.value)}
+                      placeholder="Precio"
+                      className="bg-white/[0.04] border-white/[0.08] text-sm"
+                    />
+                    <Input
+                      data-testid={`input-edit-badge-${p.id}`}
+                      value={editBadge}
+                      onChange={(e) => setEditBadge(e.target.value)}
+                      placeholder="Etiqueta"
+                      className="bg-white/[0.04] border-white/[0.08] text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-white/30">Sugerencias:</span>
+                    {badgeSuggestions.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setEditBadge(s)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full transition-colors ${editBadge === s ? "bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30" : "bg-white/[0.04] text-white/40 border border-white/[0.06] hover:text-white/60"}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveEdit} disabled={updateMutation.isPending} className="bg-[#10b981] border-[#10b981] text-xs" data-testid={`button-save-edit-${p.id}`}>
+                      {updateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Check className="w-3.5 h-3.5 mr-1" />}
+                      Guardar
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="text-white/40 text-xs">Cancelar</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-white/80 font-medium truncate">{p.name}</span>
+                      {p.badgeLabel && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20 font-medium shrink-0">{p.badgeLabel}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-white/40">{p.price || "Sin precio"}</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(p)} className="text-white/40 hover:text-white/70 h-7 w-7 p-0" data-testid={`button-edit-catalog-${p.id}`}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => deleteMutation.mutate(p.id)} className="text-red-400/40 hover:text-red-400 h-7 w-7 p-0" data-testid={`button-delete-catalog-${p.id}`}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
