@@ -19,6 +19,7 @@ import {
   Send,
   Sparkles,
   ChevronRight,
+  ChevronDown,
   Users,
   TrendingUp,
   MessageSquare,
@@ -38,6 +39,12 @@ import {
   CircleDot,
   Tag,
   Eye,
+  Gamepad2,
+  FileText,
+  PlayCircle,
+  Trophy,
+  Timer,
+  Package,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -472,45 +479,255 @@ function DashboardPreview() {
   );
 }
 
+function WelcomeFormPreview() {
+  return (
+    <div className="w-full max-w-[360px] mx-auto" data-testid="welcome-form-preview">
+      <div className="rounded-2xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(20,20,20,0.97) 0%, rgba(8,8,8,0.99) 100%)", boxShadow: "0 0 60px rgba(98,0,234,0.06), 0 20px 40px rgba(0,0,0,0.4)" }}>
+        <div className="px-3.5 py-3 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #6200EA 0%, #4a00b0 100%)" }}>
+          <div className="flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-white" />
+            <span className="text-[13px] font-bold text-white" data-testid="text-form-brand">Chat de Soporte</span>
+          </div>
+          <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center"><X className="w-3 h-3 text-white/70" /></div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <div className="text-center mb-2">
+            <div className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: "rgba(98,0,234,0.15)" }}>
+              <Headphones className="w-7 h-7 text-[#6200EA]" />
+            </div>
+            <h3 className="text-base font-bold text-white/90" data-testid="text-form-title">Bienvenido!</h3>
+            <p className="text-[11px] text-white/35 mt-1">Completa tus datos para iniciar la conversacion</p>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">Correo electronico</label>
+            <div className="flex items-center gap-2 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5">
+              <Mail className="w-3.5 h-3.5 text-white/25" />
+              <span className="text-[12px] text-white/70">carlos@empresa.cl</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">Tipo de consulta</label>
+            <div className="flex items-center justify-between bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5">
+              <span className="text-[12px] text-white/70">Quiero comprar un producto</span>
+              <ChevronDown className="w-3.5 h-3.5 text-white/25" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">Seleccionar producto</label>
+            <div className="flex items-center gap-2 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5">
+              <Gamepad2 className="w-3.5 h-3.5 text-white/25" />
+              <span className="text-[12px] text-white/70">PS5 Slim Digital</span>
+              <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#6200EA]/20 text-[#a78bfa]">PS5</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">Tu nombre</label>
+            <div className="bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5">
+              <span className="text-[12px] text-white/70">Carlos Martinez</span>
+            </div>
+          </div>
+
+          <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white cursor-default" style={{ backgroundColor: "#6200EA" }} data-testid="button-preview-start-chat">
+            Iniciar Chat
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExecutiveRequestPreview() {
+  return (
+    <div className="w-full max-w-4xl mx-auto" data-testid="executive-request-preview">
+      <div className="rounded-2xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(18,18,18,0.98) 0%, rgba(8,8,8,0.99) 100%)", boxShadow: "0 0 60px rgba(245,158,11,0.04), 0 20px 40px rgba(0,0,0,0.4)" }}>
+        <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: "linear-gradient(135deg, #6200EA 0%, #4a00b0 100%)" }}>
+          <div className="flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-white" />
+            <span className="text-[13px] font-bold text-white" data-testid="text-exec-panel-title">Panel de Ejecutivos</span>
+          </div>
+          <div className="flex-1" />
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/30 animate-pulse">
+              <Bell className="w-2.5 h-2.5 text-amber-300" />
+              <span className="text-[10px] text-amber-200 font-bold">2 solicitudes</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex min-h-[360px]">
+          <div className="w-[200px] shrink-0 border-r border-white/[0.06] hidden sm:block">
+            <div className="p-2">
+              <div className="flex items-center gap-1 mb-2">
+                <span className="text-[9px] px-1.5 py-0.5 rounded text-white/25">Todos</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-bold flex items-center gap-0.5 animate-pulse">
+                  <CircleDot className="w-2 h-2" />Solicita Ejecutivo
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-0.5 px-1.5">
+              <div className="flex items-center gap-2 p-1.5 rounded-lg bg-amber-500/[0.06] border border-amber-500/15" data-testid="card-exec-session-0">
+                <div className="relative w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-[10px] font-bold text-amber-300">C</span>
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-[#121212] animate-pulse" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-semibold text-white/80 truncate">Carlos M.</span>
+                    <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-[8px] text-white font-bold flex items-center justify-center shrink-0 animate-bounce">1</span>
+                  </div>
+                  <p className="text-[9px] text-amber-400/60 truncate font-medium">Solicita ejecutivo</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-orange-500/15 text-orange-300">Compra</span>
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-[#6200EA]/15 text-[#a78bfa] flex items-center gap-0.5"><Gamepad2 className="w-2 h-2" />PS5</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/[0.03]" data-testid="card-exec-session-1">
+                <div className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0">
+                  <span className="text-[10px] font-bold text-white/50">L</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-semibold text-white/60 truncate block">Laura P.</span>
+                  <p className="text-[9px] text-white/25 truncate">Bot: Le envio las opciones...</p>
+                </div>
+                <span className="w-2 h-2 rounded-full bg-[#6200EA] block shrink-0" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06] bg-amber-500/[0.02]">
+              <div className="relative w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-amber-300">C</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[11px] font-bold text-white/80">Carlos Martinez</span>
+                <span className="text-[9px] text-white/25 ml-1.5">carlos@empresa.cl</span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 cursor-default animate-pulse" data-testid="button-preview-claim">
+                  <UserRound className="w-3 h-3 text-emerald-400" />
+                  <span className="text-[10px] font-bold text-emerald-300">Entrar al Chat</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="px-3 py-2">
+              <div className="rounded-xl bg-amber-500/[0.06] border border-amber-500/15 p-3 mb-3" data-testid="card-exec-prechat">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <FileText className="w-3 h-3 text-amber-400" />
+                  <span className="text-[10px] font-bold text-amber-300">Formulario pre-chat</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Nombre</span>
+                    <span className="text-[11px] text-white/70 font-medium">Carlos Martinez</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Email</span>
+                    <span className="text-[11px] text-[#a78bfa] font-medium">carlos@empresa.cl</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Consulta</span>
+                    <span className="text-[11px] text-orange-300 font-medium">Quiero comprar un producto</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-white/25 uppercase tracking-wider block">Producto</span>
+                    <span className="text-[11px] text-white/70 font-medium flex items-center gap-1"><Gamepad2 className="w-2.5 h-2.5 text-[#a78bfa]" />PS5 Slim Digital</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 px-3 space-y-2 overflow-hidden">
+              <div className="flex justify-start">
+                <div className="max-w-[75%] bg-white/[0.05] border border-white/[0.06] rounded-xl rounded-bl-sm px-2.5 py-1.5">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <Bot className="w-2.5 h-2.5 text-[#6200EA]" />
+                    <span className="text-[8px] font-semibold text-[#a78bfa]">Bot IA</span>
+                  </div>
+                  <p className="text-[11px] text-white/70">Hola Carlos! Veo que te interesa la PS5 Slim Digital. Tenemos stock disponible a $459.990.</p>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="max-w-[75%] bg-[#6200EA] rounded-xl rounded-br-sm px-2.5 py-1.5">
+                  <p className="text-[11px] text-white">Tienen algun descuento? Quiero hablar con alguien</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 py-1">
+                <div className="flex-1 h-px bg-amber-500/20" />
+                <span className="text-[8px] text-amber-400/60 font-medium px-1 flex items-center gap-1"><Bell className="w-2 h-2" />Cliente solicita ejecutivo</span>
+                <div className="flex-1 h-px bg-amber-500/20" />
+              </div>
+            </div>
+
+            <div className="px-3 pb-2.5 pt-2">
+              <div className="flex items-center gap-1.5 bg-amber-500/[0.04] border border-amber-500/10 rounded-xl px-2.5 py-2 text-center justify-center">
+                <UserRound className="w-3 h-3 text-amber-400" />
+                <span className="text-[10px] text-amber-300/70 font-medium">Haz clic en "Entrar al Chat" para responder como ejecutivo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PreviewTabs() {
-  const [activeTab, setActiveTab] = useState<"widget" | "dashboard">("widget");
+  const [activeTab, setActiveTab] = useState<"form" | "widget" | "executive" | "dashboard">("form");
+
+  const tabs = [
+    { id: "form" as const, label: "Formulario Pre-Chat", icon: FileText },
+    { id: "widget" as const, label: "Chat Widget", icon: MessageSquare },
+    { id: "executive" as const, label: "Vista Ejecutivo", icon: Bell },
+    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones },
+  ];
 
   return (
     <div data-testid="preview-tabs">
       <div className="text-center mb-8">
-        <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90">Asi se ve en la practica</h3>
-        <p className="text-sm text-white/35 max-w-lg mx-auto">Explora como luce el chatbot para tus clientes y el panel donde tus ejecutivos toman el control.</p>
+        <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90" data-testid="text-preview-heading">Asi se ve en la practica</h3>
+        <p className="text-sm text-white/35 max-w-lg mx-auto">Explora cada pantalla del sistema: desde el formulario inicial hasta el panel de ejecutivos.</p>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mb-8">
-        <button
-          onClick={() => setActiveTab("widget")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === "widget" ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40 hover:text-white/60"}`}
-          data-testid="tab-widget-preview"
-        >
-          <MessageSquare className="w-4 h-4" />
-          Chat Widget
-        </button>
-        <button
-          onClick={() => setActiveTab("dashboard")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === "dashboard" ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40 hover:text-white/60"}`}
-          data-testid="tab-dashboard-preview"
-        >
-          <Headphones className="w-4 h-4" />
-          Panel de Ejecutivos
-        </button>
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-[12px] sm:text-sm font-semibold transition-all duration-300 ${activeTab === tab.id ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40"}`}
+            data-testid={`tab-${tab.id}-preview`}
+          >
+            <tab.icon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+          </button>
+        ))}
       </div>
 
       <div className="relative">
-        <div
-          className={`transition-all duration-500 ${activeTab === "widget" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}
-        >
+        <div className={`transition-all duration-500 ${activeTab === "form" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
+          <WelcomeFormPreview />
+          <p className="text-center text-[11px] text-white/20 mt-4">El cliente completa sus datos antes de iniciar el chat</p>
+        </div>
+        <div className={`transition-all duration-500 ${activeTab === "widget" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <ChatbotPreview />
           <p className="text-center text-[11px] text-white/20 mt-4">Widget embebido en tu sitio web — Totalmente personalizable</p>
         </div>
-        <div
-          className={`transition-all duration-500 ${activeTab === "dashboard" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}
-        >
+        <div className={`transition-all duration-500 ${activeTab === "executive" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
+          <ExecutiveRequestPreview />
+          <p className="text-center text-[11px] text-white/20 mt-4">El ejecutivo ve la solicitud, el formulario pre-chat y el historial completo</p>
+        </div>
+        <div className={`transition-all duration-500 ${activeTab === "dashboard" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <DashboardPreview />
           <p className="text-center text-[11px] text-white/20 mt-4">Panel de administracion donde los ejecutivos gestionan chats en tiempo real</p>
         </div>
