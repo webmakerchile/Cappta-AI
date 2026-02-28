@@ -48,6 +48,7 @@ import {
   Package,
   Smartphone,
   Download,
+  Crown,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -120,6 +121,12 @@ const pricingPlans = [
     ],
     cta: "Comenzar Gratis",
     highlighted: false,
+    tier: "free" as const,
+    borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 45%) 50%, hsl(142, 72%, 40%) 100%)",
+    bgTint: "rgba(16, 185, 129, 0.03)",
+    accentColor: "hsl(142, 72%, 40%)",
+    checkBg: "bg-emerald-500/10",
+    checkColor: "text-emerald-400",
   },
   {
     name: "Flox Pro",
@@ -139,6 +146,12 @@ const pricingPlans = [
     ],
     cta: "Elegir Flox Pro",
     highlighted: true,
+    tier: "pro" as const,
+    borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 35%) 25%, hsl(30, 90%, 52%) 50%, hsl(142, 72%, 40%) 75%, hsl(160, 60%, 35%) 100%)",
+    bgTint: "rgba(16, 185, 129, 0.04)",
+    accentColor: "hsl(30, 90%, 52%)",
+    checkBg: "bg-primary/10",
+    checkColor: "text-primary",
   },
   {
     name: "Flox Enterprise",
@@ -158,6 +171,12 @@ const pricingPlans = [
     ],
     cta: "Elegir Flox Enterprise",
     highlighted: false,
+    tier: "enterprise" as const,
+    borderGradient: "linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(45, 93%, 58%) 25%, hsl(28, 80%, 52%) 50%, hsl(38, 92%, 50%) 75%, hsl(45, 93%, 58%) 100%)",
+    bgTint: "rgba(245, 158, 11, 0.03)",
+    accentColor: "hsl(38, 92%, 50%)",
+    checkBg: "bg-amber-500/10",
+    checkColor: "text-amber-400",
   },
 ];
 
@@ -1487,13 +1506,13 @@ export default function Landing() {
                 style={{ animationDelay: `${index * 120}ms` }}
                 data-testid={`card-pricing-${index}`}
               >
-                {plan.highlighted && (
-                  <div className="absolute -inset-[1px] rounded-3xl animate-gradient-shift z-0" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 35%) 25%, hsl(30, 90%, 52%) 50%, hsl(142, 72%, 40%) 75%, hsl(160, 60%, 35%) 100%)", padding: "1px" }}>
-                    <div className="w-full h-full rounded-3xl bg-background" />
-                  </div>
-                )}
+                <div className="absolute -inset-[1px] rounded-3xl animate-gradient-shift z-0" style={{ background: plan.borderGradient, padding: "1px" }}>
+                  <div className="w-full h-full rounded-3xl bg-background" />
+                </div>
 
-                <div className={`relative z-10 rounded-3xl h-full flex flex-col ${plan.highlighted ? "glass-card" : "glass-card"}`} style={plan.highlighted ? { background: "rgba(16, 185, 129, 0.04)", border: "none" } : {}}>
+                <div className="absolute -inset-[1px] rounded-3xl z-0 opacity-30 blur-xl animate-subtle-breathe" style={{ background: plan.borderGradient }} />
+
+                <div className="relative z-10 rounded-3xl h-full flex flex-col glass-card" style={{ background: plan.bgTint, border: "none" }}>
                   {plan.highlighted && (
                     <div className="flex justify-center pt-5">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
@@ -1503,22 +1522,35 @@ export default function Landing() {
                     </div>
                   )}
 
+                  {plan.tier === "enterprise" && (
+                    <div className="flex justify-center pt-5">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(38, 92%, 42%) 0%, hsl(28, 80%, 45%) 100%)", color: "white" }}>
+                        <Crown className="w-3 h-3" />
+                        PREMIUM
+                      </div>
+                    </div>
+                  )}
+
                   <div className="text-center px-7 pt-7 pb-2">
-                    <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>{plan.name}</h3>
+                    <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>
+                      {plan.tier === "free" && <><span className="text-gradient-green">Flox</span> Free</>}
+                      {plan.tier === "pro" && <><span className="text-gradient-green">Flox</span> <span className="text-gradient-orange">Pro</span></>}
+                      {plan.tier === "enterprise" && <><span style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Flox</span> <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span></>}
+                    </h3>
                     <p className="text-sm text-white/35 mb-6">{plan.description}</p>
                     <div className="mb-6">
-                      <span className="text-5xl font-black" data-testid={`text-plan-price-${index}`}>{plan.price}</span>
+                      <span className="text-5xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.price}</span>
                       <span className="text-white/35 text-sm">{plan.period}</span>
                     </div>
                   </div>
 
                   <div className="px-7 pb-4 flex-1">
-                    <div className="h-px bg-white/[0.06] mb-6" />
+                    <div className="h-px mb-6" style={{ background: `linear-gradient(90deg, transparent, ${plan.accentColor}33, transparent)` }} />
                     <ul className="space-y-4">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-start gap-3 text-sm">
-                          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-primary" />
+                          <div className={`flex items-center justify-center w-5 h-5 rounded-full ${plan.checkBg} shrink-0 mt-0.5`}>
+                            <Check className={`w-3 h-3 ${plan.checkColor}`} />
                           </div>
                           <span className="text-white/60">{feature}</span>
                         </li>
@@ -1528,14 +1560,34 @@ export default function Landing() {
 
                   <div className="px-7 pb-7 pt-4">
                     <a href="/register" className="block">
-                      <Button
-                        className={`w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] ${plan.highlighted ? "shadow-xl shadow-primary/15" : ""}`}
-                        variant={plan.highlighted ? "default" : "outline"}
-                        data-testid={`button-plan-cta-${index}`}
-                      >
-                        {plan.cta}
-                        {plan.highlighted && <ArrowRight className="w-4 h-4 ml-1.5" />}
-                      </Button>
+                      {plan.tier === "free" && (
+                        <Button
+                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                          variant="outline"
+                          data-testid={`button-plan-cta-${index}`}
+                        >
+                          {plan.cta}
+                        </Button>
+                      )}
+                      {plan.tier === "pro" && (
+                        <Button
+                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-primary/15"
+                          data-testid={`button-plan-cta-${index}`}
+                        >
+                          {plan.cta}
+                          <ArrowRight className="w-4 h-4 ml-1.5" />
+                        </Button>
+                      )}
+                      {plan.tier === "enterprise" && (
+                        <Button
+                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-amber-500/15 border-0 text-white"
+                          style={{ background: "linear-gradient(135deg, hsl(38, 92%, 42%) 0%, hsl(28, 80%, 40%) 100%)" }}
+                          data-testid={`button-plan-cta-${index}`}
+                        >
+                          {plan.cta}
+                          <ArrowRight className="w-4 h-4 ml-1.5" />
+                        </Button>
+                      )}
                     </a>
                   </div>
                 </div>
