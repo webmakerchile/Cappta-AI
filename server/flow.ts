@@ -16,7 +16,7 @@ export function getFlowApi(baseURL: string) {
 }
 
 export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: number }> = {
-  free: { maxSessions: 50, maxMessages: 500 },
+  free: { maxSessions: 10, maxMessages: 100 },
   basic: { maxSessions: 500, maxMessages: 5000 },
   pro: { maxSessions: Infinity, maxMessages: Infinity },
 };

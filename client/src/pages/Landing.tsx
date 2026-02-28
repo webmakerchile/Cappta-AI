@@ -111,10 +111,10 @@ const pricingPlans = [
     period: "",
     description: "Ideal para probar FoxBot en tu negocio",
     features: [
-      "50 sesiones / mes",
-      "500 mensajes / mes",
+      "10 sesiones / mes",
+      "100 mensajes / mes",
       "Chat en vivo con tus clientes",
-      "Intervencion de ejecutivos",
+      "1 ejecutivo incluido",
       "Widget personalizable",
       "Soporte por email",
     ],
