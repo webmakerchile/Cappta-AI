@@ -2099,9 +2099,6 @@ export default function TenantPanel() {
           <h1 className="text-sm font-semibold text-white/70" data-testid="text-active-tab-title">
             {SIDEBAR_ITEMS.find((i) => i.id === activeTab)?.label}
           </h1>
-          <Badge variant="outline" className="ml-auto text-[10px] text-white/30 border-white/[0.08]" data-testid="badge-plan">
-            {tenant.plan}
-          </Badge>
         </header>
 
         <main className="flex-1 overflow-hidden">
