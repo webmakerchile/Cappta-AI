@@ -2101,7 +2101,7 @@ export default function TenantPanel() {
           </h1>
         </header>
 
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden flex flex-col">
           {activeTab === "chats" && <ChatsTab token={token} tenant={tenant} />}
           {activeTab === "atajos" && <AtajosTab />}
           {activeTab === "etiquetas" && <EtiquetasTab />}

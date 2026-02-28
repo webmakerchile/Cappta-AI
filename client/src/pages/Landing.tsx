@@ -47,7 +47,7 @@ import {
   Timer,
   Package,
 } from "lucide-react";
-import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWhatsapp, SiInstagram, SiFacebook, SiTelegram, SiSlack, SiZapier, SiHubspot, SiMailchimp, SiStripe, SiGoogle } from "react-icons/si";
+import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 const features = [
@@ -1170,7 +1170,7 @@ export default function Landing() {
             <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciones</p>
             <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-6 sm:gap-8 justify-items-center" data-testid="platform-logos">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-8 gap-6 sm:gap-8 justify-items-center" data-testid="platform-logos">
             {[
               { Icon: SiWoocommerce, name: "WooCommerce" },
               { Icon: SiShopify, name: "Shopify" },
@@ -1179,17 +1179,15 @@ export default function Landing() {
               { Icon: SiPrestashop, name: "PrestaShop" },
               { Icon: SiSquarespace, name: "Squarespace" },
               { Icon: SiWix, name: "Wix" },
-              { Icon: SiWhatsapp, name: "WhatsApp" },
-              { Icon: SiInstagram, name: "Instagram" },
-              { Icon: SiFacebook, name: "Facebook" },
-              { Icon: SiTelegram, name: "Telegram" },
-              { Icon: SiSlack, name: "Slack" },
-              { Icon: SiZapier, name: "Zapier" },
-              { Icon: SiHubspot, name: "HubSpot" },
-              { Icon: SiMailchimp, name: "Mailchimp" },
-              { Icon: SiStripe, name: "Stripe" },
-              { Icon: SiGoogle, name: "Google" },
-              { Icon: Code, name: "Tu API" },
+              { Icon: SiWebflow, name: "Webflow" },
+              { Icon: SiReact, name: "React" },
+              { Icon: SiNextdotjs, name: "Next.js" },
+              { Icon: SiVuedotjs, name: "Vue / Nuxt" },
+              { Icon: SiAngular, name: "Angular" },
+              { Icon: Globe, name: "HTML" },
+              { Icon: SiGoogletagmanager, name: "Tag Manager" },
+              { Icon: Code, name: "iFrame" },
+              { Icon: Plug, name: "Tu API" },
             ].map(({ Icon, name }) => (
               <div key={name} className="flex flex-col items-center gap-2.5 group cursor-default">
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl glass-card glass-card-hover transition-all duration-500">
