@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import helmet from "helmet";
 import { registerRoutes } from "./routes";
-import { serveStaticFiles, serveSpaFallback } from "./static";
 import { createServer } from "http";
 import crypto from "crypto";
 import fs from "fs";
@@ -10,26 +9,18 @@ import path from "path";
 
 const app = express();
 
-let indexHtmlCache: string | null = null;
-if (process.env.NODE_ENV === "production") {
-  try {
-    indexHtmlCache = fs.readFileSync(path.resolve(__dirname, "public", "index.html"), "utf-8");
-  } catch {}
-}
-
-const httpServer = createServer((req, res) => {
-  if (req.url === "/health" || req.url === "/api/health") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end('{"status":"ok"}');
-    return;
+app.get("/", (_req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    const indexPath = path.resolve(__dirname, "public", "index.html");
+    return res.sendFile(indexPath);
   }
-  if (req.url === "/" && indexHtmlCache) {
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(indexHtmlCache);
-    return;
-  }
-  app(req, res);
+  res.status(200).send("OK");
 });
+
+app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
+app.get("/api/health", (_req, res) => res.status(200).json({ status: "ok" }));
+
+const httpServer = createServer(app);
 
 declare module "http" {
   interface IncomingMessage {
@@ -61,7 +52,6 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.get("/api/config/google-client-id", (_req, res) => {
   res.json({ clientId: process.env.GOOGLE_CLIENT_ID || "" });
 });
@@ -79,7 +69,7 @@ export function log(message: string, source = "express") {
 
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
@@ -90,8 +80,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (reqPath.startsWith("/api")) {
+      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         const jsonStr = JSON.stringify(capturedJsonResponse);
         logLine += ` :: ${jsonStr.length > 200 ? jsonStr.slice(0, 200) + "...[truncated]" : jsonStr}`;
@@ -104,26 +94,12 @@ app.use((req, res, next) => {
   next();
 });
 
+const port = parseInt(process.env.PORT || "5000", 10);
+httpServer.listen(port, "0.0.0.0", () => {
+  log(`serving on port ${port}`);
+});
+
 (async () => {
-  const port = parseInt(process.env.PORT || "5000", 10);
-  let distPath: string | undefined;
-
-  if (process.env.NODE_ENV === "production") {
-    distPath = serveStaticFiles(app);
-    log("static files ready");
-  }
-
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
-
   await registerRoutes(httpServer, app);
 
   import("./seed").then(({ seedDatabase }) => {
@@ -143,9 +119,15 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  if (process.env.NODE_ENV === "production" && distPath) {
-    serveSpaFallback(app, distPath);
-  } else if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV === "production") {
+    const distPath = path.resolve(__dirname, "public");
+    if (fs.existsSync(distPath)) {
+      app.use(express.static(distPath));
+      app.use("/{*path}", (_req, res) => {
+        res.sendFile(path.resolve(distPath, "index.html"));
+      });
+    }
+  } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
