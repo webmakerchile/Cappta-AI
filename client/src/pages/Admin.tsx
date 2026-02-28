@@ -4062,7 +4062,7 @@ function TenantsPanel() {
     },
   });
 
-  const planLabels: Record<string, string> = { free: "Flox Free", basic: "Flox Pro", pro: "Flox Enterprise" };
+  const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
     basic: "bg-[#34d399]/20 text-[#34d399]",
@@ -4127,9 +4127,9 @@ function TenantsPanel() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="free">Flox Free</SelectItem>
-                          <SelectItem value="basic">Flox Pro</SelectItem>
-                          <SelectItem value="pro">Flox Enterprise</SelectItem>
+                          <SelectItem value="free">Fox Free</SelectItem>
+                          <SelectItem value="basic">Fox Pro</SelectItem>
+                          <SelectItem value="pro">Fox Enterprise</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>

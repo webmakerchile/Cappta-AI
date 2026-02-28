@@ -107,7 +107,7 @@ const features = [
 
 const pricingPlans = [
   {
-    name: "Flox Free",
+    name: "Fox Free",
     price: "$0",
     period: "",
     description: "Ideal para probar FoxBot en tu negocio",
@@ -129,7 +129,7 @@ const pricingPlans = [
     checkColor: "text-emerald-400",
   },
   {
-    name: "Flox Pro",
+    name: "Fox Pro",
     price: "$19.990",
     period: " CLP/mes",
     description: "Para negocios que quieren crecer con IA",
@@ -144,7 +144,7 @@ const pricingPlans = [
       "Analiticas completas",
       "Soporte prioritario",
     ],
-    cta: "Elegir Flox Pro",
+    cta: "Elegir Fox Pro",
     highlighted: true,
     tier: "pro" as const,
     borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 35%) 25%, hsl(30, 90%, 52%) 50%, hsl(142, 72%, 40%) 75%, hsl(160, 60%, 35%) 100%)",
@@ -154,7 +154,7 @@ const pricingPlans = [
     checkColor: "text-primary",
   },
   {
-    name: "Flox Enterprise",
+    name: "Fox Enterprise",
     price: "$49.990",
     period: " CLP/mes",
     description: "Para empresas con alto volumen de atencion",
@@ -169,7 +169,7 @@ const pricingPlans = [
       "Soporte 24/7 dedicado",
       "Onboarding personalizado",
     ],
-    cta: "Elegir Flox Enterprise",
+    cta: "Elegir Fox Enterprise",
     highlighted: false,
     tier: "enterprise" as const,
     borderGradient: "linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(45, 93%, 58%) 25%, hsl(28, 80%, 52%) 50%, hsl(38, 92%, 50%) 75%, hsl(45, 93%, 58%) 100%)",
@@ -1533,9 +1533,9 @@ export default function Landing() {
 
                   <div className="text-center px-7 pt-7 pb-2">
                     <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>
-                      {plan.tier === "free" && <><span className="text-gradient-green">Flox</span> Free</>}
-                      {plan.tier === "pro" && <><span className="text-gradient-green">Flox</span> <span className="text-gradient-orange">Pro</span></>}
-                      {plan.tier === "enterprise" && <><span style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Flox</span> <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span></>}
+                      {plan.tier === "free" && <><span className="text-gradient-green">Fox</span> Free</>}
+                      {plan.tier === "pro" && <><span className="text-gradient-green">Fox</span> <span className="text-gradient-orange">Pro</span></>}
+                      {plan.tier === "enterprise" && <><span style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Fox</span> <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span></>}
                     </h3>
                     <p className="text-sm text-white/35 mb-6">{plan.description}</p>
                     <div className="mb-6">

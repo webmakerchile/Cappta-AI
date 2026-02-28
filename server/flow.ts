@@ -24,12 +24,12 @@ export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: num
 export const PLAN_PRICES: Record<string, { amount: number; label: string; subject: string }> = {
   basic: {
     amount: 19990,
-    label: "Flox Pro",
-    subject: "Flox Pro - Suscripcion Mensual",
+    label: "Fox Pro",
+    subject: "Fox Pro - Suscripcion Mensual",
   },
   pro: {
     amount: 49990,
-    label: "Flox Enterprise",
-    subject: "Flox Enterprise - Suscripcion Mensual",
+    label: "Fox Enterprise",
+    subject: "Fox Enterprise - Suscripcion Mensual",
   },
 };
