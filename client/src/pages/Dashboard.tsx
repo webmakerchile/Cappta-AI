@@ -130,11 +130,11 @@ function StatsSection({ token }: { token: string }) {
     },
     {
       label: "Satisfaccion",
-      value: statsLoading ? "..." : statsData?.avgRating ? `${statsData.avgRating}/5` : "N/A",
+      value: statsLoading ? "..." : statsData?.avgRating ? `${statsData.avgRating}/5` : "0/5",
       icon: Star,
-      sub: statsData?.avgRating ? "Promedio" : "Sin datos",
+      sub: statsData?.avgRating ? "Promedio de calificaciones" : "Sin calificaciones aun",
       color: "hsl(30, 90%, 52%)",
-      trend: null,
+      trend: statsData?.avgRating && statsData.avgRating >= 4 ? `${statsData.avgRating >= 4.5 ? "Excelente" : "Bueno"}` : null,
       glowClass: "glass-card-glow-orange",
     },
     {
