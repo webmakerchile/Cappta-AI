@@ -41,15 +41,16 @@ Key architectural decisions and features include:
 - `/demo` - Interactive demo chat with 27 categories across 11 groups, text search + category filter pills, no registration required, rate-limited 30 msg/hr, dynamic theming per context, uses OpenAI gpt-4o-mini via Replit AI integration
 - `/register` - Tenant registration (company signup)
 - `/login` - Tenant login
-- `/dashboard` - Tenant dashboard (widget config, embed code, real stats, plan)
+- `/dashboard` - Tenant dashboard (widget config, embed code, real stats, plan, link to Panel de Soporte)
+- `/panel` - Tenant admin panel (full support management: real-time chats via socket.io, canned responses, tags, products, knowledge base, guides, settings)
 - `/widget` - Chat widget (for iframe embedding, accepts `?tenantId=X`)
 - `/chat` - Full-screen chat (for logged-in users via email params)
 - `/chat/contacto` - Contact chat (with welcome form)
 - `/guias` - Installation guides for 15+ platforms (WordPress, Shopify, WooCommerce, Magento, Squarespace, Wix, Webflow, React, Next.js, Vue, Angular, GTM, PrestaShop, HTML, iFrame) with copy-paste code blocks
-- `/admin` - Admin panel (agent dashboard)
+- `/admin` - Admin panel (superadmin agent dashboard)
 
 ## Database Tables
-- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, botConfigured, plan, flowCustomerId, createdAt)
+- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, aiEnabled, businessHoursConfig, plan, flowCustomerId, createdAt)
 - `sessions` - Chat sessions (has tenantId for multi-tenant isolation)
 - `messages` - Chat messages (has tenantId)
 - `products` - Product catalog (has tenantId)
@@ -57,10 +58,11 @@ Key architectural decisions and features include:
 - `ratings` - Customer satisfaction ratings (has tenantId)
 - `contact_requests` - Contact form submissions (has tenantId)
 - `admin_users` - Admin/agent accounts
-- `canned_responses` - Quick reply shortcuts
-- `push_subscriptions` - Web push notification subscriptions
+- `canned_responses` - Quick reply shortcuts (has nullable tenantId for tenant-scoped shortcuts)
+- `custom_tags` - Session tags (has nullable tenantId for tenant-scoped tags)
+- `push_subscriptions` - Web push notification subscriptions (admin)
+- `tenant_push_subscriptions` - Tenant push notification subscriptions
 - `app_settings` - Key-value app configuration
-- `custom_tags` - Session tags
 
 ## Tenant API Routes
 - `POST /api/tenants/register` - Register new tenant
@@ -72,6 +74,28 @@ Key architectural decisions and features include:
 - `GET /api/tenants/me/sessions/:id/messages` - Get messages for a tenant session (auth required)
 - `POST /api/tenants/me/sessions/:id/reply` - Reply to a customer session (auth required)
 - `GET /api/tenants/:id/config` - Public endpoint for widget to load tenant config
+
+## Tenant Panel API Routes (Support Panel at /panel)
+- `GET /api/tenant-panel/sessions?status=` - List tenant sessions with full stats
+- `GET /api/tenant-panel/sessions/:id/messages` - Get messages for a tenant session
+- `POST /api/tenant-panel/sessions/:id/reply` - Reply to customer (creates message, emits to socket)
+- `POST /api/tenant-panel/sessions/:id/read` - Mark session as read
+- `PATCH /api/tenant-panel/sessions/:id/status` - Change session status
+- `POST /api/tenant-panel/sessions/:id/claim` - Claim session (disable bot)
+- `POST /api/tenant-panel/sessions/:id/unclaim` - Unclaim session (enable bot)
+- `DELETE /api/tenant-panel/sessions/:id` - Delete session
+- `PATCH /api/tenant-panel/sessions/:id/tags` - Update session tags
+- `GET/POST/DELETE /api/tenant-panel/canned-responses` - Manage shortcuts
+- `GET/POST/DELETE /api/tenant-panel/tags` - Manage custom tags
+- `GET/POST/PATCH/DELETE /api/tenant-panel/knowledge` - Manage knowledge base
+- `GET/POST/PATCH/DELETE /api/tenant-panel/products` - Manage products
+- `GET/PATCH /api/tenant-panel/settings` - AI toggle + business hours
+
+## Socket.io Tenant Room
+- Tenants connect with `auth: { role: "tenant" }` and emit `join_tenant_room` with JWT token
+- Server creates room `tenant:${tenantId}` for each tenant
+- `tenant_new_message` events are emitted when customers send messages, auto-replies fire, or contact requests come in
+- TenantPanel.tsx listens for these events to update the chat in real-time
 
 ## Plan Limit Enforcement
 - Limits defined in `server/flow.ts` as `PLAN_LIMITS`: free (50 sessions, 500 messages/month), basic (500/5000), pro (unlimited)

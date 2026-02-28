@@ -1,5 +1,5 @@
 const CACHE_NAME = 'foxbot-v3';
-const OFFLINE_URLS = ['/admin', '/dashboard'];
+const OFFLINE_URLS = ['/admin', '/dashboard', '/panel'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

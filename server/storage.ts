@@ -86,6 +86,25 @@ export interface IStorage {
   getRecentPaymentOrders(limit?: number): Promise<(typeof paymentOrders.$inferSelect)[]>;
   getAllTenantsWithStats(): Promise<{ id: number; name: string; email: string; companyName: string; plan: string; createdAt: Date; sessionsCount: number; messagesCount: number }[]>;
   getSessionsByTenantId(tenantId: number): Promise<{ sessionId: string; userName: string; userEmail: string; status: string; messageCount: number; lastMessage: Date | null; lastMessageContent: string | null; problemType: string | null; createdAt: Date | null }[]>;
+  getTenantSessionsFull(tenantId: number, statusFilter?: string): Promise<any[]>;
+  updateTenantSessionStatus(tenantId: number, sessionId: string, status: string): Promise<Session | null>;
+  claimTenantSession(tenantId: number, sessionId: string, agentName: string, agentColor: string): Promise<Session | null>;
+  unclaimTenantSession(tenantId: number, sessionId: string): Promise<Session | null>;
+  deleteTenantSession(tenantId: number, sessionId: string): Promise<boolean>;
+  getTenantCannedResponses(tenantId: number): Promise<CannedResponse[]>;
+  createTenantCannedResponse(tenantId: number, shortcut: string, content: string): Promise<CannedResponse>;
+  deleteTenantCannedResponse(tenantId: number, id: number): Promise<boolean>;
+  getTenantTags(tenantId: number): Promise<string[]>;
+  addTenantTag(tenantId: number, name: string): Promise<void>;
+  deleteTenantTag(tenantId: number, name: string): Promise<void>;
+  getTenantKnowledgeEntries(tenantId: number, filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]>;
+  createTenantKnowledgeEntry(tenantId: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase>;
+  updateTenantKnowledgeEntry(tenantId: number, id: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase | null>;
+  deleteTenantKnowledgeEntry(tenantId: number, id: number): Promise<boolean>;
+  getTenantProducts(tenantId: number): Promise<Product[]>;
+  createTenantProduct(tenantId: number, data: Partial<InsertProduct>): Promise<Product>;
+  updateTenantProduct(tenantId: number, id: number, data: Partial<InsertProduct>): Promise<Product | null>;
+  deleteTenantProduct(tenantId: number, id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1131,6 +1150,176 @@ export class DatabaseStorage implements IStorage {
       ORDER BY COALESCE(ms.last_msg, s.created_at) DESC
     `);
     return result.rows as any[];
+  }
+
+  async getTenantSessionsFull(tenantId: number, statusFilter?: string) {
+    const statusCondition = statusFilter && statusFilter !== "all"
+      ? sql`AND s.status = ${statusFilter}`
+      : sql``;
+    const result = await db.execute(sql`
+      SELECT
+        s.session_id AS "sessionId",
+        s.user_name AS "userName",
+        s.user_email AS "userEmail",
+        s.status,
+        s.tags,
+        s.problem_type AS "problemType",
+        s.game_name AS "gameName",
+        s.admin_active AS "adminActive",
+        s.assigned_to_name AS "assignedToName",
+        s.assigned_to_color AS "assignedToColor",
+        s.blocked_at AS "blockedAt",
+        s.last_read_at AS "lastReadAt",
+        s.created_at AS "createdAt",
+        COALESCE(ms.msg_count, 0)::int AS "messageCount",
+        COALESCE(ms.unread_user, 0)::int AS "totalUserMessages",
+        ms.last_msg AS "lastMessage",
+        COALESCE(ms.unread_after, 0)::int AS "unreadAfterRead",
+        ms.last_content AS "lastMessageContent",
+        ms.last_sender AS "lastMessageSender"
+      FROM sessions s
+      LEFT JOIN LATERAL (
+        SELECT
+          COUNT(*)::int AS msg_count,
+          MAX(m.timestamp) AS last_msg,
+          COUNT(*) FILTER (WHERE m.sender = 'user')::int AS unread_user,
+          COUNT(*) FILTER (WHERE m.sender = 'user' AND m.timestamp > COALESCE(s.last_read_at, '1970-01-01'))::int AS unread_after,
+          (SELECT m2.content FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS last_content,
+          (SELECT m2.sender FROM messages m2 WHERE m2.session_id = s.session_id ORDER BY m2.timestamp DESC LIMIT 1) AS last_sender
+        FROM messages m
+        WHERE m.session_id = s.session_id
+      ) ms ON true
+      WHERE s.tenant_id = ${tenantId} ${statusCondition}
+      ORDER BY COALESCE(ms.last_msg, s.last_message_at) DESC
+    `);
+    return result.rows.map((r: any) => ({
+      sessionId: r.sessionId,
+      userName: r.userName,
+      userEmail: r.userEmail,
+      messageCount: r.messageCount,
+      unreadCount: r.lastReadAt ? r.unreadAfterRead : r.totalUserMessages,
+      lastMessage: r.lastMessage || null,
+      status: r.status,
+      tags: r.tags || [],
+      problemType: r.problemType,
+      gameName: r.gameName,
+      adminActive: r.adminActive ?? false,
+      assignedToName: r.assignedToName ?? null,
+      assignedToColor: r.assignedToColor ?? null,
+      lastMessageContent: r.lastMessageContent ? r.lastMessageContent.replace(/\{\{QUICK_REPLIES:[\s\S]*?\}\}/g, "").trim().slice(0, 200) : null,
+      lastMessageSender: r.lastMessageSender || null,
+      createdAt: r.createdAt,
+    }));
+  }
+
+  async updateTenantSessionStatus(tenantId: number, sessionId: string, status: string): Promise<Session | null> {
+    const [updated] = await db
+      .update(sessions)
+      .set({ status: status as any })
+      .where(and(eq(sessions.sessionId, sessionId), eq(sessions.tenantId, tenantId)))
+      .returning();
+    return updated || null;
+  }
+
+  async claimTenantSession(tenantId: number, sessionId: string, agentName: string, agentColor: string): Promise<Session | null> {
+    const [updated] = await db
+      .update(sessions)
+      .set({ assignedToName: agentName, assignedToColor: agentColor, adminActive: true })
+      .where(and(eq(sessions.sessionId, sessionId), eq(sessions.tenantId, tenantId)))
+      .returning();
+    return updated || null;
+  }
+
+  async unclaimTenantSession(tenantId: number, sessionId: string): Promise<Session | null> {
+    const [updated] = await db
+      .update(sessions)
+      .set({ assignedToName: null, assignedToColor: null, adminActive: false })
+      .where(and(eq(sessions.sessionId, sessionId), eq(sessions.tenantId, tenantId)))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteTenantSession(tenantId: number, sessionId: string): Promise<boolean> {
+    const session = await db.select().from(sessions).where(and(eq(sessions.sessionId, sessionId), eq(sessions.tenantId, tenantId))).limit(1);
+    if (!session[0]) return false;
+    return await db.transaction(async (tx) => {
+      await tx.delete(messages).where(eq(messages.sessionId, sessionId));
+      await tx.delete(ratings).where(eq(ratings.sessionId, sessionId));
+      const deleted = await tx.delete(sessions).where(eq(sessions.sessionId, sessionId)).returning();
+      return deleted.length > 0;
+    });
+  }
+
+  async getTenantCannedResponses(tenantId: number): Promise<CannedResponse[]> {
+    return await db.select().from(cannedResponses).where(eq(cannedResponses.tenantId, tenantId)).orderBy(asc(cannedResponses.shortcut));
+  }
+
+  async createTenantCannedResponse(tenantId: number, shortcut: string, content: string): Promise<CannedResponse> {
+    const [created] = await db.insert(cannedResponses).values({ tenantId, shortcut, content }).returning();
+    return created;
+  }
+
+  async deleteTenantCannedResponse(tenantId: number, id: number): Promise<boolean> {
+    const result = await db.delete(cannedResponses).where(and(eq(cannedResponses.id, id), eq(cannedResponses.tenantId, tenantId))).returning();
+    return result.length > 0;
+  }
+
+  async getTenantTags(tenantId: number): Promise<string[]> {
+    const result = await db.select({ name: customTags.name }).from(customTags).where(eq(customTags.tenantId, tenantId)).orderBy(customTags.name);
+    return result.map(r => r.name);
+  }
+
+  async addTenantTag(tenantId: number, name: string): Promise<void> {
+    const existing = await db.select().from(customTags).where(and(eq(customTags.tenantId, tenantId), eq(customTags.name, name))).limit(1);
+    if (existing.length === 0) {
+      await db.insert(customTags).values({ tenantId, name });
+    }
+  }
+
+  async deleteTenantTag(tenantId: number, name: string): Promise<void> {
+    await db.delete(customTags).where(and(eq(customTags.tenantId, tenantId), eq(customTags.name, name)));
+  }
+
+  async getTenantKnowledgeEntries(tenantId: number, filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]> {
+    const conditions: any[] = [eq(knowledgeBase.tenantId, tenantId)];
+    if (filter?.status) conditions.push(eq(knowledgeBase.status, filter.status as any));
+    if (filter?.category) conditions.push(eq(knowledgeBase.category, filter.category as any));
+    if (filter?.query) conditions.push(or(ilike(knowledgeBase.question, `%${filter.query}%`), ilike(knowledgeBase.answer, `%${filter.query}%`))!);
+    return await db.select().from(knowledgeBase).where(and(...conditions)).orderBy(desc(knowledgeBase.createdAt));
+  }
+
+  async createTenantKnowledgeEntry(tenantId: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase> {
+    const [entry] = await db.insert(knowledgeBase).values({ ...data, tenantId } as any).returning();
+    return entry;
+  }
+
+  async updateTenantKnowledgeEntry(tenantId: number, id: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase | null> {
+    const results = await db.update(knowledgeBase).set({ ...data, updatedAt: new Date() }).where(and(eq(knowledgeBase.id, id), eq(knowledgeBase.tenantId, tenantId))).returning();
+    return results[0] || null;
+  }
+
+  async deleteTenantKnowledgeEntry(tenantId: number, id: number): Promise<boolean> {
+    const results = await db.delete(knowledgeBase).where(and(eq(knowledgeBase.id, id), eq(knowledgeBase.tenantId, tenantId))).returning();
+    return results.length > 0;
+  }
+
+  async getTenantProducts(tenantId: number): Promise<Product[]> {
+    return await db.select().from(products).where(eq(products.tenantId, tenantId)).orderBy(asc(products.name));
+  }
+
+  async createTenantProduct(tenantId: number, data: Partial<InsertProduct>): Promise<Product> {
+    const [created] = await db.insert(products).values({ ...data, tenantId } as any).returning();
+    return created;
+  }
+
+  async updateTenantProduct(tenantId: number, id: number, data: Partial<InsertProduct>): Promise<Product | null> {
+    const [updated] = await db.update(products).set(data).where(and(eq(products.id, id), eq(products.tenantId, tenantId))).returning();
+    return updated || null;
+  }
+
+  async deleteTenantProduct(tenantId: number, id: number): Promise<boolean> {
+    const result = await db.delete(products).where(and(eq(products.id, id), eq(products.tenantId, tenantId))).returning();
+    return result.length > 0;
   }
 }
 

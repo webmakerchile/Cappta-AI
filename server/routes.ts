@@ -119,6 +119,17 @@ export async function registerRoutes(
   const offlineNotificationTimestamps = new Map<string, number>();
   const OFFLINE_NOTIFICATION_COOLDOWN = 30 * 60 * 1000;
 
+  function emitToTenantRoom(sessionId: string, eventData: any) {
+    storage.getSession(sessionId).then(session => {
+      if (session?.tenantId) {
+        io.to(`tenant:${session.tenantId}`).emit("tenant_new_message", {
+          sessionId,
+          ...eventData,
+        });
+      }
+    }).catch(() => {});
+  }
+
   const JWT_SECRET = process.env.SESSION_SECRET || "default-secret";
 
   function generateToken(user: { id: number; email: string; role: string; displayName: string }) {
@@ -853,6 +864,9 @@ ${DEMO_BASE_RULES}`,
       const sess = await storage.getSession(sessionId);
       io.to(`session:${sessionId}`).emit("new_message", message);
       io.to("admin_room").emit("admin_new_message", { sessionId, message, assignedTo: sess?.assignedTo || null });
+      if (sess?.tenantId) {
+        io.to(`tenant:${sess.tenantId}`).emit("tenant_new_message", { sessionId, userName: parsed.data.userName, content: parsed.data.content, message });
+      }
 
       if (parsed.data.sender === "user") {
         sendPushToAdmins(
@@ -957,6 +971,9 @@ ${DEMO_BASE_RULES}`,
             });
             io.to(`session:${sessionId}`).emit("new_message", autoReply);
             io.to("admin_room").emit("admin_new_message", { sessionId, message: autoReply });
+            if (tenantId) {
+              io.to(`tenant:${tenantId}`).emit("tenant_new_message", { sessionId, message: autoReply });
+            }
 
             if (!isSessionOnline(sessionId)) {
               sendOfflineNotification({
@@ -1718,6 +1735,305 @@ ${DEMO_BASE_RULES}`,
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: "Error al eliminar suscripcion" });
+    }
+  });
+
+  // ========== TENANT PANEL ROUTES ==========
+
+  app.get("/api/tenant-panel/sessions", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const statusFilter = (req.query.status as string) || "all";
+      const sessions = await storage.getTenantSessionsFull(auth.id, statusFilter);
+      res.json(sessions);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener sesiones" });
+    }
+  });
+
+  app.get("/api/tenant-panel/sessions/:sessionId/messages", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session || session.tenantId !== auth.id) return res.status(404).json({ message: "Sesion no encontrada" });
+      const msgs = await storage.getMessagesBySessionId(req.params.sessionId);
+      res.json(msgs);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener mensajes" });
+    }
+  });
+
+  app.post("/api/tenant-panel/sessions/:sessionId/reply", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session || session.tenantId !== auth.id) return res.status(404).json({ message: "Sesion no encontrada" });
+      const { content, imageUrl } = req.body;
+      if (!content && !imageUrl) return res.status(400).json({ message: "Contenido requerido" });
+      const tenant = await storage.getTenantById(auth.id);
+      const msg = await storage.createMessage({
+        sessionId: req.params.sessionId,
+        tenantId: auth.id,
+        userEmail: session.userEmail,
+        userName: session.userName,
+        sender: "support",
+        content: content || "",
+        imageUrl: imageUrl || null,
+        adminName: tenant?.companyName || auth.email,
+        adminColor: tenant?.widgetColor || "#10b981",
+      });
+      await storage.touchSession(req.params.sessionId);
+      io.to(`session:${req.params.sessionId}`).emit("new_message", msg);
+      io.to("admin_room").emit("admin_new_message", {
+        sessionId: req.params.sessionId,
+        userName: session.userName,
+        content: content || "[Imagen]",
+        message: msg,
+        assignedTo: session.assignedTo,
+      });
+      res.json(msg);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al enviar mensaje" });
+    }
+  });
+
+  app.post("/api/tenant-panel/sessions/:sessionId/read", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session || session.tenantId !== auth.id) return res.status(404).json({ message: "Sesion no encontrada" });
+      await storage.markSessionRead(req.params.sessionId);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/sessions/:sessionId/status", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { status } = req.body;
+      const updated = await storage.updateTenantSessionStatus(auth.id, req.params.sessionId, status);
+      if (!updated) return res.status(404).json({ message: "Sesion no encontrada" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.post("/api/tenant-panel/sessions/:sessionId/claim", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      const updated = await storage.claimTenantSession(auth.id, req.params.sessionId, tenant?.companyName || auth.email, tenant?.widgetColor || "#10b981");
+      if (!updated) return res.status(404).json({ message: "Sesion no encontrada" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.post("/api/tenant-panel/sessions/:sessionId/unclaim", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const updated = await storage.unclaimTenantSession(auth.id, req.params.sessionId);
+      if (!updated) return res.status(404).json({ message: "Sesion no encontrada" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.delete("/api/tenant-panel/sessions/:sessionId", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const deleted = await storage.deleteTenantSession(auth.id, req.params.sessionId);
+      if (!deleted) return res.status(404).json({ message: "Sesion no encontrada" });
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/sessions/:sessionId/tags", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const session = await storage.getSession(req.params.sessionId);
+      if (!session || session.tenantId !== auth.id) return res.status(404).json({ message: "Sesion no encontrada" });
+      const { tags } = req.body;
+      const updated = await storage.updateSessionTags(req.params.sessionId, tags);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.get("/api/tenant-panel/canned-responses", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const responses = await storage.getTenantCannedResponses(auth.id);
+    res.json(responses);
+  });
+
+  app.post("/api/tenant-panel/canned-responses", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { shortcut, content } = req.body;
+      if (!shortcut || !content) return res.status(400).json({ message: "Shortcut y contenido requeridos" });
+      const created = await storage.createTenantCannedResponse(auth.id, shortcut, content);
+      res.json(created);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al crear atajo" });
+    }
+  });
+
+  app.delete("/api/tenant-panel/canned-responses/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const deleted = await storage.deleteTenantCannedResponse(auth.id, parseInt(req.params.id));
+    if (!deleted) return res.status(404).json({ message: "No encontrado" });
+    res.json({ success: true });
+  });
+
+  app.get("/api/tenant-panel/tags", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const tags = await storage.getTenantTags(auth.id);
+    res.json(tags);
+  });
+
+  app.post("/api/tenant-panel/tags", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "Nombre requerido" });
+    await storage.addTenantTag(auth.id, name);
+    res.json({ success: true });
+  });
+
+  app.delete("/api/tenant-panel/tags/:name", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    await storage.deleteTenantTag(auth.id, req.params.name);
+    res.json({ success: true });
+  });
+
+  app.get("/api/tenant-panel/knowledge", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const filter: { status?: string; category?: string; query?: string } = {};
+      if (req.query.status) filter.status = req.query.status as string;
+      if (req.query.category) filter.category = req.query.category as string;
+      if (req.query.query) filter.query = req.query.query as string;
+      const entries = await storage.getTenantKnowledgeEntries(auth.id, filter);
+      res.json(entries);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.post("/api/tenant-panel/knowledge", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const entry = await storage.createTenantKnowledgeEntry(auth.id, req.body);
+      res.json(entry);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al crear entrada" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/knowledge/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const updated = await storage.updateTenantKnowledgeEntry(auth.id, parseInt(req.params.id), req.body);
+      if (!updated) return res.status(404).json({ message: "No encontrada" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.delete("/api/tenant-panel/knowledge/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const deleted = await storage.deleteTenantKnowledgeEntry(auth.id, parseInt(req.params.id));
+    if (!deleted) return res.status(404).json({ message: "No encontrada" });
+    res.json({ success: true });
+  });
+
+  app.get("/api/tenant-panel/products", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const prods = await storage.getTenantProducts(auth.id);
+    res.json(prods);
+  });
+
+  app.post("/api/tenant-panel/products", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const created = await storage.createTenantProduct(auth.id, req.body);
+      res.json(created);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al crear producto" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/products/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const updated = await storage.updateTenantProduct(auth.id, parseInt(req.params.id), req.body);
+      if (!updated) return res.status(404).json({ message: "No encontrado" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  app.delete("/api/tenant-panel/products/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const deleted = await storage.deleteTenantProduct(auth.id, parseInt(req.params.id));
+    if (!deleted) return res.status(404).json({ message: "No encontrado" });
+    res.json({ success: true });
+  });
+
+  app.get("/api/tenant-panel/settings", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const tenant = await storage.getTenantById(auth.id);
+    if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+    res.json({
+      aiEnabled: tenant.aiEnabled,
+      businessHoursConfig: tenant.businessHoursConfig ? JSON.parse(tenant.businessHoursConfig) : null,
+    });
+  });
+
+  app.patch("/api/tenant-panel/settings", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const update: any = {};
+      if (req.body.aiEnabled !== undefined) update.aiEnabled = req.body.aiEnabled;
+      if (req.body.businessHoursConfig !== undefined) update.businessHoursConfig = JSON.stringify(req.body.businessHoursConfig);
+      const updated = await storage.updateTenant(auth.id, update);
+      res.json({ success: true, tenant: updated });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al actualizar configuracion" });
     }
   });
 
@@ -2763,6 +3079,25 @@ ${DEMO_BASE_RULES}`,
       return;
     }
 
+    if (role === "tenant") {
+      log(`Tenant socket conectado: ${socket.id}`, "socket.io");
+      socket.on("join_tenant_room", (data: { token: string }) => {
+        try {
+          const decoded = jwt.verify(data.token, JWT_SECRET) as any;
+          if (decoded && decoded.isTenant && decoded.id) {
+            socket.join(`tenant:${decoded.id}`);
+            log(`Tenant ${decoded.id} unido a tenant:${decoded.id}`, "socket.io");
+          }
+        } catch (e) {
+          log(`Error al verificar token de tenant: ${e}`, "socket.io");
+        }
+      });
+      socket.on("disconnect", () => {
+        log(`Tenant socket desconectado: ${socket.id}`, "socket.io");
+      });
+      return;
+    }
+
     if (!email || !name || !sessionId) {
       socket.disconnect(true);
       return;
@@ -2879,6 +3214,7 @@ ${DEMO_BASE_RULES}`,
             sessForPush?.assignedTo
           );
           io.to("admin_room").emit("admin_new_message", { sessionId: sid, userName: parsed.data.userName, content: parsed.data.content, message, assignedTo: sessForPush?.assignedTo || null });
+          emitToTenantRoom(sid, { userName: parsed.data.userName, content: parsed.data.content, message });
           setTimeout(async () => {
             try {
               const currentSession = await storage.getSession(sid);
@@ -2959,6 +3295,7 @@ ${DEMO_BASE_RULES}`,
               });
               io.to(`session:${sid}`).emit("new_message", autoReply);
               io.to("admin_room").emit("admin_new_message", { sessionId: sid, message: autoReply });
+              emitToTenantRoom(sid, { message: autoReply });
             } catch (err: any) {
               log(`Error en auto-respuesta: ${err.message}`, "socket.io");
             }
@@ -3030,6 +3367,7 @@ ${DEMO_BASE_RULES}`,
 
         io.to(`session:${parsed.data.sessionId}`).emit("new_message", confirmMsg);
         io.to("admin_room").emit("admin_new_message", { sessionId: parsed.data.sessionId, message: confirmMsg });
+        emitToTenantRoom(parsed.data.sessionId, { message: confirmMsg });
         log(`Solicitud de contacto de ${parsed.data.userName} (${parsed.data.userEmail}) - Email: ${emailSent ? "enviado" : "no enviado"}`, "contact");
       } catch (error: any) {
         log(`Error en solicitud de contacto: ${error.message}`, "socket.io");

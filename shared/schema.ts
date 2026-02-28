@@ -47,7 +47,8 @@ export const sessions = pgTable("sessions", {
 
 export const cannedResponses = pgTable("canned_responses", {
   id: serial("id").primaryKey(),
-  shortcut: text("shortcut").notNull().unique(),
+  tenantId: integer("tenant_id"),
+  shortcut: text("shortcut").notNull(),
   content: text("content").notNull(),
 });
 
@@ -105,7 +106,8 @@ export const adminUsers = pgTable("admin_users", {
 
 export const customTags = pgTable("custom_tags", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
+  tenantId: integer("tenant_id"),
+  name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -145,6 +147,8 @@ export const tenants = pgTable("tenants", {
   productSearchLabel: text("product_search_label").notNull().default("Buscar producto"),
   productApiUrl: text("product_api_url"),
   botConfigured: integer("bot_configured").notNull().default(0),
+  aiEnabled: integer("ai_enabled").notNull().default(1),
+  businessHoursConfig: text("business_hours_config"),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
   flowCustomerId: text("flow_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

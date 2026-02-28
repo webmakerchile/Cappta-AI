@@ -1,0 +1,1263 @@
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  MessageSquare,
+  Zap,
+  Tag,
+  Package,
+  BookOpen,
+  FileText,
+  Settings,
+  LogOut,
+  ArrowLeft,
+  Search,
+  Send,
+  Plus,
+  Trash2,
+  X,
+  Menu,
+  Loader2,
+  Clock,
+  User,
+  ShieldCheck,
+  ShieldOff,
+  XCircle,
+  Pencil,
+  Check,
+  Bot,
+} from "lucide-react";
+import { GuidesPanel } from "./Guides";
+import { io, Socket } from "socket.io-client";
+import type { Tenant } from "@shared/schema";
+import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+
+type TenantProfile = Omit<Tenant, "passwordHash">;
+
+function useAuth() {
+  const token = localStorage.getItem("tenant_token");
+
+  const { data: tenant, isLoading, error } = useQuery<TenantProfile>({
+    queryKey: ["/api/tenants/me"],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await fetch("/api/tenants/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Unauthorized");
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (!token || error) {
+      window.location.href = "/login";
+    }
+  }, [token, error]);
+
+  return { tenant, isLoading, token };
+}
+
+function tenantFetch(url: string, options?: RequestInit) {
+  const token = localStorage.getItem("tenant_token") || "";
+  return fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...options?.headers,
+    },
+  });
+}
+
+function formatDateTime(date: string | Date | null) {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short" }) + " " + d.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+}
+
+function getAvatarColor(name: string): string {
+  const colors = ["#E53935","#D81B60","#8E24AA","#5E35B1","#3949AB","#1E88E5","#039BE5","#00ACC1","#00897B","#43A047","#7CB342","#FB8C00","#F4511E"];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+interface SessionSummary {
+  sessionId: string;
+  userName: string;
+  userEmail: string;
+  messageCount: number;
+  unreadCount: number;
+  lastMessage: string | null;
+  status: string;
+  tags: string[];
+  problemType: string | null;
+  lastMessageContent: string | null;
+  lastMessageSender: string | null;
+  adminActive: boolean;
+  assignedToName: string | null;
+  assignedToColor: string | null;
+}
+
+interface ChatMessage {
+  id: number;
+  sessionId: string;
+  userEmail: string;
+  userName: string;
+  sender: string;
+  content: string;
+  imageUrl: string | null;
+  adminName: string | null;
+  adminColor: string | null;
+  timestamp: string;
+}
+
+interface CannedResponse {
+  id: number;
+  shortcut: string;
+  content: string;
+}
+
+type CustomTag = string;
+
+interface ProductItem {
+  id: number;
+  name: string;
+  price: string | null;
+  productUrl: string | null;
+  category: string;
+  availability: string;
+  description: string | null;
+}
+
+interface KnowledgeEntry {
+  id: number;
+  question: string;
+  answer: string;
+  keywords: string[];
+  category: string;
+  status: string;
+}
+
+interface TenantSettings {
+  aiEnabled: number;
+  businessHoursConfig: any;
+}
+
+type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "guias" | "ajustes";
+
+const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any }[] = [
+  { id: "chats", label: "Chats", icon: MessageSquare },
+  { id: "atajos", label: "Atajos", icon: Zap },
+  { id: "etiquetas", label: "Etiquetas", icon: Tag },
+  { id: "productos", label: "Productos", icon: Package },
+  { id: "conocimiento", label: "Conocimiento", icon: BookOpen },
+  { id: "guias", label: "Guias", icon: FileText },
+  { id: "ajustes", label: "Ajustes", icon: Settings },
+];
+
+function ChatsTab({ token }: { token: string }) {
+  const { toast } = useToast();
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery<SessionSummary[]>({
+    queryKey: ["/api/tenant-panel/sessions", statusFilter],
+    queryFn: async () => {
+      const res = await tenantFetch(`/api/tenant-panel/sessions?status=${statusFilter}`);
+      if (!res.ok) throw new Error("Error loading sessions");
+      return res.json();
+    },
+    refetchInterval: 10000,
+  });
+
+  const { data: messages = [], isLoading: messagesLoading } = useQuery<ChatMessage[]>({
+    queryKey: ["/api/tenant-panel/sessions", selectedSession, "messages"],
+    queryFn: async () => {
+      if (!selectedSession) return [];
+      const res = await tenantFetch(`/api/tenant-panel/sessions/${selectedSession}/messages`);
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    enabled: !!selectedSession,
+    refetchInterval: 5000,
+  });
+
+  const { data: cannedResponses = [] } = useQuery<CannedResponse[]>({
+    queryKey: ["/api/tenant-panel/canned-responses"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/canned-responses");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    const socket = io(window.location.origin, {
+      transports: ["websocket", "polling"],
+      auth: { role: "tenant" },
+    });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      socket.emit("join_tenant_room", { token });
+    });
+
+    socket.on("tenant_new_message", (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+      if (data.sessionId === selectedSession) {
+        queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions", selectedSession, "messages"] });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [token, selectedSession]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (selectedSession) {
+      tenantFetch(`/api/tenant-panel/sessions/${selectedSession}/read`, { method: "POST" }).catch(() => {});
+    }
+  }, [selectedSession]);
+
+  const handleSelectSession = (sessionId: string) => {
+    setSelectedSession(sessionId);
+    setMobileShowChat(true);
+  };
+
+  const handleReply = async () => {
+    if (!replyText.trim() || !selectedSession || sending) return;
+    setSending(true);
+    try {
+      const res = await tenantFetch(`/api/tenant-panel/sessions/${selectedSession}/reply`, {
+        method: "POST",
+        body: JSON.stringify({ content: replyText.trim() }),
+      });
+      if (res.ok) {
+        setReplyText("");
+        queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions", selectedSession, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo enviar el mensaje", variant: "destructive" });
+    }
+    setSending(false);
+  };
+
+  const handleClaim = async (sessionId: string) => {
+    await tenantFetch(`/api/tenant-panel/sessions/${sessionId}/claim`, { method: "POST" });
+    queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+    toast({ title: "Sesion tomada", description: "Ahora controlas esta conversacion" });
+  };
+
+  const handleUnclaim = async (sessionId: string) => {
+    await tenantFetch(`/api/tenant-panel/sessions/${sessionId}/unclaim`, { method: "POST" });
+    queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+    toast({ title: "Sesion liberada", description: "El bot retomara la conversacion" });
+  };
+
+  const handleCloseSession = async (sessionId: string) => {
+    await tenantFetch(`/api/tenant-panel/sessions/${sessionId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "closed" }),
+    });
+    queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+    toast({ title: "Sesion cerrada" });
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!window.confirm("Eliminar esta sesion? Esta accion no se puede deshacer.")) return;
+    await tenantFetch(`/api/tenant-panel/sessions/${sessionId}`, { method: "DELETE" });
+    if (selectedSession === sessionId) {
+      setSelectedSession(null);
+      setMobileShowChat(false);
+    }
+    queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+    toast({ title: "Sesion eliminada" });
+  };
+
+  const handleSlashSelect = (content: string) => {
+    setReplyText(content);
+    setShowSlashMenu(false);
+  };
+
+  const handleReplyChange = (value: string) => {
+    setReplyText(value);
+    if (value === "/") {
+      setShowSlashMenu(true);
+    } else if (!value.startsWith("/")) {
+      setShowSlashMenu(false);
+    }
+  };
+
+  const filteredSessions = sessions.filter((s) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return s.userName.toLowerCase().includes(q) || s.userEmail.toLowerCase().includes(q);
+  });
+
+  const selectedSessionData = sessions.find((s) => s.sessionId === selectedSession);
+
+  const totalUnread = sessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0);
+
+  return (
+    <div className="flex h-full">
+      <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-white/[0.06] flex flex-col ${mobileShowChat ? "hidden md:flex" : "flex"}`}>
+        <div className="p-3 border-b border-white/[0.06] space-y-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Input
+              data-testid="input-search-sessions"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre o email..."
+              className="pl-9 bg-white/[0.04] border-white/[0.08]"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            {(["all", "active", "closed"] as const).map((f) => (
+              <button
+                key={f}
+                data-testid={`button-filter-${f}`}
+                onClick={() => setStatusFilter(f)}
+                className={`flex-1 text-xs py-1.5 rounded-md transition-colors ${statusFilter === f ? "bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30" : "bg-white/[0.04] text-white/40 border border-white/[0.06]"}`}
+              >
+                {f === "all" ? "Todos" : f === "active" ? "Activos" : "Cerrados"}
+                {f === "all" && totalUnread > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">{totalUnread}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {sessionsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-5 h-5 text-white/30 animate-spin" />
+            </div>
+          ) : filteredSessions.length === 0 ? (
+            <div className="text-center py-12 text-white/30 text-sm" data-testid="text-no-sessions">No hay sesiones</div>
+          ) : (
+            filteredSessions.map((session) => (
+              <button
+                key={session.sessionId}
+                data-testid={`session-card-${session.sessionId}`}
+                onClick={() => handleSelectSession(session.sessionId)}
+                className={`w-full text-left p-3 border-b border-white/[0.04] transition-colors ${selectedSession === session.sessionId ? "bg-[#10b981]/10" : "hover:bg-white/[0.04]"}`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: getAvatarColor(session.userName || session.sessionId) }}>
+                    {(session.userName || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-sm font-medium text-white truncate">{session.userName || "Sin nombre"}</p>
+                      {session.unreadCount > 0 && (
+                        <span data-testid={`badge-unread-${session.sessionId}`} className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{session.unreadCount}</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-white/40 truncate">{session.userEmail}</p>
+                    {session.lastMessageContent && (
+                      <p className="text-[11px] text-white/30 truncate mt-0.5">
+                        {session.lastMessageSender === "admin" ? "Tu: " : session.lastMessageSender === "bot" ? "Bot: " : ""}
+                        {session.lastMessageContent.substring(0, 60)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-1 pl-10 text-[10px] text-white/25 flex-wrap">
+                  <span className="flex items-center gap-0.5"><MessageSquare className="w-2.5 h-2.5" />{session.messageCount}</span>
+                  <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{formatDateTime(session.lastMessage)}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${session.adminActive ? "bg-emerald-500/15 text-emerald-400" : "bg-blue-500/15 text-blue-400"}`}>
+                    {session.adminActive ? "Ejecutivo" : "Bot"}
+                  </span>
+                  {session.status === "closed" && <span className="px-1.5 py-0.5 rounded bg-white/10 text-white/40 text-[9px]">Cerrado</span>}
+                </div>
+                {session.tags && session.tags.length > 0 && (
+                  <div className="flex items-center gap-1 mt-1 pl-10 flex-wrap">
+                    {session.tags.map((tag) => (
+                      <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className={`flex-1 flex flex-col ${!mobileShowChat ? "hidden md:flex" : "flex"}`}>
+        {selectedSession && selectedSessionData ? (
+          <>
+            <div className="flex items-center justify-between gap-2 p-3 border-b border-white/[0.06] flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  data-testid="button-back-to-list"
+                  onClick={() => { setMobileShowChat(false); }}
+                  className="md:hidden w-8 h-8 rounded-md flex items-center justify-center bg-white/[0.04]"
+                >
+                  <ArrowLeft className="w-4 h-4 text-white/60" />
+                </button>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getAvatarColor(selectedSessionData.userName) }}>
+                  {(selectedSessionData.userName || "?").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{selectedSessionData.userName}</p>
+                  <p className="text-[11px] text-white/40">{selectedSessionData.userEmail}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-wrap">
+                {selectedSessionData.adminActive ? (
+                  <Button data-testid="button-unclaim" size="sm" variant="outline" onClick={() => handleUnclaim(selectedSession)} className="text-xs border-white/[0.08]">
+                    <ShieldOff className="w-3 h-3 mr-1" />Liberar
+                  </Button>
+                ) : (
+                  <Button data-testid="button-claim" size="sm" variant="outline" onClick={() => handleClaim(selectedSession)} className="text-xs border-white/[0.08]">
+                    <ShieldCheck className="w-3 h-3 mr-1" />Tomar
+                  </Button>
+                )}
+                {selectedSessionData.status === "active" && (
+                  <Button data-testid="button-close-session" size="sm" variant="outline" onClick={() => handleCloseSession(selectedSession)} className="text-xs border-white/[0.08]">
+                    <XCircle className="w-3 h-3 mr-1" />Cerrar
+                  </Button>
+                )}
+                <Button data-testid="button-delete-session" size="sm" variant="outline" onClick={() => handleDeleteSession(selectedSession)} className="text-xs border-red-500/30 text-red-400">
+                  <Trash2 className="w-3 h-3 mr-1" />Eliminar
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messagesLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-5 h-5 text-white/30 animate-spin" />
+                </div>
+              ) : (
+                messages.map((msg) => {
+                  const isUser = msg.sender === "user";
+                  const isBot = msg.sender === "support" && !msg.adminName;
+                  const isAdmin = msg.sender === "support" && !!msg.adminName;
+                  return (
+                    <div key={msg.id} className={`flex ${isUser ? "justify-start" : "justify-end"}`} data-testid={`message-${msg.id}`}>
+                      <div className={`max-w-[75%] rounded-xl px-3 py-2 ${isUser ? "bg-white/[0.06] text-white/90" : isBot ? "bg-blue-500/15 text-blue-200" : "bg-[#10b981]/15 text-emerald-200"}`}>
+                        {isAdmin && msg.adminName && (
+                          <p className="text-[10px] font-semibold mb-0.5" style={{ color: msg.adminColor || "#10b981" }}>{msg.adminName}</p>
+                        )}
+                        {isBot && <p className="text-[10px] font-semibold mb-0.5 text-blue-400">Bot</p>}
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content.replace(/\{\{QUICK_REPLIES:.*?\}\}/g, "")}</p>
+                        {msg.imageUrl && <img src={msg.imageUrl} alt="" className="mt-2 max-w-full rounded-lg max-h-48 object-contain" data-testid={`message-image-${msg.id}`} />}
+                        <p className="text-[10px] text-white/25 mt-1">{formatDateTime(msg.timestamp)}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-3 border-t border-white/[0.06] relative">
+              {showSlashMenu && cannedResponses.length > 0 && (
+                <div className="absolute bottom-full left-3 right-3 mb-1 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-xl max-h-48 overflow-y-auto z-10" data-testid="slash-menu">
+                  {cannedResponses.map((cr) => (
+                    <button
+                      key={cr.id}
+                      data-testid={`slash-option-${cr.id}`}
+                      onClick={() => handleSlashSelect(cr.content)}
+                      className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors border-b border-white/[0.04] last:border-0"
+                    >
+                      <span className="text-xs font-mono text-[#10b981]">/{cr.shortcut}</span>
+                      <p className="text-xs text-white/50 truncate">{cr.content}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Textarea
+                  data-testid="textarea-reply"
+                  value={replyText}
+                  onChange={(e) => handleReplyChange(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
+                  placeholder='Escribe un mensaje... (usa "/" para atajos)'
+                  className="resize-none bg-white/[0.04] border-white/[0.08] min-h-[40px] max-h-[120px] text-sm"
+                  rows={1}
+                />
+                <Button data-testid="button-send-reply" onClick={handleReply} disabled={!replyText.trim() || sending} size="icon" className="bg-[#10b981] border-[#10b981] flex-shrink-0">
+                  {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center" data-testid="text-no-chat-selected">
+            <div className="text-center">
+              <MessageSquare className="w-12 h-12 text-white/10 mx-auto mb-3" />
+              <p className="text-white/30 text-sm">Selecciona una conversacion</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AtajosTab() {
+  const { toast } = useToast();
+  const [shortcut, setShortcut] = useState("");
+  const [content, setContent] = useState("");
+
+  const { data: responses = [], isLoading } = useQuery<CannedResponse[]>({
+    queryKey: ["/api/tenant-panel/canned-responses"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/canned-responses");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/canned-responses", {
+        method: "POST",
+        body: JSON.stringify({ shortcut: shortcut.trim(), content: content.trim() }),
+      });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/canned-responses"] });
+      setShortcut("");
+      setContent("");
+      toast({ title: "Atajo creado" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await tenantFetch(`/api/tenant-panel/canned-responses/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/canned-responses"] });
+      toast({ title: "Atajo eliminado" });
+    },
+  });
+
+  return (
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div>
+        <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-atajos-title">Respuestas Rapidas</h2>
+        <p className="text-sm text-white/40">Crea atajos para responder mas rapido. Usa "/" en el chat para acceder.</p>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Input
+            data-testid="input-shortcut"
+            value={shortcut}
+            onChange={(e) => setShortcut(e.target.value)}
+            placeholder="Atajo (ej: saludo)"
+            className="bg-white/[0.04] border-white/[0.08]"
+          />
+          <div className="sm:col-span-2">
+            <Input
+              data-testid="input-shortcut-content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Contenido del mensaje"
+              className="bg-white/[0.04] border-white/[0.08]"
+            />
+          </div>
+        </div>
+        <Button
+          data-testid="button-add-shortcut"
+          onClick={() => addMutation.mutate()}
+          disabled={!shortcut.trim() || !content.trim() || addMutation.isPending}
+          className="bg-[#10b981] border-[#10b981]"
+        >
+          <Plus className="w-4 h-4 mr-1" />Agregar Atajo
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>
+      ) : responses.length === 0 ? (
+        <p className="text-center text-white/30 text-sm py-8" data-testid="text-no-atajos">No hay atajos creados</p>
+      ) : (
+        <div className="space-y-2">
+          {responses.map((r) => (
+            <div key={r.id} data-testid={`atajo-${r.id}`} className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]">
+              <span className="text-xs font-mono text-[#10b981] bg-[#10b981]/10 px-2 py-1 rounded">/{r.shortcut}</span>
+              <span className="flex-1 text-sm text-white/70 truncate">{r.content}</span>
+              <Button data-testid={`button-delete-atajo-${r.id}`} size="icon" variant="ghost" onClick={() => deleteMutation.mutate(r.id)}>
+                <Trash2 className="w-4 h-4 text-red-400" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EtiquetasTab() {
+  const { toast } = useToast();
+  const [newTag, setNewTag] = useState("");
+
+  const { data: tags = [], isLoading } = useQuery<CustomTag[]>({
+    queryKey: ["/api/tenant-panel/tags"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/tags");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/tags", {
+        method: "POST",
+        body: JSON.stringify({ name: newTag.trim() }),
+      });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/tags"] });
+      setNewTag("");
+      toast({ title: "Etiqueta creada" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (name: string) => {
+      await tenantFetch(`/api/tenant-panel/tags/${encodeURIComponent(name)}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/tags"] });
+      toast({ title: "Etiqueta eliminada" });
+    },
+  });
+
+  return (
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div>
+        <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-etiquetas-title">Etiquetas</h2>
+        <p className="text-sm text-white/40">Gestiona las etiquetas para organizar tus conversaciones.</p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Input
+          data-testid="input-new-tag"
+          value={newTag}
+          onChange={(e) => setNewTag(e.target.value)}
+          placeholder="Nombre de la etiqueta"
+          className="bg-white/[0.04] border-white/[0.08]"
+          onKeyDown={(e) => { if (e.key === "Enter" && newTag.trim()) addMutation.mutate(); }}
+        />
+        <Button
+          data-testid="button-add-tag"
+          onClick={() => addMutation.mutate()}
+          disabled={!newTag.trim() || addMutation.isPending}
+          className="bg-[#10b981] border-[#10b981] flex-shrink-0"
+        >
+          <Plus className="w-4 h-4 mr-1" />Agregar
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>
+      ) : tags.length === 0 ? (
+        <p className="text-center text-white/30 text-sm py-8" data-testid="text-no-tags">No hay etiquetas</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <div key={tag} data-testid={`tag-${tag}`} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
+              <Tag className="w-3 h-3 text-[#10b981]" />
+              <span className="text-sm text-white/70">{tag}</span>
+              <button data-testid={`button-delete-tag-${tag}`} onClick={() => deleteMutation.mutate(tag)} className="text-red-400 hover:text-red-300">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductosTab() {
+  const { toast } = useToast();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [productUrl, setProductUrl] = useState("");
+  const [category, setCategory] = useState("game");
+  const [availability, setAvailability] = useState("available");
+  const [description, setDescription] = useState("");
+
+  const { data: products = [], isLoading } = useQuery<ProductItem[]>({
+    queryKey: ["/api/tenant-panel/products"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/products");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const resetForm = () => {
+    setEditId(null);
+    setName("");
+    setPrice("");
+    setProductUrl("");
+    setCategory("game");
+    setAvailability("available");
+    setDescription("");
+    setShowForm(false);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const body = { name: name.trim(), price: price.trim() || null, productUrl: productUrl.trim() || null, category, availability, description: description.trim() || null };
+      if (editId) {
+        const res = await tenantFetch(`/api/tenant-panel/products/${editId}`, { method: "PATCH", body: JSON.stringify(body) });
+        if (!res.ok) throw new Error("Error");
+      } else {
+        const res = await tenantFetch("/api/tenant-panel/products", { method: "POST", body: JSON.stringify(body) });
+        if (!res.ok) throw new Error("Error");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
+      resetForm();
+      toast({ title: editId ? "Producto actualizado" : "Producto creado" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await tenantFetch(`/api/tenant-panel/products/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
+      toast({ title: "Producto eliminado" });
+    },
+  });
+
+  const startEdit = (p: ProductItem) => {
+    setEditId(p.id);
+    setName(p.name);
+    setPrice(p.price || "");
+    setProductUrl(p.productUrl || "");
+    setCategory(p.category);
+    setAvailability(p.availability);
+    setDescription(p.description || "");
+    setShowForm(true);
+  };
+
+  const categoryLabels: Record<string, string> = { game: "Juego", subscription: "Suscripcion", card: "Tarjeta", bundle: "Bundle", console: "Consola", accessory: "Accesorio", other: "Otro" };
+  const availLabels: Record<string, string> = { available: "Disponible", out_of_stock: "Sin stock", preorder: "Pre-orden" };
+
+  return (
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-productos-title">Productos</h2>
+          <p className="text-sm text-white/40">Gestiona tu catalogo de productos.</p>
+        </div>
+        <Button data-testid="button-add-product" onClick={() => { resetForm(); setShowForm(true); }} className="bg-[#10b981] border-[#10b981]">
+          <Plus className="w-4 h-4 mr-1" />Nuevo Producto
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4" data-testid="product-form">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-white/80">{editId ? "Editar Producto" : "Nuevo Producto"}</h3>
+            <button data-testid="button-close-product-form" onClick={resetForm}><X className="w-4 h-4 text-white/40" /></button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input data-testid="input-product-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" className="bg-white/[0.04] border-white/[0.08]" />
+            <Input data-testid="input-product-price" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Precio (ej: 9990)" className="bg-white/[0.04] border-white/[0.08]" />
+            <Input data-testid="input-product-url" value={productUrl} onChange={(e) => setProductUrl(e.target.value)} placeholder="URL del producto" className="bg-white/[0.04] border-white/[0.08]" />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger data-testid="select-product-category" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="game">Juego</SelectItem>
+                <SelectItem value="subscription">Suscripcion</SelectItem>
+                <SelectItem value="card">Tarjeta</SelectItem>
+                <SelectItem value="bundle">Bundle</SelectItem>
+                <SelectItem value="console">Consola</SelectItem>
+                <SelectItem value="accessory">Accesorio</SelectItem>
+                <SelectItem value="other">Otro</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={availability} onValueChange={setAvailability}>
+              <SelectTrigger data-testid="select-product-availability" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="available">Disponible</SelectItem>
+                <SelectItem value="out_of_stock">Sin stock</SelectItem>
+                <SelectItem value="preorder">Pre-orden</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Textarea data-testid="textarea-product-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descripcion" className="bg-white/[0.04] border-white/[0.08] resize-none" rows={3} />
+          <Button data-testid="button-save-product" onClick={() => saveMutation.mutate()} disabled={!name.trim() || saveMutation.isPending} className="bg-[#10b981] border-[#10b981]">
+            {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+            {editId ? "Actualizar" : "Crear"}
+          </Button>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>
+      ) : products.length === 0 ? (
+        <p className="text-center text-white/30 text-sm py-8" data-testid="text-no-products">No hay productos</p>
+      ) : (
+        <div className="space-y-2">
+          {products.map((p) => (
+            <div key={p.id} data-testid={`product-${p.id}`} className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.06] bg-white/[0.02] flex-wrap">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white/90">{p.name}</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  {p.price && <span className="text-xs text-[#10b981] font-semibold">${p.price}</span>}
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/50">{categoryLabels[p.category] || p.category}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${p.availability === "available" ? "bg-emerald-500/15 text-emerald-400" : p.availability === "preorder" ? "bg-amber-500/15 text-amber-400" : "bg-red-500/15 text-red-400"}`}>{availLabels[p.availability] || p.availability}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button data-testid={`button-edit-product-${p.id}`} size="icon" variant="ghost" onClick={() => startEdit(p)}>
+                  <Pencil className="w-4 h-4 text-white/40" />
+                </Button>
+                <Button data-testid={`button-delete-product-${p.id}`} size="icon" variant="ghost" onClick={() => deleteMutation.mutate(p.id)}>
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConocimientoTab() {
+  const { toast } = useToast();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [kbCategory, setKbCategory] = useState("general");
+  const [kbStatus, setKbStatus] = useState("pending");
+
+  const { data: entries = [], isLoading } = useQuery<KnowledgeEntry[]>({
+    queryKey: ["/api/tenant-panel/knowledge"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/knowledge");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const resetForm = () => {
+    setEditId(null);
+    setQuestion("");
+    setAnswer("");
+    setKeywords("");
+    setKbCategory("general");
+    setKbStatus("pending");
+    setShowForm(false);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const body = {
+        question: question.trim(),
+        answer: answer.trim(),
+        keywords: keywords.split(",").map((k) => k.trim()).filter(Boolean),
+        category: kbCategory,
+        status: kbStatus,
+      };
+      if (editId) {
+        const res = await tenantFetch(`/api/tenant-panel/knowledge/${editId}`, { method: "PATCH", body: JSON.stringify(body) });
+        if (!res.ok) throw new Error("Error");
+      } else {
+        const res = await tenantFetch("/api/tenant-panel/knowledge", { method: "POST", body: JSON.stringify(body) });
+        if (!res.ok) throw new Error("Error");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge"] });
+      resetForm();
+      toast({ title: editId ? "Entrada actualizada" : "Entrada creada" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await tenantFetch(`/api/tenant-panel/knowledge/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge"] });
+      toast({ title: "Entrada eliminada" });
+    },
+  });
+
+  const startEdit = (e: KnowledgeEntry) => {
+    setEditId(e.id);
+    setQuestion(e.question);
+    setAnswer(e.answer);
+    setKeywords((e.keywords || []).join(", "));
+    setKbCategory(e.category);
+    setKbStatus(e.status);
+    setShowForm(true);
+  };
+
+  const categoryLabels: Record<string, string> = { faq: "FAQ", troubleshooting: "Solucion", product_info: "Producto", policy: "Politica", general: "General" };
+  const statusLabels: Record<string, string> = { pending: "Pendiente", approved: "Aprobado", rejected: "Rechazado" };
+
+  return (
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-knowledge-title">Base de Conocimiento</h2>
+          <p className="text-sm text-white/40">Entradas de conocimiento para el bot de IA.</p>
+        </div>
+        <Button data-testid="button-add-knowledge" onClick={() => { resetForm(); setShowForm(true); }} className="bg-[#10b981] border-[#10b981]">
+          <Plus className="w-4 h-4 mr-1" />Nueva Entrada
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4" data-testid="knowledge-form">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-white/80">{editId ? "Editar Entrada" : "Nueva Entrada"}</h3>
+            <button data-testid="button-close-knowledge-form" onClick={resetForm}><X className="w-4 h-4 text-white/40" /></button>
+          </div>
+          <Input data-testid="input-kb-question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Pregunta" className="bg-white/[0.04] border-white/[0.08]" />
+          <Textarea data-testid="textarea-kb-answer" value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Respuesta" className="bg-white/[0.04] border-white/[0.08] resize-none" rows={3} />
+          <Input data-testid="input-kb-keywords" value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="Palabras clave (separadas por coma)" className="bg-white/[0.04] border-white/[0.08]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select value={kbCategory} onValueChange={setKbCategory}>
+              <SelectTrigger data-testid="select-kb-category" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="faq">FAQ</SelectItem>
+                <SelectItem value="troubleshooting">Solucion de problemas</SelectItem>
+                <SelectItem value="product_info">Info de producto</SelectItem>
+                <SelectItem value="policy">Politica</SelectItem>
+                <SelectItem value="general">General</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={kbStatus} onValueChange={setKbStatus}>
+              <SelectTrigger data-testid="select-kb-status" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="approved">Aprobado</SelectItem>
+                <SelectItem value="rejected">Rechazado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button data-testid="button-save-knowledge" onClick={() => saveMutation.mutate()} disabled={!question.trim() || !answer.trim() || saveMutation.isPending} className="bg-[#10b981] border-[#10b981]">
+            {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+            {editId ? "Actualizar" : "Crear"}
+          </Button>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>
+      ) : entries.length === 0 ? (
+        <p className="text-center text-white/30 text-sm py-8" data-testid="text-no-knowledge">No hay entradas</p>
+      ) : (
+        <div className="space-y-2">
+          {entries.map((e) => (
+            <div key={e.id} data-testid={`knowledge-${e.id}`} className="p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white/90">{e.question}</p>
+                  <p className="text-xs text-white/50 mt-1 line-clamp-2">{e.answer}</p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/50">{categoryLabels[e.category] || e.category}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${e.status === "approved" ? "bg-emerald-500/15 text-emerald-400" : e.status === "rejected" ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"}`}>{statusLabels[e.status] || e.status}</span>
+                    {e.keywords && e.keywords.length > 0 && e.keywords.map((k) => (
+                      <span key={k} className="text-[10px] px-1.5 py-0.5 rounded bg-[#10b981]/10 text-[#10b981]/70">{k}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button data-testid={`button-edit-knowledge-${e.id}`} size="icon" variant="ghost" onClick={() => startEdit(e)}>
+                    <Pencil className="w-4 h-4 text-white/40" />
+                  </Button>
+                  <Button data-testid={`button-delete-knowledge-${e.id}`} size="icon" variant="ghost" onClick={() => deleteMutation.mutate(e.id)}>
+                    <Trash2 className="w-4 h-4 text-red-400" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AjustesTab() {
+  const { toast } = useToast();
+
+  const { data: settings, isLoading } = useQuery<TenantSettings>({
+    queryKey: ["/api/tenant-panel/settings"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/settings");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [bhEnabled, setBhEnabled] = useState(false);
+  const [bhStart, setBhStart] = useState("09:00");
+  const [bhEnd, setBhEnd] = useState("18:00");
+  const [bhDays, setBhDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [bhMessage, setBhMessage] = useState("Estamos fuera del horario de atencion. Te responderemos pronto.");
+
+  useEffect(() => {
+    if (settings) {
+      setAiEnabled(settings.aiEnabled === 1);
+      if (settings.businessHoursConfig) {
+        try {
+          const bh = typeof settings.businessHoursConfig === "string" ? JSON.parse(settings.businessHoursConfig) : settings.businessHoursConfig;
+          if (bh && bh.enabled) {
+            setBhEnabled(true);
+            setBhStart(bh.start || "09:00");
+            setBhEnd(bh.end || "18:00");
+            setBhDays(bh.days || [1, 2, 3, 4, 5]);
+            setBhMessage(bh.message || "");
+          }
+        } catch {}
+      }
+    }
+  }, [settings]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const body: any = {
+        aiEnabled: aiEnabled ? 1 : 0,
+        businessHoursConfig: bhEnabled ? JSON.stringify({ enabled: true, start: bhStart, end: bhEnd, days: bhDays, message: bhMessage }) : null,
+      };
+      const res = await tenantFetch("/api/tenant-panel/settings", { method: "PATCH", body: JSON.stringify(body) });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/settings"] });
+      toast({ title: "Ajustes guardados" });
+    },
+  });
+
+  const dayLabels = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+
+  const toggleDay = (day: number) => {
+    setBhDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
+  };
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>;
+
+  return (
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div>
+        <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-ajustes-title">Ajustes</h2>
+        <p className="text-sm text-white/40">Configuracion general del panel.</p>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-white/80">Inteligencia Artificial</p>
+            <p className="text-xs text-white/40 mt-0.5">Habilitar respuestas automaticas del bot con IA</p>
+          </div>
+          <Switch data-testid="switch-ai-enabled" checked={aiEnabled} onCheckedChange={setAiEnabled} />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-white/80">Horario de Atencion</p>
+            <p className="text-xs text-white/40 mt-0.5">Define cuando esta disponible tu equipo</p>
+          </div>
+          <Switch data-testid="switch-bh-enabled" checked={bhEnabled} onCheckedChange={setBhEnabled} />
+        </div>
+
+        {bhEnabled && (
+          <div className="space-y-3 pt-2 border-t border-white/[0.06]">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-white/40 mb-1 block">Hora inicio</label>
+                <Input data-testid="input-bh-start" type="time" value={bhStart} onChange={(e) => setBhStart(e.target.value)} className="bg-white/[0.04] border-white/[0.08]" />
+              </div>
+              <div>
+                <label className="text-xs text-white/40 mb-1 block">Hora fin</label>
+                <Input data-testid="input-bh-end" type="time" value={bhEnd} onChange={(e) => setBhEnd(e.target.value)} className="bg-white/[0.04] border-white/[0.08]" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-white/40 mb-1.5 block">Dias activos</label>
+              <div className="flex items-center gap-1 flex-wrap">
+                {dayLabels.map((label, i) => (
+                  <button
+                    key={i}
+                    data-testid={`button-day-${i}`}
+                    onClick={() => toggleDay(i)}
+                    className={`px-2.5 py-1.5 rounded-md text-xs transition-colors ${bhDays.includes(i) ? "bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30" : "bg-white/[0.04] text-white/40 border border-white/[0.06]"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-white/40 mb-1 block">Mensaje fuera de horario</label>
+              <Textarea data-testid="textarea-bh-message" value={bhMessage} onChange={(e) => setBhMessage(e.target.value)} className="bg-white/[0.04] border-white/[0.08] resize-none" rows={2} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Button data-testid="button-save-settings" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="bg-[#10b981] border-[#10b981]">
+        {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+        Guardar Ajustes
+      </Button>
+    </div>
+  );
+}
+
+export default function TenantPanel() {
+  const { tenant, isLoading, token } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabId>("chats");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
+
+  if (isLoading || !tenant || !token) {
+    return (
+      <div className="h-screen flex items-center justify-center" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
+        <div className="flex flex-col items-center gap-4">
+          <img src={logoSinFondo} alt="FoxBot" className="w-16 h-16 rounded-xl" />
+          <Loader2 className="w-6 h-6 text-[#10b981] animate-spin" />
+          <p className="text-white/40 text-sm" data-testid="text-loading-panel">Cargando panel...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("tenant_token");
+    window.location.href = "/login";
+  };
+
+  return (
+    <div className="h-screen flex" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }} data-testid="tenant-panel">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} data-testid="sidebar-overlay" />
+      )}
+
+      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0d0d0d] border-r border-white/[0.06] flex flex-col transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`} data-testid="sidebar">
+        <div className="p-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 rounded-lg" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-white truncate" data-testid="text-company-name">{tenant.companyName}</p>
+              <p className="text-[10px] text-white/30 truncate">{tenant.email}</p>
+            </div>
+            <button className="md:hidden ml-auto" onClick={() => setSidebarOpen(false)} data-testid="button-close-sidebar">
+              <X className="w-5 h-5 text-white/40" />
+            </button>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+          {SIDEBAR_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              data-testid={`sidebar-tab-${item.id}`}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${activeTab === item.id ? "bg-[#10b981]/15 text-[#10b981]" : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]"}`}
+            >
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-3 border-t border-white/[0.06] space-y-1">
+          <a
+            href="/dashboard"
+            data-testid="link-back-dashboard"
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-white/50 hover:text-white/70 hover:bg-white/[0.04] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver al Dashboard
+          </a>
+          <button
+            data-testid="button-logout"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Cerrar sesion
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.06] flex-shrink-0">
+          <button data-testid="button-open-sidebar" onClick={() => setSidebarOpen(true)} className="md:hidden">
+            <Menu className="w-5 h-5 text-white/60" />
+          </button>
+          <h1 className="text-sm font-semibold text-white/70" data-testid="text-active-tab-title">
+            {SIDEBAR_ITEMS.find((i) => i.id === activeTab)?.label}
+          </h1>
+          <Badge variant="outline" className="ml-auto text-[10px] text-white/30 border-white/[0.08]" data-testid="badge-plan">
+            {tenant.plan}
+          </Badge>
+        </header>
+
+        <main className="flex-1 overflow-hidden">
+          {activeTab === "chats" && <ChatsTab token={token} />}
+          {activeTab === "atajos" && <AtajosTab />}
+          {activeTab === "etiquetas" && <EtiquetasTab />}
+          {activeTab === "productos" && <ProductosTab />}
+          {activeTab === "conocimiento" && <ConocimientoTab />}
+          {activeTab === "guias" && <GuidesPanel />}
+          {activeTab === "ajustes" && <AjustesTab />}
+        </main>
+      </div>
+    </div>
+  );
+}
