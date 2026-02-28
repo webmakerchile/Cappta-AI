@@ -148,6 +148,7 @@ export const tenants = pgTable("tenants", {
   productApiUrl: text("product_api_url"),
   botConfigured: integer("bot_configured").notNull().default(0),
   aiEnabled: integer("ai_enabled").notNull().default(1),
+  botContext: text("bot_context"),
   businessHoursConfig: text("business_hours_config"),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
   flowCustomerId: text("flow_customer_id"),

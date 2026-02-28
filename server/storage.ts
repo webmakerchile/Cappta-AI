@@ -71,7 +71,7 @@ export interface IStorage {
   getKnowledgeEntryById(id: number): Promise<KnowledgeBase | null>;
   updateKnowledgeEntry(id: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase | null>;
   deleteKnowledgeEntry(id: number): Promise<boolean>;
-  searchKnowledgeEntries(query: string, limit?: number): Promise<KnowledgeBase[]>;
+  searchKnowledgeEntries(query: string, limit?: number, tenantId?: number | null): Promise<KnowledgeBase[]>;
   incrementKnowledgeUsage(id: number): Promise<void>;
   getTenantByEmail(email: string): Promise<Tenant | null>;
   getTenantById(id: number): Promise<Tenant | null>;
@@ -961,8 +961,9 @@ export class DatabaseStorage implements IStorage {
     return results.length > 0;
   }
 
-  async searchKnowledgeEntries(query: string, limit: number = 5): Promise<KnowledgeBase[]> {
+  async searchKnowledgeEntries(query: string, limit: number = 5, tenantId?: number | null): Promise<KnowledgeBase[]> {
     const normalizedQuery = query.toLowerCase().trim();
+    const tenantFilter = tenantId ? sql`AND tenant_id = ${tenantId}` : sql`AND tenant_id IS NULL`;
     const results = await db.execute(sql`
       SELECT *, 
         GREATEST(
@@ -971,6 +972,7 @@ export class DatabaseStorage implements IStorage {
         ) as sim_score
       FROM knowledge_base 
       WHERE status = 'approved'
+        ${tenantFilter}
         AND (
           LOWER(question) LIKE ${'%' + normalizedQuery + '%'}
           OR LOWER(answer) LIKE ${'%' + normalizedQuery + '%'}

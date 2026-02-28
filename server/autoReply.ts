@@ -1456,12 +1456,50 @@ export async function getSmartAutoReply(
   userMessage: string,
   conversationHistory: Array<{ sender: string; content: string }>,
   sessionData?: SessionData,
-  catalogLookup?: CatalogLookup
+  catalogLookup?: CatalogLookup,
+  tenantId?: number | null
 ): Promise<string> {
   let isOfflineHours = false;
   let offlineTicketUrl = "https://cjmdigitales.zohodesk.com/portal/es/newticket";
   let offlineHoursStart = 12;
   let offlineHoursEnd = 21;
+
+  if (tenantId) {
+    try {
+      const tenant = await storage.getTenantById(tenantId);
+      if (tenant) {
+        if (tenant.aiEnabled === 0) {
+          return withButtons(
+            "¡Hola! En este momento un agente se pondra en contacto contigo por este mismo chat.",
+            [{label: "Contactar agente", value: "__qr:contact"}]
+          );
+        }
+
+        let bhConfig: any = null;
+        if (tenant.businessHoursConfig) {
+          try { bhConfig = JSON.parse(tenant.businessHoursConfig); } catch {}
+        }
+        if (bhConfig?.enabled) {
+          offlineHoursStart = bhConfig.startHour || 9;
+          offlineHoursEnd = bhConfig.endHour || 18;
+          offlineTicketUrl = bhConfig.ticketUrl || "";
+          const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
+          const currentHour = nowChile.getHours();
+          if (currentHour < offlineHoursStart || currentHour >= offlineHoursEnd) {
+            isOfflineHours = true;
+          }
+        }
+
+        return await _processTenantAutoReply(
+          userMessage, conversationHistory, sessionData, tenant,
+          isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd
+        );
+      }
+    } catch (e) {
+      console.error("Error in tenant auto reply:", e);
+    }
+  }
+
   try {
     const bhEnabled = await storage.getSetting("business_hours_enabled");
     if (bhEnabled !== "false") {
@@ -1489,6 +1527,99 @@ export async function getSmartAutoReply(
   }
 
   return rawResult;
+}
+
+async function _processTenantAutoReply(
+  userMessage: string,
+  conversationHistory: Array<{ sender: string; content: string }>,
+  sessionData: SessionData | undefined,
+  tenant: any,
+  isOfflineHours: boolean,
+  offlineTicketUrl: string,
+  offlineHoursStart: number,
+  offlineHoursEnd: number
+): Promise<string> {
+  const msg = normalize(userMessage);
+
+  if (msg === "__qr:rate") {
+    return "{{SHOW_RATING}}";
+  }
+
+  if (msg === "__qr:contact") {
+    if (isOfflineHours && offlineTicketUrl) {
+      return withButtons(
+        `En este momento no hay agentes disponibles (horario: ${offlineHoursStart}:00 a ${offlineHoursEnd}:00 hrs).\n\nPuedes dejar tu consulta y te responderemos a la brevedad.`,
+        [{label: "Dejar mensaje", url: offlineTicketUrl}]
+      );
+    }
+    return "{{CONTACT_REQUEST}} ¡Perfecto! Un agente se conectara contigo en breve por este mismo chat. Mientras tanto, ¿hay algo mas en lo que pueda ayudarte?";
+  }
+
+  if (msg === "__qr:farewell_skip") {
+    return "👋 ¡Hasta pronto! Si necesitas algo mas, no dudes en volver a escribirnos.";
+  }
+
+  let catalogProducts: CatalogProduct[] = [];
+  try {
+    const tenantProducts = await storage.getTenantProducts(tenant.id);
+    if (tenantProducts.length > 0) {
+      const msgLower = userMessage.toLowerCase();
+      catalogProducts = tenantProducts
+        .filter(p => {
+          const nameLower = p.name.toLowerCase();
+          return nameLower.includes(msgLower) || msgLower.includes(nameLower) ||
+            msgLower.split(/\s+/).some((w: string) => w.length > 3 && nameLower.includes(w));
+        })
+        .slice(0, 5)
+        .map(p => ({
+          name: p.name,
+          price: p.price,
+          productUrl: p.productUrl,
+          availability: p.availability,
+          platform: p.platform,
+          description: p.description,
+          category: p.category,
+          accountType: p.accountType,
+        }));
+    }
+  } catch {}
+
+  const aiResponse = await getAIReply(
+    userMessage,
+    conversationHistory,
+    sessionData ? {
+      problemType: sessionData.problemType,
+      gameName: sessionData.gameName,
+      pageTitle: sessionData.pageTitle,
+      pageUrl: sessionData.pageUrl,
+      userName: sessionData.userName,
+      wpProductName: sessionData.wpProductName,
+      wpProductPrice: sessionData.wpProductPrice,
+      wpProductUrl: sessionData.wpProductUrl,
+    } : undefined,
+    catalogProducts.length > 0 ? catalogProducts : undefined,
+    {
+      isOfflineHours,
+      offlineTicketUrl,
+      offlineHoursStart,
+      offlineHoursEnd,
+      tenantId: tenant.id,
+      tenantContext: {
+        companyName: tenant.companyName,
+        botContext: tenant.botContext,
+      }
+    }
+  );
+
+  const buttons: Array<{label: string, value?: string, url?: string}> = [];
+  if (!isOfflineHours) {
+    buttons.push({label: "Contactar agente", value: "__qr:contact"});
+  }
+
+  if (buttons.length > 0) {
+    return withButtons(aiResponse, buttons);
+  }
+  return aiResponse;
 }
 
 async function _processAutoReply(

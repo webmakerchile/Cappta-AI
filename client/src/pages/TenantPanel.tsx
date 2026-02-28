@@ -175,12 +175,14 @@ interface KnowledgeEntry {
 interface TenantSettings {
   aiEnabled: number;
   businessHoursConfig: any;
+  botContext: string;
 }
 
-type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "guias" | "ajustes";
+type TabId = "chats" | "atajos" | "etiquetas" | "productos" | "conocimiento" | "entrenar" | "guias" | "ajustes";
 
 const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any }[] = [
   { id: "chats", label: "Chats", icon: MessageSquare },
+  { id: "entrenar", label: "Entrenar Bot", icon: Bot },
   { id: "atajos", label: "Atajos", icon: Zap },
   { id: "etiquetas", label: "Etiquetas", icon: Tag },
   { id: "productos", label: "Productos", icon: Package },
@@ -211,6 +213,8 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [mobileShowChat, setMobileShowChat] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [correctionModal, setCorrectionModal] = useState<{ msgId: number; originalAnswer: string; userQuestion: string } | null>(null);
+  const [correctionAnswer, setCorrectionAnswer] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -359,6 +363,44 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
     }
     queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
     toast({ title: "Sesion eliminada" });
+  };
+
+  const handleCorrection = async () => {
+    if (!correctionModal || !correctionAnswer.trim()) return;
+    try {
+      const res = await tenantFetch("/api/tenant-panel/knowledge", {
+        method: "POST",
+        body: JSON.stringify({
+          question: correctionModal.userQuestion,
+          answer: correctionAnswer.trim(),
+          category: "general",
+          keywords: [],
+          status: "approved",
+        }),
+      });
+      if (res.ok) {
+        toast({ title: "Correccion guardada", description: "El bot aprendio de esta correccion" });
+        queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge"] });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
+    }
+    setCorrectionModal(null);
+    setCorrectionAnswer("");
+  };
+
+  const openCorrection = (msg: ChatMessage) => {
+    const idx = messages.findIndex((m) => m.id === msg.id);
+    let userQuestion = "";
+    for (let i = idx - 1; i >= 0; i--) {
+      if (messages[i].sender === "user") {
+        userQuestion = messages[i].content.replace(/\{\{.*?\}\}/g, "").trim();
+        break;
+      }
+    }
+    const cleanAnswer = msg.content.replace(/\{\{QUICK_REPLIES:.*?\}\}/g, "").replace(/\{\{SHOW_RATING\}\}/g, "").trim();
+    setCorrectionModal({ msgId: msg.id, originalAnswer: cleanAnswer, userQuestion });
+    setCorrectionAnswer("");
   };
 
   const handleSlashSelect = (content: string) => {
@@ -789,7 +831,20 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                           {isAdmin && msg.adminName && (
                             <p className="text-[10px] font-semibold mb-0.5" style={{ color: msg.adminColor || "#10b981" }}>{msg.adminName}</p>
                           )}
-                          {isBot && <p className="text-[10px] font-semibold mb-0.5 text-blue-400">Bot</p>}
+                          {isBot && (
+                            <div className="flex items-center justify-between mb-0.5">
+                              <p className="text-[10px] font-semibold text-blue-400">Bot</p>
+                              <button
+                                data-testid={`button-correct-${msg.id}`}
+                                onClick={() => openCorrection(msg)}
+                                className="text-[10px] text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-0.5"
+                                title="Corregir respuesta del bot"
+                              >
+                                <Pencil className="w-2.5 h-2.5" />
+                                Corregir
+                              </button>
+                            </div>
+                          )}
                           {cleanContent.trim() && (
                             <p className="text-sm whitespace-pre-wrap break-words">{cleanContent}</p>
                           )}
@@ -939,6 +994,65 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
           </div>
         )}
       </div>
+      {correctionModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setCorrectionModal(null)} data-testid="correction-modal-overlay">
+          <div className="bg-[#1a1a2e] border border-white/[0.1] rounded-xl w-full max-w-lg p-5 space-y-4" onClick={(e) => e.stopPropagation()} data-testid="correction-modal">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white/90 flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-amber-400" />
+                Corregir respuesta del Bot
+              </h3>
+              <button onClick={() => setCorrectionModal(null)} className="text-white/30 hover:text-white/60" data-testid="button-close-correction">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-white/40 mb-1 block">Pregunta del usuario</label>
+                <div className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2">
+                  <p className="text-sm text-white/70">{correctionModal.userQuestion || "(Sin pregunta identificada)"}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 mb-1 block">Respuesta original del Bot</label>
+                <div className="bg-red-500/5 border border-red-500/10 rounded-lg px-3 py-2">
+                  <p className="text-sm text-red-300/70 line-through">{correctionModal.originalAnswer}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-amber-400/70 mb-1 block font-medium">Respuesta correcta</label>
+                <Textarea
+                  data-testid="textarea-correction"
+                  value={correctionAnswer}
+                  onChange={(e) => setCorrectionAnswer(e.target.value)}
+                  placeholder="Escribe la respuesta correcta que deberia dar el bot..."
+                  className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[80px] text-sm"
+                  rows={3}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setCorrectionModal(null)} className="text-white/50" data-testid="button-cancel-correction">
+                Cancelar
+              </Button>
+              <Button
+                data-testid="button-save-correction"
+                onClick={handleCorrection}
+                disabled={!correctionAnswer.trim()}
+                className="bg-amber-500 hover:bg-amber-600 text-white border-0"
+              >
+                <Check className="w-4 h-4 mr-1" />
+                Guardar correccion
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1442,6 +1556,145 @@ function ConocimientoTab() {
   );
 }
 
+function EntrenarBotTab() {
+  const { toast } = useToast();
+
+  const { data: settings, isLoading } = useQuery<TenantSettings>({
+    queryKey: ["/api/tenant-panel/settings"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/settings");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const [botContext, setBotContext] = useState("");
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    if (settings && !hasLoaded) {
+      setBotContext(settings.botContext || "");
+      setHasLoaded(true);
+    }
+  }, [settings, hasLoaded]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/settings", {
+        method: "PATCH",
+        body: JSON.stringify({ botContext }),
+      });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/settings"] });
+      toast({ title: "Entrenamiento guardado", description: "El bot usara esta informacion en sus respuestas" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
+    },
+  });
+
+  const { data: kbEntries = [] } = useQuery<KBEntry[]>({
+    queryKey: ["/api/tenant-panel/knowledge"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/knowledge");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>;
+
+  const approvedCount = kbEntries.filter(k => k.status === "approved").length;
+
+  return (
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div>
+        <h2 className="text-xl font-bold text-white/90 mb-1 flex items-center gap-2" data-testid="text-entrenar-title">
+          <Bot className="w-5 h-5 text-[#10b981]" />
+          Entrenar Bot
+        </h2>
+        <p className="text-sm text-white/40">Ensenale a tu bot todo sobre tu negocio para que responda de forma precisa y personalizada.</p>
+      </div>
+
+      <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#10b981]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Bot className="w-4 h-4 text-[#10b981]" />
+          </div>
+          <div className="text-sm text-white/60 space-y-1">
+            <p className="text-white/80 font-medium">Como funciona el entrenamiento</p>
+            <p>Escribe toda la informacion relevante de tu negocio: productos, servicios, precios, politicas, horarios, preguntas frecuentes, etc.</p>
+            <p>El bot usara este contexto como su base de conocimiento principal para responder a tus clientes.</p>
+            <p className="text-[#10b981]">Tip: Tambien puedes corregir respuestas del bot en el tab "Chats" usando el boton "Corregir" en cualquier mensaje del bot.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-white/80">Informacion del negocio</label>
+          <span className="text-[10px] text-white/30">{botContext.length} caracteres</span>
+        </div>
+        <Textarea
+          data-testid="textarea-bot-context"
+          value={botContext}
+          onChange={(e) => setBotContext(e.target.value)}
+          placeholder={`Ejemplo:
+
+Somos [nombre de tu empresa], una tienda de [tipo de negocio] ubicada en [ubicacion].
+
+PRODUCTOS/SERVICIOS:
+- Producto 1: descripcion, precio
+- Producto 2: descripcion, precio
+
+METODOS DE PAGO:
+- Transferencia bancaria
+- Tarjeta de credito
+
+ENVIOS:
+- Envio gratis sobre $30.000
+- Despacho en 24-48 hrs
+
+POLITICAS:
+- Devolucion dentro de 7 dias
+- Garantia de 30 dias
+
+PREGUNTAS FRECUENTES:
+- ¿Como compro? Resp: ...
+- ¿Cuanto demora? Resp: ...`}
+          className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[350px] text-sm font-mono"
+          rows={20}
+        />
+
+        <Button
+          data-testid="button-save-training"
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending}
+          className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
+        >
+          {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+          Guardar Entrenamiento
+        </Button>
+      </div>
+
+      {approvedCount > 0 && (
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <BookOpen className="w-4 h-4 text-amber-400" />
+            <p className="text-sm font-medium text-white/80">Correcciones aprendidas</p>
+            <Badge variant="outline" className="text-[10px] border-amber-400/30 text-amber-400" data-testid="badge-corrections-count">{approvedCount}</Badge>
+          </div>
+          <p className="text-xs text-white/40">
+            Tu bot tiene {approvedCount} correcciones guardadas desde el chat. Puedes verlas y editarlas en la pestaña "Conocimiento".
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AjustesTab() {
   const { toast } = useToast();
 
@@ -1670,6 +1923,7 @@ export default function TenantPanel() {
           {activeTab === "etiquetas" && <EtiquetasTab />}
           {activeTab === "productos" && <ProductosTab />}
           {activeTab === "conocimiento" && <ConocimientoTab />}
+          {activeTab === "entrenar" && <EntrenarBotTab />}
           {activeTab === "guias" && <GuidesPanel />}
           {activeTab === "ajustes" && <AjustesTab />}
         </main>

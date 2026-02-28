@@ -958,7 +958,8 @@ ${DEMO_BASE_RULES}`,
                 wpProductPrice: req.body.productPrice || null,
                 wpProductUrl: req.body.productUrl || null,
               },
-              catalogLookup
+              catalogLookup,
+              tenantId || null
             );
 
             const autoReply = await storage.createMessage({
@@ -2020,6 +2021,7 @@ ${DEMO_BASE_RULES}`,
     res.json({
       aiEnabled: tenant.aiEnabled,
       businessHoursConfig: tenant.businessHoursConfig ? JSON.parse(tenant.businessHoursConfig) : null,
+      botContext: tenant.botContext || "",
     });
   });
 
@@ -2030,6 +2032,7 @@ ${DEMO_BASE_RULES}`,
       const update: any = {};
       if (req.body.aiEnabled !== undefined) update.aiEnabled = req.body.aiEnabled;
       if (req.body.businessHoursConfig !== undefined) update.businessHoursConfig = JSON.stringify(req.body.businessHoursConfig);
+      if (req.body.botContext !== undefined) update.botContext = req.body.botContext;
       const updated = await storage.updateTenant(auth.id, update);
       res.json({ success: true, tenant: updated });
     } catch (error: any) {
@@ -3282,7 +3285,8 @@ ${DEMO_BASE_RULES}`,
                   pageUrl: session?.pageUrl || null,
                   userName: parsed.data.userName || null,
                 },
-                socketCatalogLookup
+                socketCatalogLookup,
+                socketTenantId || null
               );
 
               const autoReply = await storage.createMessage({
