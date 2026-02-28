@@ -271,7 +271,8 @@ Reglas:
         return res.status(400).json({ message: "Mensaje invalido" });
       }
 
-      if (containsProfanity(lastMessage.content)) {
+      const profanity = containsProfanity(lastMessage.content);
+      if (profanity.hasProfanity) {
         return res.status(400).json({ message: "Tu mensaje contiene contenido inapropiado. Por favor reescribelo." });
       }
 
