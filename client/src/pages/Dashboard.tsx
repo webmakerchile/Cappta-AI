@@ -858,7 +858,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const iframeCode = `<iframe
   id="foxbot-widget"
   src="${baseUrl}/widget?tenantId=${tenant.id}"
-  style="position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;"
+  style="position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;"
   allow="microphone"
 ></iframe>
 <script>
@@ -871,10 +871,10 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         if (mobile) {
           f.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
         } else {
-          f.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+          f.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
         }
       } else {
-        f.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
+        f.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
       }
     }
   });
@@ -886,7 +886,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
     iframe.id = 'foxbot-widget';
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
     iframe.allow = 'microphone';
-    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
+    iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
     document.body.appendChild(iframe);
     window.addEventListener('message', function(e) {
       if (!e.data || !e.data.type) return;
@@ -896,10 +896,10 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
           if (mobile) {
             iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
           } else {
-            iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+            iframe.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
           }
         } else {
-          iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
+          iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
         }
       }
     });

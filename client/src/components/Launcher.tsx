@@ -14,7 +14,7 @@ export function Launcher({ isOpen, onClick, hasUnread, color }: LauncherProps) {
       data-testid="button-launcher"
       onClick={onClick}
       className="
-        relative w-14 h-14 rounded-full
+        relative w-12 h-12 rounded-full
         flex items-center justify-center
         transition-all duration-300 ease-out
         focus:outline-none
@@ -22,7 +22,7 @@ export function Launcher({ isOpen, onClick, hasUnread, color }: LauncherProps) {
       "
       style={{ border: "none", backgroundColor: bgColor }}
     >
-      <MessageCircle className="w-6 h-6 text-white" />
+      <MessageCircle className="w-5 h-5 text-white" />
       {hasUnread && (
         <span
           data-testid="badge-unread"

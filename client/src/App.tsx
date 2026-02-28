@@ -454,7 +454,7 @@ function ChatWidget() {
           </div>
         </div>
       ) : (
-        <div className="p-2">
+        <div className="p-1.5">
           <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} />
         </div>
       )}
