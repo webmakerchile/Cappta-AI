@@ -704,13 +704,38 @@ function ExecutiveRequestPreview() {
 
 function PreviewTabs() {
   const [activeTab, setActiveTab] = useState<"form" | "widget" | "executive" | "dashboard">("form");
+  const [userInteracted, setUserInteracted] = useState(false);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tabs = [
-    { id: "form" as const, label: "Formulario Pre-Chat", icon: FileText },
-    { id: "widget" as const, label: "Chat Widget", icon: MessageSquare },
-    { id: "executive" as const, label: "Vista Ejecutivo", icon: Bell },
-    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones },
+    { id: "form" as const, label: "Formulario Pre-Chat", icon: FileText, desc: "El cliente completa sus datos antes de iniciar el chat" },
+    { id: "widget" as const, label: "Chat Widget", icon: MessageSquare, desc: "Widget embebido en tu sitio web — Totalmente personalizable" },
+    { id: "executive" as const, label: "Vista Ejecutivo", icon: Bell, desc: "El ejecutivo ve la solicitud, el formulario pre-chat y el historial completo" },
+    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones, desc: "Panel de administracion donde los ejecutivos gestionan chats en tiempo real" },
   ];
+
+  const currentIndex = tabs.findIndex((t) => t.id === activeTab);
+
+  useEffect(() => {
+    if (userInteracted) {
+      const resetTimer = setTimeout(() => setUserInteracted(false), 15000);
+      return () => clearTimeout(resetTimer);
+    }
+    autoAdvanceRef.current = setTimeout(() => {
+      setActiveTab((prev) => {
+        const idx = tabs.findIndex((t) => t.id === prev);
+        return tabs[(idx + 1) % tabs.length].id;
+      });
+    }, 5000);
+    return () => {
+      if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+    };
+  }, [activeTab, userInteracted]);
+
+  const handleTabClick = (id: typeof activeTab) => {
+    setUserInteracted(true);
+    setActiveTab(id);
+  };
 
   return (
     <div data-testid="preview-tabs">
@@ -719,39 +744,58 @@ function PreviewTabs() {
         <p className="text-sm text-white/35 max-w-lg mx-auto">Explora cada pantalla del sistema: desde el formulario inicial hasta el panel de ejecutivos.</p>
       </div>
 
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
+      <div className="hidden sm:flex items-center justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-[12px] sm:text-sm font-semibold transition-all duration-300 ${activeTab === tab.id ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40"}`}
             data-testid={`tab-${tab.id}-preview`}
           >
             <tab.icon className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{tab.label}</span>
-            <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+            {tab.label}
           </button>
         ))}
+      </div>
+
+      <div className="sm:hidden flex flex-col items-center mb-6">
+        <p className="text-xs font-semibold text-[#a78bfa] mb-3">{tabs[currentIndex].label}</p>
+        <div className="flex items-center gap-2">
+          {tabs.map((tab, i) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab.id)}
+              data-testid={`dot-${tab.id}-preview`}
+              className="relative"
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                style={{
+                  backgroundColor: i === currentIndex ? "#a78bfa" : "rgba(255,255,255,0.15)",
+                  transform: i === currentIndex ? "scale(1.3)" : "scale(1)",
+                  boxShadow: i === currentIndex ? "0 0 8px rgba(167,139,250,0.4)" : "none",
+                }}
+              />
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="relative">
         <div className={`transition-all duration-500 ${activeTab === "form" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <WelcomeFormPreview />
-          <p className="text-center text-[11px] text-white/20 mt-4">El cliente completa sus datos antes de iniciar el chat</p>
         </div>
         <div className={`transition-all duration-500 ${activeTab === "widget" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <ChatbotPreview />
-          <p className="text-center text-[11px] text-white/20 mt-4">Widget embebido en tu sitio web — Totalmente personalizable</p>
         </div>
         <div className={`transition-all duration-500 ${activeTab === "executive" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <ExecutiveRequestPreview />
-          <p className="text-center text-[11px] text-white/20 mt-4">El ejecutivo ve la solicitud, el formulario pre-chat y el historial completo</p>
         </div>
         <div className={`transition-all duration-500 ${activeTab === "dashboard" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <DashboardPreview />
-          <p className="text-center text-[11px] text-white/20 mt-4">Panel de administracion donde los ejecutivos gestionan chats en tiempo real</p>
         </div>
       </div>
+      <p className="text-center text-[11px] text-white/20 mt-4">{tabs[currentIndex].desc}</p>
     </div>
   );
 }
