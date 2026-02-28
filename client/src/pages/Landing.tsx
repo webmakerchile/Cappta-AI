@@ -1184,7 +1184,7 @@ export default function Landing() {
             </div>
             <p className="text-sm text-white/25 text-center max-w-md">Compatible con cualquier sitio web o plataforma. Solo pega un codigo y listo.</p>
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-8 gap-6 sm:gap-8 justify-items-center" data-testid="platform-logos">
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-8" data-testid="platform-logos">
             {[
               { Icon: SiWoocommerce, name: "WooCommerce" },
               { Icon: SiShopify, name: "Shopify" },
