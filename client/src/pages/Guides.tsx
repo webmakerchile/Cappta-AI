@@ -448,6 +448,134 @@ const categories = [
   { id: "other", label: "Otros", icon: Terminal },
 ] as const;
 
+export function GuidesPanel() {
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filtered = guides.filter((g) => {
+    const matchCategory = activeCategory === "all" || g.category === activeCategory;
+    const matchSearch = !search || g.name.toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6" data-testid="guides-panel">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-white/90 mb-1" data-testid="text-guides-panel-title">Guias de Instalacion</h2>
+          <p className="text-sm text-white/40">Manuales paso a paso para integrar tu chatbot en cualquier plataforma.</p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+          <div className="relative flex-1 w-full max-w-md">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar plataforma..."
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 pl-10 text-sm focus:outline-none focus:border-[#BB86FC]/30 transition-all duration-300 placeholder:text-white/20"
+              data-testid="input-search-guides-panel"
+            />
+            <Code className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap mb-8">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
+                activeCategory === cat.id
+                  ? "bg-[#BB86FC]/15 text-[#BB86FC] border border-[#BB86FC]/25"
+                  : "bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-white/60"
+              }`}
+              data-testid={`button-panel-category-${cat.id}`}
+            >
+              <cat.icon className="w-3 h-3" />
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-2">
+          {filtered.length === 0 && (
+            <div className="text-center py-16">
+              <p className="text-white/30 text-sm" data-testid="text-panel-no-results">No se encontraron guias para "{search}"</p>
+            </div>
+          )}
+          {filtered.map((guide) => {
+            const isExpanded = expandedGuide === guide.id;
+            const Icon = guide.icon;
+            return (
+              <div key={guide.id} className="rounded-xl border border-white/[0.06] overflow-hidden bg-white/[0.02] transition-all duration-300" data-testid={`card-panel-guide-${guide.id}`}>
+                <button
+                  onClick={() => setExpandedGuide(isExpanded ? null : guide.id)}
+                  className="w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-white/[0.02]"
+                  data-testid={`button-panel-expand-${guide.id}`}
+                >
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${guide.iconColor}15` }}>
+                    <Icon className="w-4 h-4" style={{ color: guide.iconColor }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white/90">{guide.name}</h3>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                        guide.difficulty === "facil"
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-amber-500/15 text-amber-400"
+                      }`}>
+                        {guide.difficulty === "facil" ? "Facil" : "Medio"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/30 mt-0.5">{guide.steps.length} pasos</p>
+                  </div>
+                  <div className="shrink-0 transition-transform duration-300" style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>
+                    <ChevronRight className="w-4 h-4 text-white/20" />
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="px-4 pb-5 pt-0 border-t border-white/[0.04]">
+                    <div className="mt-4 space-y-5">
+                      {guide.steps.map((step, stepIndex) => (
+                        <div key={stepIndex} className="flex gap-3" data-testid={`step-panel-${guide.id}-${stepIndex}`}>
+                          <div className="flex flex-col items-center shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-[#BB86FC]/10 flex items-center justify-center text-xs font-bold text-[#BB86FC]">
+                              {stepIndex + 1}
+                            </div>
+                            {stepIndex < guide.steps.length - 1 && (
+                              <div className="w-px flex-1 bg-white/[0.06] mt-2" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 pb-2">
+                            <h4 className="text-sm font-bold text-white/80 mb-1">{step.title}</h4>
+                            <p className="text-xs text-white/40 leading-relaxed mb-3">{step.description}</p>
+                            {step.code && (
+                              <CopyBlock code={step.code} language={step.codeLanguage || "html"} />
+                            )}
+                            {step.note && (
+                              <div className="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                                <Layers className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
+                                <p className="text-[11px] text-amber-300/70 leading-relaxed">{step.note}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Guides() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
