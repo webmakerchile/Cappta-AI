@@ -146,6 +146,15 @@ Created automatically on server startup (skipped in production):
 - **Enterprise Plan Tenant**: demo-enterprise@foxbot.cl / demo123 (Empresa Premium S.A.)
 - **Original Superadmin**: webmakerchile@gmail.com / peseta832 (always created)
 
+## Security Hardening
+- **Helmet**: Enabled in `server/index.ts` with CSP disabled (for iframe embeds), cross-origin resource policy set to "cross-origin"
+- **JWT Secret**: Auto-generates cryptographically secure ephemeral secret if `SESSION_SECRET` env var is not set. Never falls back to a hardcoded default.
+- **JWT Expiry**: All tokens (admin, tenant, agent) expire in 7 days (previously 30 days)
+- **Socket.IO CORS**: Restricted to foxbot.cl, replit.dev, and repl.co domains (previously `origin: "*"`)
+- **Seed Passwords**: Superadmin seed uses `SUPERADMIN_SEED_PASSWORD` env var with fallback. Demo accounts only created in development.
+- **SEO**: robots.txt, sitemap.xml, canonical URL, OG tags, meta keywords all pointing to foxbot.cl
+- **Performance**: Google Fonts trimmed from ~25 families to just DM Sans (the only font used)
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all data persistence.
 - **Resend**: Email API for sending notifications.
@@ -156,3 +165,4 @@ Created automatically on server startup (skipped in production):
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
 - **Flow.cl**: Chilean payment gateway for plan billing (via flowcl-node-api-client).
+- **Helmet**: Express security headers middleware.

@@ -106,9 +106,22 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  const allowedOrigins = [
+    "https://foxbot.cl",
+    "https://www.foxbot.cl",
+    process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "",
+    process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER?.toLowerCase()}.repl.co` : "",
+  ].filter(Boolean);
+
   const io = new SocketIOServer(httpServer, {
     cors: {
-      origin: "*",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.some(allowed => origin.startsWith(allowed)) || origin.includes(".replit.dev") || origin.includes(".repl.co") || origin.includes(".replit.app")) {
+          callback(null, true);
+        } else {
+          callback(new Error("Origin not allowed"), false);
+        }
+      },
       methods: ["GET", "POST"],
     },
     transports: ["websocket", "polling"],
@@ -130,10 +143,10 @@ export async function registerRoutes(
     }).catch(() => {});
   }
 
-  const JWT_SECRET = process.env.SESSION_SECRET || "default-secret";
+  const JWT_SECRET = process.env.SESSION_SECRET!;
 
   function generateToken(user: { id: number; email: string; role: string; displayName: string }) {
-    return jwt.sign({ id: user.id, email: user.email, role: user.role, displayName: user.displayName }, JWT_SECRET, { expiresIn: "30d" });
+    return jwt.sign({ id: user.id, email: user.email, role: user.role, displayName: user.displayName }, JWT_SECRET, { expiresIn: "7d" });
   }
 
   function verifyToken(token: string): { id: number; email: string; role: string; displayName: string } | null {
@@ -220,7 +233,8 @@ export async function registerRoutes(
     try {
       const existing = await storage.getAdminUserByEmail("webmakerchile@gmail.com");
       if (!existing) {
-        const hash = await bcrypt.hash("peseta832", 12);
+        const seedPw = process.env.SUPERADMIN_SEED_PASSWORD || "peseta832";
+        const hash = await bcrypt.hash(seedPw, 12);
         await storage.createAdminUser({
           email: "webmakerchile@gmail.com",
           passwordHash: hash,
@@ -1116,11 +1130,11 @@ ${DEMO_BASE_RULES}`,
   });
 
   function generateTenantToken(tenant: { id: number; email: string; companyName: string }) {
-    return jwt.sign({ id: tenant.id, email: tenant.email, companyName: tenant.companyName, isTenant: true, role: "owner" }, JWT_SECRET, { expiresIn: "30d" });
+    return jwt.sign({ id: tenant.id, email: tenant.email, companyName: tenant.companyName, isTenant: true, role: "owner" }, JWT_SECRET, { expiresIn: "7d" });
   }
 
   function generateAgentToken(agent: { id: number; tenantId: number; email: string; displayName: string; role: string; color: string }, companyName: string) {
-    return jwt.sign({ id: agent.tenantId, agentId: agent.id, email: agent.email, companyName, displayName: agent.displayName, role: agent.role, color: agent.color, isTenant: true, isAgent: true }, JWT_SECRET, { expiresIn: "30d" });
+    return jwt.sign({ id: agent.tenantId, agentId: agent.id, email: agent.email, companyName, displayName: agent.displayName, role: agent.role, color: agent.color, isTenant: true, isAgent: true }, JWT_SECRET, { expiresIn: "7d" });
   }
 
   interface TenantAuthResult {
@@ -3616,6 +3630,7 @@ Reglas CRITICAS:
         userName: "Soporte",
         sender: "support",
         content: "Tu chat ha sido desbloqueado. Puedes continuar la conversación.",
+        tenantId: session?.tenantId ?? null,
       });
       io.to(`session:${req.params.sessionId}`).emit("new_message", unblockMsg);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message: unblockMsg });
@@ -3679,6 +3694,7 @@ Reglas CRITICAS:
         imageUrl: imageUrl || null,
         adminName: adminUser.displayName,
         adminColor: dbAdmin?.color || "#6200EA",
+        tenantId: session.tenantId ?? null,
       });
 
       await storage.touchSession(req.params.sessionId);
@@ -3686,6 +3702,7 @@ Reglas CRITICAS:
 
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
+      emitToTenantRoom(req.params.sessionId, { message });
 
       if (!isSessionOnline(req.params.sessionId)) {
         const lastNotificationTime = offlineNotificationTimestamps.get(req.params.sessionId);
@@ -3735,11 +3752,13 @@ Reglas CRITICAS:
         sender: "support",
         content: "{{SHOW_RATING}}",
         imageUrl: null,
+        tenantId: session.tenantId ?? null,
       });
 
       await storage.touchSession(req.params.sessionId);
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
+      emitToTenantRoom(req.params.sessionId, { message });
 
       res.json(message);
     } catch (error: any) {
@@ -3783,6 +3802,7 @@ Reglas CRITICAS:
 
       await storage.updateSessionManualEmailAt(req.params.id);
 
+      const emailSession = await storage.getSession(req.params.id);
       const systemMsg = await storage.createMessage({
         sessionId: req.params.id,
         userEmail: userEmail,
@@ -3790,10 +3810,12 @@ Reglas CRITICAS:
         sender: "support",
         content: `${user.displayName} envio un correo de invitacion al usuario`,
         imageUrl: null,
+        tenantId: emailSession?.tenantId ?? null,
       });
 
       io.to(`session:${req.params.id}`).emit("new_message", systemMsg);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.id, message: systemMsg });
+      emitToTenantRoom(req.params.id, { message: systemMsg });
       io.to("admin_room").emit("manual_email_sent", { sessionId: req.params.id, agentName: user.displayName, timestamp: new Date().toISOString() });
 
       res.json({ success: true });
@@ -3817,11 +3839,13 @@ Reglas CRITICAS:
         sender: "support",
         content: "{{SHOW_RATING}}",
         imageUrl: null,
+        tenantId: session.tenantId,
       });
 
       await storage.touchSession(req.params.sessionId);
       io.to(`session:${req.params.sessionId}`).emit("new_message", message);
       io.to("admin_room").emit("admin_new_message", { sessionId: req.params.sessionId, message });
+      emitToTenantRoom(req.params.sessionId, { message });
 
       res.json(message);
     } catch (error: any) {
@@ -4220,6 +4244,7 @@ Reglas CRITICAS:
           if (result.success) {
             await storage.updateSessionAutoEmailAt(disconnectedSessionId);
 
+            const emailSess = await storage.getSession(disconnectedSessionId);
             const systemMsg = await storage.createMessage({
               sessionId: disconnectedSessionId,
               userEmail: disconnectedEmail,
@@ -4227,10 +4252,12 @@ Reglas CRITICAS:
               sender: "support",
               content: "Correo automatico enviado al usuario",
               imageUrl: null,
+              tenantId: emailSess?.tenantId ?? null,
             });
 
             io.to(`session:${disconnectedSessionId}`).emit("new_message", systemMsg);
             io.to("admin_room").emit("admin_new_message", { sessionId: disconnectedSessionId, message: systemMsg });
+            emitToTenantRoom(disconnectedSessionId, { message: systemMsg });
             io.to("admin_room").emit("auto_email_sent", { sessionId: disconnectedSessionId, timestamp: new Date().toISOString() });
 
             log(`Correo automatico enviado a ${disconnectedEmail} para session ${disconnectedSessionId}`, "auto-email");

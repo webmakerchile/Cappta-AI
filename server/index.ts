@@ -1,8 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import crypto from "crypto";
 
 const app = express();
 const httpServer = createServer(app);
@@ -13,6 +15,18 @@ declare module "http" {
   }
 }
 
+if (!process.env.SESSION_SECRET) {
+  const generated = crypto.randomBytes(48).toString("hex");
+  process.env.SESSION_SECRET = generated;
+  console.log("[security] SESSION_SECRET not set — generated ephemeral secret");
+}
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
 app.use(compression());
 
 app.use(
