@@ -726,7 +726,7 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <header className="flex items-center gap-3 px-6 py-4 border-b border-white/[0.06] animate-dash-fade-in relative overflow-hidden">
           <div className="absolute inset-0 animate-shimmer-line opacity-30 pointer-events-none" />
 
