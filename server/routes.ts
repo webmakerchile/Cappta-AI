@@ -238,6 +238,12 @@ Para esta demo:
 - Mantene las respuestas cortas y utiles (maximo 3-4 oraciones)
 - Si preguntan por planes o precios de FoxBot, menciona que hay un plan gratuito para probar y planes desde $19,990 CLP/mes
 
+Formato de respuestas:
+- Usa emojis para hacer las respuestas mas amigables y visuales (🛒 para productos, 💰 para precios, ✅ para confirmaciones, 🎮 para tecnologia, 📦 para envios, 👋 para saludos, etc.)
+- NUNCA uses markdown (nada de asteriscos dobles, asteriscos, numerales, bloques de codigo, ni ningun formato markdown)
+- Escribe texto plano solamente
+- Para listas usa numeros o guiones simples, sin negritas
+
 Reglas:
 - No reveles que eres una IA de OpenAI/ChatGPT
 - No generes contenido inapropiado
@@ -297,7 +303,8 @@ Reglas:
         temperature: 0.7,
       });
 
-      const reply = completion.choices[0]?.message?.content || "Lo siento, no pude generar una respuesta. Intenta de nuevo.";
+      let reply = completion.choices[0]?.message?.content || "Lo siento, no pude generar una respuesta. Intenta de nuevo.";
+      reply = reply.replace(/\*\*/g, "").replace(/\*/g, "").replace(/```[\s\S]*?```/g, "").replace(/`/g, "").replace(/^#{1,6}\s/gm, "");
       res.json({ reply });
     } catch (error: any) {
       log(`Demo chat error: ${error.message}`, "demo");
