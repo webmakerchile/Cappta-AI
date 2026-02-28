@@ -447,17 +447,11 @@ export function useChat(tenantId?: number | null) {
     saveStoredUser(email, name, sessionId);
     setUser(userData);
 
-    if (problemType && gameName) {
-      const problemLabels: Record<string, string> = {
-        compra: "Quiero comprar un producto",
-        codigo_verificacion: "Necesito un nuevo codigo de verificacion",
-        candado_juego: "Me aparece un candado en mi juego",
-        estado_pedido: "Quiero saber el estado de mi pedido",
-        problema_plus: "Tengo problemas con mi plus",
-        otro: "Otro",
-      };
-      const label = problemLabels[problemType] || problemType;
-      const introMessage = `Hola, mi consulta es: ${label}. Producto/Juego: ${gameName}`;
+    if (problemType) {
+      const label = problemType;
+      const introMessage = gameName
+        ? `Hola, mi consulta es: ${label}. Producto: ${gameName}`
+        : `Hola, mi consulta es: ${label}`;
 
       setTimeout(async () => {
         try {
@@ -473,7 +467,7 @@ export function useChat(tenantId?: number | null) {
               pageUrl: pageInfo.url,
               pageTitle: pageInfo.title,
               problemType,
-              gameName,
+              gameName: gameName || undefined,
               tenantId: tenantId || undefined,
             }),
           });
@@ -495,16 +489,10 @@ export function useChat(tenantId?: number | null) {
     setUser(updatedUser);
     setContactRequested(false);
 
-    const problemLabels: Record<string, string> = {
-      compra: "Quiero comprar un producto",
-      codigo_verificacion: "Necesito un nuevo codigo de verificacion",
-      candado_juego: "Me aparece un candado en mi juego",
-      estado_pedido: "Quiero saber el estado de mi pedido",
-      problema_plus: "Tengo problemas con mi plus",
-      otro: "Otro",
-    };
-    const label = problemLabels[problemType] || problemType;
-    const introMessage = `Hola, mi consulta es: ${label}. Producto/Juego: ${gameName}`;
+    const label = problemType;
+    const introMessage = gameName
+      ? `Hola, mi consulta es: ${label}. Producto: ${gameName}`
+      : `Hola, mi consulta es: ${label}`;
 
     setTimeout(async () => {
       try {
@@ -520,7 +508,7 @@ export function useChat(tenantId?: number | null) {
             pageUrl: pageInfo.url,
             pageTitle: pageInfo.title,
             problemType,
-            gameName,
+            gameName: gameName || undefined,
             tenantId: tenantId || undefined,
           }),
         });

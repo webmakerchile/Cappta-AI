@@ -72,7 +72,9 @@ export function WelcomeForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit(email, name, problemType, gameName);
+    const selectedOption = parsedOptions.find(o => o.value === problemType);
+    const problemLabel = selectedOption ? selectedOption.label : problemType;
+    onSubmit(email, name, problemLabel, gameName);
   };
 
   return (

@@ -186,6 +186,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
   const [showProductSearch, setShowProductSearch] = useState(tenant.showProductSearch === 1);
   const [productSearchLabel, setProductSearchLabel] = useState(tenant.productSearchLabel || "Buscar producto");
+  const [productApiUrl, setProductApiUrl] = useState(tenant.productApiUrl || "");
   const [saved, setSaved] = useState(false);
 
   const [consultationOptions, setConsultationOptions] = useState<{ value: string; label: string }[]>(() => {
@@ -203,6 +204,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setLogoUrl(tenant.logoUrl || "");
     setShowProductSearch(tenant.showProductSearch === 1);
     setProductSearchLabel(tenant.productSearchLabel || "Buscar producto");
+    setProductApiUrl(tenant.productApiUrl || "");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -255,8 +257,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       welcomeSubtitle,
       logoUrl: logoUrl || null,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
-      showProductSearch: showProductSearch ? 1 : 0,
+      showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
       productSearchLabel,
+      productApiUrl: productApiUrl.trim() || null,
       botConfigured: isConfigComplete ? 1 : 0,
     };
     updateMutation.mutate(data);
@@ -401,33 +404,58 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
         <div className="relative">
           <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
             <Search className="w-5 h-5 text-primary" />
-            Buscador de Productos
+            API de Productos
           </h3>
-          <p className="text-sm text-white/40">Activa el buscador de productos en tu formulario de bienvenida</p>
+          <p className="text-sm text-white/40">Conecta tu catalogo de productos para que los clientes puedan buscar en el chat</p>
         </div>
 
         <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
           <div>
-            <p className="text-sm font-medium text-white/80">Mostrar buscador de productos</p>
-            <p className="text-xs text-white/40 mt-0.5">Permite a los clientes buscar productos antes de chatear</p>
+            <p className="text-sm font-medium text-white/80">Habilitar buscador de productos</p>
+            <p className="text-xs text-white/40 mt-0.5">Requiere una URL de API de productos configurada</p>
           </div>
           <Switch
             checked={showProductSearch}
-            onCheckedChange={setShowProductSearch}
+            onCheckedChange={(checked) => {
+              setShowProductSearch(checked);
+            }}
             data-testid="switch-product-search"
           />
         </div>
 
         {showProductSearch && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/60">Etiqueta del buscador</label>
-            <Input
-              value={productSearchLabel}
-              onChange={(e) => setProductSearchLabel(e.target.value)}
-              placeholder="Buscar producto..."
-              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
-              data-testid="input-product-search-label"
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/60">
+                URL de API de Productos <span className="text-red-400">*</span>
+              </label>
+              <Input
+                value={productApiUrl}
+                onChange={(e) => setProductApiUrl(e.target.value)}
+                placeholder="https://tutienda.com/wp-json/wc/v3/products"
+                className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
+                data-testid="input-product-api-url"
+              />
+              <p className="text-xs text-white/30">
+                Ingresa la URL de tu API de productos (WooCommerce, Shopify, API personalizada). Si no tienes una, contacta a Web Maker Chile para generar una.
+              </p>
+              {showProductSearch && !productApiUrl.trim() && (
+                <p className="text-xs text-amber-400 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Debes ingresar una URL de API para activar el buscador de productos
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/60">Etiqueta del buscador</label>
+              <Input
+                value={productSearchLabel}
+                onChange={(e) => setProductSearchLabel(e.target.value)}
+                placeholder="Buscar producto..."
+                className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
+                data-testid="input-product-search-label"
+              />
+            </div>
           </div>
         )}
       </div>
