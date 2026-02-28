@@ -25,6 +25,7 @@ import {
   Play,
   Bot,
   MousePointerClick,
+  Palette,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -129,11 +130,83 @@ const pricingPlans = [
   },
 ];
 
-const chatDemo = [
-  { sender: "user", text: "Hola, tienen el iPhone 15 Pro disponible?" },
-  { sender: "bot", text: "Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro. Desde $999.990 CLP. Te envio el link?" },
-  { sender: "user", text: "Si, el Titanio Azul por favor" },
-  { sender: "bot", text: "Aqui tienes! tienda.cl/iphone15pro-azul. Envio gratis en compras sobre $500.000. Algo mas?" },
+const brandThemes = [
+  {
+    name: "TechStore",
+    headerBg: "linear-gradient(135deg, hsl(142, 72%, 29%) 0%, hsl(150, 60%, 22%) 100%)",
+    userBubble: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(142, 72%, 26%) 100%)",
+    accent: "#10b981",
+    accentGlow: "rgba(16, 185, 129, 0.08)",
+    statusColor: "#4ade80",
+    statusBorder: "#166534",
+    subtitleColor: "rgba(187, 247, 208, 0.8)",
+    sendBg: "rgba(16, 185, 129, 0.2)",
+    sendIcon: "#10b981",
+    label: "Verde",
+    messages: [
+      { sender: "user", text: "Hola, tienen el iPhone 15 Pro disponible?" },
+      { sender: "bot", text: "Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro. Desde $999.990 CLP. Te envio el link?" },
+      { sender: "user", text: "Si, el Titanio Azul por favor" },
+      { sender: "bot", text: "Aqui tienes! tienda.cl/iphone15pro-azul. Envio gratis en compras sobre $500.000. Algo mas?" },
+    ],
+  },
+  {
+    name: "Sabor Criollo",
+    headerBg: "linear-gradient(135deg, hsl(25, 85%, 38%) 0%, hsl(15, 70%, 28%) 100%)",
+    userBubble: "linear-gradient(135deg, hsl(25, 85%, 42%) 0%, hsl(25, 80%, 34%) 100%)",
+    accent: "#f97316",
+    accentGlow: "rgba(249, 115, 22, 0.08)",
+    statusColor: "#fb923c",
+    statusBorder: "#7c2d12",
+    subtitleColor: "rgba(254, 215, 170, 0.8)",
+    sendBg: "rgba(249, 115, 22, 0.2)",
+    sendIcon: "#f97316",
+    label: "Naranja",
+    messages: [
+      { sender: "user", text: "Hola! Tienen delivery disponible?" },
+      { sender: "bot", text: "Si! Hacemos delivery de Lunes a Sabado de 12:00 a 22:00. Envio gratis sobre $15.000. Quieres ver el menu?" },
+      { sender: "user", text: "Si, quiero empanadas y cazuela" },
+      { sender: "bot", text: "Excelente! Empanadas $2.500 c/u y Cazuela $9.990. Total con delivery gratis: $14.990. Confirmo tu pedido?" },
+    ],
+  },
+  {
+    name: "VidaSana Clinica",
+    headerBg: "linear-gradient(135deg, hsl(217, 75%, 42%) 0%, hsl(225, 65%, 30%) 100%)",
+    userBubble: "linear-gradient(135deg, hsl(217, 75%, 46%) 0%, hsl(217, 70%, 36%) 100%)",
+    accent: "#3b82f6",
+    accentGlow: "rgba(59, 130, 246, 0.08)",
+    statusColor: "#60a5fa",
+    statusBorder: "#1e3a8a",
+    subtitleColor: "rgba(191, 219, 254, 0.8)",
+    sendBg: "rgba(59, 130, 246, 0.2)",
+    sendIcon: "#3b82f6",
+    label: "Azul",
+    messages: [
+      { sender: "user", text: "Quiero agendar un blanqueamiento dental" },
+      { sender: "bot", text: "Con gusto! Nuestro blanqueamiento tiene un valor de $89.990. Tenemos horas disponibles esta semana. Que dia te acomoda?" },
+      { sender: "user", text: "El viernes en la tarde" },
+      { sender: "bot", text: "Perfecto! Te agendo para el Viernes a las 16:00. Recuerda que la primera evaluacion es gratuita. Te envio confirmacion por email?" },
+    ],
+  },
+  {
+    name: "Moda Urbana",
+    headerBg: "linear-gradient(135deg, hsl(280, 65%, 40%) 0%, hsl(270, 55%, 28%) 100%)",
+    userBubble: "linear-gradient(135deg, hsl(280, 65%, 44%) 0%, hsl(280, 60%, 34%) 100%)",
+    accent: "#a855f7",
+    accentGlow: "rgba(168, 85, 247, 0.08)",
+    statusColor: "#c084fc",
+    statusBorder: "#581c87",
+    subtitleColor: "rgba(233, 213, 255, 0.8)",
+    sendBg: "rgba(168, 85, 247, 0.2)",
+    sendIcon: "#a855f7",
+    label: "Morado",
+    messages: [
+      { sender: "user", text: "Hola! Busco zapatillas talla 42" },
+      { sender: "bot", text: "Tenemos varias opciones en talla 42! Zapatillas urbanas desde $39.990 y deportivas desde $54.990. Te muestro las mas vendidas?" },
+      { sender: "user", text: "Si, las urbanas por favor" },
+      { sender: "bot", text: "Estas son top: Nike Air Force $59.990, Adidas Stan Smith $54.990. Envio gratis sobre $40.000. Quieres agregar algo al carrito?" },
+    ],
+  },
 ];
 
 function useInView(threshold = 0.15) {
@@ -155,67 +228,148 @@ function useInView(threshold = 0.15) {
 }
 
 function AnimatedChat() {
+  const [themeIndex, setThemeIndex] = useState(0);
   const [visibleMessages, setVisibleMessages] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const theme = brandThemes[themeIndex];
+
+  const clearAllTimers = () => {
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
-    if (visibleMessages < chatDemo.length) {
+    return () => clearAllTimers();
+  }, []);
+
+  useEffect(() => {
+    if (transitioning) return;
+    if (visibleMessages < theme.messages.length) {
       const timer = setTimeout(() => setVisibleMessages((v) => v + 1), visibleMessages === 0 ? 800 : 1800);
       return () => clearTimeout(timer);
+    } else {
+      const autoAdvance = setTimeout(() => {
+        clearAllTimers();
+        setTransitioning(true);
+        transitionTimerRef.current = setTimeout(() => {
+          setThemeIndex((i) => (i + 1) % brandThemes.length);
+          setVisibleMessages(0);
+          setTransitioning(false);
+          transitionTimerRef.current = null;
+        }, 500);
+      }, 3000);
+      return () => clearTimeout(autoAdvance);
     }
-  }, [visibleMessages]);
+  }, [visibleMessages, theme.messages.length, transitioning, themeIndex]);
 
   return (
-    <div className="w-full max-w-sm mx-auto animate-float" data-testid="chat-demo">
-      <div className="rounded-3xl overflow-hidden border border-white/[0.08] relative" style={{ background: "linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(10,10,10,0.98) 100%)", boxShadow: "0 0 80px rgba(16, 185, 129, 0.08), 0 25px 50px rgba(0,0,0,0.4)" }}>
-        <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.05) 0%, transparent 40%, rgba(245,158,11,0.03) 100%)" }} />
-        <div className="relative px-4 py-3.5 flex items-center gap-3" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 29%) 0%, hsl(150, 60%, 22%) 100%)" }}>
-          <div className="relative">
-            <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 rounded-full bg-white/15 p-0.5" />
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-green-900" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-white tracking-wide">FoxBot Asistente</p>
-            <p className="text-[10px] text-green-200/80">Responde al instante con IA</p>
-          </div>
-          <div className="ml-auto flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-white/20" />
-            <span className="w-2 h-2 rounded-full bg-white/20" />
-            <span className="w-2 h-2 rounded-full bg-white/20" />
-          </div>
-        </div>
-        <div className="relative p-4 space-y-3 min-h-[220px]">
-          {chatDemo.slice(0, visibleMessages).map((msg, i) => (
-            <div key={i} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`} style={{ animation: "count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
-              <div className={`max-w-[82%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.sender === "user" ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-white/90"}`} style={{ background: msg.sender === "user" ? "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(142, 72%, 26%) 100%)" : "rgba(255,255,255,0.07)" }}>
-                {msg.sender === "bot" && (
-                  <div className="flex items-center gap-1 mb-1">
-                    <Bot className="w-3 h-3 text-accent" />
-                    <span className="text-[10px] text-accent font-semibold">IA</span>
-                  </div>
-                )}
-                {msg.text}
-              </div>
+    <div className="w-full max-w-sm mx-auto" data-testid="chat-demo">
+      <div className="relative">
+        <div
+          className="rounded-3xl overflow-hidden border border-white/[0.08] relative"
+          style={{
+            background: "linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(10,10,10,0.98) 100%)",
+            boxShadow: `0 0 80px ${theme.accentGlow}, 0 25px 50px rgba(0,0,0,0.4)`,
+            transition: "box-shadow 0.6s ease",
+            opacity: transitioning ? 0 : 1,
+            transform: transitioning ? "scale(0.97) translateY(8px)" : "scale(1) translateY(0)",
+            transitionProperty: "opacity, transform, box-shadow",
+            transitionDuration: "0.5s",
+            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ background: `linear-gradient(135deg, ${theme.accent}0d 0%, transparent 40%, ${theme.accent}08 100%)`, transition: "background 0.6s ease" }} />
+          <div className="relative px-4 py-3.5 flex items-center gap-3" style={{ background: theme.headerBg, transition: "background 0.6s ease" }}>
+            <div className="relative">
+              <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 rounded-full bg-white/15 p-0.5" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2" style={{ backgroundColor: theme.statusColor, borderColor: theme.statusBorder, transition: "background-color 0.6s, border-color 0.6s" }} />
             </div>
-          ))}
-          {visibleMessages < chatDemo.length && (
-            <div className="flex justify-start">
-              <div className="bg-white/[0.07] px-4 py-2.5 rounded-2xl rounded-bl-sm">
-                <div className="flex gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div>
+              <p className="text-sm font-bold text-white tracking-wide">{theme.name}</p>
+              <p className="text-[10px]" style={{ color: theme.subtitleColor, transition: "color 0.6s" }}>Responde al instante con IA</p>
+            </div>
+            <div className="ml-auto flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-white/20" />
+              <span className="w-2 h-2 rounded-full bg-white/20" />
+              <span className="w-2 h-2 rounded-full bg-white/20" />
+            </div>
+          </div>
+          <div className="relative p-4 space-y-3 min-h-[220px]">
+            {theme.messages.slice(0, visibleMessages).map((msg, i) => (
+              <div key={`${themeIndex}-${i}`} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`} style={{ animation: "count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+                <div className={`max-w-[82%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.sender === "user" ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-white/90"}`} style={{ background: msg.sender === "user" ? theme.userBubble : "rgba(255,255,255,0.07)" }}>
+                  {msg.sender === "bot" && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <Bot className="w-3 h-3" style={{ color: theme.accent }} />
+                      <span className="text-[10px] font-semibold" style={{ color: theme.accent }}>IA</span>
+                    </div>
+                  )}
+                  {msg.text}
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-        <div className="relative px-4 pb-3.5">
-          <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-2.5">
-            <span className="text-white/25 text-sm flex-1">Escribe un mensaje...</span>
-            <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center">
-              <Send className="w-4 h-4 text-primary" />
+            ))}
+            {visibleMessages < theme.messages.length && (
+              <div className="flex justify-start">
+                <div className="bg-white/[0.07] px-4 py-2.5 rounded-2xl rounded-bl-sm">
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${theme.accent}99`, animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${theme.accent}99`, animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${theme.accent}99`, animationDelay: "300ms" }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="relative px-4 pb-3.5">
+            <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-2.5">
+              <span className="text-white/25 text-sm flex-1">Escribe un mensaje...</span>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: theme.sendBg, transition: "background-color 0.6s" }}>
+                <Send className="w-4 h-4" style={{ color: theme.sendIcon, transition: "color 0.6s" }} />
+              </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-5 flex items-center justify-center gap-2" data-testid="theme-indicators">
+          {brandThemes.map((t, i) => (
+            <button
+              key={t.name}
+              data-testid={`theme-dot-${i}`}
+              onClick={() => {
+                if (i === themeIndex || transitioning) return;
+                clearAllTimers();
+                setTransitioning(true);
+                transitionTimerRef.current = setTimeout(() => {
+                  setThemeIndex(i);
+                  setVisibleMessages(0);
+                  setTransitioning(false);
+                  transitionTimerRef.current = null;
+                }, 400);
+              }}
+              className="relative group flex flex-col items-center gap-1.5"
+            >
+              <div
+                className="w-7 h-7 rounded-full border-2 transition-all duration-300 flex items-center justify-center"
+                style={{
+                  backgroundColor: i === themeIndex ? t.accent : `${t.accent}30`,
+                  borderColor: i === themeIndex ? t.accent : `${t.accent}50`,
+                  transform: i === themeIndex ? "scale(1.15)" : "scale(1)",
+                  boxShadow: i === themeIndex ? `0 0 12px ${t.accent}40` : "none",
+                }}
+              >
+                {i === themeIndex && <Check className="w-3 h-3 text-white" />}
+              </div>
+              <span className="text-[10px] font-medium transition-colors duration-300" style={{ color: i === themeIndex ? t.accent : "rgba(255,255,255,0.3)" }}>{t.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-white/30">
+          <Palette className="w-3.5 h-3.5" style={{ color: theme.accent, transition: "color 0.6s" }} />
+          <span>Colores 100% personalizables por negocio</span>
         </div>
       </div>
     </div>

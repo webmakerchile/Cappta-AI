@@ -35,8 +35,8 @@ Key architectural decisions and features include:
 - **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
 
 ## SaaS Pages & Routing
-- `/` - Landing page (marketing, features, pricing) - FoxBot branding, animated chat demo, platform logos (WooCommerce/Shopify/WordPress/Magento/API), stats section, CLP pricing
-- `/demo` - Interactive demo chat with context selector (tech/restaurant/clothing/health/realestate), no registration required, rate-limited 30 msg/hr, dynamic theming per context, uses OpenAI gpt-4o-mini via Replit AI integration
+- `/` - Landing page (marketing, features, pricing) - FoxBot branding, color-cycling animated chat demo (4 brand themes: green/TechStore, orange/Sabor Criollo, blue/VidaSana, purple/Moda Urbana with clickable dots + auto-advance), platform logos (WooCommerce/Shopify/WordPress/Magento/API), stats section, CLP pricing
+- `/demo` - Interactive demo chat with 27 categories across 11 groups, text search + category filter pills, no registration required, rate-limited 30 msg/hr, dynamic theming per context, uses OpenAI gpt-4o-mini via Replit AI integration
 - `/register` - Tenant registration (company signup)
 - `/login` - Tenant login
 - `/dashboard` - Tenant dashboard (widget config, embed code, real stats, plan)
