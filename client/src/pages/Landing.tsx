@@ -31,6 +31,7 @@ import {
   ShoppingBag,
   Wifi,
   X,
+  Menu,
   UserRound,
   Search,
   Bell,
@@ -800,6 +801,47 @@ function PreviewTabs() {
   );
 }
 
+function MobileNav() {
+  const [open, setOpen] = useState(false);
+  return (
+    <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-xl" data-testid="nav-bar">
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3">
+        <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
+          <img src={logoSinFondo} alt="FoxBot" className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110" data-testid="img-nav-logo" />
+          <span className="text-xl font-extrabold tracking-tight">
+            <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
+          </span>
+        </a>
+        <div className="hidden md:flex items-center gap-1.5">
+          <a href="#features"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button></a>
+          <a href="#pricing"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button></a>
+          <a href="/demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button></a>
+          <a href="/guias"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guias</Button></a>
+          <div className="w-px h-5 bg-white/10 mx-1" />
+          <a href="/login"><Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesion</Button></a>
+          <a href="/register"><Button size="sm" className="rounded-xl px-4" data-testid="link-register">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></a>
+        </div>
+        <button onClick={() => setOpen(!open)} className="md:hidden p-2 text-white/60 hover:text-white transition-colors" data-testid="button-mobile-menu">
+          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+      {open && (
+        <div className="md:hidden border-t border-white/[0.06] bg-background/95 backdrop-blur-xl px-6 py-4 space-y-1 animate-dash-fade-up">
+          <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Funciones</a>
+          <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
+          <a href="/demo" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Demo</a>
+          <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guias</a>
+          <div className="h-px bg-white/[0.06] my-2" />
+          <a href="/login" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Iniciar Sesion</a>
+          <a href="/register" className="block mt-2">
+            <Button size="sm" className="w-full rounded-xl">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
+          </a>
+        </div>
+      )}
+    </nav>
+  );
+}
+
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -1050,40 +1092,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
-      <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-xl" data-testid="nav-bar">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3">
-          <a href="/" className="flex items-center gap-2.5 group" data-testid="link-home">
-            <img src={logoSinFondo} alt="FoxBot" className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110" data-testid="img-nav-logo" />
-            <span className="text-xl font-extrabold tracking-tight">
-              <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
-            </span>
-          </a>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <a href="#features">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button>
-            </a>
-            <a href="#pricing">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button>
-            </a>
-            <a href="/demo">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button>
-            </a>
-            <a href="/guias">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guias</Button>
-            </a>
-            <div className="w-px h-5 bg-white/10 mx-1 hidden sm:block" />
-            <a href="/login">
-              <Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesion</Button>
-            </a>
-            <a href="/register">
-              <Button size="sm" className="rounded-xl px-4" data-testid="link-register">
-                Prueba Gratis
-                <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </a>
-          </div>
-        </div>
-      </nav>
+      <MobileNav />
 
       <section className="relative py-24 sm:py-32 px-6 overflow-hidden" data-testid="section-hero">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -1178,12 +1187,6 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="lg:hidden py-12 px-6" id="demo-mobile" data-testid="section-demo-mobile">
-        <div className="max-w-sm mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-6">Mira a FoxBot en accion</h2>
-          <AnimatedChat />
-        </div>
-      </section>
 
       <section className="py-24 px-6 relative overflow-hidden" ref={statsSection.ref as any} data-testid="section-stats">
         <div className="absolute inset-0 pointer-events-none">
