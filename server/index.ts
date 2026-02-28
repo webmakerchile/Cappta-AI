@@ -9,14 +9,6 @@ import path from "path";
 
 const app = express();
 
-app.get("/", (_req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    const indexPath = path.resolve(__dirname, "public", "index.html");
-    return res.sendFile(indexPath);
-  }
-  res.status(200).send("OK");
-});
-
 app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 app.get("/api/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
