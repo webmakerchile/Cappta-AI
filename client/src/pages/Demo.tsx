@@ -53,6 +53,7 @@ import {
   Mail,
   Shield,
   Eye,
+  LogOut,
 } from "lucide-react";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
@@ -72,6 +73,20 @@ interface DemoContext {
   colorAccent: string;
   category: string;
   suggestions: string[];
+}
+
+const EXEC_PROFILES = [
+  { name: "Carolina M.", color: "#10b981" },
+  { name: "Diego R.", color: "#3b82f6" },
+  { name: "Valentina S.", color: "#f59e0b" },
+  { name: "Andrés P.", color: "#ef4444" },
+  { name: "Camila L.", color: "#8b5cf6" },
+];
+
+function getExecProfile(ctxId: string) {
+  let hash = 0;
+  for (let i = 0; i < ctxId.length; i++) hash = ((hash << 5) - hash) + ctxId.charCodeAt(i);
+  return EXEC_PROFILES[Math.abs(hash) % EXEC_PROFILES.length];
 }
 
 interface DemoProduct {
@@ -212,7 +227,8 @@ function generateDemoSessions(ctx: DemoContext): DemoSession[] {
         { sender: "bot", content: `¡Excelente elección! 🔥 ${p1?.name} está disponible a ${p1?.price}. ¿Te gustaría proceder con la compra?`, quickReplies: ["¡Sí, comprar ahora", "Más información", "Hablar con ejecutivo"] },
         { sender: "user", content: "Quiero hablar con un ejecutivo por favor" },
         { sender: "system", content: "Cliente solicita ejecutivo" },
-        { sender: "executive", content: `¡Hola Carlos! Soy ejecutivo de ${ctx.business}. Vi que te interesa ${p1?.name}. Te envío la información completa 📋` },
+        { sender: "system", content: `${getExecProfile(ctx.id).name} ha entrado al chat — El bot IA está pausado` },
+        { sender: "executive", content: `¡Hola Carlos! Soy ${getExecProfile(ctx.id).name} de ${ctx.business}. Vi que te interesa ${p1?.name}. Te envío la información completa 📋` },
         { sender: "executive", content: "Aquí tienes toda la información detallada:", file },
       ],
     },
@@ -1164,6 +1180,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
   const [sessionStatuses, setSessionStatuses] = useState<Record<string, "active" | "closed">>({});
   const [sessionClaimed, setSessionClaimed] = useState<Record<string, boolean>>({});
   const [liveUnread, setLiveUnread] = useState<Record<string, number>>({});
+  const exec = useMemo(() => getExecProfile(ctx.id), [ctx.id]);
   const [incomingNotif, setIncomingNotif] = useState<string | null>(null);
   const execInputRef = useRef<HTMLInputElement>(null);
   const [elapsedTimes] = useState<Record<string, string>>(() => {
@@ -1187,16 +1204,10 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [localMsgs, selectedSession, userTyping]);
 
+  const claimedOnceRef = useRef<Record<string, boolean>>({});
   useEffect(() => {
-    if (!claimed) return;
-    const timeout1 = setTimeout(() => {
-      setUserTyping(true);
-    }, 3000);
-    const timeout2 = setTimeout(() => {
-      setUserTyping(false);
-      setLocalMsgs(prev => [...prev, { sender: "user", content: "Perfecto, gracias por atenderme! 😊" }]);
-    }, 5500);
-    return () => { clearTimeout(timeout1); clearTimeout(timeout2); };
+    if (!claimed || claimedOnceRef.current[selectedSession]) return;
+    claimedOnceRef.current[selectedSession] = true;
   }, [claimed, selectedSession]);
 
   useEffect(() => {
@@ -1217,13 +1228,13 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
     setClaimed(true);
     setSessionClaimed(prev => ({ ...prev, [selectedSession]: true }));
     setLiveUnread(prev => ({ ...prev, [selectedSession]: 0 }));
-    setLocalMsgs(prev => [...prev, { sender: "system", content: "Te has asignado este chat — El bot IA está pausado" }]);
+    setLocalMsgs(prev => [...prev, { sender: "system", content: `${exec.name} ha entrado al chat — El bot IA está pausado` }]);
   }
 
   function handleUnclaim() {
     setClaimed(false);
     setSessionClaimed(prev => ({ ...prev, [selectedSession]: false }));
-    setLocalMsgs(prev => [...prev, { sender: "system", content: "Has dejado el chat — El bot IA retoma la conversación" }]);
+    setLocalMsgs(prev => [...prev, { sender: "system", content: `${exec.name} ha salido del chat — El bot IA retoma la conversación` }]);
   }
 
   function handleCloseSession() {
@@ -1238,31 +1249,11 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
     setLocalMsgs(prev => [...prev, { sender: "executive", content: execInput.trim() }]);
     setExecInput("");
     execInputRef.current?.focus();
-    setTimeout(() => {
-      setUserTyping(true);
-      setTimeout(() => {
-        setUserTyping(false);
-        const responses = [
-          "Entendido, muchas gracias por la ayuda! 🙏",
-          "Excelente, justo lo que necesitaba saber!",
-          "Perfecto! ¿Y tienen otros modelos disponibles?",
-          "Genial, voy a revisarlo. Gracias! 👍",
-        ];
-        setLocalMsgs(prev => [...prev, { sender: "user", content: responses[Math.floor(Math.random() * responses.length)] }]);
-      }, 2500);
-    }, 1500);
   }
 
   function handleSendFile() {
     if (!claimed || !file) return;
     setLocalMsgs(prev => [...prev, { sender: "executive", content: "Te envío la información detallada:", file }]);
-    setTimeout(() => {
-      setUserTyping(true);
-      setTimeout(() => {
-        setUserTyping(false);
-        setLocalMsgs(prev => [...prev, { sender: "user", content: "Recibido! Voy a revisar el documento. Gracias 📄👍" }]);
-      }, 2000);
-    }, 1500);
   }
 
   const TAG_COLORS: Record<string, string> = {
@@ -1302,6 +1293,10 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
             <Eye className="w-2.5 h-2.5 text-white" />
             <span className="text-[10px] text-white font-bold">{sessions.filter(s => getStatus(s.id, s.status) === "active").length} activos</span>
           </div>
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: exec.color }} />
+            <span className="text-[10px] text-white font-medium">{exec.name}</span>
+          </div>
         </div>
       </div>
 
@@ -1332,8 +1327,8 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                     </div>
                     {status === "active" && (
                       <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#080808] ${
-                        sClaimed ? "bg-blue-400" : s.contactRequested ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
-                      }`} />
+                        sClaimed ? "" : s.contactRequested ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
+                      }`} style={sClaimed ? { backgroundColor: exec.color } : undefined} />
                     )}
                     {status === "closed" && (
                       <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#080808] bg-white/20" />
@@ -1347,7 +1342,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                       )}
                     </div>
                     {sClaimed ? (
-                      <p className="text-[8px] font-bold mt-0.5 flex items-center gap-0.5" style={{ color: ctx.color }}><UserRound className="w-2 h-2" /> Asignado a ti</p>
+                      <p className="text-[8px] font-bold mt-0.5 flex items-center gap-0.5" style={{ color: exec.color }}><UserRound className="w-2 h-2" /> {exec.name}</p>
                     ) : s.contactRequested && status === "active" ? (
                       <p className="text-[8px] text-amber-400 font-bold mt-0.5 flex items-center gap-0.5"><CircleDot className="w-2 h-2" /> Solicita Ejecutivo</p>
                     ) : status === "closed" ? (
@@ -1400,10 +1395,12 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                 <>
                   <button
                     onClick={handleUnclaim}
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all hover:scale-105"
+                    style={{ backgroundColor: `${exec.color}15`, border: `1px solid ${exec.color}30` }}
                     data-testid="button-exec-leave"
                   >
-                    <span className="text-[10px] font-medium text-white/50">Soltar</span>
+                    <LogOut className="w-3 h-3" style={{ color: exec.color }} />
+                    <span className="text-[10px] font-bold" style={{ color: exec.color }}>Salir del Chat</span>
                   </button>
                   <button
                     onClick={handleCloseSession}
@@ -1419,9 +1416,9 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
           </div>
 
           {claimed && (
-            <div className="shrink-0 px-3 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${ctx.color}08`, borderBottom: `1px solid ${ctx.color}15` }}>
-              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: ctx.color }} />
-              <span className="text-[10px] font-medium" style={{ color: ctx.color }}>Chat asignado a ti — El bot está pausado</span>
+            <div className="shrink-0 px-3 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${exec.color}08`, borderBottom: `1px solid ${exec.color}15` }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: exec.color }} />
+              <span className="text-[10px] font-medium" style={{ color: exec.color }}>Chat asignado a {exec.name} — El bot está pausado</span>
               <span className="text-[8px] text-white/20 ml-auto">Tus respuestas llegan directamente al usuario</span>
             </div>
           )}
@@ -1486,13 +1483,13 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                     isUser
                       ? { backgroundColor: "#6b7280" }
                       : isExec
-                        ? { backgroundColor: `${ctx.color}08`, borderColor: `${ctx.color}15` }
+                        ? { backgroundColor: `${exec.color}08`, borderColor: `${exec.color}15` }
                         : undefined
                   }>
                     {isExec && (
                       <div className="flex items-center gap-1 mb-0.5">
-                        <UserRound className="w-2.5 h-2.5" style={{ color: ctx.color }} />
-                        <span className="text-[9px] font-semibold" style={{ color: ctx.color }}>Tú (Ejecutivo)</span>
+                        <UserRound className="w-2.5 h-2.5" style={{ color: exec.color }} />
+                        <span className="text-[9px] font-semibold" style={{ color: exec.color }}>{exec.name} (Ejecutivo)</span>
                       </div>
                     )}
                     {!isUser && !isExec && (
@@ -1562,14 +1559,14 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendExecMsg(); }}}
                   placeholder="Responde como ejecutivo..."
                   className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-[11px] focus:outline-none transition-all text-white placeholder:text-white/20"
-                  style={{ borderColor: execInput.trim() ? `${ctx.color}30` : undefined }}
+                  style={{ borderColor: execInput.trim() ? `${exec.color}30` : undefined }}
                   data-testid="input-exec-message"
                 />
                 <button
                   onClick={handleSendExecMsg}
                   disabled={!execInput.trim()}
                   className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white disabled:opacity-30 transition-all hover:scale-110"
-                  style={{ backgroundColor: ctx.color }}
+                  style={{ backgroundColor: exec.color }}
                   data-testid="button-exec-send"
                 >
                   <Send className="w-3 h-3" />
