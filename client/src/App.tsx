@@ -438,19 +438,6 @@ function ChatWidget() {
     document.documentElement.classList.add("dark");
   }, []);
 
-  if (!configLoaded || isLoading) {
-    if (!configLoaded) return null;
-    return (
-      <div className="w-full h-full flex items-end justify-end">
-        <div className="p-2">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: widgetColor || "#10b981" }}>
-            <MessageCircle className="w-6 h-6 text-white" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className="w-full h-full flex items-end justify-end"
@@ -467,54 +454,47 @@ function ChatWidget() {
             zIndex: 10,
           }}
         >
-          {!configLoaded ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3">
-              <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: widgetColor || "#10b981", borderTopColor: "transparent" }} />
-              <span className="text-white/50 text-xs">Conectando...</span>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col min-h-0">
-              {user ? (
-                <ChatWindow
-                  messages={messages}
-                  sessions={sessions}
-                  onSend={sendMessage}
-                  onContactExecutive={requestContact}
-                  isConnected={isConnected}
-                  userName={user.name}
-                  userEmail={user.email}
-                  contactRequested={contactRequested}
-                  onClose={toggleChat}
-                  onExitChat={handleExitChat}
-                  sessionId={user.sessionId}
-                  onRatingComplete={handleRatingComplete}
-                  onStartNewSession={startNewSession}
-                  brandColor={widgetColor}
-                  brandName={widgetName}
-                  brandLogo={widgetLogo}
-                  tenantId={tenantId ?? undefined}
-                  headerTextColor={widgetHeaderTextColor}
-                  botBubbleColor={widgetBotBubbleColor}
-                  botTextColor={widgetBotTextColor}
-                  userTextColor={widgetUserTextColor}
-                />
-              ) : (
-                <WelcomeForm
-                  onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
-                  onClose={toggleChat}
-                  brandColor={widgetColor}
-                  brandName={widgetName}
-                  welcomeMessage={widgetWelcome}
-                  welcomeSubtitle={widgetSubtitle}
-                  consultationOptions={widgetConsultationOptions}
-                  showProductSearch={widgetShowProductSearch}
-                  productSearchLabel={widgetProductSearchLabel}
-                  tenantId={tenantId ?? undefined}
-                  headerTextColor={widgetHeaderTextColor}
-                />
-              )}
-            </div>
-          )}
+          <div className="flex-1 flex flex-col min-h-0">
+            {user ? (
+              <ChatWindow
+                messages={messages}
+                sessions={sessions}
+                onSend={sendMessage}
+                onContactExecutive={requestContact}
+                isConnected={isConnected}
+                userName={user.name}
+                userEmail={user.email}
+                contactRequested={contactRequested}
+                onClose={toggleChat}
+                onExitChat={handleExitChat}
+                sessionId={user.sessionId}
+                onRatingComplete={handleRatingComplete}
+                onStartNewSession={startNewSession}
+                brandColor={widgetColor}
+                brandName={widgetName}
+                brandLogo={widgetLogo}
+                tenantId={tenantId ?? undefined}
+                headerTextColor={widgetHeaderTextColor}
+                botBubbleColor={widgetBotBubbleColor}
+                botTextColor={widgetBotTextColor}
+                userTextColor={widgetUserTextColor}
+              />
+            ) : (
+              <WelcomeForm
+                onSubmit={(email, name, problemType, gameName) => login(email, name, problemType, gameName)}
+                onClose={toggleChat}
+                brandColor={widgetColor}
+                brandName={widgetName}
+                welcomeMessage={widgetWelcome}
+                welcomeSubtitle={widgetSubtitle}
+                consultationOptions={widgetConsultationOptions}
+                showProductSearch={widgetShowProductSearch}
+                productSearchLabel={widgetProductSearchLabel}
+                tenantId={tenantId ?? undefined}
+                headerTextColor={widgetHeaderTextColor}
+              />
+            )}
+          </div>
         </div>
       ) : isInlineEmbed ? (
         <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a] text-white/40 text-sm">
