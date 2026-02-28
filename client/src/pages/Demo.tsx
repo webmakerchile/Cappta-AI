@@ -59,6 +59,7 @@ import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  imageUrl?: string;
 }
 
 interface DemoContext {
@@ -774,16 +775,32 @@ function DemoProductBrowser({ products, color, onSelect, onClose }: { products: 
   );
 }
 
+function getDemoCountKey(ctxId: string) {
+  return `foxbot_demo_count_${ctxId}`;
+}
+
+function getStoredDemoCount(ctxId: string): number {
+  try {
+    const val = sessionStorage.getItem(getDemoCountKey(ctxId));
+    return val ? parseInt(val, 10) || 0 : 0;
+  } catch { return 0; }
+}
+
+function setStoredDemoCount(ctxId: string, count: number) {
+  try { sessionStorage.setItem(getDemoCountKey(ctxId), String(count)); } catch {}
+}
+
 function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [messageCount, setMessageCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(() => getStoredDemoCount(ctx.id));
   const [showProducts, setShowProducts] = useState(false);
   const [contactRequested, setContactRequested] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const products = DEMO_PRODUCTS[ctx.id] || [];
   const demoFile = DEMO_FILES[ctx.id];
   const remaining = MAX_DEMO_MESSAGES - messageCount;
@@ -829,7 +846,9 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
         setIsLoading(false);
         return;
       }
-      setMessageCount((c) => c + 1);
+      const newCount = messageCount + 1;
+      setMessageCount(newCount);
+      setStoredDemoCount(ctx.id, newCount);
       setMessages([...newMessages, { role: "assistant", content: data.reply }]);
     } catch {
       setError("Error de conexion. Intenta de nuevo.");
@@ -858,10 +877,38 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
     ]);
   }
 
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Solo se permiten imagenes (JPG, PNG, GIF, WebP)");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("La imagen no puede superar los 10 MB");
+      return;
+    }
+    if (messageCount >= MAX_DEMO_MESSAGES) {
+      setError("Has usado tus 30 mensajes de prueba. Registrate gratis para seguir usando FoxBot sin limites.");
+      return;
+    }
+    const blobUrl = URL.createObjectURL(file);
+    const imgMsg: Message = { role: "user", content: `📷 ${file.name}`, imageUrl: blobUrl };
+    setMessages(prev => [...prev, imgMsg]);
+    const newCount = messageCount + 1;
+    setMessageCount(newCount);
+    setStoredDemoCount(ctx.id, newCount);
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   function resetChat() {
+    messages.forEach(m => { if (m.imageUrl) { try { URL.revokeObjectURL(m.imageUrl); } catch {} } });
     setMessages([]);
     setInput("");
     setError(null);
+    setMessageCount(0);
+    setStoredDemoCount(ctx.id, 0);
     setContactRequested(false);
     inputRef.current?.focus();
   }
@@ -929,6 +976,15 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
                   <Bot className="w-3 h-3" style={{ color: ctx.color }} />
                   <span className="text-[10px] font-semibold" style={{ color: ctx.color }}>{ctx.business}</span>
                 </div>
+              )}
+              {msg.imageUrl && (
+                <img
+                  src={msg.imageUrl}
+                  alt="Imagen enviada"
+                  className="rounded-lg max-w-full max-h-[200px] object-cover mb-1.5 cursor-pointer"
+                  onClick={() => window.open(msg.imageUrl, "_blank")}
+                  data-testid={`img-demo-${i}`}
+                />
               )}
               <span className="whitespace-pre-wrap">{msg.content}</span>
             </div>
@@ -1003,16 +1059,20 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
             </div>
           ) : (
             <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+                data-testid="input-demo-file"
+              />
               <form onSubmit={handleSubmit} className="flex items-center gap-1.5" data-testid="form-demo-chat">
                 <button
                   type="button"
                   className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/25 hover:text-white/50 transition-colors"
                   data-testid="button-demo-attach"
-                  onClick={() => {
-                    if (demoFile) {
-                      setMessages(prev => [...prev, { role: "user", content: `📎 ${demoFile.name} (${demoFile.size})` }]);
-                    }
-                  }}
+                  onClick={() => fileInputRef.current?.click()}
                 >
                   <ImagePlus className="w-4 h-4" />
                 </button>
