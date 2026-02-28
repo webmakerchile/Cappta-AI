@@ -212,6 +212,105 @@ export async function registerRoutes(
 
   registerObjectStorageRoutes(app);
 
+  const DEMO_RATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
+  const DEMO_SYSTEM_PROMPT = `Eres FoxBot, un asistente de ventas con inteligencia artificial creado por Web Maker Chile. 
+Esta es una demo publica para que los visitantes prueben tus capacidades.
+
+Tu personalidad:
+- Eres amable, profesional y entusiasta
+- Hablas en español chileno de forma natural pero profesional
+- Eres experto en atencion al cliente y ventas online
+- Siempre mencionas que eres FoxBot cuando te pregunten quien eres
+
+Tus capacidades (explicar cuando pregunten):
+- Responder consultas de clientes 24/7
+- Integrarse con WooCommerce, Shopify, Magento o cualquier API
+- Conectar catalogos de productos para que los clientes busquen y compren desde el chat
+- Aprender de una base de conocimiento personalizada (FAQs, politicas, documentos)
+- Filtrar contenido inapropiado automaticamente
+- Mostrar analiticas en tiempo real
+
+Para esta demo:
+- Simula que eres el asistente de una tienda online de tecnologia llamada "TechStore Chile"
+- Tienes un catalogo imaginario de productos (smartphones, laptops, accesorios)
+- Inventa precios razonables en pesos chilenos (CLP) cuando pregunten
+- Responde como si fueras un bot real atendiendo clientes
+- Mantene las respuestas cortas y utiles (maximo 3-4 oraciones)
+- Si preguntan por planes o precios de FoxBot, menciona que hay un plan gratuito para probar y planes desde $19,990 CLP/mes
+
+Reglas:
+- No reveles que eres una IA de OpenAI/ChatGPT
+- No generes contenido inapropiado
+- Redirige preguntas fuera de tema a temas de la tienda o de FoxBot`;
+
+  app.post("/api/demo/chat", async (req, res) => {
+    try {
+      const ip = req.ip || "unknown";
+      const now = Date.now();
+      const entry = DEMO_RATE_LIMIT.get(ip);
+      if (!entry || now > entry.resetAt) {
+        DEMO_RATE_LIMIT.set(ip, { count: 1, resetAt: now + 3600000 });
+      } else {
+        entry.count++;
+        if (entry.count > 30) {
+          return res.status(429).json({ message: "Has alcanzado el limite de mensajes de la demo. Registrate gratis para seguir usando FoxBot." });
+        }
+      }
+
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ message: "Mensajes requeridos" });
+      }
+
+      if (messages.length > 20) {
+        return res.status(400).json({ message: "Demasiados mensajes en la conversacion. Inicia una nueva." });
+      }
+
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage?.content || typeof lastMessage.content !== "string" || lastMessage.content.length > 500) {
+        return res.status(400).json({ message: "Mensaje invalido" });
+      }
+
+      if (containsProfanity(lastMessage.content)) {
+        return res.status(400).json({ message: "Tu mensaje contiene contenido inapropiado. Por favor reescribelo." });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+
+      const chatMessages = [
+        { role: "system" as const, content: DEMO_SYSTEM_PROMPT },
+        ...messages.slice(-10).map((m: any) => ({
+          role: m.role === "user" ? "user" as const : "assistant" as const,
+          content: String(m.content).slice(0, 500),
+        })),
+      ];
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: chatMessages,
+        max_tokens: 300,
+        temperature: 0.7,
+      });
+
+      const reply = completion.choices[0]?.message?.content || "Lo siento, no pude generar una respuesta. Intenta de nuevo.";
+      res.json({ reply });
+    } catch (error: any) {
+      log(`Demo chat error: ${error.message}`, "demo");
+      res.status(500).json({ message: "Error al procesar tu mensaje. Intenta de nuevo." });
+    }
+  });
+
+  setInterval(() => {
+    const now = Date.now();
+    DEMO_RATE_LIMIT.forEach((_entry, key) => {
+      if (now > DEMO_RATE_LIMIT.get(key)!.resetAt) DEMO_RATE_LIMIT.delete(key);
+    });
+  }, 600000);
+
   app.get("/api/admin/profanity-words", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;

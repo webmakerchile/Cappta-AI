@@ -292,9 +292,9 @@ export default function Landing() {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </a>
-              <a href="#demo">
+              <a href="/demo">
                 <Button variant="outline" size="lg" className="text-base px-6 py-6 rounded-xl" data-testid="button-hero-demo">
-                  Ver Demo
+                  Probar Demo Gratis
                 </Button>
               </a>
             </div>
@@ -530,7 +530,7 @@ export default function Landing() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors" data-testid="link-footer-features">Caracteristicas</a></li>
                 <li><a href="#pricing" className="hover:text-foreground transition-colors" data-testid="link-footer-pricing">Precios</a></li>
-                <li><a href="#demo" className="hover:text-foreground transition-colors" data-testid="link-footer-demo">Demo</a></li>
+                <li><a href="/demo" className="hover:text-foreground transition-colors" data-testid="link-footer-demo">Demo</a></li>
               </ul>
             </div>
             <div>

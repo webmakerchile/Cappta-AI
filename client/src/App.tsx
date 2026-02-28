@@ -13,6 +13,7 @@ const LandingPage = lazy(() => import("@/pages/Landing"));
 const RegisterPage = lazy(() => import("@/pages/Register"));
 const LoginPage = lazy(() => import("@/pages/Login"));
 const DashboardPage = lazy(() => import("@/pages/Dashboard"));
+const DemoPage = lazy(() => import("@/pages/Demo"));
 
 function FullScreenChat() {
   const {
@@ -449,8 +450,9 @@ function App() {
   const isRegister = pathname === "/register";
   const isLogin = pathname === "/login";
   const isDashboard = pathname === "/dashboard";
+  const isDemo = pathname === "/demo";
 
-  const isSaasPage = isLanding || isRegister || isLogin || isDashboard;
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo;
 
   useEffect(() => {
     if (isSaasPage) {
@@ -482,6 +484,10 @@ function App() {
       ) : isDashboard ? (
         <Suspense fallback={<SuspenseLoader />}>
           <DashboardPage />
+        </Suspense>
+      ) : isDemo ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <DemoPage />
         </Suspense>
       ) : isContactChat ? (
         <ContactChat />
