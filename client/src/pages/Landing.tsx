@@ -15,22 +15,23 @@ import {
   Clock,
   Headphones,
 } from "lucide-react";
+import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 const features = [
   {
     icon: Bot,
     title: "Respuestas con IA",
-    description: "Chatbot inteligente que responde preguntas frecuentes y guía a tus clientes automáticamente.",
+    description: "Chatbot inteligente que responde preguntas frecuentes y guia a tus clientes automaticamente.",
   },
   {
     icon: ShoppingCart,
-    title: "Catálogo de Productos",
+    title: "Catalogo de Productos",
     description: "Integra tu tienda WooCommerce y permite a los clientes explorar productos desde el chat.",
   },
   {
     icon: BookOpen,
     title: "Base de Conocimiento",
-    description: "Entrena tu bot con documentos, FAQs y políticas para respuestas precisas y contextuales.",
+    description: "Entrena tu bot con documentos, FAQs y politicas para respuestas precisas y contextuales.",
   },
   {
     icon: Globe,
@@ -39,13 +40,13 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: "Analíticas en Tiempo Real",
-    description: "Monitorea sesiones, satisfacción del cliente y rendimiento del bot desde tu dashboard.",
+    title: "Analiticas en Tiempo Real",
+    description: "Monitorea sesiones, satisfaccion del cliente y rendimiento del bot desde tu dashboard.",
   },
   {
     icon: Shield,
     title: "Filtro de Contenido",
-    description: "Protección automática contra lenguaje inapropiado y spam en las conversaciones.",
+    description: "Proteccion automatica contra lenguaje inapropiado y spam en las conversaciones.",
   },
 ];
 
@@ -54,12 +55,12 @@ const pricingPlans = [
     name: "Gratis",
     price: "$0",
     period: "/mes",
-    description: "Perfecto para probar y proyectos pequeños",
+    description: "Perfecto para probar y proyectos pequenos",
     features: [
       "100 mensajes/mes",
       "1 agente",
       "Widget personalizable",
-      "Respuestas automáticas básicas",
+      "Respuestas automaticas basicas",
       "Soporte por email",
     ],
     cta: "Comenzar Gratis",
@@ -69,14 +70,14 @@ const pricingPlans = [
     name: "Pro",
     price: "$29",
     period: "/mes",
-    description: "Para negocios en crecimiento que necesitan más",
+    description: "Para negocios en crecimiento que necesitan mas",
     features: [
       "5,000 mensajes/mes",
       "5 agentes",
       "IA avanzada con GPT",
-      "Integración WooCommerce",
+      "Integracion WooCommerce",
       "Base de conocimiento",
-      "Analíticas completas",
+      "Analiticas completas",
       "Soporte prioritario",
     ],
     cta: "Comenzar con Pro",
@@ -107,9 +108,10 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3">
-          <a href="/">
+          <a href="/" className="flex items-center gap-2">
+            <img src={logoSinFondo} alt="Web Maker Chile" className="w-10 h-10 object-contain" data-testid="img-nav-logo" />
             <span className="text-lg font-bold tracking-tight" data-testid="link-home">
-              <span className="text-primary">Chat</span>Bot SaaS
+              <span className="text-primary">FoxBot</span>
             </span>
           </a>
           <div className="flex items-center gap-2 flex-wrap">
@@ -126,9 +128,10 @@ export default function Landing() {
       <section className="relative py-24 px-6" data-testid="section-hero">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-accent/5 blur-3xl" />
         </div>
         <div className="relative max-w-4xl mx-auto text-center">
+          <img src={logoSinFondo} alt="FoxBot" className="w-24 h-24 mx-auto mb-6 object-contain" data-testid="img-hero-logo" />
           <Badge variant="secondary" className="mb-6" data-testid="badge-hero">
             <Zap className="w-3 h-3 mr-1" />
             Potenciado por Inteligencia Artificial
@@ -136,11 +139,11 @@ export default function Landing() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6" data-testid="text-hero-title">
             Soporte al cliente
             <br />
-            <span className="text-primary">inteligente y automático</span>
+            <span className="text-primary">inteligente y automatico</span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10" data-testid="text-hero-description">
-            Transforma la atención al cliente de tu negocio con un chatbot de IA que responde 24/7,
-            integra tu catálogo de productos y aprende de tu base de conocimiento.
+            Transforma la atencion al cliente de tu negocio con un chatbot de IA que responde 24/7,
+            integra tu catalogo de productos y aprende de tu base de conocimiento.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <a href="/register">
@@ -151,18 +154,18 @@ export default function Landing() {
             </a>
             <a href="#features">
               <Button variant="outline" size="lg" data-testid="button-hero-features">
-                Ver Características
+                Ver Caracteristicas
               </Button>
             </a>
           </div>
           <div className="flex items-center justify-center gap-6 mt-10 flex-wrap text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Check className="w-4 h-4 text-primary" />
-              Sin tarjeta de crédito
+              Sin tarjeta de credito
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-4 h-4 text-primary" />
-              Configuración en 5 min
+              Configuracion en 5 min
             </span>
             <span className="flex items-center gap-1">
               <Headphones className="w-4 h-4 text-primary" />
@@ -212,9 +215,9 @@ export default function Landing() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: "1", title: "Regístrate", desc: "Crea tu cuenta gratuita y configura tu empresa." },
+              { step: "1", title: "Registrate", desc: "Crea tu cuenta gratuita y configura tu empresa." },
               { step: "2", title: "Personaliza", desc: "Ajusta colores, mensajes y entrena tu base de conocimiento." },
-              { step: "3", title: "Integra", desc: "Copia el código embed y pégalo en tu sitio web." },
+              { step: "3", title: "Integra", desc: "Copia el codigo embed y pegalo en tu sitio web." },
             ].map((item, index) => (
               <div key={item.step} className="flex flex-col items-center gap-4" data-testid={`step-${index}`}>
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-lg">
@@ -247,7 +250,7 @@ export default function Landing() {
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge data-testid="badge-popular">Más Popular</Badge>
+                    <Badge data-testid="badge-popular">Mas Popular</Badge>
                   </div>
                 )}
                 <CardHeader className="text-center">
@@ -289,10 +292,10 @@ export default function Landing() {
         <div className="max-w-3xl mx-auto text-center">
           <MessageSquare className="w-12 h-12 text-primary mx-auto mb-6" />
           <h2 className="text-3xl sm:text-4xl font-bold mb-4" data-testid="text-cta-title">
-            Listo para transformar tu atención al cliente?
+            Listo para transformar tu atencion al cliente?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-            Únete a cientos de negocios que ya usan nuestro chatbot de IA para atender mejor y más rápido.
+            Unete a cientos de negocios que ya usan nuestro chatbot de IA para atender mejor y mas rapido.
           </p>
           <a href="/register">
             <Button size="lg" data-testid="button-cta-register">
@@ -307,17 +310,22 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <span className="text-lg font-bold">
-                <span className="text-primary">Chat</span>Bot SaaS
-              </span>
-              <p className="text-sm text-muted-foreground mt-2">
+              <div className="flex items-center gap-2 mb-2">
+                <img src={logoSinFondo} alt="Web Maker Chile" className="w-8 h-8 object-contain" />
+                <span className="text-lg font-bold">
+                  <span className="text-primary">Fox</span>Bot
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
                 Soporte al cliente potenciado por inteligencia artificial.
+                <br />
+                Un producto de Web Maker Chile.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-3">Producto</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover-elevate rounded-md px-1 py-0.5" data-testid="link-footer-features">Características</a></li>
+                <li><a href="#features" className="hover-elevate rounded-md px-1 py-0.5" data-testid="link-footer-features">Caracteristicas</a></li>
                 <li><a href="#pricing" className="hover-elevate rounded-md px-1 py-0.5" data-testid="link-footer-pricing">Precios</a></li>
               </ul>
             </div>
@@ -332,12 +340,12 @@ export default function Landing() {
               <h4 className="font-semibold mb-3">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><span data-testid="link-footer-privacy">Privacidad</span></li>
-                <li><span data-testid="link-footer-terms">Términos</span></li>
+                <li><span data-testid="link-footer-terms">Terminos</span></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground" data-testid="text-copyright">
-            &copy; {new Date().getFullYear()} ChatBot SaaS. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} FoxBot by Web Maker Chile. Todos los derechos reservados.
           </div>
         </div>
       </footer>

@@ -15,7 +15,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, LogIn, Headphones } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
+import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un correo valido"),
@@ -65,14 +66,14 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center">
-            <Headphones className="w-7 h-7 text-primary" />
-          </div>
+          <a href="/">
+            <img src={logoSinFondo} alt="FoxBot" className="w-16 h-16 object-contain" data-testid="img-login-logo" />
+          </a>
           <h1 className="text-2xl font-bold text-foreground" data-testid="text-login-title">
             Iniciar sesion
           </h1>
           <p className="text-sm text-muted-foreground text-center" data-testid="text-login-subtitle">
-            Accede a tu panel de administracion
+            Accede a tu panel de FoxBot
           </p>
         </div>
 

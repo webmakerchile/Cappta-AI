@@ -749,6 +749,36 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/tenants/:id/config", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID invalido" });
+      const tenant = await storage.getTenantById(id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+      res.json({
+        id: tenant.id,
+        companyName: tenant.companyName,
+        widgetColor: tenant.widgetColor,
+        welcomeMessage: tenant.welcomeMessage,
+        logoUrl: tenant.logoUrl,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener configuracion" });
+    }
+  });
+
+  app.get("/api/tenants/me/stats", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const stats = await storage.getTenantStats(auth.id);
+      res.json(stats);
+    } catch (error: any) {
+      log(`Error obteniendo stats tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al obtener estadisticas" });
+    }
+  });
+
   app.get("/api/admin/users", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;

@@ -36,6 +36,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { Tenant } from "@shared/schema";
+import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 
@@ -63,12 +64,24 @@ function useAuth() {
   return { tenant, isLoading, token };
 }
 
-function StatsSection() {
+function StatsSection({ token }: { token: string }) {
+  const { data: statsData, isLoading: statsLoading } = useQuery<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }>({
+    queryKey: ["/api/tenants/me/stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/tenants/me/stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+
   const stats = [
-    { label: "Sesiones Totales", value: "0", icon: Users, change: "+0%" },
-    { label: "Mensajes", value: "0", icon: MessageSquare, change: "+0%" },
-    { label: "Satisfacción", value: "N/A", icon: Star, change: "Sin datos" },
-    { label: "Tiempo de Respuesta", value: "N/A", icon: BarChart3, change: "Sin datos" },
+    { label: "Sesiones Totales", value: statsLoading ? "..." : String(statsData?.totalSessions || 0), icon: Users, sub: `${statsData?.activeSessionsCount || 0} activas` },
+    { label: "Mensajes", value: statsLoading ? "..." : String(statsData?.totalMessages || 0), icon: MessageSquare, sub: "Total enviados" },
+    { label: "Satisfaccion", value: statsLoading ? "..." : statsData?.avgRating ? `${statsData.avgRating}/5` : "N/A", icon: Star, sub: statsData?.avgRating ? "Promedio" : "Sin datos" },
+    { label: "Sesiones Activas", value: statsLoading ? "..." : String(statsData?.activeSessionsCount || 0), icon: BarChart3, sub: "En curso" },
   ];
 
   return (
@@ -83,7 +96,7 @@ function StatsSection() {
             <div className="text-2xl font-bold" data-testid={`stat-value-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}>
               {stat.value}
             </div>
-            <p className="text-xs text-muted-foreground">{stat.change}</p>
+            <p className="text-xs text-muted-foreground">{stat.sub}</p>
           </CardContent>
         </Card>
       ))}
@@ -386,7 +399,12 @@ export default function Dashboard() {
         <Sidebar>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>{tenant.companyName}</SidebarGroupLabel>
+              <SidebarGroupLabel>
+                <div className="flex items-center gap-2">
+                  <img src={logoSinFondo} alt="FoxBot" className="w-5 h-5 object-contain" />
+                  <span>{tenant.companyName}</span>
+                </div>
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navItems.map((item) => (
@@ -434,7 +452,7 @@ export default function Dashboard() {
                   <h2 className="text-xl font-semibold mb-1">Resumen</h2>
                   <p className="text-sm text-muted-foreground">Métricas de tu chat en tiempo real</p>
                 </div>
-                <StatsSection />
+                <StatsSection token={token!} />
               </div>
             )}
             {activeTab === "config" && (

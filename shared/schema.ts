@@ -6,6 +6,7 @@ import { z } from "zod";
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   sessionId: text("session_id").notNull().default("legacy"),
+  tenantId: integer("tenant_id"),
   userEmail: text("user_email").notNull(),
   userName: text("user_name").notNull(),
   sender: text("sender", { enum: ["user", "support"] }).notNull(),
@@ -17,10 +18,12 @@ export const messages = pgTable("messages", {
 }, (table) => [
   index("idx_messages_session_id").on(table.sessionId),
   index("idx_messages_user_email").on(table.userEmail),
+  index("idx_messages_tenant_id").on(table.tenantId),
 ]);
 
 export const sessions = pgTable("sessions", {
   sessionId: text("session_id").primaryKey(),
+  tenantId: integer("tenant_id"),
   userEmail: text("user_email").notNull(),
   userName: text("user_name").notNull(),
   status: text("status", { enum: ["active", "closed"] }).notNull().default("active"),
@@ -38,7 +41,9 @@ export const sessions = pgTable("sessions", {
   lastAutoEmailAt: timestamp("last_auto_email_at"),
   lastManualEmailAt: timestamp("last_manual_email_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => [
+  index("idx_sessions_tenant_id").on(table.tenantId),
+]);
 
 export const cannedResponses = pgTable("canned_responses", {
   id: serial("id").primaryKey(),
@@ -48,6 +53,7 @@ export const cannedResponses = pgTable("canned_responses", {
 
 export const contactRequests = pgTable("contact_requests", {
   id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id"),
   userEmail: text("user_email").notNull(),
   userName: text("user_name").notNull(),
   pageUrl: text("page_url"),
@@ -61,6 +67,7 @@ export const contactRequests = pgTable("contact_requests", {
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id"),
   wcProductId: integer("wc_product_id"),
   name: text("name").notNull(),
   searchAliases: text("search_aliases").array().notNull().default(sql`'{}'::text[]`),
@@ -77,6 +84,7 @@ export const products = pgTable("products", {
 
 export const ratings = pgTable("ratings", {
   id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id"),
   sessionId: text("session_id").notNull(),
   userEmail: text("user_email").notNull(),
   userName: text("user_name").notNull(),
@@ -131,6 +139,7 @@ export const appSettings = pgTable("app_settings", {
 
 export const knowledgeBase = pgTable("knowledge_base", {
   id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id"),
   category: text("category", { enum: ["faq", "troubleshooting", "product_info", "policy", "general"] }).notNull().default("general"),
   question: text("question").notNull(),
   answer: text("answer").notNull(),

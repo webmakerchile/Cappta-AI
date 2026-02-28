@@ -74,6 +74,7 @@ export interface IStorage {
   getTenantById(id: number): Promise<Tenant | null>;
   createTenant(data: InsertTenant): Promise<Tenant>;
   updateTenant(id: number, data: Partial<InsertTenant>): Promise<Tenant | null>;
+  getTenantStats(tenantId: number): Promise<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -980,6 +981,23 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tenants.id, id))
       .returning();
     return tenant || null;
+  }
+
+  async getTenantStats(tenantId: number): Promise<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }> {
+    const result = await db.execute(sql`
+      SELECT
+        (SELECT COUNT(*)::int FROM sessions WHERE tenant_id = ${tenantId}) AS "totalSessions",
+        (SELECT COUNT(*)::int FROM messages WHERE tenant_id = ${tenantId}) AS "totalMessages",
+        (SELECT ROUND(AVG(rating)::numeric, 1) FROM ratings WHERE tenant_id = ${tenantId}) AS "avgRating",
+        (SELECT COUNT(*)::int FROM sessions WHERE tenant_id = ${tenantId} AND status = 'active') AS "activeSessionsCount"
+    `);
+    const row = result.rows[0] as any;
+    return {
+      totalSessions: row?.totalSessions || 0,
+      totalMessages: row?.totalMessages || 0,
+      avgRating: row?.avgRating ? parseFloat(row.avgRating) : null,
+      activeSessionsCount: row?.activeSessionsCount || 0,
+    };
   }
 }
 
