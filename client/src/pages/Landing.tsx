@@ -88,7 +88,7 @@ const features = [
   {
     icon: ShoppingCart,
     title: "Catálogo en el Chat",
-    description: "Tus clientes exploran productos, ven precios y disponibilidad sin salir de la conversación. Conecta WooCommerce, Shopify o tu API.",
+    description: "Tus clientes exploran productos, ven precios y disponibilidad sin salir de la conversación. Compatible con WooCommerce, Shopify y cualquier plataforma.",
     iconColor: "#ef4444",
     glow: "rgba(239, 68, 68, 0.15)",
   },
@@ -131,7 +131,7 @@ const sharedFeatures = [
   { text: "Catálogo de productos en el chat", icon: ShoppingBag },
   { text: "Atajos, etiquetas y horario comercial", icon: Tag },
   { text: "Multi-agente con asignación y colores", icon: Users },
-  { text: "Conecta WooCommerce, Shopify o tu API", icon: Plug },
+  { text: "Compatible con cualquier plataforma o API", icon: Plug },
   { text: "Nuestro equipo te ayuda a instalarlo", icon: Handshake },
 ];
 
@@ -879,7 +879,7 @@ function MobileNav() {
           <a href="#features"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button></a>
           <a href="#pricing"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button></a>
           <a href="/demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button></a>
-          <a href="/guías"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guías</Button></a>
+          <a href="/guias"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guías</Button></a>
           <div className="w-px h-5 bg-white/10 mx-1" />
           <a href="/login"><Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesión</Button></a>
           <a href="/register"><Button size="sm" className="rounded-xl px-4" data-testid="link-register">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></a>
@@ -893,7 +893,7 @@ function MobileNav() {
           <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Funciones</a>
           <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
           <a href="/demo" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Demo</a>
-          <a href="/guías" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guías</a>
+          <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guías</a>
           <div className="h-px bg-white/[0.06] my-2" />
           <a href="/login" className="block">
             <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10" data-testid="link-login-mobile">Iniciar Sesión</Button>
@@ -1186,7 +1186,7 @@ export default function Landing() {
             <p className="text-base sm:text-lg text-white/50 max-w-lg mb-8 sm:mb-10 leading-relaxed" data-testid="text-hero-description">
               <span className="text-white/80 font-medium">FoxBot</span> es un asistente con inteligencia artificial que atiende, recomienda y cierra ventas.
               Y cuando el cliente necesita atención humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
-              Funciona con <span className="text-white/80 font-medium">cualquier plataforma</span>.
+              Se adapta a <span className="text-white/80 font-medium">cualquier plataforma</span>: WordPress, Shopify, WooCommerce, Wix y más.
             </p>
 
             <div className="flex items-center gap-4 flex-wrap mb-10">
@@ -1231,10 +1231,10 @@ export default function Landing() {
           <div className="flex flex-col items-center gap-2 mb-8">
             <div className="flex items-center justify-center gap-2">
               <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-white/10" />
-              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciónes</p>
+              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciones</p>
               <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
             </div>
-            <p className="text-sm text-white/25 text-center max-w-md">Compatible con cualquier sitio web o plataforma. Solo pega un código y listo.</p>
+            <p className="text-sm text-white/25 text-center max-w-md">100% adaptable a cualquier sitio web o plataforma. Solo pega un código y listo.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 sm:gap-8" data-testid="platform-logos">
             {[
@@ -1747,21 +1747,21 @@ export default function Landing() {
               </div>
               <p className="text-sm text-white/30 leading-relaxed mb-4">
                 Chatbot con IA para atención al cliente.
-                Funciona con cualquier plataforma.
+                100% adaptable a cualquier plataforma.
               </p>
               <p className="text-xs text-white/15">Un producto de Web Maker Chile</p>
             </div>
             <div>
               <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Producto</h4>
               <ul className="space-y-3 text-sm text-white/30">
-                <li><a href="#features" className="hover:text-primary transition-colors" data-testid="link-footer-features">Caracteristicas</a></li>
+                <li><a href="#features" className="hover:text-primary transition-colors" data-testid="link-footer-features">Características</a></li>
                 <li><a href="#pricing" className="hover:text-primary transition-colors" data-testid="link-footer-pricing">Precios</a></li>
                 <li><a href="/demo" className="hover:text-primary transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
-                <li><a href="/guías" className="hover:text-primary transition-colors" data-testid="link-footer-guides">Guías de instalación</a></li>
+                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-guides">Guías de instalación</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Integraciónes</h4>
+              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Integraciones</h4>
               <ul className="space-y-3 text-sm text-white/30">
                 <li><span data-testid="link-footer-woo">WooCommerce</span></li>
                 <li><span data-testid="link-footer-shopify">Shopify</span></li>
