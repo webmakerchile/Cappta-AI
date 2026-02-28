@@ -42,7 +42,7 @@ Key architectural decisions and features include:
 - `/register` - Tenant registration (company signup)
 - `/login` - Tenant login
 - `/dashboard` - Tenant dashboard (widget config, embed code, real stats, plan, link to Panel de Soporte)
-- `/panel` - Tenant admin panel (full support management: real-time chats via socket.io, canned responses, tags, products, knowledge base, guides, settings)
+- `/panel` - Tenant admin panel (full support management: real-time chats via socket.io with sub-filters Bot/Ejecutivo/Pendientes/Mis Chats, star ratings display, pre-chat form card, tag management dropdown, product search in chat toolbar, chat message search, SHOW_RATING rendering, image upload, notification sounds, canned responses, tags, products, knowledge base, guides, AI/business hours settings)
 - `/widget` - Chat widget (for iframe embedding, accepts `?tenantId=X`)
 - `/chat` - Full-screen chat (for logged-in users via email params)
 - `/chat/contacto` - Contact chat (with welcome form)

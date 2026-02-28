@@ -39,6 +39,8 @@ import {
   Pencil,
   Check,
   Bot,
+  Star,
+  Image as ImageIcon,
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
@@ -96,6 +98,20 @@ function getAvatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
+function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
+  return (
+    <span className="inline-flex items-center gap-px">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          className={i <= rating ? "text-yellow-400 fill-yellow-400" : "text-white/15"}
+          style={{ width: size, height: size }}
+        />
+      ))}
+    </span>
+  );
+}
+
 interface SessionSummary {
   sessionId: string;
   userName: string;
@@ -106,11 +122,14 @@ interface SessionSummary {
   status: string;
   tags: string[];
   problemType: string | null;
+  gameName: string | null;
   lastMessageContent: string | null;
   lastMessageSender: string | null;
   adminActive: boolean;
   assignedToName: string | null;
   assignedToColor: string | null;
+  sessionRating: number | null;
+  ratingComment: string | null;
 }
 
 interface ChatMessage {
@@ -170,17 +189,31 @@ const SIDEBAR_ITEMS: { id: TabId; label: string; icon: any }[] = [
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
 
-function ChatsTab({ token }: { token: string }) {
+const notifSound = typeof window !== "undefined" ? new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1mZmB0eHqEgn16gIJ6bmBjaF9pfHmIiIR8fnyAcmFgZmFqfHuJhYF5e3t7cGBeY19tfXyMh4R7ent9c2JeYl5ufnyNh4Z6ent+c2NeYl5ufXuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuMhYV5ent+c2NeYl5vfnuLhIV5e3t+c2NeYl5vfnuLhIV5e3t+cmNeYV5vfnuLhIR5e3t/cmNeYV5vfnqLhIR5e3t/cmNeYV5wfnqLhIR5fHt/cmNeYV5wfnqKg4R5fHt/cmNeYV5wfnqKg4R5fHuAcmNeYV5wf3qKg4R5fHuAcmNeYV5wf3qKg4N5fHuAcmNeYF5wf3qKg4N5fHuAcmNeYF5xf3qKg4N5fHuAcmNeYF5xf3qKg4N5fXuAcmNeYF5xf3qKg4N5fXuAcmNeYF5xf3qJg4N5fXuAcmNeYF5xf3qJg4N5fXuAcmNeYF5xf3qJg4N5fXuBcmNeYF5xf3qJg4N5fXuBcmReYF5xf3mJgoN5fXuBcmReYF5xgHmJgoN5fXyBcmReYF5xgHmJgoN5fXyBcmReYF5xgHmJgoN5fXyBcmReX15xgHmJgoN5fnyBcmReX15ygHmJgoJ5fnyBcmReX15ygHmIgoJ5fnyBcmReX15ygHmIgoJ5fnyBcWReX15ygHmIgoJ4fnyBcWReX15ygHiIgoJ4fnyBcWReX15ygHiIgoJ4fn2BcWReX15ygHiIgoJ4fn2BcWReX15ygXiIgoJ4fn2BcWReX15ygXiIgYJ4fn2BcWReX15ygXiIgYJ4fn2CcWReX15ygXiIgYJ4fn2CcWReX15ygXiIgYJ4fn2CcWReX15ygXiHgYJ4fn2CcWReX15ygXiHgYJ4f32CcWReX15ygXiHgYJ4f32CcWReX15ygXiHgYF4f32CcWReX15ygXiHgYF4f32CcWReX15ygXiHgYF4f32CcGReX15ygXiHgYF4f32CcGReX11zgXiHgYF4f32CcGReX11zgXiHgYF4f32CcGReX11zgXiHgYF3f32CcGReX11zgXiHgYF3f32CcGReX11zgXiHgYF3f32CcGReX11zgniHgYF3f32CcGReX11zgniHgIF3f32CcGReX11zgniGgIF3f32CcGReX11zgniGgIF3f36CcGReX11zgniGgIF3f36CcGReX11zgniGgIF3gH6CcGReX11zgniGgIF3gH6CcGReX11zgniGgIF3gH6Cb2RdX11zgniGgIF3gH6Cb2RdX11zgniGgIB3gH6Cb2RdX11z") : null;
+
+type AgentFilter = "all" | "bot" | "ejecutivo";
+type AssignFilter = "all" | "pendientes" | "mis";
+
+function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
   const { toast } = useToast();
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
+  const [agentFilter, setAgentFilter] = useState<AgentFilter>("all");
+  const [assignFilter, setAssignFilter] = useState<AssignFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [chatSearchQuery, setChatSearchQuery] = useState("");
+  const [showChatSearch, setShowChatSearch] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
   const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [showProductSearch, setShowProductSearch] = useState(false);
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery<SessionSummary[]>({
     queryKey: ["/api/tenant-panel/sessions", statusFilter],
@@ -213,6 +246,24 @@ function ChatsTab({ token }: { token: string }) {
     },
   });
 
+  const { data: allTags = [] } = useQuery<string[]>({
+    queryKey: ["/api/tenant-panel/tags"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/tags");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const { data: products = [] } = useQuery<ProductItem[]>({
+    queryKey: ["/api/tenant-panel/products"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/products");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
   useEffect(() => {
     const socket = io(window.location.origin, {
       transports: ["websocket", "polling"],
@@ -228,6 +279,9 @@ function ChatsTab({ token }: { token: string }) {
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
       if (data.sessionId === selectedSession) {
         queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions", selectedSession, "messages"] });
+      }
+      if (data.sessionId !== selectedSession && notifSound) {
+        try { notifSound.currentTime = 0; notifSound.play().catch(() => {}); } catch {}
       }
     });
 
@@ -249,18 +303,23 @@ function ChatsTab({ token }: { token: string }) {
   const handleSelectSession = (sessionId: string) => {
     setSelectedSession(sessionId);
     setMobileShowChat(true);
+    setShowChatSearch(false);
+    setChatSearchQuery("");
   };
 
   const handleReply = async () => {
-    if (!replyText.trim() || !selectedSession || sending) return;
+    if ((!replyText.trim() && !imagePreview) || !selectedSession || sending) return;
     setSending(true);
     try {
+      const body: any = { content: replyText.trim() };
+      if (imagePreview) body.imageUrl = imagePreview;
       const res = await tenantFetch(`/api/tenant-panel/sessions/${selectedSession}/reply`, {
         method: "POST",
-        body: JSON.stringify({ content: replyText.trim() }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         setReplyText("");
+        setImagePreview(null);
         queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions", selectedSession, "messages"] });
         queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
       }
@@ -316,15 +375,67 @@ function ChatsTab({ token }: { token: string }) {
     }
   };
 
+  const handleUpdateTags = async (sessionId: string, tags: string[]) => {
+    await tenantFetch(`/api/tenant-panel/sessions/${sessionId}/tags`, {
+      method: "PATCH",
+      body: JSON.stringify({ tags }),
+    });
+    queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] });
+  };
+
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const token = localStorage.getItem("tenant_token") || "";
+      const res = await fetch("/api/uploads/direct", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setImagePreview(data.url || data.path);
+      } else {
+        toast({ title: "Error al subir imagen", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error al subir imagen", variant: "destructive" });
+    }
+  };
+
+  const handleSendProduct = (product: ProductItem) => {
+    const msg = `${product.name}${product.price ? ` - $${product.price}` : ""}${product.productUrl ? `\n${product.productUrl}` : ""}`;
+    setReplyText(msg);
+    setShowProductSearch(false);
+  };
+
   const filteredSessions = sessions.filter((s) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return s.userName.toLowerCase().includes(q) || s.userEmail.toLowerCase().includes(q);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!s.userName.toLowerCase().includes(q) && !s.userEmail.toLowerCase().includes(q)) return false;
+    }
+    if (agentFilter === "bot" && s.adminActive) return false;
+    if (agentFilter === "ejecutivo" && !s.adminActive) return false;
+    if (assignFilter === "pendientes" && s.assignedToName) return false;
+    if (assignFilter === "mis" && !s.adminActive) return false;
+    return true;
   });
 
   const selectedSessionData = sessions.find((s) => s.sessionId === selectedSession);
 
   const totalUnread = sessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0);
+
+  const filteredProducts = products.filter((p) => {
+    if (!productSearchQuery) return true;
+    return p.name.toLowerCase().includes(productSearchQuery.toLowerCase());
+  });
+
+  const highlightedMessages = chatSearchQuery
+    ? messages.filter((m) => m.content.toLowerCase().includes(chatSearchQuery.toLowerCase()))
+    : [];
+
+  const firstPreChatMessage = messages.find((m) => m.sender === "user");
 
   return (
     <div className="flex h-full">
@@ -336,7 +447,7 @@ function ChatsTab({ token }: { token: string }) {
               data-testid="input-search-sessions"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre o email..."
+              placeholder="Buscar en todos los chats..."
               className="pl-9 bg-white/[0.04] border-white/[0.08]"
             />
           </div>
@@ -352,6 +463,43 @@ function ChatsTab({ token }: { token: string }) {
                 {f === "all" && totalUnread > 0 && (
                   <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">{totalUnread}</span>
                 )}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            {([
+              { id: "all" as AgentFilter, label: "Todo" },
+              { id: "bot" as AgentFilter, label: "Bot" },
+              { id: "ejecutivo" as AgentFilter, label: "Ejecutivo" },
+            ]).map((f) => (
+              <button
+                key={f.id}
+                data-testid={`button-agent-filter-${f.id}`}
+                onClick={() => setAgentFilter(f.id)}
+                className={`text-[10px] px-2 py-1 rounded transition-colors ${agentFilter === f.id
+                  ? f.id === "bot" ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                    : f.id === "ejecutivo" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                    : "bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30"
+                  : "bg-white/[0.04] text-white/40 border border-white/[0.06]"}`}
+              >
+                {f.label}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
+            {([
+              { id: "all" as AssignFilter, label: "Todo" },
+              { id: "pendientes" as AssignFilter, label: "Pendientes" },
+              { id: "mis" as AssignFilter, label: "Mis Chats" },
+            ]).map((f) => (
+              <button
+                key={f.id}
+                data-testid={`button-assign-filter-${f.id}`}
+                onClick={() => setAssignFilter(f.id)}
+                className={`text-[10px] px-2 py-1 rounded transition-colors ${assignFilter === f.id
+                  ? "bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30"
+                  : "bg-white/[0.04] text-white/40 border border-white/[0.06]"}`}
+              >
+                {f.label}
               </button>
             ))}
           </div>
@@ -373,14 +521,17 @@ function ChatsTab({ token }: { token: string }) {
                 className={`w-full text-left p-3 border-b border-white/[0.04] transition-colors ${selectedSession === session.sessionId ? "bg-[#10b981]/10" : "hover:bg-white/[0.04]"}`}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: getAvatarColor(session.userName || session.sessionId) }}>
-                    {(session.userName || "?").charAt(0).toUpperCase()}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getAvatarColor(session.userName || session.sessionId) }}>
+                      {(session.userName || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#111] ${session.status === "active" ? "bg-emerald-400" : "bg-white/20"}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
                       <p className="text-sm font-medium text-white truncate">{session.userName || "Sin nombre"}</p>
                       {session.unreadCount > 0 && (
-                        <span data-testid={`badge-unread-${session.sessionId}`} className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{session.unreadCount}</span>
+                        <span data-testid={`badge-unread-${session.sessionId}`} className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-bounce">{session.unreadCount > 99 ? "99+" : session.unreadCount}</span>
                       )}
                     </div>
                     <p className="text-[11px] text-white/40 truncate">{session.userEmail}</p>
@@ -392,16 +543,21 @@ function ChatsTab({ token }: { token: string }) {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-1 pl-10 text-[10px] text-white/25 flex-wrap">
+                <div className="flex items-center gap-2 mt-1.5 pl-11 text-[10px] text-white/25 flex-wrap">
                   <span className="flex items-center gap-0.5"><MessageSquare className="w-2.5 h-2.5" />{session.messageCount}</span>
                   <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{formatDateTime(session.lastMessage)}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${session.adminActive ? "bg-emerald-500/15 text-emerald-400" : "bg-blue-500/15 text-blue-400"}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${session.adminActive ? "bg-emerald-500/15 text-emerald-400" : "bg-blue-500/15 text-blue-400"}`}>
                     {session.adminActive ? "Ejecutivo" : "Bot"}
                   </span>
                   {session.status === "closed" && <span className="px-1.5 py-0.5 rounded bg-white/10 text-white/40 text-[9px]">Cerrado</span>}
+                  {session.sessionRating && (
+                    <span className="flex items-center gap-0.5">
+                      <StarRating rating={session.sessionRating} size={10} />
+                    </span>
+                  )}
                 </div>
                 {session.tags && session.tags.length > 0 && (
-                  <div className="flex items-center gap-1 mt-1 pl-10 flex-wrap">
+                  <div className="flex items-center gap-1 mt-1 pl-11 flex-wrap">
                     {session.tags.map((tag) => (
                       <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20">{tag}</span>
                     ))}
@@ -416,8 +572,8 @@ function ChatsTab({ token }: { token: string }) {
       <div className={`flex-1 flex flex-col ${!mobileShowChat ? "hidden md:flex" : "flex"}`}>
         {selectedSession && selectedSessionData ? (
           <>
-            <div className="flex items-center justify-between gap-2 p-3 border-b border-white/[0.06] flex-wrap">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 p-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2 min-w-0">
                 <button
                   data-testid="button-back-to-list"
                   onClick={() => { setMobileShowChat(false); }}
@@ -425,34 +581,140 @@ function ChatsTab({ token }: { token: string }) {
                 >
                   <ArrowLeft className="w-4 h-4 text-white/60" />
                 </button>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getAvatarColor(selectedSessionData.userName) }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: getAvatarColor(selectedSessionData.userName) }}>
                   {(selectedSessionData.userName || "?").charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-white">{selectedSessionData.userName}</p>
-                  <p className="text-[11px] text-white/40">{selectedSessionData.userEmail}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{selectedSessionData.userName}</p>
+                  <p className="text-[11px] text-white/40 truncate">{selectedSessionData.userEmail}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 flex-wrap">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 {selectedSessionData.adminActive ? (
-                  <Button data-testid="button-unclaim" size="sm" variant="outline" onClick={() => handleUnclaim(selectedSession)} className="text-xs border-white/[0.08]">
+                  <Button data-testid="button-unclaim" size="sm" variant="outline" onClick={() => handleUnclaim(selectedSession)} className="text-xs border-white/[0.08] h-7 px-2">
                     <ShieldOff className="w-3 h-3 mr-1" />Liberar
                   </Button>
                 ) : (
-                  <Button data-testid="button-claim" size="sm" variant="outline" onClick={() => handleClaim(selectedSession)} className="text-xs border-white/[0.08]">
-                    <ShieldCheck className="w-3 h-3 mr-1" />Tomar
+                  <Button data-testid="button-claim" size="sm" variant="outline" onClick={() => handleClaim(selectedSession)} className="text-xs border-emerald-500/30 text-emerald-400 h-7 px-2">
+                    <ShieldCheck className="w-3 h-3 mr-1" />Entrar
                   </Button>
                 )}
+                {selectedSessionData.sessionRating && (
+                  <div className="flex items-center px-1" data-testid="chat-rating-display">
+                    <StarRating rating={selectedSessionData.sessionRating} size={12} />
+                  </div>
+                )}
+                <button
+                  data-testid="button-chat-search"
+                  onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }}
+                  className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-white/[0.06] text-white/40"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                </button>
                 {selectedSessionData.status === "active" && (
-                  <Button data-testid="button-close-session" size="sm" variant="outline" onClick={() => handleCloseSession(selectedSession)} className="text-xs border-white/[0.08]">
+                  <Button data-testid="button-close-session" size="sm" variant="outline" onClick={() => handleCloseSession(selectedSession)} className="text-xs border-white/[0.08] h-7 px-2">
                     <XCircle className="w-3 h-3 mr-1" />Cerrar
                   </Button>
                 )}
-                <Button data-testid="button-delete-session" size="sm" variant="outline" onClick={() => handleDeleteSession(selectedSession)} className="text-xs border-red-500/30 text-red-400">
-                  <Trash2 className="w-3 h-3 mr-1" />Eliminar
+                <Button data-testid="button-delete-session" size="sm" variant="outline" onClick={() => handleDeleteSession(selectedSession)} className="text-xs border-red-500/30 text-red-400 h-7 px-2">
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
             </div>
+
+            {showChatSearch && (
+              <div className="px-3 py-2 border-b border-white/[0.06] bg-white/[0.02]">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+                  <Input
+                    data-testid="input-chat-search"
+                    value={chatSearchQuery}
+                    onChange={(e) => setChatSearchQuery(e.target.value)}
+                    placeholder="Buscar en esta conversacion..."
+                    className="pl-8 h-8 text-xs bg-white/[0.04] border-white/[0.08]"
+                    autoFocus
+                  />
+                  {chatSearchQuery && highlightedMessages.length > 0 && (
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-white/30">{highlightedMessages.length} resultados</span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-white/[0.06] bg-white/[0.01] flex-wrap">
+              <Select value={selectedSessionData.status} onValueChange={(val) => {
+                tenantFetch(`/api/tenant-panel/sessions/${selectedSession}/status`, {
+                  method: "PATCH",
+                  body: JSON.stringify({ status: val }),
+                }).then(() => queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/sessions"] }));
+              }}>
+                <SelectTrigger data-testid="select-session-status" className="w-auto h-6 text-[10px] bg-white/[0.04] border-white/[0.06] px-2 gap-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="closed">Cerrado</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="relative">
+                <button
+                  data-testid="button-add-tag"
+                  onClick={() => setShowTagDropdown(!showTagDropdown)}
+                  className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-dashed border-white/[0.12] text-white/40 hover:text-white/60 hover:border-white/20 transition-colors"
+                >
+                  <Plus className="w-2.5 h-2.5" />Etiqueta
+                </button>
+                {showTagDropdown && (
+                  <div className="absolute top-full left-0 mt-1 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-xl z-20 min-w-[160px] max-h-48 overflow-y-auto" data-testid="tag-dropdown">
+                    {allTags.length === 0 ? (
+                      <p className="text-xs text-white/30 p-3">No hay etiquetas</p>
+                    ) : (
+                      allTags.map((tag) => {
+                        const isActive = selectedSessionData.tags?.includes(tag);
+                        return (
+                          <button
+                            key={tag}
+                            data-testid={`tag-option-${tag}`}
+                            onClick={() => {
+                              const newTags = isActive
+                                ? (selectedSessionData.tags || []).filter((t) => t !== tag)
+                                : [...(selectedSessionData.tags || []), tag];
+                              handleUpdateTags(selectedSession, newTags);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-white/[0.06] flex items-center justify-between"
+                          >
+                            <span className="text-white/70">{tag}</span>
+                            {isActive && <Check className="w-3 h-3 text-[#10b981]" />}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {selectedSessionData.tags?.map((tag) => (
+                <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20 flex items-center gap-1">
+                  {tag}
+                  <button onClick={() => handleUpdateTags(selectedSession, (selectedSessionData.tags || []).filter((t) => t !== tag))} className="hover:text-red-400">
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {selectedSessionData.sessionRating && (
+              <div className="px-3 py-2 border-b border-white/[0.06] bg-white/[0.01]">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-white/40">Calificacion:</span>
+                  <StarRating rating={selectedSessionData.sessionRating} size={14} />
+                  {selectedSessionData.ratingComment && (
+                    <span className="text-[11px] text-white/50 truncate">"{selectedSessionData.ratingComment}"</span>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messagesLoading ? (
@@ -460,24 +722,92 @@ function ChatsTab({ token }: { token: string }) {
                   <Loader2 className="w-5 h-5 text-white/30 animate-spin" />
                 </div>
               ) : (
-                messages.map((msg) => {
-                  const isUser = msg.sender === "user";
-                  const isBot = msg.sender === "support" && !msg.adminName;
-                  const isAdmin = msg.sender === "support" && !!msg.adminName;
-                  return (
-                    <div key={msg.id} className={`flex ${isUser ? "justify-start" : "justify-end"}`} data-testid={`message-${msg.id}`}>
-                      <div className={`max-w-[75%] rounded-xl px-3 py-2 ${isUser ? "bg-white/[0.06] text-white/90" : isBot ? "bg-blue-500/15 text-blue-200" : "bg-[#10b981]/15 text-emerald-200"}`}>
-                        {isAdmin && msg.adminName && (
-                          <p className="text-[10px] font-semibold mb-0.5" style={{ color: msg.adminColor || "#10b981" }}>{msg.adminName}</p>
-                        )}
-                        {isBot && <p className="text-[10px] font-semibold mb-0.5 text-blue-400">Bot</p>}
-                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content.replace(/\{\{QUICK_REPLIES:.*?\}\}/g, "")}</p>
-                        {msg.imageUrl && <img src={msg.imageUrl} alt="" className="mt-2 max-w-full rounded-lg max-h-48 object-contain" data-testid={`message-image-${msg.id}`} />}
-                        <p className="text-[10px] text-white/25 mt-1">{formatDateTime(msg.timestamp)}</p>
+                <>
+                  {firstPreChatMessage && (selectedSessionData.problemType || selectedSessionData.gameName) && (
+                    <div className="flex justify-end mb-4" data-testid="prechat-form-card">
+                      <div className="max-w-[80%] rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
+                        <p className="text-[11px] font-semibold text-white/50 mb-2 uppercase tracking-wider">Formulario pre-chat</p>
+                        <div className="space-y-1.5">
+                          <div>
+                            <span className="text-[10px] text-white/30">Nombre:</span>
+                            <p className="text-sm text-white/80 font-medium">{selectedSessionData.userName || "No especificado"}</p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-white/30">E-mail:</span>
+                            <p className="text-sm text-[#10b981] font-medium">{selectedSessionData.userEmail}</p>
+                          </div>
+                          {selectedSessionData.problemType && (
+                            <div>
+                              <span className="text-[10px] text-white/30">Tipo de consulta:</span>
+                              <p className="text-sm text-white/80">{selectedSessionData.problemType}</p>
+                            </div>
+                          )}
+                          {selectedSessionData.gameName && (
+                            <div>
+                              <span className="text-[10px] text-white/30">Detalle:</span>
+                              <p className="text-sm text-white/80">{selectedSessionData.gameName}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  );
-                })
+                  )}
+
+                  {messages.map((msg) => {
+                    const isUser = msg.sender === "user";
+                    const isBot = msg.sender === "support" && !msg.adminName;
+                    const isAdmin = msg.sender === "support" && !!msg.adminName;
+                    const isHighlighted = chatSearchQuery && msg.content.toLowerCase().includes(chatSearchQuery.toLowerCase());
+                    const cleanContent = msg.content
+                      .replace(/\{\{QUICK_REPLIES:.*?\}\}/g, "")
+                      .replace(/\{\{SHOW_RATING\}\}/g, "");
+
+                    if (msg.content.includes("{{SHOW_RATING}}")) {
+                      return (
+                        <div key={msg.id} className="flex justify-end" data-testid={`message-${msg.id}`}>
+                          <div className="max-w-[75%] rounded-xl px-3 py-2 bg-amber-500/10 border border-amber-500/20">
+                            <p className="text-[10px] font-semibold text-amber-400 mb-1">Encuesta de satisfaccion</p>
+                            {selectedSessionData.sessionRating ? (
+                              <div className="flex items-center gap-2">
+                                <StarRating rating={selectedSessionData.sessionRating} />
+                                {selectedSessionData.ratingComment && (
+                                  <span className="text-xs text-white/50">"{selectedSessionData.ratingComment}"</span>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-white/40">Esperando calificacion...</p>
+                            )}
+                            <p className="text-[10px] text-white/25 mt-1">{formatDateTime(msg.timestamp)}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={msg.id} className={`flex ${isUser ? "justify-start" : "justify-end"}`} data-testid={`message-${msg.id}`}>
+                        <div className={`max-w-[75%] rounded-xl px-3 py-2 ${isHighlighted ? "ring-2 ring-yellow-400/50" : ""} ${isUser ? "bg-white/[0.06] text-white/90" : isBot ? "bg-blue-500/15 text-blue-200" : "bg-[#10b981]/15 text-emerald-200"}`}>
+                          {isAdmin && msg.adminName && (
+                            <p className="text-[10px] font-semibold mb-0.5" style={{ color: msg.adminColor || "#10b981" }}>{msg.adminName}</p>
+                          )}
+                          {isBot && <p className="text-[10px] font-semibold mb-0.5 text-blue-400">Bot</p>}
+                          {cleanContent.trim() && (
+                            <p className="text-sm whitespace-pre-wrap break-words">{cleanContent}</p>
+                          )}
+                          {msg.imageUrl && (
+                            <img
+                              src={msg.imageUrl}
+                              alt=""
+                              className="mt-2 max-w-full rounded-lg max-h-48 object-contain cursor-pointer hover:opacity-80"
+                              data-testid={`message-image-${msg.id}`}
+                              onClick={() => window.open(msg.imageUrl!, "_blank")}
+                            />
+                          )}
+                          <p className="text-[10px] text-white/25 mt-1">{formatDateTime(msg.timestamp)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -498,17 +828,103 @@ function ChatsTab({ token }: { token: string }) {
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-2">
+
+              {showProductSearch && (
+                <div className="absolute bottom-full left-3 right-3 mb-1 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-xl max-h-64 overflow-hidden z-10 flex flex-col" data-testid="product-search-panel">
+                  <div className="p-2 border-b border-white/[0.06]">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30" />
+                      <Input
+                        data-testid="input-product-search-chat"
+                        value={productSearchQuery}
+                        onChange={(e) => setProductSearchQuery(e.target.value)}
+                        placeholder="Buscar producto..."
+                        className="pl-7 h-7 text-xs bg-white/[0.04] border-white/[0.08]"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto max-h-48">
+                    {filteredProducts.length === 0 ? (
+                      <p className="text-xs text-white/30 p-3">Sin resultados</p>
+                    ) : (
+                      filteredProducts.slice(0, 10).map((p) => (
+                        <button
+                          key={p.id}
+                          data-testid={`product-chat-option-${p.id}`}
+                          onClick={() => handleSendProduct(p)}
+                          className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors border-b border-white/[0.04] last:border-0"
+                        >
+                          <span className="text-xs text-white/80">{p.name}</span>
+                          {p.price && <span className="text-xs text-[#10b981] ml-2">${p.price}</span>}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {imagePreview && (
+                <div className="mb-2 relative inline-block">
+                  <img src={imagePreview} alt="Preview" className="h-16 rounded-lg border border-white/[0.1]" />
+                  <button
+                    onClick={() => setImagePreview(null)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center"
+                    data-testid="button-remove-image"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-end gap-2">
+                <div className="flex items-center gap-0.5 flex-shrink-0 pb-1">
+                  <button
+                    data-testid="button-slash-menu"
+                    onClick={() => { setShowSlashMenu(!showSlashMenu); setShowProductSearch(false); }}
+                    className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-white/[0.06] text-white/30 hover:text-white/50"
+                    title="Atajos (/) "
+                  >
+                    <Zap className="w-4 h-4" />
+                  </button>
+                  <button
+                    data-testid="button-product-search"
+                    onClick={() => { setShowProductSearch(!showProductSearch); setShowSlashMenu(false); setProductSearchQuery(""); }}
+                    className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-white/[0.06] text-white/30 hover:text-white/50"
+                    title="Buscar producto"
+                  >
+                    <Package className="w-4 h-4" />
+                  </button>
+                  <button
+                    data-testid="button-upload-image"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-white/[0.06] text-white/30 hover:text-white/50"
+                    title="Subir imagen"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
                 <Textarea
                   data-testid="textarea-reply"
                   value={replyText}
                   onChange={(e) => handleReplyChange(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
-                  placeholder='Escribe un mensaje... (usa "/" para atajos)'
-                  className="resize-none bg-white/[0.04] border-white/[0.08] min-h-[40px] max-h-[120px] text-sm"
+                  placeholder='Escribe tu respuesta.. (/ para atajos)'
+                  className="resize-none bg-white/[0.04] border-white/[0.08] min-h-[40px] max-h-[120px] text-sm flex-1"
                   rows={1}
                 />
-                <Button data-testid="button-send-reply" onClick={handleReply} disabled={!replyText.trim() || sending} size="icon" className="bg-[#10b981] border-[#10b981] flex-shrink-0">
+                <Button data-testid="button-send-reply" onClick={handleReply} disabled={(!replyText.trim() && !imagePreview) || sending} size="icon" className="bg-[#10b981] border-[#10b981] flex-shrink-0 mb-0.5">
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>
               </div>
@@ -1249,7 +1665,7 @@ export default function TenantPanel() {
         </header>
 
         <main className="flex-1 overflow-hidden">
-          {activeTab === "chats" && <ChatsTab token={token} />}
+          {activeTab === "chats" && <ChatsTab token={token} tenant={tenant} />}
           {activeTab === "atajos" && <AtajosTab />}
           {activeTab === "etiquetas" && <EtiquetasTab />}
           {activeTab === "productos" && <ProductosTab />}

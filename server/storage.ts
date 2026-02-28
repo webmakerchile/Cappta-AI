@@ -1176,8 +1176,16 @@ export class DatabaseStorage implements IStorage {
         ms.last_msg AS "lastMessage",
         COALESCE(ms.unread_after, 0)::int AS "unreadAfterRead",
         ms.last_content AS "lastMessageContent",
-        ms.last_sender AS "lastMessageSender"
+        ms.last_sender AS "lastMessageSender",
+        rt.rating AS "sessionRating",
+        rt.comment AS "ratingComment"
       FROM sessions s
+      LEFT JOIN LATERAL (
+        SELECT r2.rating, r2.comment
+        FROM ratings r2
+        WHERE r2.session_id = s.session_id
+        ORDER BY r2.timestamp DESC LIMIT 1
+      ) rt ON true
       LEFT JOIN LATERAL (
         SELECT
           COUNT(*)::int AS msg_count,
@@ -1209,6 +1217,8 @@ export class DatabaseStorage implements IStorage {
       lastMessageContent: r.lastMessageContent ? r.lastMessageContent.replace(/\{\{QUICK_REPLIES:[\s\S]*?\}\}/g, "").trim().slice(0, 200) : null,
       lastMessageSender: r.lastMessageSender || null,
       createdAt: r.createdAt,
+      sessionRating: r.sessionRating ?? null,
+      ratingComment: r.ratingComment ?? null,
     }));
   }
 
