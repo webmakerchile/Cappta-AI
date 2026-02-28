@@ -37,8 +37,25 @@
     <meta name="apple-mobile-web-app-title" content="FoxBot" />
     <link rel="apple-touch-icon" href="/favicon-fox.png" />
   </head>
-  <body style="opacity: 0; transition: opacity 0.2s ease-in; background: transparent;">
+  <body style="opacity: 0; transition: opacity 0.15s ease-in; background: transparent;">
     <div id="root"></div>
+    <script>
+      (function() {
+        var isWidget = window.location.pathname === '/widget';
+        if (isWidget) {
+          document.body.style.opacity = '1';
+          document.body.style.background = 'transparent';
+          var params = new URLSearchParams(window.location.search);
+          var isInline = params.get('embedded') === 'inline';
+          var root = document.getElementById('root');
+          if (isInline) {
+            root.innerHTML = '<div style="width:100%;height:100%;background:#1a1a1a;display:flex;align-items:center;justify-content:center"><div style="width:32px;height:32px;border:3px solid #10b981;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+          } else {
+            root.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:flex-end;justify-content:flex-end"><div style="padding:8px"><div style="width:48px;height:48px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></div></div></div>';
+          }
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
