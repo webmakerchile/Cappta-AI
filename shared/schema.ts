@@ -197,6 +197,23 @@ export const knowledgeBase = pgTable("knowledge_base", {
   index("idx_knowledge_category").on(table.category),
 ]);
 
+export const tenantFiles = pgTable("tenant_files", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull().default(0),
+  description: text("description"),
+  keywords: text("keywords").array().notNull().default(sql`'{}'::text[]`),
+  autoSend: integer("auto_send").notNull().default(1),
+  downloadCount: integer("download_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_tenant_files_tenant_id").on(table.tenantId),
+]);
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
@@ -228,6 +245,7 @@ export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions
 export const insertTenantPushSubscriptionSchema = createInsertSchema(tenantPushSubscriptions).omit({ id: true, createdAt: true });
 export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true, lastUsedAt: true });
 export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
+export const insertTenantFileSchema = createInsertSchema(tenantFiles).omit({ id: true, createdAt: true, downloadCount: true });
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
@@ -251,6 +269,8 @@ export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;
 export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
 export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenantFile = z.infer<typeof insertTenantFileSchema>;
+export type TenantFile = typeof tenantFiles.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

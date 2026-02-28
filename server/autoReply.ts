@@ -1584,6 +1584,14 @@ async function _processTenantAutoReply(
     }
   } catch {}
 
+  let tenantFiles: Array<{ id: number; fileName: string; description: string | null; keywords: string[]; fileUrl: string; fileType: string }> = [];
+  try {
+    const files = await storage.getTenantFiles(tenant.id);
+    tenantFiles = files
+      .filter(f => f.autoSend === 1)
+      .map(f => ({ id: f.id, fileName: f.fileName, description: f.description, keywords: f.keywords, fileUrl: f.fileUrl, fileType: f.fileType }));
+  } catch {}
+
   const aiResponse = await getAIReply(
     userMessage,
     conversationHistory,
@@ -1607,19 +1615,35 @@ async function _processTenantAutoReply(
       tenantContext: {
         companyName: tenant.companyName,
         botContext: tenant.botContext,
-      }
+      },
+      tenantFiles: tenantFiles.length > 0 ? tenantFiles : undefined,
     }
   );
 
+  let processedResponse = aiResponse;
+  const fileRegex = /\{\{FILE:(\d+)\}\}/g;
+  let fileMatch;
+  const fileButtons: Array<{label: string, url?: string}> = [];
+  while ((fileMatch = fileRegex.exec(processedResponse)) !== null) {
+    const fileId = parseInt(fileMatch[1]);
+    const file = tenantFiles.find(f => f.id === fileId);
+    if (file) {
+      fileButtons.push({ label: `📄 ${file.fileName}`, url: file.fileUrl });
+      storage.incrementTenantFileDownload(fileId).catch(() => {});
+    }
+  }
+  processedResponse = processedResponse.replace(fileRegex, "").trim();
+
   const buttons: Array<{label: string, value?: string, url?: string}> = [];
+  buttons.push(...fileButtons);
   if (!isOfflineHours) {
     buttons.push({label: "Contactar agente", value: "__qr:contact"});
   }
 
   if (buttons.length > 0) {
-    return withButtons(aiResponse, buttons);
+    return withButtons(processedResponse, buttons);
   }
-  return aiResponse;
+  return processedResponse;
 }
 
 async function _processAutoReply(

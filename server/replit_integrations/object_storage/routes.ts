@@ -58,6 +58,12 @@ export function registerObjectStorageRoutes(app: Express): void {
         ".webm": "video/webm",
         ".mov": "video/quicktime",
         ".pdf": "application/pdf",
+        ".doc": "application/msword",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".xls": "application/vnd.ms-excel",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".txt": "text/plain",
+        ".csv": "text/csv",
       };
       res.set("Content-Type", mimeMap[ext] || "application/octet-stream");
       res.set("Cache-Control", "public, max-age=3600");
@@ -78,6 +84,13 @@ function getExtFromMime(mime: string): string {
     "image/webp": ".webp",
     "video/mp4": ".mp4",
     "video/webm": ".webm",
+    "application/pdf": ".pdf",
+    "application/msword": ".doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/vnd.ms-excel": ".xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+    "text/plain": ".txt",
+    "text/csv": ".csv",
   };
   return map[mime] || "";
 }

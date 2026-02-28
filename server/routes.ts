@@ -2059,6 +2059,61 @@ ${DEMO_BASE_RULES}`,
     res.json({ success: true });
   });
 
+  app.get("/api/tenant-panel/files", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const files = await storage.getTenantFiles(auth.id);
+    res.json(files);
+  });
+
+  app.post("/api/tenant-panel/files", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { fileName, originalName, fileUrl, fileType, fileSize, description, keywords, autoSend } = req.body;
+      if (!fileName || !fileUrl || !fileType) {
+        return res.status(400).json({ message: "Datos incompletos" });
+      }
+      const file = await storage.createTenantFile({
+        tenantId: auth.id,
+        fileName,
+        originalName: originalName || fileName,
+        fileUrl,
+        fileType,
+        fileSize: fileSize || 0,
+        description: description || null,
+        keywords: keywords || [],
+        autoSend: autoSend !== undefined ? autoSend : 1,
+      });
+      res.json(file);
+    } catch (error: any) {
+      log(`Error creating tenant file: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear archivo" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/files/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { description, keywords, autoSend, fileName } = req.body;
+    const data: any = {};
+    if (description !== undefined) data.description = description;
+    if (keywords !== undefined) data.keywords = keywords;
+    if (autoSend !== undefined) data.autoSend = autoSend;
+    if (fileName !== undefined) data.fileName = fileName;
+    const updated = await storage.updateTenantFile(auth.id, parseInt(req.params.id), data);
+    if (!updated) return res.status(404).json({ message: "No encontrado" });
+    res.json(updated);
+  });
+
+  app.delete("/api/tenant-panel/files/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const deleted = await storage.deleteTenantFile(auth.id, parseInt(req.params.id));
+    if (!deleted) return res.status(404).json({ message: "No encontrado" });
+    res.json({ success: true });
+  });
+
   app.get("/api/tenant-panel/settings", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;

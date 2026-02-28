@@ -42,6 +42,15 @@ interface TenantContext {
   widgetColor?: string;
 }
 
+interface TenantFileRef {
+  id: number;
+  fileName: string;
+  description: string | null;
+  keywords: string[];
+  fileUrl: string;
+  fileType: string;
+}
+
 interface AIReplyOptions {
   isOfflineHours?: boolean;
   offlineTicketUrl?: string;
@@ -50,6 +59,8 @@ interface AIReplyOptions {
   knowledgeEntries?: KnowledgeEntry[];
   tenantContext?: TenantContext | null;
   tenantId?: number | null;
+  tenantFiles?: TenantFileRef[];
+  baseUrl?: string;
 }
 
 let _openai: OpenAI | null = null;
@@ -177,6 +188,20 @@ Estamos dentro del horario de atencion. Los agentes estan disponibles para atend
     systemPrompt += "\nUsa esta info al recomendar productos. NO incluyas links en el texto - se agregan automaticamente como botones.";
   } else {
     systemPrompt += "\n\n===== PRODUCTOS =====\nNo se encontraron productos del catalogo para esta consulta. Si el cliente busca algo especifico, sugiere buscar en el catalogo o contactar al equipo.";
+  }
+
+  if (options?.tenantFiles && options.tenantFiles.length > 0) {
+    const baseUrl = options?.baseUrl || "";
+    systemPrompt += "\n\n===== ARCHIVOS DISPONIBLES PARA ENVIAR =====\n";
+    systemPrompt += "Tienes estos archivos/documentos que puedes compartir con el cliente cuando sea relevante.\n";
+    systemPrompt += "Para enviar un archivo, incluye en tu respuesta la etiqueta: {{FILE:ID}} donde ID es el numero del archivo.\n";
+    systemPrompt += "IMPORTANTE: Solo envia archivos cuando el cliente pregunte algo relacionado con las palabras clave o descripcion del archivo.\n\n";
+    options.tenantFiles.forEach((file) => {
+      systemPrompt += `- Archivo #${file.id}: "${file.fileName}" (${file.fileType})`;
+      if (file.description) systemPrompt += ` - ${file.description}`;
+      if (file.keywords.length > 0) systemPrompt += ` | Palabras clave: ${file.keywords.join(", ")}`;
+      systemPrompt += `\n  Para enviarlo usa: {{FILE:${file.id}}}\n`;
+    });
   }
 
   if (options?.knowledgeEntries && options.knowledgeEntries.length > 0) {

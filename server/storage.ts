@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, tenants, paymentOrders, tenantFiles, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -105,6 +105,11 @@ export interface IStorage {
   createTenantProduct(tenantId: number, data: Partial<InsertProduct>): Promise<Product>;
   updateTenantProduct(tenantId: number, id: number, data: Partial<InsertProduct>): Promise<Product | null>;
   deleteTenantProduct(tenantId: number, id: number): Promise<boolean>;
+  getTenantFiles(tenantId: number): Promise<TenantFile[]>;
+  createTenantFile(data: InsertTenantFile): Promise<TenantFile>;
+  updateTenantFile(tenantId: number, id: number, data: Partial<InsertTenantFile>): Promise<TenantFile | null>;
+  deleteTenantFile(tenantId: number, id: number): Promise<boolean>;
+  incrementTenantFileDownload(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1332,6 +1337,29 @@ export class DatabaseStorage implements IStorage {
   async deleteTenantProduct(tenantId: number, id: number): Promise<boolean> {
     const result = await db.delete(products).where(and(eq(products.id, id), eq(products.tenantId, tenantId))).returning();
     return result.length > 0;
+  }
+
+  async getTenantFiles(tenantId: number): Promise<TenantFile[]> {
+    return await db.select().from(tenantFiles).where(eq(tenantFiles.tenantId, tenantId)).orderBy(desc(tenantFiles.createdAt));
+  }
+
+  async createTenantFile(data: InsertTenantFile): Promise<TenantFile> {
+    const [file] = await db.insert(tenantFiles).values(data).returning();
+    return file;
+  }
+
+  async updateTenantFile(tenantId: number, id: number, data: Partial<InsertTenantFile>): Promise<TenantFile | null> {
+    const [updated] = await db.update(tenantFiles).set(data).where(and(eq(tenantFiles.id, id), eq(tenantFiles.tenantId, tenantId))).returning();
+    return updated || null;
+  }
+
+  async deleteTenantFile(tenantId: number, id: number): Promise<boolean> {
+    const result = await db.delete(tenantFiles).where(and(eq(tenantFiles.id, id), eq(tenantFiles.tenantId, tenantId))).returning();
+    return result.length > 0;
+  }
+
+  async incrementTenantFileDownload(id: number): Promise<void> {
+    await db.update(tenantFiles).set({ downloadCount: sql`${tenantFiles.downloadCount} + 1` }).where(eq(tenantFiles.id, id));
   }
 }
 
