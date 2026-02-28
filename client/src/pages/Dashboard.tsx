@@ -1562,7 +1562,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
-  const planLabels: Record<string, string> = { free: "Gratis", basic: "Pro", pro: "Enterprise" };
+  const planLabels: Record<string, string> = { free: "Flox Free", basic: "Flox Pro", pro: "Flox Enterprise" };
   const planPrices: Record<string, string> = { free: "$0", basic: "$19.990", pro: "$49.990" };
   const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
@@ -2119,7 +2119,7 @@ export default function Dashboard() {
     );
   }
 
-  const planLabels: Record<string, string> = { free: "Gratis", basic: "Pro", pro: "Enterprise" };
+  const planLabels: Record<string, string> = { free: "Flox Free", basic: "Flox Pro", pro: "Flox Enterprise" };
   const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
   return (

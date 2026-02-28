@@ -1383,7 +1383,7 @@ ${DEMO_BASE_RULES}`,
       const limits = PLAN_LIMITS[tenant.plan] || PLAN_LIMITS.free;
       const currentCount = await storage.countTenantAgents(auth.id);
       if (currentCount >= limits.maxAgents) {
-        return res.status(403).json({ message: `Tu plan ${tenant.plan === "free" ? "Gratis" : tenant.plan === "basic" ? "Pro" : "Enterprise"} permite maximo ${limits.maxAgents} ejecutivo(s). Actualiza tu plan para agregar mas.` });
+        return res.status(403).json({ message: `Tu plan ${tenant.plan === "free" ? "Flox Free" : tenant.plan === "basic" ? "Flox Pro" : "Flox Enterprise"} permite maximo ${limits.maxAgents} ejecutivo(s). Actualiza tu plan para agregar mas.` });
       }
       const existing = await storage.getTenantAgentByEmail(auth.id, email.toLowerCase().trim());
       if (existing) {

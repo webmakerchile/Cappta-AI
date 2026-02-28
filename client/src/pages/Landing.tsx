@@ -106,7 +106,7 @@ const features = [
 
 const pricingPlans = [
   {
-    name: "Gratis",
+    name: "Flox Free",
     price: "$0",
     period: "",
     description: "Ideal para probar FoxBot en tu negocio",
@@ -122,7 +122,7 @@ const pricingPlans = [
     highlighted: false,
   },
   {
-    name: "Pro",
+    name: "Flox Pro",
     price: "$19.990",
     period: " CLP/mes",
     description: "Para negocios que quieren crecer con IA",
@@ -137,11 +137,11 @@ const pricingPlans = [
       "Analiticas completas",
       "Soporte prioritario",
     ],
-    cta: "Elegir Pro",
+    cta: "Elegir Flox Pro",
     highlighted: true,
   },
   {
-    name: "Enterprise",
+    name: "Flox Enterprise",
     price: "$49.990",
     period: " CLP/mes",
     description: "Para empresas con alto volumen de atencion",
@@ -156,7 +156,7 @@ const pricingPlans = [
       "Soporte 24/7 dedicado",
       "Onboarding personalizado",
     ],
-    cta: "Elegir Enterprise",
+    cta: "Elegir Flox Enterprise",
     highlighted: false,
   },
 ];
