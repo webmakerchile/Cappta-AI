@@ -41,6 +41,9 @@ import {
   Upload,
   Loader2,
   Image as ImageIcon,
+  Globe,
+  Wand2,
+  UserCircle,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -293,6 +296,12 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [productSearchLabel, setProductSearchLabel] = useState(tenant.productSearchLabel || "Buscar producto");
   const [productApiUrl, setProductApiUrl] = useState(tenant.productApiUrl || "");
   const [saved, setSaved] = useState(false);
+  const [domain, setDomain] = useState(tenant.domain || "");
+  const [avatarUrl, setAvatarUrl] = useState(tenant.avatarUrl || "");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [analyzingUrl, setAnalyzingUrl] = useState(false);
+  const [analyzedResult, setAnalyzedResult] = useState<string | null>(null);
 
   const [consultationOptions, setConsultationOptions] = useState<{ value: string; label: string }[]>(() => {
     try {
@@ -310,6 +319,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setShowProductSearch(tenant.showProductSearch === 1);
     setProductSearchLabel(tenant.productSearchLabel || "Buscar producto");
     setProductApiUrl(tenant.productApiUrl || "");
+    setDomain(tenant.domain || "");
+    setAvatarUrl(tenant.avatarUrl || "");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -363,6 +374,71 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setUploadingLogo(false);
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Solo se permiten imagenes", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "La imagen no puede superar 5MB", variant: "destructive" });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { objectPath } = await res.json();
+      setAvatarUrl(objectPath);
+      toast({ title: "Avatar subido correctamente" });
+    } catch {
+      toast({ title: "Error al subir la imagen", variant: "destructive" });
+    }
+    setUploadingAvatar(false);
+  };
+
+  const handleAnalyzeUrl = async () => {
+    const urlToAnalyze = domain.trim();
+    if (!urlToAnalyze) {
+      toast({ title: "Ingresa la URL de tu sitio web", variant: "destructive" });
+      return;
+    }
+    setAnalyzingUrl(true);
+    setAnalyzedResult(null);
+    try {
+      const res = await fetch("/api/tenant-panel/analyze-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ url: urlToAnalyze }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Error al analizar" }));
+        throw new Error(err.message);
+      }
+      const { organized } = await res.json();
+      setAnalyzedResult(organized);
+      const settingsRes = await fetch("/api/tenant-panel/settings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ botContext: organized }),
+      });
+      if (settingsRes.ok) {
+        queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+        toast({ title: "Sitio web analizado", description: "La informacion se guardo automaticamente en el entrenamiento del bot. Puedes editarla en Entrenar Bot." });
+      }
+    } catch (err: any) {
+      toast({ title: "Error al analizar", description: err.message || "Verifica que la URL sea accesible", variant: "destructive" });
+    }
+    setAnalyzingUrl(false);
+  };
+
   const addOption = () => {
     const label = newOption.trim();
     if (!label) return;
@@ -385,6 +461,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       welcomeMessage,
       welcomeSubtitle,
       logoUrl: logoUrl || null,
+      avatarUrl: avatarUrl || null,
+      domain: domain.trim() || null,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
       productSearchLabel,
@@ -399,6 +477,132 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
       <div className="flex-1 min-w-0 space-y-6">
+
+      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full animate-orb-drift opacity-30" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)", animationDelay: "-3s" }} />
+
+        <div className="relative">
+          <h3 className="text-lg font-bold mb-1 animate-dash-slide-right flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" />
+            Tu Negocio
+          </h3>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Ingresa tu sitio web y FoxBot aprendera sobre tu negocio automaticamente</p>
+        </div>
+
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-1 relative">
+          <label className="text-sm font-medium text-white/60">Sitio Web</label>
+          <div className="flex items-center gap-2">
+            <Input
+              data-testid="input-domain"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              placeholder="www.minegocio.cl"
+              className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAnalyzeUrl(); } }}
+            />
+            <Button
+              onClick={handleAnalyzeUrl}
+              disabled={analyzingUrl || !domain.trim()}
+              className="h-11 rounded-xl px-4 font-bold transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20 shrink-0"
+              data-testid="button-analyze-url"
+            >
+              {analyzingUrl ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analizando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Wand2 className="w-4 h-4" />
+                  Analizar sitio
+                </span>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-white/30">Al analizar tu sitio web, FoxBot extraera automaticamente la informacion de tu negocio (productos, servicios, contacto, horarios) y entrenara el chatbot por ti.</p>
+        </div>
+
+        {analyzedResult && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-xl bg-green-500/5 border border-green-500/15 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <CircleCheck className="w-4 h-4 text-green-400" />
+              <p className="text-sm font-medium text-green-400">Sitio analizado correctamente</p>
+            </div>
+            <p className="text-xs text-white/40">La informacion extraida se guardo en el entrenamiento del bot. Puedes revisarla y editarla en la seccion "Entrenar Bot" del Panel de Soporte.</p>
+          </div>
+        )}
+
+        {!tenant.botContext && !analyzedResult && domain.trim() && (
+          <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 flex items-start gap-2">
+            <Wand2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-300/80">Haz clic en "Analizar sitio" para que el bot aprenda sobre tu negocio automaticamente. Solo toma unos segundos.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+          <div className="space-y-2 animate-dash-fade-up dash-stagger-2">
+            <label className="text-sm font-medium text-white/60">Avatar del Bot (opcional)</label>
+            <div className="flex items-center gap-3">
+              {avatarUrl ? (
+                <div className="relative group">
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="h-14 w-14 rounded-full object-cover border border-white/[0.08]"
+                    data-testid="img-avatar-preview"
+                    onError={() => setAvatarUrl("")}
+                  />
+                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                    <button
+                      data-testid="button-change-avatar"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    >
+                      <Upload className="w-3 h-3 text-white" />
+                    </button>
+                    <button
+                      data-testid="button-remove-avatar"
+                      onClick={() => setAvatarUrl("")}
+                      className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
+                    >
+                      <X className="w-3 h-3 text-red-400" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  data-testid="button-upload-avatar"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="h-14 w-14 rounded-full border-2 border-dashed border-white/[0.1] hover:border-primary/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 flex items-center justify-center text-white/40 hover:text-white/60 shrink-0"
+                >
+                  {uploadingAvatar ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <UserCircle className="w-6 h-6" />
+                  )}
+                </button>
+              )}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleAvatarUpload(file);
+                  e.target.value = "";
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-white/50">Imagen que se muestra como foto de perfil del bot en el chat.</p>
+                <p className="text-xs text-white/30 mt-0.5">PNG, JPG. Maximo 5MB.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full animate-orb-drift opacity-30" style={{ background: `radial-gradient(circle, ${widgetColor}10, transparent 60%)` }} />
 
@@ -1392,9 +1596,9 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         <div className="relative flex items-start justify-between">
           <div>
             <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Instala tu chatbot</h3>
-            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Selecciona donde quieres instalar FoxBot y sigue las instrucciones</p>
+            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">FoxBot se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeno codigo y tu asistente estara listo.</p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 shrink-0 ml-4">
             <CircleCheck className="w-4 h-4 text-green-400" />
             <span className="text-xs text-green-400">Bot configurado</span>
           </div>

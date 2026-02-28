@@ -1167,10 +1167,13 @@ export default function Landing() {
 
       <section className="relative py-12 px-6 overflow-hidden" data-testid="section-platforms">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-white/10" />
-            <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciones</p>
-            <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-white/10" />
+              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciones</p>
+              <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
+            </div>
+            <p className="text-sm text-white/25 text-center max-w-md">Compatible con cualquier sitio web o plataforma. Solo pega un codigo y listo.</p>
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-8 gap-6 sm:gap-8 justify-items-center" data-testid="platform-logos">
             {[
