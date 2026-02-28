@@ -1,7 +1,7 @@
-# Chat Widget Application
+# ChatBot SaaS Platform
 
 ## Overview
-This project is a standalone chat widget, integrating a React + Vite frontend with an Express + Socket.io backend. It's designed for seamless embedding within an iframe on WordPress sites, communicating with the parent window for dynamic resizing. The primary goal is to provide real-time customer support, automate responses, and facilitate agent interaction, enhancing user experience and streamlining support operations. The widget aims to improve customer engagement and operational efficiency for businesses.
+This project is a SaaS platform for AI-powered customer support chat widgets. Originally built as a standalone chat widget for CJM Digitales, it has been expanded into a multi-tenant SaaS application. The platform integrates a React + Vite frontend with an Express + Socket.io backend. Businesses can register, configure their own chat widget, and embed it in their websites via iframe. The core features include AI-powered responses, product catalog integration, real-time agent collaboration, and a knowledge base that learns from conversations.
 
 ## User Preferences
 I want iterative development.
@@ -30,12 +30,42 @@ Key architectural decisions and features include:
 - **Satisfaction Survey**: The bot prompts users for a 1-5 star rating and optional comments upon conversation resolution, with results visible in the admin panel.
 - **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
 
+## SaaS Pages & Routing
+- `/` - Landing page (marketing, features, pricing)
+- `/register` - Tenant registration (company signup)
+- `/login` - Tenant login
+- `/dashboard` - Tenant dashboard (widget config, embed code, stats, plan)
+- `/widget` - Chat widget (for iframe embedding)
+- `/chat` - Full-screen chat (for logged-in users via email params)
+- `/chat/contacto` - Contact chat (with welcome form)
+- `/admin` - Admin panel (agent dashboard)
+
+## Database Tables
+- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, logoUrl, plan, createdAt)
+- `sessions` - Chat sessions
+- `messages` - Chat messages
+- `products` - Product catalog
+- `knowledge_base` - AI learning entries
+- `admin_users` - Admin/agent accounts
+- `canned_responses` - Quick reply shortcuts
+- `contact_requests` - Contact form submissions
+- `ratings` - Customer satisfaction ratings
+- `push_subscriptions` - Web push notification subscriptions
+- `app_settings` - Key-value app configuration
+- `custom_tags` - Session tags
+
+## Tenant API Routes
+- `POST /api/tenants/register` - Register new tenant
+- `POST /api/tenants/login` - Tenant login (returns JWT)
+- `GET /api/tenants/me` - Get tenant profile (auth required)
+- `PATCH /api/tenants/me` - Update tenant settings (auth required)
+
 ## External Dependencies
-- **PostgreSQL**: Primary database for storing messages, sessions, canned responses, contact requests, products, ratings, admin users, and push subscriptions.
-- **Resend**: Email API for sending notifications, including executive contact requests and offline user replies.
+- **PostgreSQL**: Primary database for all data persistence.
+- **Resend**: Email API for sending notifications.
 - **Socket.io**: Real-time bidirectional event-based communication.
 - **Drizzle ORM**: TypeScript ORM for interacting with PostgreSQL.
-- **WooCommerce REST API**: Used for syncing product catalog data (consumer key/secret required).
-- **Replit Object Storage**: For storing image uploads, accessed via presigned URLs.
+- **WooCommerce REST API**: Used for syncing product catalog data.
+- **Replit Object Storage**: For storing image uploads via presigned URLs.
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
-- **OpenAI**: Powers intelligent AI responses for complex/unknown queries using gpt-4o-mini. Uses `OPENAI_API_KEY` environment variable (user-provided).
+- **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.

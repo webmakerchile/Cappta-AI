@@ -6,8 +6,13 @@ import { ChatWindow } from "@/components/ChatWindow";
 import { WelcomeForm } from "@/components/WelcomeForm";
 import { useChat } from "@/hooks/use-chat";
 import { MessageCircle, ArrowLeft, Headphones, Loader2 } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
 
 const AdminPage = lazy(() => import("@/pages/Admin"));
+const LandingPage = lazy(() => import("@/pages/Landing"));
+const RegisterPage = lazy(() => import("@/pages/Register"));
+const LoginPage = lazy(() => import("@/pages/Login"));
+const DashboardPage = lazy(() => import("@/pages/Dashboard"));
 
 function FullScreenChat() {
   const {
@@ -386,29 +391,68 @@ function ChatWidget() {
   );
 }
 
+const SuspenseLoader = () => (
+  <div className="h-screen flex items-center justify-center bg-background">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 function App() {
   const pathname = window.location.pathname;
   const isAdmin = pathname === "/admin";
   const isChat = pathname === "/chat";
   const isContactChat = pathname === "/chat/contacto";
+  const isWidget = pathname === "/widget";
+  const isLanding = pathname === "/";
+  const isRegister = pathname === "/register";
+  const isLogin = pathname === "/login";
+  const isDashboard = pathname === "/dashboard";
+
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard;
+
+  useEffect(() => {
+    if (isSaasPage) {
+      document.documentElement.classList.add("dark");
+      document.body.classList.add("saas-page");
+    } else {
+      document.body.classList.remove("saas-page");
+    }
+  }, [isSaasPage]);
 
   return (
     <QueryClientProvider client={queryClient}>
       {isAdmin ? (
-        <Suspense fallback={
-          <div className="h-screen flex items-center justify-center" style={{ background: "#111" }}>
-            <div className="w-8 h-8 border-2 border-[#6200EA] border-t-transparent rounded-full animate-spin" />
-          </div>
-        }>
+        <Suspense fallback={<SuspenseLoader />}>
           <AdminPage />
+        </Suspense>
+      ) : isLanding ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <LandingPage />
+        </Suspense>
+      ) : isRegister ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <RegisterPage />
+        </Suspense>
+      ) : isLogin ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <LoginPage />
+        </Suspense>
+      ) : isDashboard ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <DashboardPage />
         </Suspense>
       ) : isContactChat ? (
         <ContactChat />
       ) : isChat ? (
         <FullScreenChat />
-      ) : (
+      ) : isWidget ? (
         <ChatWidget />
+      ) : (
+        <Suspense fallback={<SuspenseLoader />}>
+          <LandingPage />
+        </Suspense>
       )}
+      <Toaster />
     </QueryClientProvider>
   );
 }

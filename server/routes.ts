@@ -634,6 +634,121 @@ export async function registerRoutes(
     res.json({ id: dbUser.id, email: dbUser.email, role: dbUser.role, displayName: dbUser.displayName, color: dbUser.color });
   });
 
+  function generateTenantToken(tenant: { id: number; email: string; companyName: string }) {
+    return jwt.sign({ id: tenant.id, email: tenant.email, companyName: tenant.companyName, isTenant: true }, JWT_SECRET, { expiresIn: "30d" });
+  }
+
+  function verifyTenantToken(token: string): { id: number; email: string; companyName: string; isTenant: true } | null {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      if (!decoded.isTenant) return null;
+      return decoded;
+    } catch { return null; }
+  }
+
+  function requireTenantAuth(req: any, res: any): { id: number; email: string; companyName: string } | null {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ message: "No autorizado" });
+      return null;
+    }
+    const token = authHeader.substring(7);
+    const tenant = verifyTenantToken(token);
+    if (!tenant) {
+      res.status(401).json({ message: "Token invalido o expirado" });
+      return null;
+    }
+    return tenant;
+  }
+
+  app.post("/api/tenants/register", async (req, res) => {
+    try {
+      const { name, email, password, companyName } = req.body;
+      if (!name || !email || !password || !companyName) {
+        return res.status(400).json({ message: "Todos los campos son requeridos" });
+      }
+      if (password.length < 6) {
+        return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres" });
+      }
+      const existing = await storage.getTenantByEmail(email.toLowerCase().trim());
+      if (existing) {
+        return res.status(409).json({ message: "Ya existe una cuenta con este email" });
+      }
+      const passwordHash = await bcrypt.hash(password, 10);
+      const tenant = await storage.createTenant({
+        name,
+        email: email.toLowerCase().trim(),
+        passwordHash,
+        companyName,
+      });
+      const token = generateTenantToken({ id: tenant.id, email: tenant.email, companyName: tenant.companyName });
+      res.status(201).json({
+        token,
+        tenant: { id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain },
+      });
+    } catch (error: any) {
+      log(`Error en registro de tenant: ${error.message}`, "auth");
+      res.status(500).json({ message: "Error en registro" });
+    }
+  });
+
+  app.post("/api/tenants/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email y contraseña requeridos" });
+      }
+      const tenant = await storage.getTenantByEmail(email.toLowerCase().trim());
+      if (!tenant) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      const valid = await bcrypt.compare(password, tenant.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      const token = generateTenantToken({ id: tenant.id, email: tenant.email, companyName: tenant.companyName });
+      res.json({
+        token,
+        tenant: { id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain },
+      });
+    } catch (error: any) {
+      log(`Error en login de tenant: ${error.message}`, "auth");
+      res.status(500).json({ message: "Error en autenticacion" });
+    }
+  });
+
+  app.get("/api/tenants/me", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const tenant = await storage.getTenantById(auth.id);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant no encontrado" });
+    }
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain, createdAt: tenant.createdAt });
+  });
+
+  app.patch("/api/tenants/me", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { companyName, widgetColor, welcomeMessage, logoUrl, domain } = req.body;
+      const updates: any = {};
+      if (companyName !== undefined) updates.companyName = companyName;
+      if (widgetColor !== undefined) updates.widgetColor = widgetColor;
+      if (welcomeMessage !== undefined) updates.welcomeMessage = welcomeMessage;
+      if (logoUrl !== undefined) updates.logoUrl = logoUrl;
+      if (domain !== undefined) updates.domain = domain;
+      const tenant = await storage.updateTenant(auth.id, updates);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant no encontrado" });
+      }
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain });
+    } catch (error: any) {
+      log(`Error actualizando tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
   app.get("/api/admin/users", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;

@@ -110,6 +110,20 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const tenants = pgTable("tenants", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  companyName: text("company_name").notNull(),
+  domain: text("domain"),
+  widgetColor: text("widget_color").notNull().default("#6200EA"),
+  welcomeMessage: text("welcome_message").notNull().default("Hola, ¿en qué podemos ayudarte?"),
+  logoUrl: text("logo_url"),
+  plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const appSettings = pgTable("app_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
@@ -162,6 +176,7 @@ export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, t
 export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true });
 export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({ id: true, createdAt: true });
 export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true, lastUsedAt: true });
+export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
@@ -181,6 +196,8 @@ export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;
 export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
+export type InsertTenant = z.infer<typeof insertTenantSchema>;
+export type Tenant = typeof tenants.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

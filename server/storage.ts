@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, knowledgeBase, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type KnowledgeBase, type InsertKnowledgeBase } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, customTags, appSettings, knowledgeBase, tenants, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -70,6 +70,10 @@ export interface IStorage {
   deleteKnowledgeEntry(id: number): Promise<boolean>;
   searchKnowledgeEntries(query: string, limit?: number): Promise<KnowledgeBase[]>;
   incrementKnowledgeUsage(id: number): Promise<void>;
+  getTenantByEmail(email: string): Promise<Tenant | null>;
+  getTenantById(id: number): Promise<Tenant | null>;
+  createTenant(data: InsertTenant): Promise<Tenant>;
+  updateTenant(id: number, data: Partial<InsertTenant>): Promise<Tenant | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -944,6 +948,38 @@ export class DatabaseStorage implements IStorage {
       .update(sessions)
       .set({ lastManualEmailAt: new Date() })
       .where(eq(sessions.sessionId, sessionId));
+  }
+
+  async getTenantByEmail(email: string): Promise<Tenant | null> {
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.email, email))
+      .limit(1);
+    return tenant || null;
+  }
+
+  async getTenantById(id: number): Promise<Tenant | null> {
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, id))
+      .limit(1);
+    return tenant || null;
+  }
+
+  async createTenant(data: InsertTenant): Promise<Tenant> {
+    const [tenant] = await db.insert(tenants).values(data).returning();
+    return tenant;
+  }
+
+  async updateTenant(id: number, data: Partial<InsertTenant>): Promise<Tenant | null> {
+    const [tenant] = await db
+      .update(tenants)
+      .set(data)
+      .where(eq(tenants.id, id))
+      .returning();
+    return tenant || null;
   }
 }
 
