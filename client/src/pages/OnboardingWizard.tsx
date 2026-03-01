@@ -68,7 +68,9 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const [avatarUrl, setAvatarUrl] = useState(tenant.avatarUrl || "");
   const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
   const [launcherImageUrl, setLauncherImageUrl] = useState(tenant.launcherImageUrl || "");
+  const [launcherImageScale, setLauncherImageScale] = useState(tenant.launcherImageScale || 100);
   const [botIconUrl, setBotIconUrl] = useState(tenant.botIconUrl || "");
+  const [botIconScale, setBotIconScale] = useState(tenant.botIconScale || 100);
   const [widgetPosition, setWidgetPosition] = useState(tenant.widgetPosition || "right");
   const [labelContactButton, setLabelContactButton] = useState(tenant.labelContactButton || "");
   const [labelTicketButton, setLabelTicketButton] = useState(tenant.labelTicketButton || "");
@@ -262,7 +264,9 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       logoScale,
       avatarUrl: avatarUrl || null,
       launcherImageUrl: launcherImageUrl || null,
+      launcherImageScale,
       botIconUrl: botIconUrl || null,
+      botIconScale,
       widgetPosition,
       labelContactButton: labelContactButton.trim() || null,
       labelTicketButton: labelTicketButton.trim() || null,

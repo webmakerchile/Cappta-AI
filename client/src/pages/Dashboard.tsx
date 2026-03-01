@@ -323,9 +323,11 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [launcherImageUrl, setLauncherImageUrl] = useState(tenant.launcherImageUrl || "");
+  const [launcherImageScale, setLauncherImageScale] = useState(tenant.launcherImageScale || 100);
   const [uploadingLauncher, setUploadingLauncher] = useState(false);
   const launcherInputRef = useRef<HTMLInputElement>(null);
   const [botIconUrl, setBotIconUrl] = useState(tenant.botIconUrl || "");
+  const [botIconScale, setBotIconScale] = useState(tenant.botIconScale || 100);
   const [uploadingBotIcon, setUploadingBotIcon] = useState(false);
   const botIconInputRef = useRef<HTMLInputElement>(null);
   const [widgetPosition, setWidgetPosition] = useState(tenant.widgetPosition || "right");
@@ -361,7 +363,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setDomain(tenant.domain || "");
     setAvatarUrl(tenant.avatarUrl || "");
     setLauncherImageUrl(tenant.launcherImageUrl || "");
+    setLauncherImageScale(tenant.launcherImageScale || 100);
     setBotIconUrl(tenant.botIconUrl || "");
+    setBotIconScale(tenant.botIconScale || 100);
     setWidgetPosition(tenant.widgetPosition || "right");
     setLabelContactButton(tenant.labelContactButton || "");
     setLabelTicketButton(tenant.labelTicketButton || "");
@@ -567,7 +571,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       logoScale,
       avatarUrl: avatarUrl || null,
       launcherImageUrl: launcherImageUrl || null,
+      launcherImageScale,
       botIconUrl: botIconUrl || null,
+      botIconScale,
       widgetPosition,
       labelContactButton: labelContactButton.trim() || null,
       labelTicketButton: labelTicketButton.trim() || null,
@@ -966,6 +972,30 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 <p className="text-xs text-white/30 mt-0.5">Si no se sube, se usa el ícono predeterminado.</p>
               </div>
             </div>
+            {launcherImageUrl && (
+              <div className="space-y-1.5 mt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-white/50">Tamaño del botón</label>
+                  <span className="text-xs text-white/40 font-mono">{launcherImageScale}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="10"
+                  value={launcherImageScale}
+                  onChange={(e) => setLauncherImageScale(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{ accentColor: widgetColor }}
+                  data-testid="range-launcher-scale"
+                />
+                <div className="flex justify-between text-[10px] text-white/25">
+                  <span>50%</span>
+                  <span>100%</span>
+                  <span>200%</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2 animate-dash-fade-up dash-stagger-5">
@@ -1027,6 +1057,30 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 <p className="text-xs text-white/30 mt-0.5">Si no se sube, se usa el ícono de auriculares.</p>
               </div>
             </div>
+            {botIconUrl && (
+              <div className="space-y-1.5 mt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-white/50">Tamaño del ícono</label>
+                  <span className="text-xs text-white/40 font-mono">{botIconScale}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="10"
+                  value={botIconScale}
+                  onChange={(e) => setBotIconScale(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{ accentColor: widgetColor }}
+                  data-testid="range-boticon-scale"
+                />
+                <div className="flex justify-between text-[10px] text-white/25">
+                  <span>50%</span>
+                  <span>100%</span>
+                  <span>200%</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1213,8 +1267,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       </div>
                     )}
                     <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0"
-                      style={{ backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
+                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0"
+                      style={{ width: `${Math.round(56 * launcherImageScale / 100)}px`, height: `${Math.round(56 * launcherImageScale / 100)}px`, maxWidth: "112px", maxHeight: "112px", backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
                     >
                       {launcherImageUrl ? (
                         <img src={launcherImageUrl} alt="Botón" className="w-full h-full rounded-full object-cover" />
@@ -1227,8 +1281,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                   <div className="mt-8 flex items-center gap-3">
                     <p className="text-xs text-white/40">Ícono del bot en mensajes:</p>
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border"
-                      style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
+                      className="rounded-full flex items-center justify-center overflow-hidden border"
+                      style={{ width: `${Math.round(32 * botIconScale / 100)}px`, height: `${Math.round(32 * botIconScale / 100)}px`, maxWidth: "64px", maxHeight: "64px", backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
                     >
                       {botIconUrl ? (
                         <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />

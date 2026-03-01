@@ -7,10 +7,11 @@ interface LauncherProps {
   hasUnread: boolean;
   color?: string;
   launcherImage?: string;
+  launcherScale?: number;
   bubbleText?: string;
 }
 
-export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, bubbleText }: LauncherProps) {
+export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, launcherScale = 100, bubbleText }: LauncherProps) {
   const bgColor = color || "#10b981";
   const [showBubble, setShowBubble] = useState(!!bubbleText);
   const [imageReady, setImageReady] = useState(!launcherImage);
@@ -65,7 +66,7 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, bub
         data-testid="button-launcher"
         onClick={onClick}
         className="
-          relative w-14 h-14 rounded-full
+          relative rounded-full
           flex items-center justify-center
           transition-transform duration-200 ease-out
           hover:scale-105 active:scale-95
@@ -73,6 +74,10 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, bub
           shadow-lg
         "
         style={{
+          width: `${Math.round(56 * launcherScale / 100)}px`,
+          height: `${Math.round(56 * launcherScale / 100)}px`,
+          maxWidth: "112px",
+          maxHeight: "112px",
           border: "none",
           backgroundColor: launcherImage ? "transparent" : bgColor,
           boxShadow: launcherImage ? "none" : `0 4px 20px ${bgColor}40`,

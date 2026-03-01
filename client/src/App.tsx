@@ -336,7 +336,9 @@ interface TenantConfig {
   logoUrl: string | null;
   logoScale: number;
   launcherImageUrl: string | null;
+  launcherImageScale: number;
   botIconUrl: string | null;
+  botIconScale: number;
   widgetPosition: string;
   labelContactButton: string | null;
   labelTicketButton: string | null;
@@ -411,7 +413,9 @@ function ChatWidget() {
   const widgetBotTextColor = tenantConfig?.botTextColor || undefined;
   const widgetUserTextColor = tenantConfig?.userTextColor || undefined;
   const widgetLauncherImage = tenantConfig?.launcherImageUrl || undefined;
+  const widgetLauncherScale = tenantConfig?.launcherImageScale || 100;
   const widgetBotIcon = tenantConfig?.botIconUrl || undefined;
+  const widgetBotIconScale = tenantConfig?.botIconScale || 100;
   const widgetPosition = tenantConfig?.widgetPosition || "right";
   const widgetBannerText = tenantConfig?.welcomeBannerText || undefined;
   const widgetBubbleText = tenantConfig?.launcherBubbleText || undefined;
@@ -516,6 +520,7 @@ function ChatWidget() {
                 botTextColor={widgetBotTextColor}
                 userTextColor={widgetUserTextColor}
                 botIconUrl={widgetBotIcon}
+                botIconScale={widgetBotIconScale}
                 labelContactButton={tenantConfig?.labelContactButton || undefined}
                 labelTicketButton={tenantConfig?.labelTicketButton || undefined}
                 labelFinalizeButton={tenantConfig?.labelFinalizeButton || undefined}
@@ -544,7 +549,7 @@ function ChatWidget() {
         </div>
       ) : !configLoaded ? null : (
         <div className="p-1.5">
-          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} bubbleText={widgetBubbleText} />
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} launcherScale={widgetLauncherScale} bubbleText={widgetBubbleText} />
         </div>
       )}
     </div>
