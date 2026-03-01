@@ -31,6 +31,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json" />
+    <script>
+      (function() {
+        if (window.location.pathname.startsWith('/panel')) {
+          document.querySelector('link[rel="manifest"]').setAttribute('href', '/manifest-panel.json');
+        }
+      })();
+    </script>
     <meta name="theme-color" content="#1a7a3a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

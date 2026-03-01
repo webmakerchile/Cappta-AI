@@ -55,6 +55,7 @@ import {
   Eye,
   EyeOff,
   Copy,
+  Download,
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
@@ -3073,6 +3074,8 @@ export default function TenantPanel() {
   const { tenant, isLoading, token, agentProfile, role, isAgent } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("chats");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -3083,7 +3086,22 @@ export default function TenantPanel() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
     }
+    if (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+    const handler = (e: Event) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === "accepted") setIsInstalled(true);
+      setDeferredPrompt(null);
+    }
+  };
 
   const canAccessTab = (item: typeof SIDEBAR_ITEMS[0]) => {
     if (!item.minRole) return true;
@@ -3157,6 +3175,21 @@ export default function TenantPanel() {
         </nav>
 
         <div className="p-3 border-t border-white/[0.06] space-y-1">
+          {!isInstalled && (deferredPrompt ? (
+            <button
+              data-testid="button-install-app"
+              onClick={handleInstall}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm bg-[#10b981]/15 text-[#10b981] hover:bg-[#10b981]/25 transition-colors font-semibold border border-[#10b981]/20"
+            >
+              <Download className="w-4 h-4" />
+              Instalar App
+            </button>
+          ) : /iPad|iPhone|iPod/.test(navigator.userAgent) ? (
+            <div className="px-3 py-2 rounded-lg text-[10px] text-white/40 bg-white/[0.03] border border-white/[0.06] leading-relaxed" data-testid="text-ios-install-hint">
+              <Download className="w-3.5 h-3.5 inline mr-1 text-[#10b981]" />
+              Toca <strong className="text-white/60">Compartir</strong> y luego <strong className="text-white/60">"Agregar a inicio"</strong> para instalar
+            </div>
+          ) : null)}
           {!isAgent && (
             <a
               href="/dashboard"
