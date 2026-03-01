@@ -1235,6 +1235,41 @@ export default function Landing() {
   const pricingSection = useInView(0.1);
   const referralSection = useInView(0.15);
 
+  useEffect(() => {
+    if (document.getElementById("foxbot-widget")) return;
+    const iframe = document.createElement("iframe");
+    iframe.id = "foxbot-widget";
+    iframe.src = `${window.location.origin}/widget?tenantId=1`;
+    iframe.allow = "microphone";
+    let pos = "right";
+    function setPos(p: string, state: string) {
+      const s = p === "left" ? "left" : "right";
+      const o = p === "left" ? "right" : "left";
+      const mobile = window.innerWidth <= 480;
+      if (state === "open") {
+        iframe.style.cssText = mobile
+          ? "position:fixed;bottom:0;left:0;width:100%;height:100%;border:none;z-index:9999;"
+          : `position:fixed;bottom:16px;${s}:16px;${o}:auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);`;
+      } else {
+        iframe.style.cssText = `position:fixed;bottom:12px;${s}:12px;${o}:auto;width:70px;height:70px;border:none;z-index:9999;`;
+      }
+    }
+    setPos(pos, "closed");
+    document.body.appendChild(iframe);
+    const handler = (e: MessageEvent) => {
+      if (!e.data || !e.data.type) return;
+      if (e.data.position) pos = e.data.position;
+      if (e.data.type === "foxbot_position") { pos = e.data.position; setPos(pos, "closed"); }
+      if (e.data.type === "open_chat") setPos(pos, "open");
+      if (e.data.type === "close_chat") setPos(pos, "closed");
+    };
+    window.addEventListener("message", handler);
+    return () => {
+      window.removeEventListener("message", handler);
+      iframe.remove();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
       <MobileNav />
