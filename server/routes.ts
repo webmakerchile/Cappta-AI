@@ -1667,21 +1667,24 @@ ${DEMO_BASE_RULES}`,
           const isPaidPlan = order.targetPlan === "basic" || order.targetPlan === "pro";
           if (referral && referral.confirmed === 0 && isPaidPlan) {
             await storage.confirmReferral(referral.referrerId, order.tenantId);
+            const CASH_PER_REFERRAL = 3000;
+            await storage.addReferralCash(referral.referrerId, CASH_PER_REFERRAL);
+            log(`Referral cash: referrer ${referral.referrerId} earned $${CASH_PER_REFERRAL} CLP (referido ${order.tenantId})`, "referral");
             const confirmedCount = await storage.getConfirmedReferralCount(referral.referrerId);
-            if (confirmedCount === 1) {
-              await storage.applyReferralReward(referral.referrerId, "basic", 1);
-              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 1 month Fox Pro (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
-            } else if (confirmedCount === 3) {
-              await storage.applyReferralReward(referral.referrerId, "basic", 2);
-              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 2 months Fox Pro (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
-            } else if (confirmedCount === 5) {
-              await storage.applyReferralReward(referral.referrerId, "pro", 3);
-              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 3 months Fox Enterprise (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
-            } else if (confirmedCount === 10) {
-              await storage.applyReferralReward(referral.referrerId, "pro", 6);
-              log(`Referral auto-confirmed: referrer ${referral.referrerId} earned 6 months Fox Enterprise (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            const milestones: { count: number; plan: string; months: number }[] = [
+              { count: 1, plan: "basic", months: 1 },
+              { count: 3, plan: "basic", months: 2 },
+              { count: 5, plan: "pro", months: 3 },
+              { count: 10, plan: "pro", months: 6 },
+              { count: 15, plan: "pro", months: 12 },
+            ];
+            const bestMilestone = milestones.filter(m => confirmedCount >= m.count).pop();
+            if (bestMilestone) {
+              await storage.applyReferralReward(referral.referrerId, bestMilestone.plan, bestMilestone.months);
+              const planName = bestMilestone.plan === "pro" ? "Fox Enterprise" : "Fox Pro";
+              log(`Referral milestone: referrer ${referral.referrerId} earned ${bestMilestone.months} months ${planName} (${confirmedCount} referidos, referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
             } else {
-              log(`Referral auto-confirmed: referrer ${referral.referrerId} now has ${confirmedCount} confirmed (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+              log(`Referral confirmed: referrer ${referral.referrerId} now has ${confirmedCount} confirmed + $${CASH_PER_REFERRAL} CLP (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
             }
           }
         } catch (refErr: any) {
@@ -1830,17 +1833,23 @@ ${DEMO_BASE_RULES}`,
           months: tenant.rewardMonths,
         };
       }
+      const milestones = [
+        { target: 1, plan: "Fox Pro", months: 1 },
+        { target: 3, plan: "Fox Pro", months: 2 },
+        { target: 5, plan: "Fox Enterprise", months: 3 },
+        { target: 10, plan: "Fox Enterprise", months: 6 },
+        { target: 15, plan: "Fox Enterprise", months: 12 },
+      ];
       let nextReward = null;
-      if (confirmedCount < 1) {
-        nextReward = { target: 1, current: confirmedCount, plan: "Fox Pro", months: 1 };
-      } else if (confirmedCount < 3) {
-        nextReward = { target: 3, current: confirmedCount, plan: "Fox Pro", months: 2 };
-      } else if (confirmedCount < 5) {
-        nextReward = { target: 5, current: confirmedCount, plan: "Fox Enterprise", months: 3 };
-      } else if (confirmedCount < 10) {
-        nextReward = { target: 10, current: confirmedCount, plan: "Fox Enterprise", months: 6 };
+      for (const m of milestones) {
+        if (confirmedCount < m.target) {
+          nextReward = { target: m.target, current: confirmedCount, plan: m.plan, months: m.months };
+          break;
+        }
       }
-      res.json({ code, confirmedCount, pendingCount, referrals: referralsWithNames, currentReward, nextReward });
+      const cashBalance = tenant.cashBalance || 0;
+      const totalCashEarned = confirmedCount * 3000;
+      res.json({ code, confirmedCount, pendingCount, referrals: referralsWithNames, currentReward, nextReward, cashBalance, totalCashEarned });
     } catch (error: any) {
       log(`Error obteniendo referidos: ${error.message}`, "referral");
       res.status(500).json({ message: "Error al obtener datos de referidos" });

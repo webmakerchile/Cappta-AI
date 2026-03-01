@@ -1786,11 +1786,11 @@ export default function Landing() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-referral-title">
               Invita negocios,
               <br />
-              <span className="text-gradient-green">gana meses gratis</span>
+              <span className="text-gradient-green">gana dinero real</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Recomienda FoxBot a otros negocios. Cuando tu referido <span className="text-white/60 font-semibold">compra un plan de pago</span>,
-              <span className="text-white/60 font-semibold"> tú ganas meses de plan premium gratis automáticamente.</span> Sin trámites, sin esperas.
+              Recomienda FoxBot a otros negocios. Por cada referido que <span className="text-white/60 font-semibold">compra un plan de pago</span>,
+              <span className="text-amber-400 font-semibold"> tú ganas $3.000 CLP</span> + meses de plan premium gratis. Sin trámites, sin esperas, sin límite.
             </p>
           </div>
 
@@ -1830,7 +1830,7 @@ export default function Landing() {
               </div>
               <h3 className="text-lg font-bold text-white/90 mb-2">Tú ganas automáticamente</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Al confirmarse la compra, tú recibes meses de plan premium gratis al instante. Sin solicitudes ni trámites.
+                Al confirmarse la compra, recibes <span className="text-amber-400 font-semibold">$3.000 CLP en saldo</span> + meses de plan premium gratis al instante. Sin solicitudes ni trámites.
               </p>
             </div>
           </div>
@@ -1839,10 +1839,11 @@ export default function Landing() {
             <h3 className="text-center text-lg font-bold text-white/70 mb-8">Escalera de recompensas</h3>
             <div className="max-w-3xl mx-auto space-y-4">
               {[
-                { refs: 1, reward: "1 mes de Fox Pro gratis", detail: "500 sesiones, 5.000 mensajes, 3 ejecutivos", color: "16,185,129", icon: <Gift className="w-5 h-5" />, tier: "Fox Pro" },
-                { refs: 3, reward: "2 meses de Fox Pro gratis", detail: "Acumula referidos y sigue subiendo de nivel", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "Fox Pro" },
-                { refs: 5, reward: "3 meses de Fox Enterprise gratis", detail: "Sesiones y mensajes ilimitados, 10 ejecutivos", color: "245,158,11", icon: <Trophy className="w-5 h-5" />, tier: "Fox Enterprise" },
-                { refs: 10, reward: "6 meses de Fox Enterprise gratis", detail: "El máximo reconocimiento para embajadores FoxBot", color: "168,85,247", icon: <Crown className="w-5 h-5" />, tier: "Embajador" },
+                { refs: 1, reward: "$3.000 CLP + 1 mes Fox Pro", detail: "Tu primer referido: dinero real + plan premium", color: "16,185,129", icon: <Gift className="w-5 h-5" />, tier: "$3.000" },
+                { refs: 3, reward: "$9.000 CLP + 2 meses Fox Pro", detail: "$3.000 por cada referido, se acumula sin límite", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "$9.000" },
+                { refs: 5, reward: "$15.000 CLP + 3 meses Fox Enterprise", detail: "Sesiones y mensajes ilimitados + dinero en tu cuenta", color: "245,158,11", icon: <Trophy className="w-5 h-5" />, tier: "$15.000" },
+                { refs: 10, reward: "$30.000 CLP + 6 meses Fox Enterprise", detail: "Nivel experto: el mejor plan + $30.000 acumulados", color: "168,85,247", icon: <Crown className="w-5 h-5" />, tier: "$30.000" },
+                { refs: 15, reward: "$45.000 CLP + 12 meses Fox Enterprise", detail: "Embajador FoxBot: 1 año gratis + $45.000 en saldo", color: "236,72,153", icon: <Sparkles className="w-5 h-5" />, tier: "Embajador" },
               ].map((tier, i) => (
                 <div
                   key={tier.refs}
@@ -1879,7 +1880,7 @@ export default function Landing() {
               <div>
                 <h4 className="text-base font-bold text-white/80 mb-2">¿Cómo funciona exactamente?</h4>
                 <p className="text-sm text-white/40 leading-relaxed">
-                  Tu referido se registra gratis con tu enlace y prueba FoxBot sin compromiso. Cuando decide comprar <span className="text-primary font-semibold">Fox Pro o Fox Enterprise</span>, tu recompensa se activa automáticamente al instante. No necesitas hacer nada más: el sistema detecta la compra y te asigna los meses de plan premium correspondientes.
+                  Tu referido se registra gratis con tu enlace y prueba FoxBot sin compromiso. Cuando decide comprar <span className="text-primary font-semibold">Fox Pro o Fox Enterprise</span>, tú recibes <span className="text-amber-400 font-semibold">$3.000 CLP en saldo</span> automáticamente al instante. Además, al alcanzar hitos (1, 3, 5, 10, 15 referidos) desbloqueas meses de plan premium gratis. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.
                 </p>
               </div>
             </div>

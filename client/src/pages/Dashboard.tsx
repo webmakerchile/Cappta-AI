@@ -55,6 +55,8 @@ import {
   Crown,
   Trophy,
   Link as LinkIcon,
+  DollarSign,
+  Clock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -1570,6 +1572,8 @@ interface ReferralData {
   referrals: { id: number; referredName: string; referredEmail: string; referredPlan: string; confirmed: number; createdAt: string; confirmedAt: string | null }[];
   currentReward: { plan: string; planLabel: string; expiresAt: string; months: number } | null;
   nextReward: { target: number; current: number; plan: string; months: number } | null;
+  cashBalance: number;
+  totalCashEarned: number;
 }
 
 function ReferidosSection() {
@@ -1612,29 +1616,61 @@ function ReferidosSection() {
   if (!data) return null;
 
   const progress = data.nextReward ? (data.nextReward.current / data.nextReward.target) * 100 : 100;
+  const formatCLP = (v: number) => `$${v.toLocaleString("es-CL")}`;
+
+  const tiers = [
+    { refs: 1, cash: "$3.000", reward: "+ 1 mes Fox Pro", color: "16,185,129", icon: <Gift className="w-4 h-4" />, desc: "Tu primer referido: dinero + plan premium" },
+    { refs: 3, cash: "$9.000", reward: "+ 2 meses Fox Pro", color: "59,130,246", icon: <Star className="w-4 h-4" />, desc: "Acumulas $3.000 CLP por cada referido" },
+    { refs: 5, cash: "$15.000", reward: "+ 3 meses Fox Enterprise", color: "245,158,11", icon: <Trophy className="w-4 h-4" />, desc: "Sesiones y mensajes ilimitados para ti" },
+    { refs: 10, cash: "$30.000", reward: "+ 6 meses Fox Enterprise", color: "168,85,247", icon: <Crown className="w-4 h-4" />, desc: "Nivel experto: dinero real + el mejor plan" },
+    { refs: 15, cash: "$45.000", reward: "+ 12 meses Fox Enterprise", color: "236,72,153", icon: <Sparkles className="w-4 h-4" />, desc: "Embajador FoxBot: 1 año gratis + $45.000 en saldo" },
+  ];
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl glass-card p-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1), transparent 60%)" }} />
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(245,158,11,0.08), transparent 60%)", animationDelay: "-3s" }} />
         <div className="relative">
-          <div className="flex items-center gap-3 mb-6 animate-dash-slide-right">
+          <div className="flex items-center gap-3 mb-3 animate-dash-slide-right">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
               <Gift className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-bold" data-testid="text-referidos-title">Programa de Referidos</h3>
-              <p className="text-sm text-white/40">Invita negocios. Cuando compren un plan de pago, tú ganas meses gratis</p>
+              <p className="text-sm text-white/40">Gana dinero real + meses gratis por cada negocio que invites</p>
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 animate-dash-fade-up">
+            <div className="rounded-xl p-4 text-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04))", border: "1px solid rgba(16,185,129,0.2)" }}>
+              <DollarSign className="w-5 h-5 text-primary mx-auto mb-1.5" />
+              <div className="text-xl font-black text-primary" data-testid="text-cash-balance">{formatCLP(data.cashBalance)}</div>
+              <p className="text-[10px] text-white/40 mt-0.5">Saldo disponible</p>
+            </div>
+            <div className="rounded-xl p-4 text-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04))", border: "1px solid rgba(245,158,11,0.2)" }}>
+              <TrendingUp className="w-5 h-5 text-amber-400 mx-auto mb-1.5" />
+              <div className="text-xl font-black text-amber-400" data-testid="text-total-earned">{formatCLP(data.totalCashEarned)}</div>
+              <p className="text-[10px] text-white/40 mt-0.5">Total ganado</p>
+            </div>
+            <div className="rounded-xl p-4 text-center" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04))", border: "1px solid rgba(59,130,246,0.2)" }}>
+              <Users className="w-5 h-5 text-blue-400 mx-auto mb-1.5" />
+              <div className="text-xl font-black text-blue-400" data-testid="text-confirmed-count">{data.confirmedCount}</div>
+              <p className="text-[10px] text-white/40 mt-0.5">Referidos confirmados</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/15 p-4 mb-6 animate-dash-fade-up dash-stagger-1">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-bold text-amber-400">$3.000 CLP por cada referido confirmado</span>
+            </div>
+            <p className="text-xs text-white/40">Cada vez que un negocio se registra con tu enlace y compra Fox Pro o Fox Enterprise, recibes $3.000 CLP en saldo. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.</p>
+          </div>
+
+          <h4 className="text-sm font-bold text-white/60 mb-3 animate-dash-fade-up dash-stagger-1">Escalera de recompensas</h4>
           <div className="space-y-2.5 mb-6 animate-dash-fade-up dash-stagger-1">
-            {[
-              { refs: 1, reward: "1 mes de Fox Pro", color: "16,185,129", icon: <Gift className="w-4 h-4" />, desc: "Tu primer referido desbloquea Fox Pro gratis" },
-              { refs: 3, reward: "2 meses de Fox Pro", color: "59,130,246", icon: <Star className="w-4 h-4" />, desc: "Sigue invitando y acumula más meses premium" },
-              { refs: 5, reward: "3 meses de Fox Enterprise", color: "245,158,11", icon: <Trophy className="w-4 h-4" />, desc: "El plan más completo: sesiones y mensajes ilimitados" },
-              { refs: 10, reward: "6 meses de Fox Enterprise", color: "168,85,247", icon: <Crown className="w-4 h-4" />, desc: "Máximo reconocimiento para embajadores FoxBot" },
-            ].map((tier) => {
+            {tiers.map((tier) => {
               const achieved = data.confirmedCount >= tier.refs;
               return (
                 <div key={tier.refs} className="flex items-center gap-4 rounded-xl p-4 transition-all duration-300" style={{ background: achieved ? `rgba(${tier.color},0.08)` : "rgba(255,255,255,0.02)", border: `1px solid rgba(${tier.color},${achieved ? 0.2 : 0.06})` }}>
@@ -1642,11 +1678,16 @@ function ReferidosSection() {
                     <span style={{ color: achieved ? `rgb(${tier.color})` : "rgba(255,255,255,0.25)" }}>{tier.icon}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-bold" style={{ color: achieved ? `rgb(${tier.color})` : "rgba(255,255,255,0.5)" }}>{tier.refs} {tier.refs === 1 ? "referido" : "referidos"}</span>
                       {achieved && <CircleCheck className="w-3.5 h-3.5" style={{ color: `rgb(${tier.color})` }} />}
                     </div>
-                    <p className="text-xs text-white/40">{tier.reward}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-xs font-bold" style={{ color: `rgba(${tier.color},0.8)` }}>{tier.cash} CLP</span>
+                      <span className="text-[10px] text-white/25">+</span>
+                      <span className="text-xs text-white/40">{tier.reward}</span>
+                    </div>
+                    <p className="text-[10px] text-white/25 mt-0.5">{tier.desc}</p>
                   </div>
                 </div>
               );
@@ -1668,6 +1709,7 @@ function ReferidosSection() {
                   : `Te faltan ${data.nextReward.target - data.nextReward.current} referidos confirmados`}
                 {" para ganar "}
                 {data.nextReward.months} {data.nextReward.months === 1 ? "mes" : "meses"} de {data.nextReward.plan}
+                {" + "}{formatCLP(data.nextReward.target * 3000)} CLP en saldo
               </p>
             </div>
           )}
@@ -1725,10 +1767,13 @@ function ReferidosSection() {
                   <p className="text-xs text-white/30 truncate">{ref.referredEmail} · {new Date(ref.createdAt).toLocaleDateString("es-CL")}</p>
                 </div>
                 {ref.confirmed ? (
-                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium shrink-0">
-                    <CircleCheck className="w-3 h-3" />
-                    Confirmado
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-bold text-primary">+$3.000</span>
+                    <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                      <CircleCheck className="w-3 h-3" />
+                      Confirmado
+                    </span>
+                  </div>
                 ) : (
                   <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0" data-testid={`status-referral-${ref.id}`}>
                     <Clock className="w-3 h-3" />
@@ -1745,7 +1790,7 @@ function ReferidosSection() {
         <div className="rounded-2xl glass-card p-8 text-center animate-dash-fade-up dash-stagger-4">
           <UserPlus className="w-12 h-12 text-white/10 mx-auto mb-4" />
           <p className="text-sm text-white/40 mb-1">Aún no tienes referidos</p>
-          <p className="text-xs text-white/25">Comparte tu link con otros negocios. Cuando compren un plan de pago, tú ganas meses gratis</p>
+          <p className="text-xs text-white/25">Comparte tu link y gana $3.000 CLP + meses de plan premium por cada negocio que compre un plan</p>
         </div>
       )}
     </div>

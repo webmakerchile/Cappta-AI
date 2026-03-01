@@ -126,6 +126,7 @@ export interface IStorage {
   getTenantByReferralCode(code: string): Promise<Tenant | null>;
   generateReferralCode(tenantId: number): Promise<string>;
   applyReferralReward(tenantId: number, plan: string, months: number): Promise<void>;
+  addReferralCash(tenantId: number, amount: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1490,6 +1491,12 @@ export class DatabaseStorage implements IStorage {
       rewardPlan: effectivePlan,
       rewardExpiresAt: expiresAt,
       plan: effectivePlan,
+    }).where(eq(tenants.id, tenantId));
+  }
+
+  async addReferralCash(tenantId: number, amount: number): Promise<void> {
+    await db.update(tenants).set({
+      cashBalance: sql`COALESCE(cash_balance, 0) + ${amount}`,
     }).where(eq(tenants.id, tenantId));
   }
 }

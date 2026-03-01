@@ -51,8 +51,9 @@ Key architectural decisions and features include:
 - `/admin` - Admin panel (superadmin agent dashboard)
 
 ## Database Tables
-- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, aiEnabled, businessHoursConfig, plan, flowCustomerId, referralCode, referredBy, rewardMonths, rewardPlan, rewardExpiresAt, createdAt)
+- `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, aiEnabled, businessHoursConfig, plan, flowCustomerId, referralCode, referredBy, rewardMonths, rewardPlan, rewardExpiresAt, cashBalance, createdAt)
 - `referrals` - Referral tracking (id, referrerId, referredId, confirmed, rewardApplied, createdAt, confirmedAt)
+  - **Referral rewards**: $3.000 CLP per confirmed referral (accumulated in cashBalance) + milestone subscription bonuses: 1→1mo Fox Pro, 3→2mo Fox Pro, 5→3mo Enterprise, 10→6mo Enterprise, 15→12mo Enterprise
 - `sessions` - Chat sessions (has tenantId for multi-tenant isolation)
 - `messages` - Chat messages (has tenantId)
 - `products` - Product catalog (has tenantId)

@@ -163,6 +163,7 @@ export const tenants = pgTable("tenants", {
   rewardMonths: integer("reward_months").notNull().default(0),
   rewardPlan: text("reward_plan"),
   rewardExpiresAt: timestamp("reward_expires_at"),
+  cashBalance: integer("cash_balance").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
