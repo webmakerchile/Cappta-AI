@@ -146,6 +146,8 @@ export const tenants = pgTable("tenants", {
   welcomeSubtitle: text("welcome_subtitle").notNull().default("Completa tus datos para iniciar la conversacion"),
   logoUrl: text("logo_url"),
   avatarUrl: text("avatar_url"),
+  launcherImageUrl: text("launcher_image_url"),
+  botIconUrl: text("bot_icon_url"),
   formFields: text("form_fields"),
   consultationOptions: text("consultation_options"),
   showProductSearch: integer("show_product_search").notNull().default(0),

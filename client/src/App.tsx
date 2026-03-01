@@ -326,6 +326,8 @@ interface TenantConfig {
   welcomeMessage: string;
   welcomeSubtitle: string;
   logoUrl: string | null;
+  launcherImageUrl: string | null;
+  botIconUrl: string | null;
   formFields: string | null;
   consultationOptions: string | null;
   showProductSearch: number;
@@ -390,6 +392,8 @@ function ChatWidget() {
   const widgetBotBubbleColor = tenantConfig?.botBubbleColor || undefined;
   const widgetBotTextColor = tenantConfig?.botTextColor || undefined;
   const widgetUserTextColor = tenantConfig?.userTextColor || undefined;
+  const widgetLauncherImage = tenantConfig?.launcherImageUrl || undefined;
+  const widgetBotIcon = tenantConfig?.botIconUrl || undefined;
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -478,6 +482,7 @@ function ChatWidget() {
                 botBubbleColor={widgetBotBubbleColor}
                 botTextColor={widgetBotTextColor}
                 userTextColor={widgetUserTextColor}
+                botIconUrl={widgetBotIcon}
               />
             ) : (
               <WelcomeForm
@@ -502,7 +507,7 @@ function ChatWidget() {
         </div>
       ) : (
         <div className="p-1.5">
-          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} />
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} />
         </div>
       )}
     </div>

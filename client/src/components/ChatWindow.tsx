@@ -65,6 +65,7 @@ interface ChatWindowProps {
   botBubbleColor?: string;
   botTextColor?: string;
   userTextColor?: string;
+  botIconUrl?: string;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -278,9 +279,10 @@ interface MessageBubbleProps {
   botBubbleColor?: string;
   botTextColor?: string;
   userTextColor?: string;
+  botIconUrl?: string;
 }
 
-const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick, brandColor = "#10b981", botBubbleColor, botTextColor, userTextColor }: MessageBubbleProps) {
+const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLastSupport, onQuickReply, onRatingComplete, onImageClick, brandColor = "#10b981", botBubbleColor, botTextColor, userTextColor, botIconUrl }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const hasImage = !!(message as any).imageUrl;
   const imageUrl = (message as any).imageUrl;
@@ -308,8 +310,12 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
         data-testid={`message-bubble-${message.id}`}
         className="flex items-end gap-2 animate-fade-in flex-row"
       >
-        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: hexToRgba(brandColor, 0.2), border: `1px solid ${hexToRgba(brandColor, 0.3)}` }}>
-          <Headphones className="w-3.5 h-3.5" style={{ color: brandColor }} />
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ backgroundColor: botIconUrl ? "transparent" : hexToRgba(brandColor, 0.2), border: botIconUrl ? "none" : `1px solid ${hexToRgba(brandColor, 0.3)}` }}>
+          {botIconUrl ? (
+            <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
+          ) : (
+            <Headphones className="w-3.5 h-3.5" style={{ color: brandColor }} />
+          )}
         </div>
         <div className="flex flex-col gap-1.5 max-w-[80%]">
           <RatingCard sessionId={sessionId} userEmail={userEmail} userName={uName} onRatingComplete={onRatingComplete} brandColor={brandColor} />
@@ -342,13 +348,17 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
       <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
         {!isUser && (
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border"
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border overflow-hidden"
             style={{
-              backgroundColor: hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.12),
-              borderColor: hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.19),
+              backgroundColor: (botIconUrl && !msgAdminName) ? "transparent" : hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.12),
+              borderColor: (botIconUrl && !msgAdminName) ? "transparent" : hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.19),
             }}
           >
-            <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminName ? msgAdminColor : brandColor }} />
+            {botIconUrl && !msgAdminName ? (
+              <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminName ? msgAdminColor : brandColor }} />
+            )}
           </div>
         )}
         <div className="flex flex-col gap-1.5 max-w-[80%]">
@@ -618,7 +628,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -954,6 +964,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
                   botBubbleColor={botBubbleColor}
                   botTextColor={botTextColor}
                   userTextColor={userTextColor}
+                  botIconUrl={botIconUrl}
                 />
               );
             });
@@ -1186,7 +1197,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           className="flex items-center justify-center gap-1 text-[10px] text-white/20 hover:text-white/35 transition-colors"
           data-testid="link-copyright"
         >
-          <span>Powered by</span>
+          <span>Potenciado por</span>
           <span className="font-medium">webmakerchile.com</span>
         </a>
       </div>

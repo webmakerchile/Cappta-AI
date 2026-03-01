@@ -57,6 +57,7 @@ import {
   Link as LinkIcon,
   DollarSign,
   Clock,
+  MessageCircle,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -319,6 +320,12 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [avatarUrl, setAvatarUrl] = useState(tenant.avatarUrl || "");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [launcherImageUrl, setLauncherImageUrl] = useState(tenant.launcherImageUrl || "");
+  const [uploadingLauncher, setUploadingLauncher] = useState(false);
+  const launcherInputRef = useRef<HTMLInputElement>(null);
+  const [botIconUrl, setBotIconUrl] = useState(tenant.botIconUrl || "");
+  const [uploadingBotIcon, setUploadingBotIcon] = useState(false);
+  const botIconInputRef = useRef<HTMLInputElement>(null);
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(null);
 
@@ -344,6 +351,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setProductApiUrl(tenant.productApiUrl || "");
     setDomain(tenant.domain || "");
     setAvatarUrl(tenant.avatarUrl || "");
+    setLauncherImageUrl(tenant.launcherImageUrl || "");
+    setBotIconUrl(tenant.botIconUrl || "");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -375,7 +384,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
 
   const handleLogoUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Solo se permiten imagenes", variant: "destructive" });
+      toast({ title: "Solo se permiten imágenes", variant: "destructive" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -419,6 +428,30 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       toast({ title: "Error al subir la imagen", variant: "destructive" });
     }
     setUploadingAvatar(false);
+  };
+
+  const handleImageUpload = async (file: File, setter: (url: string) => void, setLoading: (v: boolean) => void, label: string) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Solo se permiten imágenes", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "La imagen no puede superar 5MB", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Error al subir archivo");
+      const { objectPath } = await res.json();
+      setter(objectPath);
+      toast({ title: `${label} subido correctamente` });
+    } catch {
+      toast({ title: "Error al subir la imagen", variant: "destructive" });
+    }
+    setLoading(false);
   };
 
   const handleAnalyzeUrl = async () => {
@@ -489,6 +522,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       welcomeSubtitle,
       logoUrl: logoUrl || null,
       avatarUrl: avatarUrl || null,
+      launcherImageUrl: launcherImageUrl || null,
+      botIconUrl: botIconUrl || null,
       domain: domain.trim() || null,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
@@ -499,7 +534,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     updateMutation.mutate(data);
   };
 
-  const [previewMode, setPreviewMode] = useState<"welcome" | "chat">("welcome");
+  const [previewMode, setPreviewMode] = useState<"welcome" | "chat" | "launcher">("welcome");
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
@@ -772,6 +807,130 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
           </div>
           <p className="text-xs text-white/30">Formato: PNG, JPG, SVG. Maximo 5MB.</p>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+          <div className="space-y-2 animate-dash-fade-up dash-stagger-5">
+            <label className="text-sm font-medium text-white/60">Botón flotante del chat (opcional)</label>
+            <div className="flex items-center gap-3">
+              {launcherImageUrl ? (
+                <div className="relative group">
+                  <img
+                    src={launcherImageUrl}
+                    alt="Botón"
+                    className="h-14 w-14 rounded-full object-cover border border-white/[0.08]"
+                    data-testid="img-launcher-preview"
+                    onError={() => setLauncherImageUrl("")}
+                  />
+                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                    <button
+                      data-testid="button-change-launcher"
+                      onClick={() => launcherInputRef.current?.click()}
+                      className="p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    >
+                      <Upload className="w-3 h-3 text-white" />
+                    </button>
+                    <button
+                      data-testid="button-remove-launcher"
+                      onClick={() => setLauncherImageUrl("")}
+                      className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
+                    >
+                      <X className="w-3 h-3 text-red-400" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  data-testid="button-upload-launcher"
+                  onClick={() => launcherInputRef.current?.click()}
+                  disabled={uploadingLauncher}
+                  className="h-14 w-14 rounded-full border-2 border-dashed border-white/[0.1] hover:border-primary/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 flex items-center justify-center text-white/40 hover:text-white/60 shrink-0"
+                >
+                  {uploadingLauncher ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <MessageCircle className="w-6 h-6" />
+                  )}
+                </button>
+              )}
+              <input
+                ref={launcherInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file, setLauncherImageUrl, setUploadingLauncher, "Botón flotante");
+                  e.target.value = "";
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-white/50">Imagen personalizada para el botón flotante del chat.</p>
+                <p className="text-xs text-white/30 mt-0.5">Si no se sube, se usa el ícono predeterminado.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2 animate-dash-fade-up dash-stagger-5">
+            <label className="text-sm font-medium text-white/60">Ícono del bot en mensajes (opcional)</label>
+            <div className="flex items-center gap-3">
+              {botIconUrl ? (
+                <div className="relative group">
+                  <img
+                    src={botIconUrl}
+                    alt="Ícono bot"
+                    className="h-14 w-14 rounded-full object-cover border border-white/[0.08]"
+                    data-testid="img-boticon-preview"
+                    onError={() => setBotIconUrl("")}
+                  />
+                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                    <button
+                      data-testid="button-change-boticon"
+                      onClick={() => botIconInputRef.current?.click()}
+                      className="p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    >
+                      <Upload className="w-3 h-3 text-white" />
+                    </button>
+                    <button
+                      data-testid="button-remove-boticon"
+                      onClick={() => setBotIconUrl("")}
+                      className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
+                    >
+                      <X className="w-3 h-3 text-red-400" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  data-testid="button-upload-boticon"
+                  onClick={() => botIconInputRef.current?.click()}
+                  disabled={uploadingBotIcon}
+                  className="h-14 w-14 rounded-full border-2 border-dashed border-white/[0.1] hover:border-primary/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 flex items-center justify-center text-white/40 hover:text-white/60 shrink-0"
+                >
+                  {uploadingBotIcon ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Headphones className="w-6 h-6" />
+                  )}
+                </button>
+              )}
+              <input
+                ref={botIconInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file, setBotIconUrl, setUploadingBotIcon, "Ícono del bot");
+                  e.target.value = "";
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-white/50">Imagen que aparece junto a los mensajes del bot.</p>
+                <p className="text-xs text-white/30 mt-0.5">Si no se sube, se usa el ícono de auriculares.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
@@ -931,6 +1090,13 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 >
                   Chat
                 </button>
+                <button
+                  data-testid="button-preview-launcher"
+                  onClick={() => setPreviewMode("launcher")}
+                  className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${previewMode === "launcher" ? "bg-white/[0.1] text-white/90" : "text-white/40 hover:text-white/60"}`}
+                >
+                  Botón
+                </button>
               </div>
             </div>
 
@@ -939,7 +1105,38 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               style={{ height: 520 }}
               data-testid="widget-preview-container"
             >
-              {previewMode === "welcome" ? (
+              {previewMode === "launcher" ? (
+                <div className="flex flex-col h-full items-center justify-center" style={{ background: "#1a1a1a" }}>
+                  <p className="text-xs text-white/40 mb-6">Así se verá el botón flotante en tu sitio:</p>
+                  <div className="relative">
+                    <div
+                      className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden"
+                      style={{ backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
+                    >
+                      {launcherImageUrl ? (
+                        <img src={launcherImageUrl} alt="Botón" className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        <MessageCircle className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-white/25 mt-4">{launcherImageUrl ? "Imagen personalizada" : "Botón predeterminado"}</p>
+                  <div className="mt-8 flex items-center gap-3">
+                    <p className="text-xs text-white/40">Ícono del bot en mensajes:</p>
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border"
+                      style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
+                    >
+                      {botIconUrl ? (
+                        <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        <Headphones className="w-4 h-4" style={{ color: widgetColor }} />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-white/25">{botIconUrl ? "Personalizado" : "Predeterminado"}</p>
+                  </div>
+                </div>
+              ) : previewMode === "welcome" ? (
                 <div className="flex flex-col h-full" style={{ background: "#1a1a1a" }}>
                   <div className="px-4 py-3 flex items-center justify-between shrink-0" style={{ background: widgetColor }}>
                     <div className="flex items-center gap-2 min-w-0">
@@ -1002,9 +1199,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                   </div>
                   <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
                     <div className="flex items-end gap-1.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
-                        {logoUrl ? (
-                          <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border" style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}>
+                        {botIconUrl ? (
+                          <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
                         ) : (
                           <Headphones className="w-3 h-3" style={{ color: widgetColor }} />
                         )}
@@ -1025,9 +1222,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       </div>
                     </div>
                     <div className="flex items-end gap-1.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
-                        {logoUrl ? (
-                          <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border" style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}>
+                        {botIconUrl ? (
+                          <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
                         ) : (
                           <Headphones className="w-3 h-3" style={{ color: widgetColor }} />
                         )}
@@ -1068,7 +1265,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </div>
                   </div>
                   <div className="py-1.5 px-3 border-t border-white/[0.04] shrink-0">
-                    <p className="text-[9px] text-white/20 text-center">Powered by <span className="font-medium">FoxBot</span></p>
+                    <p className="text-[9px] text-white/20 text-center">Potenciado por <span className="font-medium">FoxBot</span></p>
                   </div>
                 </div>
               )}
@@ -2221,7 +2418,7 @@ export default function Dashboard() {
     if (payment) {
       window.history.replaceState({}, "", "/dashboard");
       if (payment === "success") {
-        toast({ title: "Pago exitoso!", description: "Tu plan ha sido actualizado. Ahora instala el chat en tu sitio web." });
+        toast({ title: "¡Pago exitoso!", description: "Tu plan ha sido actualizado. Ahora instala el chat en tu sitio web." });
         queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
         setActiveTab("guides");
       } else if (payment === "rejected") {

@@ -911,7 +911,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Solo se permiten imagenes (JPG, PNG, GIF, WebP)");
+      setError("Solo se permiten imágenes (JPG, PNG, GIF, WebP)");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -1157,7 +1157,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
               </form>
               <div className="flex items-center justify-between mt-1.5 px-1">
                 <span className="text-[9px] text-white/15">{remaining}/{MAX_DEMO_MESSAGES} restantes</span>
-                <span className="text-[9px] text-white/10">Powered by FoxBot</span>
+                <span className="text-[9px] text-white/10">Potenciado por FoxBot</span>
               </div>
             </>
           )}
