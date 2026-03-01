@@ -2734,6 +2734,62 @@ El resultado debe ser el MISMO texto pero con mejor redaccion, NO un texto compl
     }
   });
 
+  app.post("/api/tenant-panel/add-info", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const { existingText, newText } = req.body;
+    if (!newText || typeof newText !== "string" || newText.trim().length < 5) {
+      return res.status(400).json({ message: "La información nueva es muy corta." });
+    }
+    try {
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const hasExisting = existingText && typeof existingText === "string" && existingText.trim().length > 0;
+      const systemPrompt = hasExisting
+        ? `Eres un experto en organizar informacion de negocios para chatbots de atencion al cliente en Chile.
+
+Tu tarea: Recibir la INFORMACION EXISTENTE de un chatbot y NUEVA INFORMACION adicional, y fusionarlas en un solo texto coherente y bien organizado.
+
+REGLAS CRITICAS:
+- CONSERVAR TODA la informacion existente sin eliminar nada
+- INTEGRAR la nueva informacion en las secciones correspondientes del texto existente
+- Si la nueva informacion tiene datos que contradicen los existentes, USAR LOS NUEVOS (son mas actualizados)
+- Si la nueva informacion agrega secciones o temas que no existen, CREAR nuevas secciones al final
+- MANTENER la misma estructura, formato y estilo del texto existente (emojis, separadores ━━━, bullets, etc.)
+- NUNCA inventar informacion ni agregar placeholders como [dato], [info], etc.
+- El resultado debe ser UN SOLO texto unificado, no dos textos separados
+- Mantener un tono profesional y amable, estilo chileno`
+        : `Eres un experto en organizar informacion de negocios para chatbots de atencion al cliente en Chile.
+
+Tu tarea: Recibir informacion de un negocio y organizarla de forma clara y estructurada para entrenar un chatbot.
+
+REGLAS:
+- Organizar la informacion en secciones claras con emojis y separadores
+- Usar formato con bullets y estructura legible
+- NUNCA inventar informacion ni agregar placeholders
+- Mantener un tono profesional y amable, estilo chileno`;
+
+      const userMessage = hasExisting
+        ? `INFORMACION EXISTENTE del chatbot:\n\n${existingText.substring(0, 12000)}\n\n━━━━━━━━━━━━━━━━━━━━\n\nNUEVA INFORMACION para agregar:\n\n${newText.substring(0, 5000)}\n\nFusiona ambas en un solo texto unificado, conservando todo lo existente e integrando lo nuevo.`
+        : `Organiza la siguiente informacion de negocio para un chatbot:\n\n${newText.substring(0, 8000)}`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage }
+        ],
+        temperature: 0.3,
+        max_tokens: 6000,
+      });
+      const merged = completion.choices[0]?.message?.content || "";
+      res.json({ merged });
+    } catch (error: any) {
+      console.error("[add-info] Error:", error.message);
+      res.status(500).json({ message: "Error al procesar la información. Intenta de nuevo." });
+    }
+  });
+
   app.post("/api/tenant-panel/analyze-url", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;

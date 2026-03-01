@@ -1704,6 +1704,9 @@ function EntrenarBotTab() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState("");
   const [beautifying, setBeautifying] = useState(false);
+  const [addingInfo, setAddingInfo] = useState(false);
+  const [showAddInfo, setShowAddInfo] = useState(false);
+  const [newInfoText, setNewInfoText] = useState("");
   const [activePage, setActivePage] = useState<number | "main">("main");
   const [editingPageId, setEditingPageId] = useState<number | null>(null);
   const [editingPageTitle, setEditingPageTitle] = useState("");
@@ -1883,6 +1886,35 @@ function EntrenarBotTab() {
       toast({ title: "Error", description: err.message || "No se pudo embellecer el texto", variant: "destructive" });
     } finally {
       setBeautifying(false);
+    }
+  };
+
+  const handleAddInfo = async () => {
+    if (!newInfoText.trim()) {
+      toast({ title: "Sin información", description: "Pega o escribe la información que deseas agregar", variant: "destructive" });
+      return;
+    }
+    const existingText = activePage === "main" ? botContext : editingPageContent;
+    setAddingInfo(true);
+    try {
+      const res = await tenantFetch("/api/tenant-panel/add-info", {
+        method: "POST",
+        body: JSON.stringify({ existingText, newText: newInfoText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error");
+      if (activePage === "main") {
+        setBotContext(data.merged);
+      } else {
+        setEditingPageContent(data.merged);
+      }
+      setNewInfoText("");
+      setShowAddInfo(false);
+      toast({ title: "Información agregada", description: "Se fusionó la nueva información con la existente. Revisa y guarda los cambios." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo agregar la información", variant: "destructive" });
+    } finally {
+      setAddingInfo(false);
     }
   };
 
@@ -2126,7 +2158,42 @@ function EntrenarBotTab() {
               className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[300px] text-sm font-mono"
               rows={18}
             />
+            {showAddInfo && activePage === "main" && (
+              <div className="rounded-lg border border-[#10b981]/20 bg-[#10b981]/5 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#10b981]">Pega la nueva información aquí:</p>
+                  <button onClick={() => { setShowAddInfo(false); setNewInfoText(""); }} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+                </div>
+                <Textarea
+                  data-testid="textarea-add-info"
+                  value={newInfoText}
+                  onChange={(e) => setNewInfoText(e.target.value)}
+                  placeholder="Pega aquí la información nueva que quieras agregar (horarios, productos, servicios, etc.)..."
+                  className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[120px] text-sm font-mono"
+                  rows={6}
+                />
+                <Button
+                  data-testid="button-merge-info"
+                  onClick={handleAddInfo}
+                  disabled={addingInfo || !newInfoText.trim()}
+                  className="bg-[#10b981] border-[#10b981] w-full"
+                >
+                  {addingInfo ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                  {addingInfo ? "Fusionando con IA..." : "Fusionar con información existente"}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
+              <Button
+                data-testid="button-add-info"
+                onClick={() => setShowAddInfo(!showAddInfo)}
+                disabled={addingInfo}
+                variant="outline"
+                className="border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10 w-full sm:w-auto"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" />
+                Agregar información
+              </Button>
               <Button
                 data-testid="button-beautify-text"
                 onClick={handleBeautify}
@@ -2169,7 +2236,42 @@ function EntrenarBotTab() {
               rows={18}
               data-testid="textarea-page-content"
             />
+            {showAddInfo && activePage !== "main" && (
+              <div className="rounded-lg border border-[#10b981]/20 bg-[#10b981]/5 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#10b981]">Pega la nueva información aquí:</p>
+                  <button onClick={() => { setShowAddInfo(false); setNewInfoText(""); }} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+                </div>
+                <Textarea
+                  data-testid="textarea-add-info-page"
+                  value={newInfoText}
+                  onChange={(e) => setNewInfoText(e.target.value)}
+                  placeholder="Pega aquí la información nueva que quieras agregar..."
+                  className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[120px] text-sm font-mono"
+                  rows={6}
+                />
+                <Button
+                  data-testid="button-merge-info-page"
+                  onClick={handleAddInfo}
+                  disabled={addingInfo || !newInfoText.trim()}
+                  className="bg-[#10b981] border-[#10b981] w-full"
+                >
+                  {addingInfo ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                  {addingInfo ? "Fusionando con IA..." : "Fusionar con información existente"}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
+              <Button
+                data-testid="button-add-info-page"
+                onClick={() => setShowAddInfo(!showAddInfo)}
+                disabled={addingInfo}
+                variant="outline"
+                className="border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10 w-full sm:w-auto"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" />
+                Agregar información
+              </Button>
               <Button
                 data-testid="button-beautify-text"
                 onClick={handleBeautify}
