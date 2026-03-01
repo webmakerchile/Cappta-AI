@@ -1,4 +1,4 @@
-const CACHE_NAME = 'foxbot-v3';
+const CACHE_NAME = 'foxbot-v4';
 const OFFLINE_URLS = ['/admin', '/dashboard', '/panel'];
 
 self.addEventListener('install', (event) => {
@@ -87,9 +87,10 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  const urlToOpen = event.notification.data?.url || '/admin';
+  const urlToOpen = event.notification.data?.url || '/panel';
+  const isPanel = urlToOpen.includes('/panel');
   const isDashboard = urlToOpen.includes('/dashboard');
-  const targetPath = isDashboard ? '/dashboard' : '/admin';
+  const targetPath = isPanel ? '/panel' : isDashboard ? '/dashboard' : '/admin';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
@@ -128,6 +129,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request).catch(() => {
         const requestUrl = new URL(event.request.url);
+        if (requestUrl.pathname.startsWith('/panel')) {
+          return caches.match('/panel');
+        }
         if (requestUrl.pathname.startsWith('/dashboard')) {
           return caches.match('/dashboard');
         }

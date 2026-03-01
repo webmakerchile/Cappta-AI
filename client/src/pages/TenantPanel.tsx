@@ -2775,6 +2775,13 @@ export default function TenantPanel() {
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    if (manifestLink) {
+      manifestLink.setAttribute("href", "/manifest-panel.json");
+    }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
+    }
   }, []);
 
   const canAccessTab = (item: typeof SIDEBAR_ITEMS[0]) => {
