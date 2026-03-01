@@ -35,6 +35,7 @@ Key architectural decisions and features include:
 - **Integrated Product Catalog**: Each tenant manages their own product catalog via the tenant panel. The bot queries the tenant-scoped PostgreSQL-backed catalog with fuzzy matching via pg_trgm trigram similarity. WooCommerce direct integration has been removed — products are managed per-tenant through the panel UI.
 - **Comprehensive Admin Panel**: Located at `/admin`, this panel offers session management, a chat viewer, global search, status filters, tags, canned responses, product catalog management, session agent badges, and agent type filters.
 - **Conversation Learning System**: An AI-powered learning pipeline that extracts knowledge from closed customer conversations.
+- **Ambassador Referral System**: Referral program with dynamic "Embajador" (Ambassador) tier. Normal referrals earn $3,000 CLP per confirmed paid referral. At 15+ active paid referrals (plan != 'free'), the referrer becomes an Ambassador and earns $5,000 CLP per referral + free Fox Enterprise plan. Ambassador status is **dynamic** — if paid referrals drop below 15 (e.g., referral downgrades to free plan), they lose Ambassador benefits. `getPaidReferralCount()` counts only referrals whose tenant currently has a paid plan ('basic' or 'pro'). Frontend shows Ambassador banner, progress toward ambassador threshold, and distinguishes "Activo" vs "Plan cancelado" referral statuses.
 - **Replit Object Storage**: Used for image uploads, leveraging presigned URLs for secure and efficient file handling.
 
 ## SaaS Pages & Routing

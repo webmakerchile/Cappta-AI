@@ -123,6 +123,7 @@ export interface IStorage {
   createReferral(data: InsertReferral): Promise<Referral>;
   confirmReferral(referrerId: number, referredId: number): Promise<Referral | null>;
   getConfirmedReferralCount(referrerId: number): Promise<number>;
+  getPaidReferralCount(referrerId: number): Promise<number>;
   getTenantByReferralCode(code: string): Promise<Tenant | null>;
   generateReferralCode(tenantId: number): Promise<string>;
   applyReferralReward(tenantId: number, plan: string, months: number): Promise<void>;
@@ -1451,6 +1452,18 @@ export class DatabaseStorage implements IStorage {
 
   async getConfirmedReferralCount(referrerId: number): Promise<number> {
     const result = await db.select({ count: sql<number>`count(*)` }).from(referrals).where(and(eq(referrals.referrerId, referrerId), eq(referrals.confirmed, 1)));
+    return Number(result[0]?.count || 0);
+  }
+
+  async getPaidReferralCount(referrerId: number): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(referrals)
+      .innerJoin(tenants, eq(referrals.referredId, tenants.id))
+      .where(and(
+        eq(referrals.referrerId, referrerId),
+        eq(referrals.confirmed, 1),
+        sql`${tenants.plan} IN ('basic', 'pro')`
+      ));
     return Number(result[0]?.count || 0);
   }
 

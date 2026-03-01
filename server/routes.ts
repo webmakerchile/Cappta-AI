@@ -1671,9 +1671,12 @@ ${DEMO_BASE_RULES}`,
           const isPaidPlan = order.targetPlan === "basic" || order.targetPlan === "pro";
           if (referral && referral.confirmed === 0 && isPaidPlan) {
             await storage.confirmReferral(referral.referrerId, order.tenantId);
-            const CASH_PER_REFERRAL = 3000;
+            const paidCount = await storage.getPaidReferralCount(referral.referrerId);
+            const AMBASSADOR_THRESHOLD = 15;
+            const isAmbassador = paidCount >= AMBASSADOR_THRESHOLD;
+            const CASH_PER_REFERRAL = isAmbassador ? 5000 : 3000;
             await storage.addReferralCash(referral.referrerId, CASH_PER_REFERRAL);
-            log(`Referral cash: referrer ${referral.referrerId} earned $${CASH_PER_REFERRAL} CLP (referido ${order.tenantId})`, "referral");
+            log(`Referral cash: referrer ${referral.referrerId} earned $${CASH_PER_REFERRAL} CLP ${isAmbassador ? "(EMBAJADOR)" : ""} (referido ${order.tenantId})`, "referral");
             const confirmedCount = await storage.getConfirmedReferralCount(referral.referrerId);
             const milestones: { count: number; plan: string; months: number }[] = [
               { count: 1, plan: "basic", months: 1 },
@@ -1689,6 +1692,9 @@ ${DEMO_BASE_RULES}`,
               log(`Referral milestone: referrer ${referral.referrerId} earned ${bestMilestone.months} months ${planName} (${confirmedCount} referidos, referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
             } else {
               log(`Referral confirmed: referrer ${referral.referrerId} now has ${confirmedCount} confirmed + $${CASH_PER_REFERRAL} CLP (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
+            }
+            if (isAmbassador && paidCount === AMBASSADOR_THRESHOLD) {
+              log(`EMBAJADOR NUEVO: tenant ${referral.referrerId} alcanzó ${AMBASSADOR_THRESHOLD} referidos pagados activos`, "referral");
             }
           }
         } catch (refErr: any) {
@@ -1815,6 +1821,11 @@ ${DEMO_BASE_RULES}`,
       const allReferrals = await storage.getReferralsByReferrerId(auth.id);
       const confirmedCount = allReferrals.filter(r => r.confirmed === 1).length;
       const pendingCount = allReferrals.filter(r => r.confirmed === 0).length;
+      const paidReferralCount = await storage.getPaidReferralCount(auth.id);
+      const AMBASSADOR_THRESHOLD = 15;
+      const isAmbassador = paidReferralCount >= AMBASSADOR_THRESHOLD;
+      const CASH_NORMAL = 3000;
+      const CASH_AMBASSADOR = 5000;
       const referralsWithNames = await Promise.all(allReferrals.map(async (r) => {
         const referred = await storage.getTenantById(r.referredId);
         return {
@@ -1852,8 +1863,14 @@ ${DEMO_BASE_RULES}`,
         }
       }
       const cashBalance = tenant.cashBalance || 0;
-      const totalCashEarned = confirmedCount * 3000;
-      res.json({ code, confirmedCount, pendingCount, referrals: referralsWithNames, currentReward, nextReward, cashBalance, totalCashEarned });
+      const totalCashEarned = confirmedCount * CASH_NORMAL;
+      res.json({
+        code, confirmedCount, pendingCount, paidReferralCount,
+        isAmbassador, ambassadorThreshold: AMBASSADOR_THRESHOLD,
+        cashPerReferral: isAmbassador ? CASH_AMBASSADOR : CASH_NORMAL,
+        referrals: referralsWithNames, currentReward, nextReward,
+        cashBalance, totalCashEarned,
+      });
     } catch (error: any) {
       log(`Error obteniendo referidos: ${error.message}`, "referral");
       res.status(500).json({ message: "Error al obtener datos de referidos" });

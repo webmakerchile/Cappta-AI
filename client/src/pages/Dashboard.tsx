@@ -58,6 +58,7 @@ import {
   DollarSign,
   Clock,
   MessageCircle,
+  Shield,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -1766,6 +1767,10 @@ interface ReferralData {
   code: string;
   confirmedCount: number;
   pendingCount: number;
+  paidReferralCount: number;
+  isAmbassador: boolean;
+  ambassadorThreshold: number;
+  cashPerReferral: number;
   referrals: { id: number; referredName: string; referredEmail: string; referredPlan: string; confirmed: number; createdAt: string; confirmedAt: string | null }[];
   currentReward: { plan: string; planLabel: string; expiresAt: string; months: number } | null;
   nextReward: { target: number; current: number; plan: string; months: number } | null;
@@ -1820,7 +1825,7 @@ function ReferidosSection() {
     { refs: 3, cash: "$9.000", reward: "+ 2 meses Fox Pro", color: "59,130,246", icon: <Star className="w-4 h-4" />, desc: "Acumulas $3.000 CLP por cada referido" },
     { refs: 5, cash: "$15.000", reward: "+ 3 meses Fox Enterprise", color: "245,158,11", icon: <Trophy className="w-4 h-4" />, desc: "Sesiones y mensajes ilimitados para ti" },
     { refs: 10, cash: "$30.000", reward: "+ 6 meses Fox Enterprise", color: "168,85,247", icon: <Crown className="w-4 h-4" />, desc: "Nivel experto: dinero real + el mejor plan" },
-    { refs: 15, cash: "$45.000", reward: "+ 12 meses Fox Enterprise", color: "236,72,153", icon: <Sparkles className="w-4 h-4" />, desc: "Embajador FoxBot: 1 año gratis + $45.000 en saldo" },
+    { refs: 15, cash: "$45.000", reward: "Embajador FoxBot", color: "236,72,153", icon: <Shield className="w-4 h-4" />, desc: "Plan gratis permanente + $5.000 por referido" },
   ];
 
   return (
@@ -1857,12 +1862,49 @@ function ReferidosSection() {
             </div>
           </div>
 
+          {data.isAmbassador && (
+            <div className="rounded-xl p-4 mb-6 animate-dash-fade-up relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.1))", border: "1px solid rgba(236,72,153,0.3)" }} data-testid="banner-ambassador">
+              <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full" style={{ background: "radial-gradient(circle, rgba(236,72,153,0.15), transparent 60%)" }} />
+              <div className="relative flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(236,72,153,0.2)" }}>
+                  <Shield className="w-6 h-6 text-pink-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-black text-pink-400">Embajador FoxBot</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-bold border border-pink-500/30">ACTIVO</span>
+                  </div>
+                  <p className="text-xs text-white/50 mt-0.5">
+                    Ganas <span className="text-pink-400 font-bold">$5.000 CLP</span> por referido · Plan Fox Enterprise gratis mientras mantengas {data.ambassadorThreshold}+ referidos pagados
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-2 text-[11px] text-white/40">
+                <Users className="w-3.5 h-3.5 text-pink-400/60" />
+                <span>{data.paidReferralCount} referidos con plan pagado activo</span>
+              </div>
+            </div>
+          )}
+
+          {!data.isAmbassador && data.paidReferralCount >= 10 && (
+            <div className="rounded-xl p-3 mb-6 animate-dash-fade-up" style={{ background: "rgba(236,72,153,0.06)", border: "1px solid rgba(236,72,153,0.15)" }}>
+              <div className="flex items-center gap-2 text-xs text-pink-300/80">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Te faltan <span className="font-bold text-pink-400">{data.ambassadorThreshold - data.paidReferralCount}</span> referidos pagados para ser Embajador ({data.paidReferralCount}/{data.ambassadorThreshold})</span>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/15 p-4 mb-6 animate-dash-fade-up dash-stagger-1">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-bold text-amber-400">$3.000 CLP por cada referido confirmado</span>
+              <span className="text-sm font-bold text-amber-400">{formatCLP(data.cashPerReferral)} CLP por cada referido confirmado</span>
             </div>
-            <p className="text-xs text-white/40">Cada vez que un negocio se registra con tu enlace y compra Fox Pro o Fox Enterprise, recibes $3.000 CLP en saldo. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.</p>
+            <p className="text-xs text-white/40">
+              Cada vez que un negocio se registra con tu enlace y compra Fox Pro o Fox Enterprise, recibes {formatCLP(data.cashPerReferral)} CLP en saldo.
+              {data.isAmbassador ? " Como Embajador, ganas $5.000 en vez de $3.000 por referido." : " Los Embajadores ganan $5.000 por referido."}
+              {" "}Solo cuentan referidos con plan de pago activo.
+            </p>
           </div>
 
           <h4 className="text-sm font-bold text-white/60 mb-3 animate-dash-fade-up dash-stagger-1">Escalera de recompensas</h4>
@@ -1965,16 +2007,23 @@ function ReferidosSection() {
                 </div>
                 {ref.confirmed ? (
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-bold text-primary">+$3.000</span>
-                    <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                      <CircleCheck className="w-3 h-3" />
-                      Confirmado
-                    </span>
+                    <span className="text-xs font-bold text-primary">+{formatCLP(data.cashPerReferral)}</span>
+                    {ref.referredPlan === "free" ? (
+                      <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 font-medium border border-red-500/20" data-testid={`status-referral-${ref.id}`}>
+                        <AlertTriangle className="w-3 h-3" />
+                        Plan cancelado
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                        <CircleCheck className="w-3 h-3" />
+                        Activo
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0" data-testid={`status-referral-${ref.id}`}>
                     <Clock className="w-3 h-3" />
-                    {ref.referredPlan === "free" ? "Esperando compra" : "Pendiente"}
+                    Esperando compra
                   </span>
                 )}
               </div>
