@@ -1266,31 +1266,44 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                         {launcherBubbleText}
                       </div>
                     )}
-                    <div
-                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0"
-                      style={{ width: `${Math.round(56 * launcherImageScale / 100)}px`, height: `${Math.round(56 * launcherImageScale / 100)}px`, aspectRatio: "1 / 1", backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
-                    >
-                      {launcherImageUrl ? (
-                        <img src={launcherImageUrl} alt="Botón" className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        <MessageCircle className="w-6 h-6 text-white" />
-                      )}
+                    <div className="relative" style={{ width: `${Math.round(56 * launcherImageScale / 100)}px`, height: `${Math.round(56 * launcherImageScale / 100)}px` }}>
+                      <div
+                        className="w-full h-full rounded-full flex items-center justify-center shadow-xl shrink-0"
+                        style={{ backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
+                      >
+                        {launcherImageUrl ? (
+                          <img src={launcherImageUrl} alt="Botón" className="w-full h-full rounded-full object-cover block" />
+                        ) : (
+                          <MessageCircle className="w-6 h-6 text-white" />
+                        )}
+                      </div>
+                      <span
+                        className="absolute rounded-full bg-red-500 border-2 border-[#1a1a1a]"
+                        style={{
+                          width: `${Math.max(10, Math.round(16 * launcherImageScale / 100))}px`,
+                          height: `${Math.max(10, Math.round(16 * launcherImageScale / 100))}px`,
+                          top: `${Math.round(Math.max(10, Math.round(16 * launcherImageScale / 100)) * -0.15)}px`,
+                          right: `${Math.round(Math.max(10, Math.round(16 * launcherImageScale / 100)) * -0.15)}px`,
+                        }}
+                      />
                     </div>
                   </div>
-                  <p className="text-[10px] text-white/25 mt-4">{launcherImageUrl ? "Imagen personalizada" : "Botón predeterminado"}</p>
+                  <p className="text-[10px] text-white/25 mt-4">{launcherImageUrl ? `Imagen personalizada (${launcherImageScale}%)` : "Botón predeterminado"}</p>
                   <div className="mt-8 flex items-center gap-3">
                     <p className="text-xs text-white/40">Ícono del bot en mensajes:</p>
-                    <div
-                      className="rounded-full flex items-center justify-center overflow-hidden border"
-                      style={{ width: `${Math.round(32 * botIconScale / 100)}px`, height: `${Math.round(32 * botIconScale / 100)}px`, aspectRatio: "1 / 1", backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
-                    >
-                      {botIconUrl ? (
-                        <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        <Headphones className="w-4 h-4" style={{ color: widgetColor }} />
-                      )}
+                    <div className="relative" style={{ width: `${Math.round(32 * botIconScale / 100)}px`, height: `${Math.round(32 * botIconScale / 100)}px` }}>
+                      <div
+                        className="w-full h-full rounded-full flex items-center justify-center border"
+                        style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
+                      >
+                        {botIconUrl ? (
+                          <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover block" />
+                        ) : (
+                          <Headphones className="w-4 h-4" style={{ color: widgetColor }} />
+                        )}
+                      </div>
                     </div>
-                    <p className="text-[10px] text-white/25">{botIconUrl ? "Personalizado" : "Predeterminado"}</p>
+                    <p className="text-[10px] text-white/25">{botIconUrl ? `Personalizado (${botIconScale}%)` : "Predeterminado"}</p>
                   </div>
                   <div className="mt-6 flex flex-col items-center gap-2">
                     <p className="text-xs text-white/40">Posición del widget:</p>

@@ -16,6 +16,10 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
   const [showBubble, setShowBubble] = useState(!!bubbleText);
   const [imageReady, setImageReady] = useState(!launcherImage);
 
+  const sizePx = Math.round(56 * launcherScale / 100);
+  const badgeSize = Math.max(10, Math.round(16 * launcherScale / 100));
+  const badgeOffset = Math.round(badgeSize * -0.15);
+
   useEffect(() => {
     if (!launcherImage) {
       setImageReady(true);
@@ -62,42 +66,50 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
           </button>
         </div>
       )}
-      <button
-        data-testid="button-launcher"
-        onClick={onClick}
-        className="
-          relative rounded-full overflow-hidden
-          flex items-center justify-center
-          transition-transform duration-200 ease-out
-          hover:scale-105 active:scale-95
-          focus:outline-none
-        "
-        style={{
-          width: `${Math.round(56 * launcherScale / 100)}px`,
-          height: `${Math.round(56 * launcherScale / 100)}px`,
-          border: "none",
-          backgroundColor: launcherImage ? "transparent" : bgColor,
-          boxShadow: launcherImage ? "none" : `0 4px 20px ${bgColor}40`,
-          aspectRatio: "1 / 1",
-        }}
+      <div
+        className="relative"
+        style={{ width: `${sizePx}px`, height: `${sizePx}px` }}
       >
-        {launcherImage ? (
-          <img
-            src={launcherImage}
-            alt="Chat"
-            className="absolute inset-0 w-full h-full object-cover rounded-full"
-            data-testid="img-launcher-custom"
-          />
-        ) : (
-          <MessageCircle className="w-6 h-6 text-white" />
-        )}
+        <button
+          data-testid="button-launcher"
+          onClick={onClick}
+          className="
+            w-full h-full rounded-full
+            flex items-center justify-center
+            transition-transform duration-200 ease-out
+            hover:scale-105 active:scale-95
+            focus:outline-none
+          "
+          style={{
+            border: "none",
+            backgroundColor: launcherImage ? "transparent" : bgColor,
+            boxShadow: launcherImage ? "none" : `0 4px 20px ${bgColor}40`,
+          }}
+        >
+          {launcherImage ? (
+            <img
+              src={launcherImage}
+              alt="Chat"
+              className="w-full h-full rounded-full object-cover block"
+              data-testid="img-launcher-custom"
+            />
+          ) : (
+            <MessageCircle className="w-6 h-6 text-white" />
+          )}
+        </button>
         {hasUnread && (
           <span
             data-testid="badge-unread"
-            className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 border-2 border-[#1a1a1a]"
+            className="absolute rounded-full bg-red-500 border-2 border-[#1a1a1a] pointer-events-none"
+            style={{
+              width: `${badgeSize}px`,
+              height: `${badgeSize}px`,
+              top: `${badgeOffset}px`,
+              right: `${badgeOffset}px`,
+            }}
           />
         )}
-      </button>
+      </div>
     </div>
   );
 }
