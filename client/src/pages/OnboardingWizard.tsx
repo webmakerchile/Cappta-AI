@@ -197,10 +197,61 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const step1Valid = companyName.trim().length > 0;
   const step2Valid = widgetColor.trim().length > 0;
 
-  const embedCode = `<script src="${window.location.origin}/widget.js" data-tenant-id="${tenant.id}" async></script>`;
+  const baseUrl = window.location.origin;
 
-  const copyEmbed = () => {
-    navigator.clipboard.writeText(embedCode);
+  const embedScript = `<script>
+  (function() {
+    var iframe = document.createElement('iframe');
+    iframe.id = 'foxbot-widget';
+    iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
+    iframe.allow = 'microphone';
+    iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+    document.body.appendChild(iframe);
+    window.addEventListener('message', function(e) {
+      if (!e.data || !e.data.type) return;
+      if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
+        var mobile = window.innerWidth <= 480;
+        if (e.data.type === 'open_chat') {
+          if (mobile) {
+            iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+          } else {
+            iframe.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+          }
+        } else {
+          iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+        }
+      }
+    });
+  })();
+</script>`;
+
+  const iframeCode = `<iframe
+  id="foxbot-widget"
+  src="${baseUrl}/widget?tenantId=${tenant.id}"
+  style="position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;"
+  allow="microphone"
+></iframe>
+<script>
+  window.addEventListener('message', function(e) {
+    var f = document.getElementById('foxbot-widget');
+    if (!f || !e.data || !e.data.type) return;
+    if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
+      var mobile = window.innerWidth <= 480;
+      if (e.data.type === 'open_chat') {
+        if (mobile) {
+          f.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+        } else {
+          f.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+        }
+      } else {
+        f.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+      }
+    }
+  });
+</script>`;
+
+  const copyEmbed = (code: string) => {
+    navigator.clipboard.writeText(code);
     setCopied(true);
     toast({ title: "Código copiado!" });
     setTimeout(() => setCopied(false), 2000);
@@ -600,7 +651,8 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
 
           {step === 2 && (
             <Step2Ready
-              embedCode={embedCode}
+              embedScript={embedScript}
+              iframeCode={iframeCode}
               copyEmbed={copyEmbed}
               copied={copied}
               saving={saving}
@@ -675,21 +727,26 @@ const PLATFORM_GUIDES = [
 ];
 
 function Step2Ready({
-  embedCode,
+  embedScript,
+  iframeCode,
   copyEmbed,
   copied,
   saving,
   onBack,
   onFinish,
 }: {
-  embedCode: string;
-  copyEmbed: () => void;
+  embedScript: string;
+  iframeCode: string;
+  copyEmbed: (code: string) => void;
   copied: boolean;
   saving: boolean;
   onBack: () => void;
   onFinish: () => void;
 }) {
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
+  const [codeTab, setCodeTab] = useState<"script" | "iframe">("script");
+
+  const activeCode = codeTab === "script" ? embedScript : iframeCode;
 
   return (
     <div className="p-6 sm:p-8 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar" data-testid="onboarding-step-2">
@@ -702,23 +759,40 @@ function Step2Ready({
       </div>
 
       <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-2">
           <Code className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-white/80">Código de integración</span>
         </div>
-        <div className="relative">
-          <pre className="p-4 rounded-lg bg-black/40 text-xs text-green-400 font-mono overflow-x-auto border border-white/[0.06]" data-testid="onboarding-embed-code">
-            {embedCode}
-          </pre>
-          <Button
-            onClick={copyEmbed}
-            variant="outline"
-            className={`absolute top-2 right-2 h-8 rounded-lg px-3 text-xs border-white/[0.08] ${copied ? "bg-green-500/10 text-green-400 border-green-500/20" : ""}`}
-            data-testid="onboarding-copy-embed"
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => setCodeTab("script")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${codeTab === "script" ? "bg-primary text-white" : "bg-white/[0.05] text-white/50 hover:bg-white/[0.08]"}`}
+            data-testid="tab-script-onboarding"
           >
-            {copied ? <><Check className="w-3 h-3 mr-1" /> Copiado</> : <><Copy className="w-3 h-3 mr-1" /> Copiar</>}
-          </Button>
+            Script (recomendado)
+          </button>
+          <button
+            onClick={() => setCodeTab("iframe")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${codeTab === "iframe" ? "bg-primary text-white" : "bg-white/[0.05] text-white/50 hover:bg-white/[0.08]"}`}
+            data-testid="tab-iframe-onboarding"
+          >
+            iFrame
+          </button>
         </div>
+        <div className="relative">
+          <pre className="p-4 rounded-lg bg-black/40 text-[11px] text-green-400 font-mono overflow-x-auto border border-white/[0.06] max-h-48 overflow-y-auto chat-scrollbar" data-testid="onboarding-embed-code">
+            <code>{activeCode}</code>
+          </pre>
+        </div>
+        <Button
+          onClick={() => copyEmbed(activeCode)}
+          variant="outline"
+          className={`h-9 rounded-lg px-4 text-xs border-white/[0.08] w-full ${copied ? "bg-green-500/10 text-green-400 border-green-500/20" : ""}`}
+          data-testid="onboarding-copy-embed"
+        >
+          {copied ? <><Check className="w-3 h-3 mr-1" /> Copiado</> : <><Copy className="w-3 h-3 mr-1" /> Copiar código</>}
+        </Button>
+        <p className="text-xs text-white/30">Pega este código antes del cierre &lt;/body&gt; en tu sitio web.</p>
       </div>
 
       <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
