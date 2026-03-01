@@ -15,24 +15,29 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage }: L
       data-testid="button-launcher"
       onClick={onClick}
       className="
-        relative w-12 h-12 rounded-full
+        relative w-14 h-14 rounded-full
         flex items-center justify-center
-        transition-all duration-300 ease-out
+        transition-transform duration-200 ease-out
+        hover:scale-105 active:scale-95
         focus:outline-none
-        animate-pulse-glow
-        overflow-hidden
+        shadow-lg
       "
-      style={{ border: "none", backgroundColor: launcherImage ? "transparent" : bgColor }}
+      style={{
+        border: "none",
+        backgroundColor: launcherImage ? "transparent" : bgColor,
+        boxShadow: launcherImage ? "none" : `0 4px 20px ${bgColor}40`,
+      }}
     >
       {launcherImage ? (
         <img
           src={launcherImage}
           alt="Chat"
           className="w-full h-full rounded-full object-cover"
+          style={{ display: "block" }}
           data-testid="img-launcher-custom"
         />
       ) : (
-        <MessageCircle className="w-5 h-5 text-white" />
+        <MessageCircle className="w-6 h-6 text-white" />
       )}
       {hasUnread && (
         <span
