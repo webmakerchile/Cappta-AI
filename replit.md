@@ -37,7 +37,7 @@ Key architectural decisions and features include:
 - **Comprehensive Admin Panel**: Located at `/admin`, this panel offers session management, a chat viewer, global search, status filters, tags, canned responses, product catalog management, session agent badges, and agent type filters.
 - **Conversation Learning System**: An AI-powered learning pipeline that extracts knowledge from closed customer conversations.
 - **Ambassador Referral System**: Referral program with dynamic "Embajador" (Ambassador) tier. Normal referrals earn $3,000 CLP per confirmed paid referral. At 15+ active paid referrals (plan != 'free'), the referrer becomes an Ambassador and earns $5,000 CLP per referral + free Fox Enterprise plan. Ambassador status is **dynamic** — if paid referrals drop below 15 (e.g., referral downgrades to free plan), they lose Ambassador benefits. `getPaidReferralCount()` counts only referrals whose tenant currently has a paid plan ('basic' or 'pro'). Frontend shows Ambassador banner, progress toward ambassador threshold, and distinguishes "Activo" vs "Plan cancelado" referral statuses.
-- **Replit Object Storage**: Used for persistent image/file uploads. In production (`REPL_DEPLOYMENT` set), files are uploaded to Replit Object Storage via signed PUT URLs and served via signed GET URL redirects — ensuring files persist across deploys. In development, falls back to local `uploads/` directory. Upload route: `POST /api/uploads/direct` (multipart). Serve route: `GET /objects/uploads/:id` (redirects to signed GCS URL in prod, streams local file in dev).
+- **Image Uploads**: Upload route `POST /api/uploads/direct` (multipart) converts images to base64 data URIs and returns them directly. Data URIs are stored in PostgreSQL text columns (logoUrl, avatarUrl, launcherImageUrl, botIconUrl) and used directly as image `src` attributes. This approach avoids external storage dependencies (Replit Object Storage sidecar returns 401 in both dev and deployment). Upload limit: 5MB. Typical icons/logos are under 200KB.
 
 ## SaaS Pages & Routing
 - `/` - Landing page (marketing, features, pricing) - FoxBot branding, color-cycling animated chat demo (4 brand themes: green/TechStore, orange/Sabor Criollo, blue/VidaSana, purple/Moda Urbana with clickable dots + auto-advance), platform logos (WooCommerce/Shopify/WordPress/Magento/API), stats section, CLP pricing
@@ -170,7 +170,7 @@ Created automatically on server startup (skipped in production):
 - **Socket.io**: Real-time bidirectional event-based communication.
 - **Drizzle ORM**: TypeScript ORM for interacting with PostgreSQL.
 - **WooCommerce REST API**: Used for syncing product catalog data.
-- **Replit Object Storage**: For storing image uploads via presigned URLs.
+- **Image Storage**: Base64 data URIs stored directly in PostgreSQL (no external file storage).
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
 - **Flow.cl**: Chilean payment gateway for plan billing (via flowcl-node-api-client).
