@@ -25,6 +25,8 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, bub
     img.onload = () => setImageReady(true);
     img.onerror = () => setImageReady(true);
     img.src = launcherImage;
+    const fallback = setTimeout(() => setImageReady(true), 3000);
+    return () => clearTimeout(fallback);
   }, [launcherImage]);
 
   useEffect(() => {
