@@ -391,6 +391,25 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     },
   });
 
+  const saveFieldToDb = async (field: string, value: string | null): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/tenants/me", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error("Error al guardar");
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+      return true;
+    } catch {
+      toast({ title: "Error al guardar en la base de datos", variant: "destructive" });
+      return false;
+    }
+  };
+
   const handleLogoUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast({ title: "Solo se permiten imágenes", variant: "destructive" });
@@ -407,8 +426,11 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
-      setLogoUrl(objectPath);
-      toast({ title: "Logo subido correctamente" });
+      const saved = await saveFieldToDb("logoUrl", objectPath);
+      if (saved) {
+        setLogoUrl(objectPath);
+        toast({ title: "Logo subido y guardado" });
+      }
     } catch {
       toast({ title: "Error al subir la imagen", variant: "destructive" });
     }
@@ -431,15 +453,18 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
-      setAvatarUrl(objectPath);
-      toast({ title: "Avatar subido correctamente" });
+      const saved = await saveFieldToDb("avatarUrl", objectPath);
+      if (saved) {
+        setAvatarUrl(objectPath);
+        toast({ title: "Avatar subido y guardado" });
+      }
     } catch {
       toast({ title: "Error al subir la imagen", variant: "destructive" });
     }
     setUploadingAvatar(false);
   };
 
-  const handleImageUpload = async (file: File, setter: (url: string) => void, setLoading: (v: boolean) => void, label: string) => {
+  const handleImageUpload = async (file: File, setter: (url: string) => void, setLoading: (v: boolean) => void, label: string, dbField: string) => {
     if (!file.type.startsWith("image/")) {
       toast({ title: "Solo se permiten imágenes", variant: "destructive" });
       return;
@@ -455,8 +480,11 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
-      setter(objectPath);
-      toast({ title: `${label} subido correctamente` });
+      const saved = await saveFieldToDb(dbField, objectPath);
+      if (saved) {
+        setter(objectPath);
+        toast({ title: `${label} subido y guardado` });
+      }
     } catch {
       toast({ title: "Error al subir la imagen", variant: "destructive" });
     }
@@ -637,7 +665,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </button>
                     <button
                       data-testid="button-remove-avatar"
-                      onClick={() => setAvatarUrl("")}
+                      onClick={() => { setAvatarUrl(""); saveFieldToDb("avatarUrl", null); }}
                       className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
                     >
                       <X className="w-3 h-3 text-red-400" />
@@ -781,7 +809,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                   </button>
                   <button
                     data-testid="button-remove-logo"
-                    onClick={() => setLogoUrl("")}
+                    onClick={() => { setLogoUrl(""); saveFieldToDb("logoUrl", null); }}
                     className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors"
                     title="Eliminar logo"
                   >
@@ -844,7 +872,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </button>
                     <button
                       data-testid="button-remove-launcher"
-                      onClick={() => setLauncherImageUrl("")}
+                      onClick={() => { setLauncherImageUrl(""); saveFieldToDb("launcherImageUrl", null); }}
                       className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
                     >
                       <X className="w-3 h-3 text-red-400" />
@@ -872,7 +900,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, setLauncherImageUrl, setUploadingLauncher, "Botón flotante");
+                  if (file) handleImageUpload(file, setLauncherImageUrl, setUploadingLauncher, "Botón flotante", "launcherImageUrl");
                   e.target.value = "";
                 }}
               />
@@ -905,7 +933,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </button>
                     <button
                       data-testid="button-remove-boticon"
-                      onClick={() => setBotIconUrl("")}
+                      onClick={() => { setBotIconUrl(""); saveFieldToDb("botIconUrl", null); }}
                       className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
                     >
                       <X className="w-3 h-3 text-red-400" />
@@ -933,7 +961,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, setBotIconUrl, setUploadingBotIcon, "Ícono del bot");
+                  if (file) handleImageUpload(file, setBotIconUrl, setUploadingBotIcon, "Ícono del bot", "botIconUrl");
                   e.target.value = "";
                 }}
               />

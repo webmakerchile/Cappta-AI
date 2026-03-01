@@ -102,6 +102,22 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
     setAnalyzingUrl(false);
   };
 
+  const saveFieldToDb = async (field: string, value: string | null): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/tenants/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error("Error al guardar");
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+      return true;
+    } catch {
+      toast({ title: "Error al guardar en la base de datos", variant: "destructive" });
+      return false;
+    }
+  };
+
   const handleLogoUpload = async (file: File) => {
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
       toast({ title: "Solo imágenes de hasta 5MB", variant: "destructive" });
@@ -114,8 +130,11 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
-      setLogoUrl(objectPath);
-      toast({ title: "Logo subido" });
+      const saved = await saveFieldToDb("logoUrl", objectPath);
+      if (saved) {
+        setLogoUrl(objectPath);
+        toast({ title: "Logo subido y guardado" });
+      }
     } catch {
       toast({ title: "Error al subir la imagen", variant: "destructive" });
     }
@@ -134,8 +153,11 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
-      setAvatarUrl(objectPath);
-      toast({ title: "Avatar subido" });
+      const saved = await saveFieldToDb("avatarUrl", objectPath);
+      if (saved) {
+        setAvatarUrl(objectPath);
+        toast({ title: "Avatar subido y guardado" });
+      }
     } catch {
       toast({ title: "Error al subir la imagen", variant: "destructive" });
     }
