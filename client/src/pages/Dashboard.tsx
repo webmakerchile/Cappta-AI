@@ -587,11 +587,11 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     <div className="flex flex-col xl:flex-row gap-6">
       <div className="flex-1 min-w-0 space-y-6">
 
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-5 sm:space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full animate-orb-drift opacity-30" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)", animationDelay: "-3s" }} />
 
         <div className="relative">
-          <h3 className="text-lg font-bold mb-1 animate-dash-slide-right flex items-center gap-2">
+          <h3 className="text-base sm:text-lg font-bold mb-1 animate-dash-slide-right flex items-center gap-2">
             <Globe className="w-5 h-5 text-primary" />
             Tu Negocio
           </h3>
@@ -712,7 +712,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full animate-orb-drift opacity-30" style={{ background: `radial-gradient(circle, ${widgetColor}10, transparent 60%)` }} />
 
         <div className="relative">
@@ -1004,7 +1004,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="relative">
           <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-primary" />
@@ -1050,7 +1050,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="relative">
           <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
             <Search className="w-5 h-5 text-primary" />
@@ -1584,7 +1584,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04), transparent 60%)", animationDelay: "-7s" }} />
 
         <div className="relative flex items-start justify-between">
@@ -1730,7 +1730,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         )}
       </div>
 
-      <div className="rounded-2xl glass-card p-6 space-y-4 animate-dash-fade-up">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-4 animate-dash-fade-up">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -1940,7 +1940,7 @@ function ReferidosSection() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl glass-card p-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1), transparent 60%)" }} />
         <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(245,158,11,0.08), transparent 60%)", animationDelay: "-3s" }} />
         <div className="relative">
@@ -2075,7 +2075,7 @@ function ReferidosSection() {
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-6 animate-dash-fade-up dash-stagger-3">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 animate-dash-fade-up dash-stagger-3">
         <h4 className="text-base font-bold mb-4">Tu link de referido</h4>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08]">
@@ -2100,7 +2100,7 @@ function ReferidosSection() {
       </div>
 
       {data.referrals.length > 0 && (
-        <div className="rounded-2xl glass-card p-6 animate-dash-fade-up dash-stagger-4">
+        <div className="rounded-2xl glass-card p-4 sm:p-6 animate-dash-fade-up dash-stagger-4">
           <h4 className="text-base font-bold mb-4 flex items-center gap-2">
             <Users className="w-4 h-4 text-primary" />
             Tus referidos ({data.referrals.length})
@@ -2216,7 +2216,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl glass-card p-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: `radial-gradient(circle, ${currentColor}20, transparent 60%)` }} />
 
         <div className="flex items-center justify-between mb-6 relative">
@@ -2364,7 +2364,7 @@ function DownloadAppSection() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full animate-orb-drift opacity-30" style={{ background: "radial-gradient(circle, rgba(6,182,212,0.06), transparent 60%)", animationDelay: "-4s" }} />
 
         <div className="relative">
@@ -2413,7 +2413,7 @@ function DownloadAppSection() {
       </div>
 
       {deferredPrompt && !isInstalled && (
-        <div className="rounded-2xl glass-card p-6 animate-dash-fade-up relative overflow-hidden">
+        <div className="rounded-2xl glass-card p-4 sm:p-6 animate-dash-fade-up relative overflow-hidden">
           <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full animate-orb-drift opacity-30" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)" }} />
           <div className="flex items-center gap-4 relative">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 animate-float" style={{ animationDuration: "6s" }}>
@@ -2435,7 +2435,7 @@ function DownloadAppSection() {
         </div>
       )}
 
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-fade-up relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-fade-up relative overflow-hidden">
         <div className="relative">
           <h3 className="text-base font-bold mb-1 flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-primary" />
@@ -2489,7 +2489,7 @@ function DownloadAppSection() {
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-6 space-y-6 animate-dash-fade-up relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-fade-up relative overflow-hidden">
         <div className="relative">
           <h3 className="text-base font-bold mb-1 flex items-center gap-2">
             <Monitor className="w-4 h-4 text-primary" />
@@ -2513,7 +2513,7 @@ function DownloadAppSection() {
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-6 space-y-4 animate-dash-fade-up relative overflow-hidden">
+      <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-4 animate-dash-fade-up relative overflow-hidden">
         <div className="relative">
           <h3 className="text-base font-bold mb-1 flex items-center gap-2">
             <Share2 className="w-4 h-4 text-primary" />
@@ -2559,7 +2559,7 @@ const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] 
 export default function Dashboard() {
   const { tenant, isLoading, token } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>("stats");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(typeof window !== "undefined" ? window.innerWidth >= 768 : true);
   const { toast } = useToast();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTourPrompt, setShowTourPrompt] = useState(false);
@@ -2745,7 +2745,10 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <aside className={`${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} shrink-0 transition-all duration-300 flex flex-col relative animate-sidebar-glow`} style={{ borderRight: `1px solid ${theme.borderColor}` }}>
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+      <aside className={`${sidebarOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full md:translate-x-0 overflow-hidden"} fixed md:relative z-50 md:z-auto h-full shrink-0 transition-all duration-300 flex flex-col bg-background animate-sidebar-glow`} style={{ borderRight: `1px solid ${theme.borderColor}` }}>
         <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(180deg, ${theme.glowFrom} 0%, transparent 40%, ${theme.glowTo} 100%)` }} />
         <div className="absolute top-20 -right-16 w-32 h-32 rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${theme.orbColor}, transparent 60%)`, animationDelay: "-10s" }} />
 
@@ -2777,7 +2780,7 @@ export default function Dashboard() {
             return (
               <button
                 key={item.value}
-                onClick={() => setActiveTab(item.value)}
+                onClick={() => { setActiveTab(item.value); if (window.innerWidth < 768) setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-300 animate-dash-slide-right dash-stagger-${i + 1} group/nav relative overflow-hidden ${
                   isActive
                     ? "bg-primary/10 text-primary font-semibold shadow-[0_0_16px_rgba(16,185,129,0.06)]"
@@ -2839,7 +2842,7 @@ export default function Dashboard() {
       </aside>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <header className="flex items-center gap-3 px-6 py-4 animate-dash-fade-in relative overflow-hidden" style={{ borderBottom: `1px solid ${theme.borderColor}` }}>
+        <header className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 animate-dash-fade-in relative overflow-hidden" style={{ borderBottom: `1px solid ${theme.borderColor}` }}>
           <div className="absolute inset-0 animate-shimmer-line opacity-30 pointer-events-none" />
 
           <button
@@ -2852,11 +2855,11 @@ export default function Dashboard() {
             </div>
           </button>
 
-          <div className="relative">
-            <h1 className="text-lg font-bold" data-testid="text-dashboard-title">
+          <div className="relative min-w-0">
+            <h1 className="text-base sm:text-lg font-bold truncate" data-testid="text-dashboard-title">
               {navItems.find((n) => n.value === activeTab)?.title || "Dashboard"}
             </h1>
-            <p className="text-xs text-white/30">
+            <p className="text-[10px] sm:text-xs text-white/30 hidden sm:block">
               {activeTab === "stats" && "Métricas de tu chat en tiempo real"}
               {activeTab === "config" && "Personaliza tu widget de chat"}
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
@@ -2885,7 +2888,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6 md:p-8 relative">
+        <main className="flex-1 overflow-auto p-3 sm:p-6 md:p-8 relative">
           <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.02), transparent 60%)", animationDelay: "-5s" }} />
           <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full pointer-events-none animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(245,158,11,0.02), transparent 60%)", animationDelay: "-12s" }} />
 
