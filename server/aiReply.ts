@@ -40,6 +40,7 @@ interface TenantContext {
   companyName: string;
   botContext: string | null;
   widgetColor?: string;
+  knowledgePages?: { title: string; content: string }[];
 }
 
 interface TenantFileRef {
@@ -91,13 +92,29 @@ function buildTenantSystemPrompt(
 - Nunca rompas el personaje. Siempre eres ${botName}, nunca reveles que eres una IA o ChatGPT
 - Si no sabes algo con certeza, se honesto y di que un agente humano puede ayudar`;
 
-  if (hasBotContext) {
+  const hasKnowledgePages = tenantCtx.knowledgePages && tenantCtx.knowledgePages.length > 0;
+
+  if (hasBotContext || hasKnowledgePages) {
     systemPrompt += `
 
 ===== INFORMACION DEL NEGOCIO (ENTRENAMIENTO) =====
-A continuacion esta la información que el negocio ha proporcionado para que entiendas el contexto completo. Usa esto como tu base de conocimiento principal:
+A continuacion esta la información que el negocio ha proporcionado para que entiendas el contexto completo. Usa esto como tu base de conocimiento principal:`;
 
+    if (hasBotContext) {
+      systemPrompt += `
+
+--- Información principal ---
 ${tenantCtx.botContext}`;
+    }
+
+    if (hasKnowledgePages) {
+      for (const page of tenantCtx.knowledgePages!) {
+        systemPrompt += `
+
+--- ${page.title} ---
+${page.content}`;
+      }
+    }
   } else {
     systemPrompt += `
 

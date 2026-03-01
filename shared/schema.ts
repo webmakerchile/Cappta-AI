@@ -309,6 +309,22 @@ export type TenantFile = typeof tenantFiles.$inferSelect;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
 export type Referral = typeof referrals.$inferSelect;
 
+export const knowledgePages = pgTable("knowledge_pages", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_knowledge_pages_tenant_id").on(table.tenantId),
+]);
+
+export const insertKnowledgePageSchema = createInsertSchema(knowledgePages).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertKnowledgePage = z.infer<typeof insertKnowledgePageSchema>;
+export type KnowledgePage = typeof knowledgePages.$inferSelect;
+
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
   email: z.string().email("Ingresa un correo valido").max(200),

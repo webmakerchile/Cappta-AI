@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -2464,6 +2464,72 @@ ${DEMO_BASE_RULES}`,
       res.json({ success: true, tenant: updated });
     } catch (error: any) {
       res.status(500).json({ message: "Error al actualizar configuración" });
+    }
+  });
+
+  app.get("/api/tenant-panel/knowledge-pages", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { db } = await import("./db");
+      const { eq, asc } = await import("drizzle-orm");
+      const pages = await db.select().from(knowledgePages).where(eq(knowledgePages.tenantId, auth.id)).orderBy(asc(knowledgePages.sortOrder), asc(knowledgePages.id));
+      res.json(pages);
+    } catch {
+      res.status(500).json({ message: "Error al obtener páginas" });
+    }
+  });
+
+  app.post("/api/tenant-panel/knowledge-pages", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { title, content } = req.body;
+      if (!title || !content) return res.status(400).json({ message: "Título y contenido son requeridos" });
+      const { db } = await import("./db");
+      const { eq } = await import("drizzle-orm");
+      const existing = await db.select().from(knowledgePages).where(eq(knowledgePages.tenantId, auth.id));
+      const sortOrder = existing.length;
+      const [page] = await db.insert(knowledgePages).values({ tenantId: auth.id, title, content, sortOrder }).returning();
+      res.json(page);
+    } catch {
+      res.status(500).json({ message: "Error al crear página" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/knowledge-pages/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const pageId = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { eq, and } = await import("drizzle-orm");
+      const [existing] = await db.select().from(knowledgePages).where(and(eq(knowledgePages.id, pageId), eq(knowledgePages.tenantId, auth.id)));
+      if (!existing) return res.status(404).json({ message: "Página no encontrada" });
+      const update: any = { updatedAt: new Date() };
+      if (req.body.title !== undefined) update.title = req.body.title;
+      if (req.body.content !== undefined) update.content = req.body.content;
+      if (req.body.sortOrder !== undefined) update.sortOrder = req.body.sortOrder;
+      const [updated] = await db.update(knowledgePages).set(update).where(eq(knowledgePages.id, pageId)).returning();
+      res.json(updated);
+    } catch {
+      res.status(500).json({ message: "Error al actualizar página" });
+    }
+  });
+
+  app.delete("/api/tenant-panel/knowledge-pages/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const pageId = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { eq, and } = await import("drizzle-orm");
+      const [existing] = await db.select().from(knowledgePages).where(and(eq(knowledgePages.id, pageId), eq(knowledgePages.tenantId, auth.id)));
+      if (!existing) return res.status(404).json({ message: "Página no encontrada" });
+      await db.delete(knowledgePages).where(eq(knowledgePages.id, pageId));
+      res.json({ success: true });
+    } catch {
+      res.status(500).json({ message: "Error al eliminar página" });
     }
   });
 

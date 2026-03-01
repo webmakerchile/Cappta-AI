@@ -1665,6 +1665,16 @@ function ConocimientoTab() {
   );
 }
 
+interface KnowledgePageItem {
+  id: number;
+  tenantId: number;
+  title: string;
+  content: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 function EntrenarBotTab() {
   const { toast } = useToast();
 
@@ -1677,6 +1687,15 @@ function EntrenarBotTab() {
     },
   });
 
+  const { data: pages = [], isLoading: pagesLoading } = useQuery<KnowledgePageItem[]>({
+    queryKey: ["/api/tenant-panel/knowledge-pages"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/knowledge-pages");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
   const [botContext, setBotContext] = useState("");
   const [hasLoaded, setHasLoaded] = useState(false);
   const [analyzeMode, setAnalyzeMode] = useState<"text" | "url" | null>(null);
@@ -1685,6 +1704,12 @@ function EntrenarBotTab() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState("");
   const [beautifying, setBeautifying] = useState(false);
+  const [activePage, setActivePage] = useState<number | "main">("main");
+  const [editingPageId, setEditingPageId] = useState<number | null>(null);
+  const [editingPageTitle, setEditingPageTitle] = useState("");
+  const [editingPageContent, setEditingPageContent] = useState("");
+  const [newPageTitle, setNewPageTitle] = useState("");
+  const [showNewPage, setShowNewPage] = useState(false);
 
   useEffect(() => {
     if (settings && !hasLoaded) {
@@ -1710,9 +1735,66 @@ function EntrenarBotTab() {
     },
   });
 
+  const createPageMutation = useMutation({
+    mutationFn: async ({ title, content }: { title: string; content: string }) => {
+      const res = await tenantFetch("/api/tenant-panel/knowledge-pages", {
+        method: "POST",
+        body: JSON.stringify({ title, content }),
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: (newPage: KnowledgePageItem) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge-pages"] });
+      setShowNewPage(false);
+      setNewPageTitle("");
+      setActivePage(newPage.id);
+      setEditingPageId(newPage.id);
+      setEditingPageTitle(newPage.title);
+      setEditingPageContent(newPage.content);
+      toast({ title: "Página creada" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo crear la página", variant: "destructive" });
+    },
+  });
+
+  const updatePageMutation = useMutation({
+    mutationFn: async ({ id, title, content }: { id: number; title: string; content: string }) => {
+      const res = await tenantFetch(`/api/tenant-panel/knowledge-pages/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ title, content }),
+      });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge-pages"] });
+      toast({ title: "Página guardada", description: "El bot usará esta información" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
+    },
+  });
+
+  const deletePageMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await tenantFetch(`/api/tenant-panel/knowledge-pages/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/knowledge-pages"] });
+      setActivePage("main");
+      setEditingPageId(null);
+      toast({ title: "Página eliminada" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo eliminar", variant: "destructive" });
+    },
+  });
+
   const handleAnalyzeText = async () => {
     if (!rawText.trim() || rawText.trim().length < 20) {
-      toast({ title: "Texto muy corto", description: "Pega al menos un parrafo con información de tu negocio", variant: "destructive" });
+      toast({ title: "Texto muy corto", description: "Pega al menos un párrafo con información de tu negocio", variant: "destructive" });
       return;
     }
     setAnalyzing(true);
@@ -1725,7 +1807,7 @@ function EntrenarBotTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error");
       setAnalyzedResult(data.organized);
-      toast({ title: "Análisis completado", description: "Revisa el resultado y elige como aplicarlo" });
+      toast({ title: "Análisis completado", description: "Revisa el resultado y elige cómo aplicarlo" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "No se pudo analizar", variant: "destructive" });
     } finally {
@@ -1756,44 +1838,59 @@ function EntrenarBotTab() {
     }
   };
 
-  const applyReplace = () => {
-    setBotContext(analyzedResult);
+  const applyToCurrentPage = (text: string, mode: "replace" | "append") => {
+    if (activePage === "main") {
+      if (mode === "replace") {
+        setBotContext(text);
+      } else {
+        setBotContext((prev) => prev ? prev + "\n\n" + text : text);
+      }
+    } else if (editingPageId) {
+      if (mode === "replace") {
+        setEditingPageContent(text);
+      } else {
+        setEditingPageContent((prev) => prev ? prev + "\n\n" + text : text);
+      }
+    }
     setAnalyzedResult("");
     setAnalyzeMode(null);
     setRawText("");
     setScrapeUrl("");
-    toast({ title: "Aplicado", description: "Se reemplazo el contenido. Recuerda guardar." });
-  };
-
-  const applyAppend = () => {
-    setBotContext((prev) => prev ? prev + "\n\n" + analyzedResult : analyzedResult);
-    setAnalyzedResult("");
-    setAnalyzeMode(null);
-    setRawText("");
-    setScrapeUrl("");
-    toast({ title: "Agregado", description: "Se agrego al final del contenido. Recuerda guardar." });
+    toast({ title: mode === "replace" ? "Reemplazado" : "Agregado", description: "Recuerda guardar los cambios." });
   };
 
   const handleBeautify = async () => {
-    if (!botContext.trim() || botContext.trim().length < 30) {
-      toast({ title: "Texto muy corto", description: "Necesitas al menos un parrafo de contenido para embellecer", variant: "destructive" });
+    const text = activePage === "main" ? botContext : editingPageContent;
+    if (!text.trim() || text.trim().length < 30) {
+      toast({ title: "Texto muy corto", description: "Necesitas al menos un párrafo de contenido para embellecer", variant: "destructive" });
       return;
     }
     setBeautifying(true);
     try {
       const res = await tenantFetch("/api/tenant-panel/beautify-text", {
         method: "POST",
-        body: JSON.stringify({ text: botContext }),
+        body: JSON.stringify({ text }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error");
-      setBotContext(data.beautified);
-      toast({ title: "Texto embellecido", description: "Se mejoro la redacción. Revisa y guarda los cambios." });
+      if (activePage === "main") {
+        setBotContext(data.beautified);
+      } else {
+        setEditingPageContent(data.beautified);
+      }
+      toast({ title: "Texto embellecido", description: "Se mejoró la redacción. Revisa y guarda los cambios." });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "No se pudo embellecer el texto", variant: "destructive" });
     } finally {
       setBeautifying(false);
     }
+  };
+
+  const selectPage = (page: KnowledgePageItem) => {
+    setActivePage(page.id);
+    setEditingPageId(page.id);
+    setEditingPageTitle(page.title);
+    setEditingPageContent(page.content);
   };
 
   const { data: kbEntries = [] } = useQuery<KBEntry[]>({
@@ -1805,9 +1902,10 @@ function EntrenarBotTab() {
     },
   });
 
-  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>;
+  if (isLoading || pagesLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 text-white/30 animate-spin" /></div>;
 
   const approvedCount = kbEntries.filter(k => k.status === "approved").length;
+  const currentText = activePage === "main" ? botContext : editingPageContent;
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-6 overflow-y-auto h-full">
@@ -1816,31 +1914,76 @@ function EntrenarBotTab() {
           <Bot className="w-5 h-5 text-[#10b981]" />
           Entrenar Bot
         </h2>
-        <p className="text-sm text-white/40">Ensenale a tu bot todo sobre tu negocio para que responda de forma precisa y personalizada.</p>
+        <p className="text-sm text-white/40">Organiza la información de tu negocio en páginas. Cada página es un bloque independiente que el bot usará para responder.</p>
       </div>
 
-      <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#10b981]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Bot className="w-4 h-4 text-[#10b981]" />
-          </div>
-          <div className="text-sm text-white/60 space-y-1">
-            <p className="text-white/80 font-medium">Cómo funciona el entrenamiento</p>
-            <p>Puedes entrenar tu bot de 3 formas:</p>
-            <div className="flex flex-col gap-1 pl-1">
-              <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Pegar texto</strong> — Copia información de tu negocio y la IA la organiza automáticamente</span>
-              <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Analizar web</strong> — Pega la URL de tu sitio y la IA extrae toda la información</span>
-              <span className="flex items-center gap-1.5"><Pencil className="w-3.5 h-3.5 text-[#10b981]" /> <strong className="text-white/70">Escribir manual</strong> — Edita directamente el campo de información</span>
-            </div>
-            <p className="text-[#10b981]">Tip: También puedes corregir respuestas del bot en el tab "Chats" usando el botón "Corregir".</p>
-          </div>
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-medium text-white/50 uppercase tracking-wider">Páginas de conocimiento</p>
+          <button
+            onClick={() => setShowNewPage(true)}
+            className="flex items-center gap-1 text-xs text-[#10b981] hover:text-[#10b981]/80 transition-colors"
+            data-testid="button-add-page"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nueva página
+          </button>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => { setActivePage("main"); setEditingPageId(null); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activePage === "main" ? "bg-[#10b981] text-white" : "bg-white/[0.05] text-white/50 hover:bg-white/[0.08]"}`}
+            data-testid="tab-main-page"
+          >
+            Principal
+          </button>
+          {pages.map((page, i) => (
+            <button
+              key={page.id}
+              onClick={() => selectPage(page)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activePage === page.id ? "bg-[#10b981] text-white" : "bg-white/[0.05] text-white/50 hover:bg-white/[0.08]"}`}
+              data-testid={`tab-page-${page.id}`}
+            >
+              Pág. {i + 1}: {page.title.length > 15 ? page.title.slice(0, 15) + "..." : page.title}
+            </button>
+          ))}
+        </div>
+        {showNewPage && (
+          <div className="flex gap-2 mt-3 animate-in fade-in duration-200">
+            <Input
+              value={newPageTitle}
+              onChange={(e) => setNewPageTitle(e.target.value)}
+              placeholder="Nombre de la página (ej: Horarios, Precios, Políticas...)"
+              className="bg-white/[0.04] border-white/[0.08] text-sm flex-1"
+              data-testid="input-new-page-title"
+            />
+            <Button
+              onClick={() => {
+                if (!newPageTitle.trim()) return;
+                createPageMutation.mutate({ title: newPageTitle.trim(), content: "" });
+              }}
+              disabled={!newPageTitle.trim() || createPageMutation.isPending}
+              className="bg-[#10b981] border-[#10b981]"
+              data-testid="button-create-page"
+            >
+              {createPageMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            </Button>
+            <Button
+              onClick={() => { setShowNewPage(false); setNewPageTitle(""); }}
+              variant="ghost"
+              className="text-white/40"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#10b981]" />
           <p className="text-sm font-medium text-white/80">Entrenamiento inteligente con IA</p>
+          <span className="text-[10px] text-white/30 ml-auto">Aplicará a: {activePage === "main" ? "Página Principal" : editingPageTitle}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
@@ -1877,7 +2020,7 @@ function EntrenarBotTab() {
               data-testid="textarea-raw-text"
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Pega aquí toda la información de tu negocio (copiada de tu web, documentos, redes sociales, etc.)... La IA la organizara automáticamente."
+              placeholder="Pega aquí toda la información de tu negocio (copiada de tu web, documentos, redes sociales, etc.)... La IA la organizará automáticamente."
               className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[200px] text-sm"
               rows={10}
             />
@@ -1913,7 +2056,7 @@ function EntrenarBotTab() {
                 {analyzing ? "Analizando..." : "Analizar web"}
               </Button>
             </div>
-            <p className="text-[11px] text-white/30">La IA visitara tu página, extraera toda la información del negocio y la organizara automáticamente. Puede tardar hasta 30 segundos.</p>
+            <p className="text-[11px] text-white/30">La IA visitará tu página, extraerá toda la información del negocio y la organizará automáticamente. Puede tardar hasta 30 segundos.</p>
           </div>
         )}
 
@@ -1939,20 +2082,20 @@ function EntrenarBotTab() {
             <div className="flex flex-wrap gap-2">
               <Button
                 data-testid="button-apply-replace"
-                onClick={applyReplace}
+                onClick={() => applyToCurrentPage(analyzedResult, "replace")}
                 className="bg-[#10b981] border-[#10b981]"
               >
                 <Replace className="w-4 h-4 mr-1" />
-                Reemplazar todo
+                Reemplazar contenido
               </Button>
               <Button
                 data-testid="button-apply-append"
-                onClick={applyAppend}
+                onClick={() => applyToCurrentPage(analyzedResult, "append")}
                 variant="outline"
                 className="border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10"
               >
                 <PlusCircle className="w-4 h-4 mr-1" />
-                Agregar al final
+                Agregar sin borrar
               </Button>
               <Button
                 data-testid="button-discard-analysis"
@@ -1969,40 +2112,96 @@ function EntrenarBotTab() {
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-white/80">Información del negocio (editada por el bot)</label>
-          <span className="text-[10px] text-white/30">{botContext.length} caracteres</span>
-        </div>
-        <Textarea
-          data-testid="textarea-bot-context"
-          value={botContext}
-          onChange={(e) => setBotContext(e.target.value)}
-          placeholder="Aquí aparecerá la información organizada de tu negocio después de usar el análisis con IA, o puedes escribirla manualmente..."
-          className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[300px] text-sm font-mono"
-          rows={18}
-        />
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            data-testid="button-beautify-text"
-            onClick={handleBeautify}
-            disabled={beautifying || !botContext.trim() || botContext.trim().length < 30}
-            variant="outline"
-            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 w-full sm:w-auto"
-          >
-            {beautifying ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Wand2 className="w-4 h-4 mr-1" />}
-            {beautifying ? "Embelleciendo..." : "Embellecer textos"}
-          </Button>
-          <Button
-            data-testid="button-save-training"
-            onClick={() => saveMutation.mutate()}
-            disabled={saveMutation.isPending || !botContext.trim()}
-            className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
-          >
-            {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-            Guardar Entrenamiento
-          </Button>
-        </div>
+        {activePage === "main" ? (
+          <>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-white/80">Página Principal</label>
+              <span className="text-[10px] text-white/30">{botContext.length} caracteres</span>
+            </div>
+            <Textarea
+              data-testid="textarea-bot-context"
+              value={botContext}
+              onChange={(e) => setBotContext(e.target.value)}
+              placeholder="Aquí aparecerá la información organizada de tu negocio después de usar el análisis con IA, o puedes escribirla manualmente..."
+              className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[300px] text-sm font-mono"
+              rows={18}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                data-testid="button-beautify-text"
+                onClick={handleBeautify}
+                disabled={beautifying || !botContext.trim() || botContext.trim().length < 30}
+                variant="outline"
+                className="border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10 w-full sm:w-auto"
+              >
+                {beautifying ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Wand2 className="w-4 h-4 mr-1" />}
+                {beautifying ? "Embelleciendo..." : "Embellecer textos"}
+              </Button>
+              <Button
+                data-testid="button-save-training"
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending || !botContext.trim()}
+                className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
+              >
+                {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                Guardar Página Principal
+              </Button>
+            </div>
+          </>
+        ) : editingPageId ? (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  value={editingPageTitle}
+                  onChange={(e) => setEditingPageTitle(e.target.value)}
+                  className="bg-white/[0.04] border-white/[0.08] text-sm font-medium max-w-[300px]"
+                  data-testid="input-page-title"
+                />
+              </div>
+              <span className="text-[10px] text-white/30 ml-2">{editingPageContent.length} caracteres</span>
+            </div>
+            <Textarea
+              value={editingPageContent}
+              onChange={(e) => setEditingPageContent(e.target.value)}
+              placeholder="Escribe o pega la información para esta página..."
+              className="bg-white/[0.04] border-white/[0.08] resize-none min-h-[300px] text-sm font-mono"
+              rows={18}
+              data-testid="textarea-page-content"
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                data-testid="button-beautify-text"
+                onClick={handleBeautify}
+                disabled={beautifying || !editingPageContent.trim() || editingPageContent.trim().length < 30}
+                variant="outline"
+                className="border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10 w-full sm:w-auto"
+              >
+                {beautifying ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Wand2 className="w-4 h-4 mr-1" />}
+                {beautifying ? "Embelleciendo..." : "Embellecer textos"}
+              </Button>
+              <Button
+                onClick={() => updatePageMutation.mutate({ id: editingPageId, title: editingPageTitle, content: editingPageContent })}
+                disabled={updatePageMutation.isPending}
+                className="bg-[#10b981] border-[#10b981] w-full sm:w-auto"
+                data-testid="button-save-page"
+              >
+                {updatePageMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                Guardar Página
+              </Button>
+              <Button
+                onClick={() => { if (confirm("¿Eliminar esta página? Esta acción no se puede deshacer.")) deletePageMutation.mutate(editingPageId); }}
+                disabled={deletePageMutation.isPending}
+                variant="outline"
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10 ml-auto"
+                data-testid="button-delete-page"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Eliminar
+              </Button>
+            </div>
+          </>
+        ) : null}
       </div>
 
       <CatalogQuickEdit />

@@ -1591,6 +1591,15 @@ async function _processTenantAutoReply(
       .map(f => ({ id: f.id, fileName: f.fileName, description: f.description, keywords: f.keywords, fileUrl: f.fileUrl, fileType: f.fileType }));
   } catch {}
 
+  let kPages: { title: string; content: string }[] = [];
+  try {
+    const { db } = await import("./db");
+    const { eq, asc } = await import("drizzle-orm");
+    const { knowledgePages } = await import("@shared/schema");
+    const pages = await db.select().from(knowledgePages).where(eq(knowledgePages.tenantId, tenant.id)).orderBy(asc(knowledgePages.sortOrder));
+    kPages = pages.map(p => ({ title: p.title, content: p.content }));
+  } catch {}
+
   const aiResponse = await getAIReply(
     userMessage,
     conversationHistory,
@@ -1614,6 +1623,7 @@ async function _processTenantAutoReply(
       tenantContext: {
         companyName: tenant.companyName,
         botContext: tenant.botContext,
+        knowledgePages: kPages.length > 0 ? kPages : undefined,
       },
       tenantFiles: tenantFiles.length > 0 ? tenantFiles : undefined,
     }
