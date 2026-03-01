@@ -1,0 +1,1006 @@
+🏪 NOMBRE DEL NEGOCIO: Iglesia Maná Chile
+📝 TIPO DE SISTEMA: Sistema de Gestión Eclesiástica (Church Management System - ChMS)
+
+🌐 SITIO WEB PÚBLICO: https://www.manachile.cl/inicio
+🔐 SISTEMA INTERNO (Login): https://www.manachile.cl/login
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 DESCRIPCIÓN COMPLETA
+
+¡Bienvenido a Iglesia Maná Chile! Somos una vibrante comunidad de fe ubicada en Los Andes, Chile, donde nos unimos para estudiar la palabra de Dios y fortalecer nuestros lazos familiares. Nuestro sistema de gestión integral permite administrar toda la operación de la iglesia: desde los grupos familiares y las reuniones semanales, hasta las donaciones, cursos de capacitación, y la comunicación con todos nuestros miembros. Cada encuentro es una oportunidad para crecer juntos en amor y espiritualidad.
+
+Nuestro sistema web permite a los líderes y miembros de la iglesia gestionar asistencia, ofrendas, tareas, reportes, y mucho más. Además, contamos con un sitio web público donde cualquier persona puede conocernos, ver nuestros horarios, eventos, galería de fotos, y ponerse en contacto con nosotros.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 CONTACTO E INFORMACIÓN GENERAL
+
+• 📍 Dirección: Santa Rosa 11, Los Andes, Chile
+• 🌐 Sitio Web: https://www.manachile.cl/inicio
+• 📺 Canal de YouTube: Disponible en el sitio web con predicas y transmisiones en vivo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🕐 HORARIOS DE REUNIONES
+
+• Domingo: 9:00 AM / 11:00 AM / 18:00 PM (Servicio Dominical)
+• Viernes: 20:00 PM (Servicio de Viernes - reflexión y comunión)
+• Lunes a Jueves: Grupos Familiares (cada grupo tiene su propio día y horario)
+• Sábado: 18:00 PM (Reunión de Jóvenes)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛍️ SERVICIOS Y ACTIVIDADES
+
+• Reuniones de Domingo — Servicio Dominical con enseñanzas inspiradoras (9:00 AM, 11:00 AM, 18:00 PM)
+• Reuniones de Viernes — Espacio de reflexión y comunión (20:00 PM)
+• Grupos Familiares — Encuentros de Lunes a Sábado para profundizar en el estudio de la palabra de Dios en un ambiente acogedor y familiar. Cada grupo se reúne en un hogar diferente.
+• Reunión de Jóvenes — Los Sábados a las 18:00 PM, espacio dedicado a la juventud
+• Cursos de Capacitación — Formación bíblica y de liderazgo con evaluaciones
+• Foro Comunitario — Espacio digital para preguntas, testimonios, oración y ayuda entre miembros
+• Campaña Pro-Templo — Proyecto de construcción del templo, abierto a donaciones
+
+📌 CATEGORÍAS DE ACTIVIDADES:
+  • Reuniones: Servicio Dominical, Servicio de Viernes, Grupos Familiares, Reunión de Jóvenes
+  • Proyectos: Ayuda Comunitaria, Celebraciones, Consagraciones, Reconocimiento Espiritual
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 ESTADÍSTICAS DE LA IGLESIA
+
+• Total de Grupos Familiares: 49 activos
+• Total de Miembros: 203+ personas
+• Reuniones realizadas este año: 174+
+• Roles de liderazgo: 9 niveles jerárquicos
+• Áreas de servicio: Múltiples bloques y áreas geográficas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 PÁGINAS DEL SITIO WEB PÚBLICO (Para visitantes que no nos conocen)
+
+Estas son las páginas que cualquier persona puede visitar sin necesidad de tener cuenta:
+
+1. 🏠 Página de Inicio: https://www.manachile.cl/inicio
+   → Presenta la iglesia con slider de imágenes, video de YouTube, botones de acción rápida, horarios, proyectos y más.
+
+2. 🆕 Soy Nuevo: https://www.manachile.cl/soy-nuevo
+   → Información especial para personas que visitan por primera vez. Explica quiénes somos, qué esperar, y cómo unirse.
+
+3. 📋 Servicios: https://www.manachile.cl/servicios
+   → Detalle de todos los servicios y actividades que ofrecemos.
+
+4. ℹ️ Acerca de Nosotros: https://www.manachile.cl/acerca
+   → Historia de la iglesia, misión, visión, valores y equipo pastoral.
+
+5. 📅 Eventos: https://www.manachile.cl/eventos
+   → Calendario de eventos próximos y actividades especiales.
+
+6. 📸 Galería: https://www.manachile.cl/galeria
+   → Fotos de nuestras actividades, reuniones y eventos.
+
+7. 💬 Mensajes / Predicas: https://www.manachile.cl/mensajes
+   → Mensajes y predicas recientes de la iglesia.
+
+8. 🤝 Participa: https://www.manachile.cl/participa
+   → Formas de participar y servir en la iglesia.
+
+9. 💰 Donar: https://www.manachile.cl/donar
+   → Página para realizar donaciones Pro-Templo en línea a través de Flow.cl (medio de pago chileno).
+
+10. 📞 Contacto: https://www.manachile.cl/contacto
+    → Formulario de contacto para enviar mensajes directamente a la iglesia.
+
+11. 🔐 Iniciar Sesión: https://www.manachile.cl/login
+    → Acceso al sistema interno para miembros registrados. Se puede ingresar con email/contraseña o con Google.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 SISTEMA INTERNO - PÁGINAS Y FUNCIONES (Requieren iniciar sesión)
+
+A continuación se detallan TODAS las secciones del sistema interno con sus enlaces directos:
+
+--- PANEL PRINCIPAL ---
+
+📊 Dashboard (Panel de Inicio): https://www.manachile.cl/dashboard
+   → Panel principal después de iniciar sesión. Muestra accesos rápidos a todas las funciones según el rol del usuario. Incluye alertas de errores pendientes, botón para iniciar sesión de grupo familiar, y accesos directos a GFs en Vivo, Mis Grupos, Personas, Grupos, Donaciones, Mapa, Notificaciones, Comprobantes y Recaudación GFs.
+
+👤 Mi Perfil: https://www.manachile.cl/perfil
+   → Ver y editar perfil personal: foto, nombre, teléfono, contraseña.
+
+📋 Mis Tareas: https://www.manachile.cl/mis-tareas
+   → Lista de tareas asignadas al usuario para próximas reuniones de grupo familiar.
+
+❓ Ayuda: https://www.manachile.cl/ayuda
+   → Manual de ayuda del sistema con video tutoriales y guías.
+
+--- GRUPOS FAMILIARES ---
+
+📡 GFs en Vivo: https://www.manachile.cl/gfs-en-vivo
+   → Panel en tiempo real que muestra qué grupos familiares están reunidos en este momento, con información de duración, asistentes y estado.
+
+🗺️ Mapa de Grupos: https://www.manachile.cl/mapa/grupos
+   → Mapa interactivo con la ubicación geográfica de todos los grupos familiares.
+
+📂 Catálogo de Grupos: https://www.manachile.cl/grupos/catalogo
+   → Lista de todos los grupos familiares disponibles para unirse (para hermanos que buscan grupo).
+
+📋 Reportes de Reuniones: https://www.manachile.cl/reportes
+   → Lista de reportes semanales de reuniones de grupos familiares.
+
+💰 Recaudación GFs: https://www.manachile.cl/recaudacion-gfs
+   → Panel de recaudación de ofrendas por grupo familiar, con estadísticas detalladas, rankings y gráficos.
+
+🧾 Historial de Comprobantes: https://www.manachile.cl/comprobantes/historial
+   → Historial de comprobantes de ofrenda subidos por los grupos.
+
+--- FUNCIONES DE SESIONES (REUNIONES) DE GF ---
+
+Cada grupo familiar tiene sesiones (reuniones) que siguen este flujo:
+1. INICIAR SESIÓN → El líder inicia la reunión desde el dashboard
+2. CONFIRMAR TAREAS → Se revisan las tareas pendientes de la reunión anterior
+3. SESIÓN EN PROGRESO → Se registra:
+   - Oración inicial
+   - Anuncios
+   - Palabra de amor (estudio bíblico)
+   - Asistencia de cada miembro (presente/ausente)
+   - Ofrendas (monto en efectivo y/o transferencia por cada miembro)
+   - Invitados (personas nuevas)
+   - Observaciones por cada miembro
+   - Comprobante de ofrenda (foto del sobre o transferencia)
+4. FINALIZAR SESIÓN → Se cierra la reunión y se genera el resumen
+5. ASIGNAR TAREAS → Se asignan tareas para la próxima reunión
+
+Links de sesión (requieren ID del grupo):
+• Iniciar sesión de GF: https://www.manachile.cl/sesion/iniciar/{id_grupo}
+• Ver historial de sesiones: https://www.manachile.cl/sesion/historial/{id_grupo}
+• Asignar tareas: https://www.manachile.cl/sesion/{id_sesion}/tareas
+• Registrar novedad semanal: https://www.manachile.cl/grupo/{id_grupo}/novedad/{semana}
+
+--- DONACIONES Y FINANZAS ---
+
+⛪ Pro-Templo: https://www.manachile.cl/protemplo
+   → Panel de la campaña Pro-Templo. Muestra el progreso de recaudación, lista de donaciones, y permite registrar donaciones manuales.
+
+💳 Pagar Ofrenda Online: https://www.manachile.cl/ofrenda/pagar
+   → Formulario para pagar ofrendas o donaciones Pro-Templo en línea a través de Flow.cl.
+
+✅ Gracias por tu Ofrenda: https://www.manachile.cl/ofrenda/gracias
+   → Página de confirmación después de una donación exitosa.
+
+--- PERSONAS Y HERMANOS ---
+
+👥 Personas (Hermanos y Líderes): https://www.manachile.cl/pastor/hermanos
+   → Lista completa de todos los miembros de la iglesia (hermanos) con búsqueda, filtros, y acciones.
+
+👤 Hermanos sin Grupo: https://www.manachile.cl/hermanos/sin-grupo
+   → Lista de hermanos que no pertenecen a ningún grupo familiar.
+
+📝 Crear Hermano: https://www.manachile.cl/hermanos/crear
+   → Formulario para registrar un nuevo hermano (miembro de la iglesia).
+
+--- GESTIÓN DE USUARIOS (Líderes y Administradores) ---
+
+👥 Administrar Usuarios: https://www.manachile.cl/admin/usuarios
+   → Lista de todos los usuarios del sistema (con rol de liderazgo).
+
+➕ Crear Usuario: https://www.manachile.cl/usuarios/crear
+   → Formulario para crear un nuevo usuario con rol de liderazgo.
+
+🔑 Gestión de Permisos: https://www.manachile.cl/gestion/permisos
+   → Configurar permisos individuales para cada líder.
+
+--- GESTIÓN DE GRUPOS ---
+
+📂 Administrar Grupos: https://www.manachile.cl/admin/grupos
+   → Lista de todos los grupos familiares con opciones de edición.
+
+➕ Crear Grupo: https://www.manachile.cl/grupos/crear
+   → Formulario para crear un nuevo grupo familiar.
+
+--- SOLICITUDES ---
+
+📋 Solicitudes Pendientes: https://www.manachile.cl/solicitudes/pendientes
+   → Lista de solicitudes de hermanos que quieren unirse a un grupo familiar. Requiere doble aprobación (líder del grupo + líder de área).
+
+--- CURSOS Y CAPACITACIÓN ---
+
+📚 Cursos: https://www.manachile.cl/cursos
+   → Lista de cursos de capacitación disponibles. Los cursos tienen preguntas de múltiple opción, verdadero/falso, y respuesta abierta.
+
+➕ Crear Curso: https://www.manachile.cl/cursos/crear
+   → Formulario para crear un nuevo curso con preguntas.
+
+📋 Solicitudes de Cursos: https://www.manachile.cl/admin/solicitudes-cursos
+   → Gestionar solicitudes de hermanos que quieren tomar cursos.
+
+🔑 Permisos de Cursos: https://www.manachile.cl/admin/permisos-cursos
+   → Configurar qué líderes pueden crear y gestionar cursos.
+
+--- FORO COMUNITARIO ---
+
+💬 Foro: https://www.manachile.cl/foro
+   → Foro de discusión comunitario donde los miembros pueden crear temas, responder, y ayudarse mutuamente.
+   
+   Categorías del foro:
+   • General - Temas generales de la iglesia
+   • Oración - Peticiones de oración
+   • Biblia - Estudios y preguntas bíblicas
+   • Técnico - Ayuda con el uso del sistema
+   • Testimonio - Compartir testimonios de fe
+   • Otro - Otros temas
+
+   Funciones del foro:
+   • Crear nuevos temas de discusión
+   • Responder a temas existentes
+   • Marcar temas como resueltos
+   • Marcar respuestas como solución
+   • Fijar temas importantes (solo administradores)
+
+--- MENSAJES Y NOTIFICACIONES ---
+
+📢 Mensajes Generales: https://www.manachile.cl/admin/mensajes-generales
+   → Crear y gestionar comunicados para toda la iglesia o roles específicos. Los mensajes pueden incluir imágenes y tienen fecha de expiración.
+
+🔔 Notificaciones Push: El sistema envía notificaciones push al celular/navegador cuando hay nuevos mensajes. Los usuarios pueden activar/desactivar las notificaciones desde el ícono de campana en la barra de navegación.
+
+--- CMS (Gestión de Contenido Web Público) ---
+
+🎨 Panel de Contenido: https://www.manachile.cl/pastor/contenido
+   → Acceso central a todas las secciones de administración del sitio web público.
+
+Secciones del CMS:
+• 🏠 Página de Inicio: https://www.manachile.cl/pastor/inicio
+  → Gestionar el slider de imágenes principal, botones de acción rápida, y contenido de la página de inicio.
+
+• 🕐 Horarios: https://www.manachile.cl/pastor/horarios
+  → Editar horarios de reuniones que se muestran en el sitio público.
+
+• 📋 Proyectos: https://www.manachile.cl/pastor/proyectos
+  → Gestionar los proyectos de la iglesia que se muestran públicamente.
+
+• ⛪ Servicios: https://www.manachile.cl/pastor/servicios
+  → Editar la información de servicios de la iglesia.
+
+• 👥 Equipo: https://www.manachile.cl/pastor/equipo
+  → Gestionar la información del equipo pastoral.
+
+• 💬 Testimonios: https://www.manachile.cl/pastor/testimonios
+  → Administrar testimonios que se muestran en el sitio público.
+
+• ℹ️ Acerca de: https://www.manachile.cl/pastor/acerca
+  → Editar la página "Acerca de nosotros".
+
+• 📞 Contacto: https://www.manachile.cl/pastor/contacto
+  → Configurar la información de contacto y ver mensajes recibidos.
+
+• 📅 Eventos: https://www.manachile.cl/pastor/eventos
+  → Crear y gestionar eventos de la iglesia.
+
+• 📬 Mensajes Público: https://www.manachile.cl/pastor/mensajes
+  → Gestionar mensajes/predicas que se muestran en la página pública.
+
+• 📸 Galería: https://www.manachile.cl/pastor/galeria
+  → Subir y gestionar fotos de la galería pública.
+
+--- ADMINISTRACIÓN AVANZADA ---
+
+💾 Backups y Mantenimiento: https://www.manachile.cl/admin/backups
+   → Crear respaldos de la base de datos, activar/desactivar modo mantenimiento.
+
+📹 Video Tutoriales: https://www.manachile.cl/admin/video-tutoriales
+   → Gestionar videos tutoriales de ayuda para los usuarios.
+
+🚫 Lista Negra / Sanciones: https://www.manachile.cl/admin/lista-negra
+   → Ver hermanos sancionados y gestionar sanciones.
+
+🔄 Iniciar Nuevo Año: https://www.manachile.cl/admin/iniciar-anio
+   → Reiniciar datos anuales (asistencia, ofrendas, sesiones) para comenzar un nuevo período.
+
+⚙️ Configuración: https://www.manachile.cl/configuracion/editar
+   → Configuración general del sistema.
+
+🔑 Accesos Temporales: https://www.manachile.cl/acceso-temporal/lista
+   → Gestionar accesos temporales a grupos familiares para usuarios específicos.
+
+👁️ Cambiar Visual: https://www.manachile.cl/cambiar-visual
+   → Permite a Pastor/SupervisorWeb ver el sistema como si fueran otro rol (para verificar permisos).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👥 JERARQUÍA DE ROLES - EXPLICACIÓN DETALLADA DE CADA UNO
+
+El sistema tiene 9 niveles de roles jerárquicos, de mayor a menor autoridad:
+
+═══════════════════════════════════════
+
+1. 👑 PASTOR — Máxima Autoridad
+   Posición: Nivel más alto del sistema.
+   Descripción: El Pastor tiene acceso total y sin restricciones a TODAS las funciones del sistema. Es la autoridad máxima de la iglesia y del sistema.
+   
+   Lo que PUEDE hacer:
+   ✅ Crear, editar y eliminar CUALQUIER tipo de usuario (incluyendo otros Pastores y Supervisores)
+   ✅ Crear, editar y eliminar Grupos Familiares
+   ✅ Ver TODAS las finanzas: donaciones, ofrendas, recaudación completa
+   ✅ Ver y terminar sesiones en vivo de cualquier grupo
+   ✅ Ver comprobantes de ofrenda en tiempo real
+   ✅ Gestionar permisos de cada líder individualmente
+   ✅ Eliminación masiva de usuarios, hermanos y grupos
+   ✅ Gestionar mensajes generales (comunicados a toda la iglesia)
+   ✅ Crear, editar, eliminar, asignar cursos y revisar exámenes
+   ✅ Gestionar todo el contenido del sitio web público (CMS)
+   ✅ Ver lista negra/sanciones y aplicar o quitar sanciones
+   ✅ Realizar backups del sistema
+   ✅ Activar/desactivar modo mantenimiento
+   ✅ Iniciar nuevo año (reiniciar datos anuales)
+   ✅ Gestionar video tutoriales
+   ✅ Gestionar foro (fijar temas, eliminar contenido)
+   ✅ Cambiar visual (ver el sistema como otro rol)
+   ✅ Otorgar y revocar accesos temporales a grupos
+   ✅ Iniciar y finalizar sesiones de cualquier grupo
+   
+   Páginas que puede acceder:
+   → Todas las páginas del sistema sin excepción
+
+═══════════════════════════════════════
+
+2. 🛡️ SUPERVISOR WEB — Co-Administrador
+   Posición: Mismo nivel de acceso que el Pastor.
+   Descripción: El Supervisor Web tiene exactamente los mismos permisos que el Pastor. Es el administrador técnico del sistema y puede hacer todo lo que hace el Pastor.
+   
+   Lo que PUEDE hacer:
+   ✅ Todo lo que puede hacer el Pastor (acceso completo e idéntico)
+   
+   Lo que NO puede hacer:
+   ❌ Nada. Tiene acceso total igual que el Pastor.
+   
+   Páginas que puede acceder:
+   → Todas las páginas del sistema sin excepción
+
+═══════════════════════════════════════
+
+3. 🔧 STAFF — Apoyo Administrativo
+   Posición: Tercer nivel. Por debajo de Pastor y Supervisor.
+   Descripción: El Staff apoya en la administración del sistema. Puede gestionar usuarios, grupos, contenido web y sesiones de grupos familiares. NO tiene acceso a información financiera completa.
+   
+   Lo que PUEDE hacer:
+   ✅ Crear usuarios con roles inferiores (Líderes, Encargados, Hermanos)
+   ✅ Editar y gestionar usuarios
+   ✅ Crear y editar Grupos Familiares
+   ✅ Gestionar contenido del sitio web público (CMS)
+   ✅ Iniciar y gestionar sesiones de grupos a los que tiene acceso
+   ✅ Ver GFs en vivo
+   ✅ Gestionar hermanos y miembros
+   ✅ Gestionar solicitudes de unión a grupos
+   ✅ Acceder al foro comunitario
+   
+   Lo que NO puede hacer:
+   ❌ Ver finanzas completas (recaudación detallada)
+   ❌ Crear usuarios con rol Pastor o Supervisor
+   ❌ Activar modo mantenimiento
+   ❌ Iniciar nuevo año
+   ❌ Cambiar visual
+   
+   Páginas principales:
+   → Dashboard, GFs en Vivo, Personas, Grupos, CMS, Foro, Cursos
+
+═══════════════════════════════════════
+
+4. 🎨 DISEÑADOR WEB — Gestor de Contenido
+   Posición: Cuarto nivel. Acceso limitado solo al CMS.
+   Descripción: El Diseñador Web gestiona exclusivamente el contenido del sitio web público. No tiene acceso a la gestión de usuarios, finanzas, ni sesiones de grupos.
+   
+   Lo que PUEDE hacer:
+   ✅ Gestionar el slider de imágenes de la página de inicio
+   ✅ Editar horarios públicos
+   ✅ Gestionar proyectos, servicios, equipo, testimonios
+   ✅ Administrar eventos y galería de fotos
+   ✅ Editar páginas de "Acerca de" y "Contacto"
+   ✅ Gestionar mensajes/predicas públicas
+   ✅ Acceder al foro comunitario
+   ✅ Ver su perfil
+   
+   Lo que NO puede hacer:
+   ❌ Gestionar usuarios o hermanos
+   ❌ Ver información financiera
+   ❌ Iniciar o gestionar sesiones de GF
+   ❌ Ver GFs en vivo
+   ❌ Gestionar permisos
+   ❌ Cualquier función administrativa
+   
+   Páginas principales:
+   → Dashboard (limitado), CMS (todas las secciones), Foro, Perfil
+
+═══════════════════════════════════════
+
+5. 🏗️ LÍDER DE BLOQUE — Supervisor de Zona
+   Posición: Quinto nivel. Supervisa múltiples Líderes de Área.
+   Descripción: El Líder de Bloque supervisa una zona geográfica que incluye aproximadamente 5 Líderes de Área, lo que equivale a unos 25 Grupos Familiares y entre 150 a 300 personas. Es responsable de supervisar que todos los grupos de su bloque funcionen correctamente.
+   
+   Lo que PUEDE hacer:
+   ✅ Ver todos los grupos de su bloque
+   ✅ Iniciar y gestionar sesiones en los grupos de su bloque
+   ✅ Ver asistencia y ofrendas de sus grupos
+   ✅ Ver reportes y estadísticas de su bloque
+   ✅ Aprobar solicitudes de unión a grupos de su bloque
+   ✅ Gestionar hermanos de sus grupos
+   ✅ Ver comprobantes de sus grupos
+   ✅ Acceder al foro comunitario
+   ✅ Ver mapa de grupos
+   ✅ Participar en cursos
+   
+   Lo que NO puede hacer:
+   ❌ Ver grupos fuera de su bloque
+   ❌ Crear o eliminar usuarios
+   ❌ Gestionar CMS
+   ❌ Ver finanzas globales
+   ❌ Funciones administrativas
+   
+   Supervisa: ~5 Líderes de Área = ~25 GFs = 150-300 personas
+   
+   Páginas principales:
+   → Dashboard, GFs en Vivo (su bloque), Mis Grupos, Personas (su bloque), Mapa, Foro, Cursos
+
+═══════════════════════════════════════
+
+6. 📍 LÍDER DE ÁREA — Supervisor de Sector
+   Posición: Sexto nivel. Supervisa varios Grupos Familiares en un sector.
+   Descripción: El Líder de Área supervisa un sector geográfico con aproximadamente 5 Grupos Familiares. Es responsable de asegurar que los grupos de su área funcionen bien y de apoyar a los Encargados de GF.
+   
+   Lo que PUEDE hacer:
+   ✅ Ver todos los grupos de su área
+   ✅ Iniciar y gestionar sesiones en los grupos de su área
+   ✅ Ver asistencia y ofrendas de sus grupos
+   ✅ Aprobar solicitudes de unión a grupos de su área
+   ✅ Gestionar hermanos de sus grupos
+   ✅ Ver comprobantes de sus grupos
+   ✅ Ver reportes de su área
+   ✅ Acceder al foro comunitario
+   ✅ Participar en cursos
+   
+   Lo que NO puede hacer:
+   ❌ Ver grupos fuera de su área
+   ❌ Crear o eliminar usuarios
+   ❌ Gestionar CMS
+   ❌ Ver finanzas globales
+   
+   Supervisa: ~5 GFs = 30-60 personas
+   
+   Páginas principales:
+   → Dashboard, GFs en Vivo (su área), Mis Grupos, Mapa, Foro, Cursos
+
+═══════════════════════════════════════
+
+7. 👨‍👩‍👧‍👦 ENCARGADO GF — Líder de Grupo Familiar
+   Posición: Séptimo nivel. Lidera un Grupo Familiar específico.
+   Descripción: El Encargado de GF es el líder directo de un Grupo Familiar. Es responsable de llevar adelante las reuniones semanales, registrar asistencia, ofrendas, y hacer seguimiento pastoral de los miembros de su grupo.
+   
+   Lo que PUEDE hacer:
+   ✅ Iniciar sesiones (reuniones) de su grupo familiar
+   ✅ Registrar asistencia de los miembros
+   ✅ Registrar ofrendas (efectivo y transferencia)
+   ✅ Registrar invitados nuevos
+   ✅ Subir comprobantes de ofrenda
+   ✅ Asignar tareas para la próxima reunión
+   ✅ Registrar novedades semanales
+   ✅ Crear reportes de reunión
+   ✅ Finalizar sesiones
+   ✅ Ver historial de sesiones de su grupo
+   ✅ Aprobar solicitudes de unión a su grupo
+   ✅ Acceder al foro comunitario
+   ✅ Participar en cursos
+   
+   Lo que NO puede hacer:
+   ❌ Ver otros grupos (solo el suyo)
+   ❌ Crear usuarios
+   ❌ Ver finanzas globales
+   ❌ Gestionar CMS
+   ❌ Funciones administrativas
+   
+   Responsable de: 1 GF = 6-12 personas
+   
+   Páginas principales:
+   → Dashboard, Sesión de GF, Historial de Sesiones, Foro, Cursos, Perfil
+
+═══════════════════════════════════════
+
+8. 🤝 CO-LÍDER GF — Apoyo del Grupo Familiar
+   Posición: Octavo nivel. Apoya al Encargado del GF.
+   Descripción: El Co-Líder apoya al Encargado en la gestión del Grupo Familiar. Puede realizar las mismas funciones del Encargado dentro del grupo, sirviendo como segundo líder.
+   
+   Lo que PUEDE hacer:
+   ✅ Iniciar sesiones del grupo (si el Encargado no puede)
+   ✅ Registrar asistencia y ofrendas
+   ✅ Registrar invitados
+   ✅ Subir comprobantes
+   ✅ Asignar tareas
+   ✅ Crear reportes
+   ✅ Finalizar sesiones
+   ✅ Ver historial de sesiones
+   ✅ Acceder al foro comunitario
+   ✅ Participar en cursos
+   
+   Lo que NO puede hacer:
+   ❌ Aprobar solicitudes de unión (solo el Encargado y superiores)
+   ❌ Ver otros grupos
+   ❌ Funciones administrativas
+   
+   Apoya en: 1 GF = 6-12 personas
+   
+   Páginas principales:
+   → Dashboard, Sesión de GF, Historial, Foro, Cursos, Perfil
+
+═══════════════════════════════════════
+
+9. 🙏 HERMANO — Miembro de la Congregación
+   Posición: Noveno nivel. Miembro regular.
+   Descripción: El Hermano es un miembro regular de la iglesia. Pertenece a uno o más Grupos Familiares y participa en las reuniones. Puede pertenecer a un grupo "principal" y a otros de "apoyo".
+   
+   Lo que PUEDE hacer:
+   ✅ Ver información de su grupo familiar
+   ✅ Ver catálogo de grupos disponibles
+   ✅ Solicitar unirse a un grupo familiar
+   ✅ Participar en el foro comunitario
+   ✅ Rendir exámenes de cursos asignados
+   ✅ Ver mensajes generales
+   ✅ Recibir notificaciones push
+   ✅ Donar al Pro-Templo
+   ✅ Editar su perfil
+   
+   Lo que NO puede hacer:
+   ❌ Iniciar o gestionar sesiones
+   ❌ Registrar asistencia u ofrendas
+   ❌ Ver información de otros grupos
+   ❌ Funciones administrativas o de liderazgo
+   
+   Panel especial: https://www.manachile.cl/hermano/dashboard
+   
+   Páginas principales:
+   → Dashboard de Hermano, Mi Grupo, Catálogo de Grupos, Foro, Cursos, Perfil
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 MANUAL DETALLADO DE FUNCIONES - PASO A PASO
+
+═══════════════════════════════════════
+🔐 INICIAR SESIÓN
+═══════════════════════════════════════
+
+Paso 1: Ir a https://www.manachile.cl/login
+Paso 2: Ingresar email y contraseña, o hacer clic en "Ingresar con Google"
+Paso 3: Se redirige automáticamente al Dashboard según tu rol
+
+Para cerrar sesión: Hacer clic en tu nombre en la esquina superior derecha → "Cerrar Sesión"
+Link directo: https://www.manachile.cl/logout
+
+═══════════════════════════════════════
+👤 EDITAR MI PERFIL
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/perfil
+
+• Cambiar foto de perfil: Hacer clic en la foto actual → seleccionar nueva imagen → se guarda automáticamente
+• Cambiar nombre/teléfono: Editar los campos y hacer clic en "Guardar"
+• Cambiar contraseña: Ingresar contraseña actual, nueva contraseña, confirmar → "Cambiar Contraseña"
+
+═══════════════════════════════════════
+📊 DASHBOARD - PANEL PRINCIPAL
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/dashboard
+
+El Dashboard muestra diferentes opciones según tu rol:
+
+Botones disponibles (según permisos):
+• 📡 GFs en Vivo → Ver sesiones activas en tiempo real
+• 👥 Mis Grupos → Ver los grupos que lideras o supervisas
+• 👤 Personas → Gestionar hermanos y líderes
+• 🏠 Grupos → Administrar grupos familiares
+• ❤️ Donaciones → Ofrendar o ver Pro-Templo
+• 📍 Mapa → Ver ubicación de los grupos en el mapa
+• 🔔 Notificaciones → Ver mensajes y alertas pendientes
+• 🧾 Comprobantes → Historial de pagos/comprobantes
+• 💰 Recaudación GFs → Ver ofrendas por grupo
+• 📊 Estadísticas → KPIs y gráficos (roles altos)
+• ⚙️ Administración → Acceso a funciones admin (roles altos)
+• 🌐 Ir a ver Web → Abre el sitio público en nueva pestaña
+
+═══════════════════════════════════════
+📡 GFs EN VIVO - SESIONES EN TIEMPO REAL
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/gfs-en-vivo
+
+Muestra en tiempo real:
+• Qué grupos están reunidos ahora mismo
+• Duración de cada sesión activa
+• Cantidad de asistentes registrados
+• Estado de la sesión (en progreso, preparando)
+• Pastor/Supervisor puede terminar sesiones desde aquí
+
+═══════════════════════════════════════
+🏠 FLUJO COMPLETO DE UNA SESIÓN DE GRUPO FAMILIAR
+═══════════════════════════════════════
+
+PASO 1 - INICIAR SESIÓN:
+→ Desde el Dashboard, clic en "Iniciar Grupo Familiar" → seleccionar grupo
+→ O ir directamente a: https://www.manachile.cl/sesion/iniciar/{id_grupo}
+
+PASO 2 - CONFIRMAR TAREAS PENDIENTES:
+→ Se muestran las tareas asignadas en la reunión anterior
+→ Marcar cada tarea como completada o pendiente
+→ Clic en "Continuar"
+
+PASO 3 - SESIÓN EN PROGRESO:
+→ Llenar los campos de la reunión:
+  • Oración Inicial: Quién realizó la oración de apertura
+  • Anuncios: Información importante para el grupo
+  • Palabra de Amor: Tema o pasaje bíblico estudiado
+  • Asistencia: Marcar cada miembro como presente o ausente
+  • Ofrendas: Registrar monto en efectivo y/o transferencia por cada miembro
+  • Observaciones: Notas sobre cada miembro (ánimo, situación, pedidos de oración)
+  • Invitados: Registrar personas nuevas (nombre, teléfono, email, notas)
+  • Comprobante: Subir foto del comprobante de ofrenda
+
+→ Clic en "Guardar" para guardar progreso sin finalizar
+→ Clic en "Finalizar Sesión" cuando todo esté completo
+
+PASO 4 - FINALIZAR:
+→ Se genera resumen automático de la sesión
+→ Se calculan totales de asistencia y ofrendas
+→ Se puede asignar tareas para la próxima reunión
+
+PASO 5 - ASIGNAR TAREAS:
+→ Crear tareas con descripción y asignar a miembros específicos
+→ Las tareas aparecen en la próxima sesión para confirmar
+
+═══════════════════════════════════════
+💰 DONACIONES PRO-TEMPLO
+═══════════════════════════════════════
+
+Link panel: https://www.manachile.cl/protemplo
+Link donar online: https://www.manachile.cl/ofrenda/pagar
+Link donar (público): https://www.manachile.cl/donar
+
+Formas de donar:
+1. ONLINE: A través de Flow.cl (tarjeta de crédito/débito)
+   → Ir a https://www.manachile.cl/ofrenda/pagar → seleccionar monto → pagar
+
+2. MANUAL: Registrar una donación en efectivo o transferencia ya realizada
+   → Desde el panel Pro-Templo → "Registrar Donación Manual"
+   → Ingresar nombre del donante, monto, grupo, y subir comprobante
+
+El panel Pro-Templo muestra:
+• Meta de recaudación y progreso actual
+• Lista de todas las donaciones
+• Estadísticas por grupo
+• Gráficos de evolución
+
+═══════════════════════════════════════
+👥 GESTIONAR PERSONAS (HERMANOS)
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/pastor/hermanos
+
+• Ver lista completa de hermanos con filtros por grupo, estado, búsqueda
+• Crear nuevo hermano: https://www.manachile.cl/hermanos/crear
+  → Ingresar nombre, teléfono, email, dirección, grupo asignado
+• Editar hermano: Clic en el hermano → editar datos
+• Asignar a grupo: Seleccionar grupo destino
+• Sancionar: Aplicar sanción con motivo
+• Restaurar: Quitar sanción
+
+Membresía múltiple: Un hermano puede pertenecer a varios grupos:
+• Grupo "principal": Es su grupo base
+• Grupos de "apoyo": Grupos adicionales donde participa
+
+═══════════════════════════════════════
+📂 GESTIONAR GRUPOS FAMILIARES
+═══════════════════════════════════════
+
+Crear grupo: https://www.manachile.cl/grupos/crear
+Administrar: https://www.manachile.cl/admin/grupos
+
+Al crear/editar un grupo se configura:
+• Nombre del grupo
+• Día de reunión (Lunes a Sábado)
+• Dirección de la reunión
+• Encargado (líder principal)
+• Co-Líder
+• Líder de Área asignado
+• Líder de Bloque asignado
+• Coordenadas para el mapa
+
+Detalle del grupo: https://www.manachile.cl/grupos/detalle/{id}
+→ Muestra todos los miembros, historial de sesiones, estadísticas
+
+═══════════════════════════════════════
+📚 CURSOS Y CAPACITACIÓN
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/cursos
+
+Sistema de cursos con:
+• Múltiples tipos de preguntas: opción múltiple, verdadero/falso, respuesta abierta
+• Sistema de calificación chileno (1.0 a 7.0)
+• Asignación a usuarios específicos con fecha límite
+• Revisión manual de respuestas abiertas
+• Reintentos controlados
+• Historial de resultados
+
+Flujo para líderes:
+1. Crear curso → Agregar preguntas → Asignar a usuarios
+2. Los usuarios rinden el examen
+3. Se califica automáticamente (opción múltiple) y manualmente (respuestas abiertas)
+4. Se puede permitir reintentos
+
+Flujo para hermanos:
+1. Solicitar curso → Esperar aprobación → Rendir examen
+
+═══════════════════════════════════════
+💬 FORO COMUNITARIO
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/foro
+
+• Todos los roles pueden participar
+• Crear temas en categorías: General, Oración, Biblia, Técnico, Testimonio
+• Responder a temas existentes
+• Buscar temas por palabras clave
+• Marcar temas como resueltos
+• Marcar respuestas como solución
+• Los administradores pueden fijar temas importantes y eliminar contenido
+
+═══════════════════════════════════════
+📢 MENSAJES GENERALES
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/admin/mensajes-generales
+
+• Crear comunicados para toda la iglesia o roles específicos
+• Tipos de mensaje: info, éxito, advertencia, peligro
+• Incluir imágenes adjuntas
+• Establecer fecha de expiración
+• Los mensajes aparecen como notificaciones en el dashboard
+• Se envían notificaciones push automáticas al crear un mensaje
+
+═══════════════════════════════════════
+🔔 NOTIFICACIONES PUSH
+═══════════════════════════════════════
+
+El sistema envía notificaciones push al celular y navegador:
+• Cuando se crea un nuevo mensaje general
+• Con diferentes tipos: info, éxito, advertencia, recordatorio, tarea
+• Los usuarios activan las notificaciones desde el ícono de campana 🔔 en la barra de navegación
+• Funciona en Android, iOS (Safari), Chrome, Firefox, Edge
+
+═══════════════════════════════════════
+🗺️ MAPA DE GRUPOS
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/mapa/grupos
+
+• Mapa interactivo con ubicación de todos los grupos familiares
+• Cada marcador muestra: nombre del grupo, día de reunión, dirección, encargado
+• Filtros por área y bloque
+• Útil para encontrar el grupo más cercano
+
+═══════════════════════════════════════
+🧾 COMPROBANTES DE OFRENDA
+═══════════════════════════════════════
+
+Historial: https://www.manachile.cl/comprobantes/historial
+
+• Ver todos los comprobantes subidos por los grupos
+• Filtrar por grupo y fecha
+• Los comprobantes se suben durante la sesión del GF
+• Pueden ser fotos del sobre de ofrenda o captura de transferencia
+
+═══════════════════════════════════════
+💰 RECAUDACIÓN DE GFs
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/recaudacion-gfs
+
+• Vista completa de ofrendas recaudadas por cada grupo
+• Desglose por efectivo y transferencia
+• Rankings de grupos por recaudación
+• Gráficos de tendencia histórica
+• Filtros por periodo
+
+═══════════════════════════════════════
+💾 BACKUPS Y MANTENIMIENTO
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/admin/backups
+
+• Crear respaldos completos de la base de datos
+• Descargar backups
+• Activar/desactivar modo mantenimiento
+  → En mantenimiento, solo Pastor y Supervisor pueden acceder
+  → Los demás usuarios ven una página de "Sistema en mantenimiento"
+
+═══════════════════════════════════════
+🔄 INICIAR NUEVO AÑO
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/admin/iniciar-anio
+
+• Reinicia los contadores anuales: sesiones, asistencia, ofrendas
+• Se mantienen los datos históricos
+• Solo disponible para Pastor y Supervisor Web
+
+═══════════════════════════════════════
+🔑 GESTIÓN DE PERMISOS
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/gestion/permisos
+
+• Configurar permisos individuales para cada líder
+• Activar/desactivar funciones específicas por usuario
+• Asignar roles adicionales dentro de grupos
+
+═══════════════════════════════════════
+🚫 LISTA NEGRA / SANCIONES
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/admin/lista-negra
+
+• Ver hermanos sancionados
+• Aplicar sanciones con motivo
+• Restaurar hermanos sancionados
+• Sanciones masivas disponibles
+
+═══════════════════════════════════════
+📹 VIDEO TUTORIALES
+═══════════════════════════════════════
+
+Link: https://www.manachile.cl/admin/video-tutoriales
+
+• Crear tutoriales con título, descripción y enlace de YouTube
+• Los usuarios pueden ver los tutoriales desde la sección de Ayuda
+• Útil para capacitar a nuevos líderes en el uso del sistema
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 RESPUESTAS PARA VISITANTES QUE NO NOS CONOCEN
+
+Si alguien pregunta "¿Qué es Iglesia Maná Chile?" o "¿Quiénes son?":
+→ "Iglesia Maná Chile es una comunidad de fe cristiana ubicada en Santa Rosa 11, Los Andes, Chile. Nos reunimos para estudiar la palabra de Dios, fortalecer nuestros lazos familiares y crecer juntos en amor y espiritualidad. Tenemos reuniones los Domingos, Viernes, y Grupos Familiares durante la semana. ¡Todos son bienvenidos! Puedes conocer más en https://www.manachile.cl/inicio"
+
+Si alguien pregunta "¿Cómo puedo asistir?" o "¿Cómo llegar?":
+→ "¡Te esperamos! Nuestra dirección es Santa Rosa 11, Los Andes, Chile. Los Domingos tenemos servicios a las 9:00 AM, 11:00 AM y 18:00 PM. Los Viernes a las 20:00 PM. También puedes unirte a un Grupo Familiar durante la semana. Visita https://www.manachile.cl/soy-nuevo para más información."
+
+Si alguien pregunta "¿Cómo me uno a un Grupo Familiar?":
+→ "Los Grupos Familiares son reuniones semanales en hogares donde estudiamos la Biblia en un ambiente acogedor. Para unirte, puedes visitar nuestra página https://www.manachile.cl/participa o contactarnos en https://www.manachile.cl/contacto. También puedes ver el mapa con todos los grupos en https://www.manachile.cl/mapa/grupos"
+
+Si alguien pregunta "¿Cómo puedo donar?" o "¿Cómo contribuir?":
+→ "Puedes donar al proyecto Pro-Templo (construcción de nuestro templo) en línea a través de https://www.manachile.cl/donar. Aceptamos tarjetas de crédito y débito a través de Flow.cl. También puedes donar en efectivo o transferencia durante las reuniones."
+
+Si alguien pregunta "¿Qué eventos tienen?":
+→ "Puedes ver todos nuestros eventos próximos en https://www.manachile.cl/eventos. ¡Estás invitado a todos!"
+
+Si alguien pregunta "¿Cómo contactarlos?":
+→ "Puedes enviarnos un mensaje directamente desde https://www.manachile.cl/contacto. Estamos ubicados en Santa Rosa 11, Los Andes, Chile."
+
+Si alguien pregunta "¿Tienen redes sociales?" o "¿YouTube?":
+→ "Sí, tenemos un Canal de YouTube donde subimos predicas y transmisiones en vivo. Puedes verlo desde nuestra página principal https://www.manachile.cl/inicio"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PREGUNTAS FRECUENTES (FAQ)
+
+P: ¿Necesito una cuenta para ver el sitio web?
+R: No. El sitio web público (https://www.manachile.cl/inicio) es accesible para todos. Solo necesitas cuenta para acceder al sistema interno de gestión.
+
+P: ¿Cómo obtengo una cuenta en el sistema?
+R: Tu líder de grupo o un administrador crea tu cuenta. Contacta a tu Encargado de GF o al Pastor.
+
+P: ¿Puedo pertenecer a más de un Grupo Familiar?
+R: Sí. Puedes tener un grupo "principal" y participar en otros como "apoyo".
+
+P: ¿Cómo cambio mi contraseña?
+R: Ve a tu perfil en https://www.manachile.cl/perfil y usa la sección "Cambiar Contraseña".
+
+P: ¿Qué hago si olvidé mi contraseña?
+R: Contacta a tu líder o administrador para que la resetee. También puedes iniciar sesión con Google si tienes vinculada tu cuenta.
+
+P: ¿Las donaciones son seguras?
+R: Sí. Los pagos en línea se procesan a través de Flow.cl, una plataforma de pagos certificada en Chile.
+
+P: ¿Cómo activo las notificaciones en mi celular?
+R: Después de iniciar sesión, busca el ícono de campana (🔔) en la barra de navegación y haz clic en "Activar Notificaciones".
+
+P: ¿Qué es el Pro-Templo?
+R: Es nuestra campaña de recaudación para la construcción del templo de la iglesia. Puedes donar en https://www.manachile.cl/donar
+
+P: ¿Dónde veo mis tareas pendientes?
+R: En https://www.manachile.cl/mis-tareas o al iniciar una nueva sesión de tu grupo familiar.
+
+P: ¿Cómo uso el foro?
+R: Ve a https://www.manachile.cl/foro → Crea un nuevo tema o responde a uno existente. Puedes elegir categorías como Oración, Biblia, Testimonio, etc.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 ÍNDICE RÁPIDO DE TODOS LOS ENLACES
+
+--- PÁGINAS PÚBLICAS (Sin login) ---
+🏠 Inicio: https://www.manachile.cl/inicio
+🆕 Soy Nuevo: https://www.manachile.cl/soy-nuevo
+📋 Servicios: https://www.manachile.cl/servicios
+ℹ️ Acerca de: https://www.manachile.cl/acerca
+📅 Eventos: https://www.manachile.cl/eventos
+📸 Galería: https://www.manachile.cl/galeria
+💬 Mensajes: https://www.manachile.cl/mensajes
+🤝 Participa: https://www.manachile.cl/participa
+💰 Donar: https://www.manachile.cl/donar
+📞 Contacto: https://www.manachile.cl/contacto
+🔐 Login: https://www.manachile.cl/login
+
+--- SISTEMA INTERNO (Con login) ---
+📊 Dashboard: https://www.manachile.cl/dashboard
+👤 Mi Perfil: https://www.manachile.cl/perfil
+📋 Mis Tareas: https://www.manachile.cl/mis-tareas
+❓ Ayuda: https://www.manachile.cl/ayuda
+📡 GFs en Vivo: https://www.manachile.cl/gfs-en-vivo
+🗺️ Mapa de Grupos: https://www.manachile.cl/mapa/grupos
+📂 Catálogo de Grupos: https://www.manachile.cl/grupos/catalogo
+📋 Reportes: https://www.manachile.cl/reportes
+💰 Recaudación GFs: https://www.manachile.cl/recaudacion-gfs
+🧾 Comprobantes: https://www.manachile.cl/comprobantes/historial
+⛪ Pro-Templo: https://www.manachile.cl/protemplo
+💳 Pagar Ofrenda: https://www.manachile.cl/ofrenda/pagar
+💬 Foro: https://www.manachile.cl/foro
+📚 Cursos: https://www.manachile.cl/cursos
+
+--- GESTIÓN (Roles altos) ---
+👥 Personas: https://www.manachile.cl/pastor/hermanos
+📝 Crear Hermano: https://www.manachile.cl/hermanos/crear
+👤 Hermanos sin Grupo: https://www.manachile.cl/hermanos/sin-grupo
+👥 Admin Usuarios: https://www.manachile.cl/admin/usuarios
+➕ Crear Usuario: https://www.manachile.cl/usuarios/crear
+📂 Admin Grupos: https://www.manachile.cl/admin/grupos
+➕ Crear Grupo: https://www.manachile.cl/grupos/crear
+🔑 Permisos: https://www.manachile.cl/gestion/permisos
+📋 Solicitudes: https://www.manachile.cl/solicitudes/pendientes
+📢 Mensajes Generales: https://www.manachile.cl/admin/mensajes-generales
+🔑 Accesos Temporales: https://www.manachile.cl/acceso-temporal/lista
+
+--- CMS (Contenido Web) ---
+🎨 Panel CMS: https://www.manachile.cl/pastor/contenido
+🏠 Editar Inicio: https://www.manachile.cl/pastor/inicio
+🕐 Horarios: https://www.manachile.cl/pastor/horarios
+📋 Proyectos: https://www.manachile.cl/pastor/proyectos
+⛪ Servicios CMS: https://www.manachile.cl/pastor/servicios
+👥 Equipo: https://www.manachile.cl/pastor/equipo
+💬 Testimonios: https://www.manachile.cl/pastor/testimonios
+ℹ️ Acerca CMS: https://www.manachile.cl/pastor/acerca
+📞 Contacto CMS: https://www.manachile.cl/pastor/contacto
+📅 Eventos CMS: https://www.manachile.cl/pastor/eventos
+📬 Mensajes CMS: https://www.manachile.cl/pastor/mensajes
+📸 Galería CMS: https://www.manachile.cl/pastor/galeria
+
+--- ADMINISTRACIÓN AVANZADA ---
+💾 Backups: https://www.manachile.cl/admin/backups
+📹 Video Tutoriales: https://www.manachile.cl/admin/video-tutoriales
+🚫 Lista Negra: https://www.manachile.cl/admin/lista-negra
+🔄 Iniciar Año: https://www.manachile.cl/admin/iniciar-anio
+⚙️ Configuración: https://www.manachile.cl/configuracion/editar
+👁️ Cambiar Visual: https://www.manachile.cl/cambiar-visual
+🔑 Permisos Cursos: https://www.manachile.cl/admin/permisos-cursos
+📋 Solicitudes Cursos: https://www.manachile.cl/admin/solicitudes-cursos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 NOTAS IMPORTANTES PARA EL BOT
+
+1. El dominio principal es https://www.manachile.cl - todos los enlaces deben usar este dominio.
+2. Las páginas públicas no requieren login. Las páginas internas sí requieren login.
+3. Cuando un visitante nuevo pregunte algo, guiarlo primero a las páginas públicas.
+4. Cuando un miembro pregunte sobre funciones del sistema, verificar su rol antes de guiarlo.
+5. Las donaciones se procesan a través de Flow.cl (plataforma de pagos chilena).
+6. Los Grupos Familiares se reúnen de Lunes a Sábado en diferentes hogares.
+7. La iglesia está ubicada en Los Andes, Chile.
+8. El sistema soporta notificaciones push en celulares y navegadores.
+9. Los hermanos pueden pertenecer a múltiples grupos (uno principal, otros de apoyo).
+10. El foro está abierto para todos los roles - es un espacio de comunidad.

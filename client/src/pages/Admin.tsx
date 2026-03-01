@@ -775,7 +775,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
     queryKey: ["/api/admin/sessions", sessionId, "messages"],
     queryFn: async () => {
       const res = await adminFetch(`/api/admin/sessions/${sessionId}/messages`);
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       const data = await res.json();
       invalidateSessionLists();
       return data;
@@ -1126,7 +1126,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         method: "PATCH",
         headers: { "Authorization": "Bearer " + getAuthToken(), "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
     onSuccess: () => {
@@ -1953,7 +1953,7 @@ function ProductsPanel() {
     queryKey: ["/api/admin/products"],
     queryFn: async () => {
       const res = await adminFetch("/api/admin/products");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -2296,7 +2296,7 @@ function CannedResponsesPanel() {
     queryKey: ["/api/admin/canned-responses"],
     queryFn: async () => {
       const res = await adminFetch("/api/admin/canned-responses");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -2636,7 +2636,7 @@ function KnowledgePanel() {
     queryKey: ["/api/admin/knowledge", queryString],
     queryFn: async () => {
       const res = await adminFetch(`/api/admin/knowledge${queryString ? `?${queryString}` : ""}`);
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -2647,7 +2647,7 @@ function KnowledgePanel() {
         method: "PATCH",
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
     onSuccess: () => {
@@ -2661,7 +2661,7 @@ function KnowledgePanel() {
       const res = await adminFetch(`/api/admin/knowledge/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
     onSuccess: () => {
@@ -2677,7 +2677,7 @@ function KnowledgePanel() {
         method: "POST",
         body: JSON.stringify({ limit: 10 }),
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       const result = await res.json();
       setExtractResult(result);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge"] });
@@ -3017,7 +3017,7 @@ function SettingsPanel() {
     queryKey: ["/api/settings", "business_hours_enabled"],
     queryFn: async () => {
       const res = await adminFetch("/api/settings/business_hours_enabled");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3025,7 +3025,7 @@ function SettingsPanel() {
     queryKey: ["/api/settings", "business_hours_start"],
     queryFn: async () => {
       const res = await adminFetch("/api/settings/business_hours_start");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3033,7 +3033,7 @@ function SettingsPanel() {
     queryKey: ["/api/settings", "business_hours_end"],
     queryFn: async () => {
       const res = await adminFetch("/api/settings/business_hours_end");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3041,7 +3041,7 @@ function SettingsPanel() {
     queryKey: ["/api/settings", "business_hours_ticket_url"],
     queryFn: async () => {
       const res = await adminFetch("/api/settings/business_hours_ticket_url");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3068,7 +3068,7 @@ function SettingsPanel() {
         method: "PUT",
         body: JSON.stringify({ value: enabled ? "true" : "false" }),
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
     onSuccess: () => {
@@ -3091,7 +3091,7 @@ function SettingsPanel() {
         adminFetch("/api/settings/business_hours_ticket_url", { method: "PUT", body: JSON.stringify({ value: bhTicketUrl }) }),
       ];
       const results = await Promise.all(updates);
-      if (results.some(r => !r.ok)) throw new Error("Error");
+      if (results.some(r => !r.ok)) throw new Error("Error de conexión");
       queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_start"] });
       queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_end"] });
       queryClient.invalidateQueries({ queryKey: ["/api/settings", "business_hours_ticket_url"] });
@@ -3244,7 +3244,7 @@ function ProfanityWordsSection() {
     queryKey: ["/api/admin/profanity-words"],
     queryFn: async () => {
       const res = await adminFetch("/api/admin/profanity-words");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3405,7 +3405,7 @@ function TagsPanel() {
     queryKey: ["/api/admin/tags"],
     queryFn: async () => {
       const res = await adminFetch("/api/admin/tags");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3440,7 +3440,7 @@ function TagsPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/tags"] });
@@ -3453,7 +3453,7 @@ function TagsPanel() {
       const res = await adminFetch(`/api/admin/tags/${encodeURIComponent(name)}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/tags"] });
@@ -3583,7 +3583,7 @@ function UsersPanel({ adminUser }: { adminUser: { id: number; email: string; rol
     queryKey: ["/api/admin/users"],
     queryFn: async () => {
       const res = await adminFetch("/api/admin/users");
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
   });
@@ -3919,7 +3919,7 @@ function SaasDashboard() {
     queryFn: async () => {
       const token = getAuthToken();
       const res = await fetch("/api/admin/dashboard-metrics", { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error al cargar métricas");
       return res.json();
     },
     refetchInterval: 60000,
@@ -3943,7 +3943,7 @@ function SaasDashboard() {
   }
 
   const kpis = [
-    { label: "Total Tenants", value: metrics.totalTenants.toString(), icon: Users, color: "#10b981" },
+    { label: "Total de Tenants", value: metrics.totalTenants.toString(), icon: Users, color: "#10b981" },
     { label: "Tenants Activos", value: metrics.activeTenants.toString(), icon: Activity, color: "#3b82f6" },
     { label: "Ingresos Totales", value: formatCLP(metrics.totalRevenue), icon: DollarSign, color: "#f59e0b" },
     { label: "MRR Estimado", value: formatCLP(metrics.mrr), icon: TrendingUp, color: "#8b5cf6" },
@@ -4063,7 +4063,7 @@ function TenantsPanel() {
     queryFn: async () => {
       const token = getAuthToken();
       const res = await fetch("/api/admin/tenants", { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error al cargar tenants");
       return res.json();
     },
   });
@@ -4073,7 +4073,7 @@ function TenantsPanel() {
     queryFn: async () => {
       const token = getAuthToken();
       const res = await fetch("/api/admin/payments", { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error al cargar pagos");
       return res.json();
     },
     enabled: paymentsView,
@@ -4518,7 +4518,7 @@ export default function AdminPage() {
     queryFn: async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
       const res = await adminFetch(`/api/admin/search?q=${encodeURIComponent(debouncedSearch)}`);
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error de conexión");
       return res.json();
     },
     enabled: authenticated && debouncedSearch.length >= 2,

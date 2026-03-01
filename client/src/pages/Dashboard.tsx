@@ -123,7 +123,7 @@ function StatsSection({ token }: { token: string }) {
       const res = await fetch("/api/tenants/me/stats", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error al cargar estadísticas");
       return res.json();
     },
     refetchInterval: 30000,
@@ -1781,7 +1781,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                           body: JSON.stringify({ name: helpName, email: helpEmail, message: helpMessage }),
                         });
-                        if (!res.ok) throw new Error("Error");
+                        if (!res.ok) throw new Error("Error al enviar solicitud");
                         setHelpSent(true);
                         toast({ title: "Solicitud enviada", description: "Un ejecutivo se contactara contigo pronto" });
                       } catch {
@@ -1829,7 +1829,7 @@ function ReferidosSection() {
     queryKey: ["/api/tenants/me/referral"],
     queryFn: async () => {
       const res = await fetch("/api/tenants/me/referral", { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error("Error");
+      if (!res.ok) throw new Error("Error al cargar datos de referidos");
       return res.json();
     },
   });
