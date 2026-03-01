@@ -22,6 +22,10 @@ import {
   UserCircle,
   Send,
   ImageIcon,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  ExternalLink,
 } from "lucide-react";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -595,72 +599,228 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
           )}
 
           {step === 2 && (
-            <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar" data-testid="onboarding-step-2">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20 animate-float">
-                  <Rocket className="w-8 h-8 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold mb-1">¡Tu FoxBot está listo!</h2>
-                <p className="text-sm text-white/40">Copia el código y pegalo en tu sitio web para activar el chat</p>
-              </div>
-
-              <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Code className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-white/80">Código de integración</span>
-                </div>
-                <div className="relative">
-                  <pre className="p-4 rounded-lg bg-black/40 text-xs text-green-400 font-mono overflow-x-auto border border-white/[0.06]" data-testid="onboarding-embed-code">
-                    {embedCode}
-                  </pre>
-                  <Button
-                    onClick={copyEmbed}
-                    variant="outline"
-                    className={`absolute top-2 right-2 h-8 rounded-lg px-3 text-xs border-white/[0.08] ${copied ? "bg-green-500/10 text-green-400 border-green-500/20" : ""}`}
-                    data-testid="onboarding-copy-embed"
-                  >
-                    {copied ? <><Check className="w-3 h-3 mr-1" /> Copiado</> : <><Copy className="w-3 h-3 mr-1" /> Copiar</>}
-                  </Button>
-                </div>
-                <p className="text-xs text-white/30">Pega este código antes del cierre &lt;/body&gt; en tu sitio web. Funciona con WordPress, Shopify, Wix, y cualquier sitio HTML.</p>
-              </div>
-
-              <div className="rounded-xl bg-primary/5 border border-primary/15 p-4 flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-white/80">¿Que sigue?</p>
-                  <ul className="text-xs text-white/50 space-y-1">
-                    <li>Entrena tu bot con más información en el Panel de Soporte</li>
-                    <li>Personaliza más opciones en la sección Configuración</li>
-                    <li>Revisa las guías para instalar en tu plataforma</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep(1)}
-                  className="h-11 rounded-xl px-6 border-white/[0.08]"
-                  data-testid="onboarding-back-2"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Atras
-                </Button>
-                <Button
-                  onClick={finishOnboarding}
-                  disabled={saving}
-                  className="h-12 rounded-xl px-8 font-bold text-base bg-primary hover:bg-primary/90"
-                  data-testid="onboarding-finish"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Ir al Dashboard
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+            <Step2Ready
+              embedCode={embedCode}
+              copyEmbed={copyEmbed}
+              copied={copied}
+              saving={saving}
+              onBack={() => setStep(1)}
+              onFinish={finishOnboarding}
+            />
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+const PLATFORM_GUIDES = [
+  {
+    name: "WordPress",
+    icon: "🔵",
+    steps: [
+      "Ve a tu panel de WordPress → Apariencia → Editor de temas → footer.php",
+      "Pega el código justo antes de la etiqueta </body>",
+      "Guarda los cambios y listo",
+    ],
+    alt: "También puedes usar el plugin 'Insert Headers and Footers' para pegarlo sin tocar código.",
+  },
+  {
+    name: "Shopify",
+    icon: "🟢",
+    steps: [
+      "Ve a Tienda online → Temas → Acciones → Editar código",
+      "Abre el archivo theme.liquid",
+      "Pega el código justo antes de </body>",
+      "Guarda los cambios",
+    ],
+  },
+  {
+    name: "Wix",
+    icon: "🟡",
+    steps: [
+      "Ve a Configuración del sitio → Código personalizado",
+      "Haz clic en 'Agregar código personalizado'",
+      "Pega el código, selecciona 'Body - final' y 'Todas las páginas'",
+      "Publica tu sitio",
+    ],
+  },
+  {
+    name: "Webflow",
+    icon: "🔷",
+    steps: [
+      "Ve a Configuración del proyecto → Código personalizado",
+      "En 'Footer Code', pega el código",
+      "Publica tu sitio",
+    ],
+  },
+  {
+    name: "Squarespace",
+    icon: "⬛",
+    steps: [
+      "Ve a Configuración → Avanzado → Inyección de código",
+      "Pega el código en el campo 'Footer'",
+      "Guarda los cambios",
+    ],
+  },
+  {
+    name: "HTML / Otro",
+    icon: "📄",
+    steps: [
+      "Abre tu archivo HTML principal (index.html)",
+      "Pega el código justo antes de </body>",
+      "Sube el archivo a tu servidor",
+    ],
+  },
+];
+
+function Step2Ready({
+  embedCode,
+  copyEmbed,
+  copied,
+  saving,
+  onBack,
+  onFinish,
+}: {
+  embedCode: string;
+  copyEmbed: () => void;
+  copied: boolean;
+  saving: boolean;
+  onBack: () => void;
+  onFinish: () => void;
+}) {
+  const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
+
+  return (
+    <div className="p-6 sm:p-8 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar" data-testid="onboarding-step-2">
+      <div className="text-center">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20 animate-float">
+          <Rocket className="w-8 h-8 text-primary" />
+        </div>
+        <h2 className="text-xl font-bold mb-1">¡Tu FoxBot está listo!</h2>
+        <p className="text-sm text-white/40">Copia el código y pégalo en tu sitio web para activar el chat</p>
+      </div>
+
+      <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Code className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-white/80">Código de integración</span>
+        </div>
+        <div className="relative">
+          <pre className="p-4 rounded-lg bg-black/40 text-xs text-green-400 font-mono overflow-x-auto border border-white/[0.06]" data-testid="onboarding-embed-code">
+            {embedCode}
+          </pre>
+          <Button
+            onClick={copyEmbed}
+            variant="outline"
+            className={`absolute top-2 right-2 h-8 rounded-lg px-3 text-xs border-white/[0.08] ${copied ? "bg-green-500/10 text-green-400 border-green-500/20" : ""}`}
+            data-testid="onboarding-copy-embed"
+          >
+            {copied ? <><Check className="w-3 h-3 mr-1" /> Copiado</> : <><Copy className="w-3 h-3 mr-1" /> Copiar</>}
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Globe className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-white/80">Guías de instalación por plataforma</span>
+        </div>
+        <div className="space-y-1">
+          {PLATFORM_GUIDES.map((platform) => (
+            <div key={platform.name} className="rounded-lg border border-white/[0.06] overflow-hidden">
+              <button
+                onClick={() => setExpandedPlatform(expandedPlatform === platform.name ? null : platform.name)}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
+                data-testid={`guide-${platform.name.toLowerCase().replace(/[^a-z]/g, "")}`}
+              >
+                <span className="flex items-center gap-2 text-sm text-white/70">
+                  <span>{platform.icon}</span>
+                  {platform.name}
+                </span>
+                {expandedPlatform === platform.name ? (
+                  <ChevronUp className="w-4 h-4 text-white/30" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-white/30" />
+                )}
+              </button>
+              {expandedPlatform === platform.name && (
+                <div className="px-3 pb-3 space-y-2 border-t border-white/[0.04]">
+                  <ol className="list-decimal list-inside space-y-1.5 pt-2">
+                    {platform.steps.map((s, i) => (
+                      <li key={i} className="text-xs text-white/50 leading-relaxed">{s}</li>
+                    ))}
+                  </ol>
+                  {platform.alt && (
+                    <p className="text-[11px] text-primary/70 italic mt-1">{platform.alt}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <a
+          href="/guias"
+          target="_blank"
+          className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors mt-1"
+          data-testid="link-full-guides"
+        >
+          Ver guías completas con más plataformas
+          <ExternalLink className="w-3 h-3" />
+        </a>
+      </div>
+
+      <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-4 space-y-3">
+        <div className="flex items-start gap-3">
+          <Phone className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 flex-1">
+            <p className="text-sm font-medium text-white/80">¿Necesitas ayuda para instalarlo?</p>
+            <p className="text-xs text-white/40">Nuestro equipo lo instala por ti en 5 a 10 minutos. Solo necesitamos acceso a tu plataforma.</p>
+          </div>
+        </div>
+        <a
+          href="https://wa.me/56920441926?text=Hola!%20Necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm font-medium hover:bg-amber-500/15 transition-colors"
+          data-testid="button-request-install-help"
+        >
+          <Phone className="w-4 h-4" />
+          Solicitar instalación gratuita por WhatsApp
+        </a>
+      </div>
+
+      <div className="rounded-xl bg-primary/5 border border-primary/15 p-4 flex items-start gap-3">
+        <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-white/80">¿Qué sigue?</p>
+          <ul className="text-xs text-white/50 space-y-1">
+            <li>Entrena tu bot con más información en el Panel de Soporte</li>
+            <li>Personaliza más opciones en la sección Configuración</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="h-11 rounded-xl px-6 border-white/[0.08]"
+          data-testid="onboarding-back-2"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Atrás
+        </Button>
+        <Button
+          onClick={onFinish}
+          disabled={saving}
+          className="h-12 rounded-xl px-8 font-bold text-base bg-primary hover:bg-primary/90"
+          data-testid="onboarding-finish"
+        >
+          {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          Ir al Dashboard
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
       </div>
     </div>
   );
