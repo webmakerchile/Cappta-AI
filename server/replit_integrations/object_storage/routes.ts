@@ -55,7 +55,28 @@ export function registerObjectStorageRoutes(app: Express): void {
       if (isProduction) {
         const objectPath = `/objects${req.path}`;
         const signedUrl = await objectStorageService.getSignedDownloadUrl(objectPath);
-        res.redirect(signedUrl);
+        const fetchHeaders: Record<string, string> = {};
+        if (req.headers.range) {
+          fetchHeaders["Range"] = req.headers.range;
+        }
+        const upstream = await fetch(signedUrl, { headers: fetchHeaders });
+        if (!upstream.ok && upstream.status !== 206) {
+          return res.status(upstream.status).json({ error: "Archivo no encontrado" });
+        }
+        res.status(upstream.status);
+        const fwdHeaders = ["content-type", "content-length", "accept-ranges", "content-range", "etag", "last-modified"];
+        for (const h of fwdHeaders) {
+          const val = upstream.headers.get(h);
+          if (val) res.set(h, val);
+        }
+        res.set("Cache-Control", "public, max-age=86400");
+        if (upstream.body) {
+          const { Readable } = await import("stream");
+          const nodeStream = Readable.fromWeb(upstream.body as any);
+          nodeStream.pipe(res);
+        } else {
+          res.end();
+        }
       } else {
         const reqPath = req.path.replace(/^\/uploads\//, "");
         const filePath = path.join(UPLOAD_DIR, reqPath);
