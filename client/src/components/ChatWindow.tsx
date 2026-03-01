@@ -49,6 +49,8 @@ interface ChatWindowProps {
   onSend: (content: string, imageUrl?: string, quickReplyValue?: string) => void;
   onContactExecutive: () => void;
   isConnected: boolean;
+  isSending?: boolean;
+  isBotTyping?: boolean;
   userName: string;
   userEmail: string;
   contactRequested: boolean;
@@ -631,7 +633,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, isSending, isBotTyping, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -753,7 +755,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-  }, [messages]);
+  }, [messages, isSending, isBotTyping]);
 
   useEffect(() => {
     if (!showSearch) {
@@ -985,6 +987,47 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             return items;
           })()
         )}
+        {(isSending || isBotTyping) && (
+          <div className="flex items-end gap-2 animate-fade-in" data-testid="typing-indicator">
+            <div
+              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border"
+              style={{
+                backgroundColor: botIconUrl ? "transparent" : `${brandColor || "#10b981"}20`,
+                borderColor: botIconUrl ? "transparent" : `${brandColor || "#10b981"}30`,
+              }}
+            >
+              {botIconUrl ? (
+                <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <Headphones className="w-3 h-3" style={{ color: brandColor || "#10b981" }} />
+              )}
+            </div>
+            <div
+              className="px-4 py-3 rounded-2xl rounded-bl-md max-w-[85%]"
+              style={{ backgroundColor: botBubbleColor || "#2a2a2a" }}
+            >
+              <div className="flex items-center gap-1.5">
+                {isSending ? (
+                  <span className="text-xs flex items-center gap-1.5" style={{ color: `${botTextColor || "#e0e0e0"}99` }}>
+                    <Send className="w-3 h-3 animate-pulse" />
+                    Enviando...
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-[3px]">
+                      <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "0ms", animationDuration: "1s" }} />
+                      <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "150ms", animationDuration: "1s" }} />
+                      <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "300ms", animationDuration: "1s" }} />
+                    </div>
+                    <span className="text-xs ml-1" style={{ color: `${botTextColor || "#e0e0e0"}99` }}>
+                      Pensando...
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -1183,11 +1226,15 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             data-testid="button-send"
             type="submit"
             size="icon"
-            disabled={!input.trim() || isSessionClosed}
-            className="text-white flex-shrink-0"
+            disabled={!input.trim() || isSessionClosed || isSending}
+            className="text-white flex-shrink-0 transition-all"
             style={{ backgroundColor: brandColor || "#10b981" }}
           >
-            <Send className="w-4 h-4" />
+            {isSending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </form>
       </div>

@@ -73,6 +73,8 @@ function FullScreenChat() {
     isConnected,
     isLoading,
     contactRequested,
+    isSending,
+    isBotTyping,
     sendMessage,
     requestContact,
     login,
@@ -192,6 +194,8 @@ function FullScreenChat() {
             onSend={sendMessage}
             onContactExecutive={requestContact}
             isConnected={isConnected}
+            isSending={isSending}
+            isBotTyping={isBotTyping}
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
@@ -222,6 +226,8 @@ function ContactChat() {
     isConnected,
     isLoading,
     contactRequested,
+    isSending,
+    isBotTyping,
     sendMessage,
     requestContact,
     login,
@@ -290,6 +296,8 @@ function ContactChat() {
             onSend={sendMessage}
             onContactExecutive={requestContact}
             isConnected={isConnected}
+            isSending={isSending}
+            isBotTyping={isBotTyping}
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
@@ -377,6 +385,8 @@ function ChatWidget() {
     isConnected,
     isLoading,
     contactRequested,
+    isSending,
+    isBotTyping,
     sendMessage,
     requestContact,
     login,
@@ -480,6 +490,8 @@ function ChatWidget() {
                 onSend={sendMessage}
                 onContactExecutive={requestContact}
                 isConnected={isConnected}
+                isSending={isSending}
+                isBotTyping={isBotTyping}
                 userName={user.name}
                 userEmail={user.email}
                 contactRequested={contactRequested}

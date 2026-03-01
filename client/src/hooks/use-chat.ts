@@ -314,11 +314,33 @@ export function useChat(tenantId?: number | null) {
     };
   }, [user]);
 
+  const [isSending, setIsSending] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const messageCountBeforeSend = useRef(0);
+
+  useEffect(() => {
+    if (!isBotTyping) return;
+    const safeguard = setTimeout(() => setIsBotTyping(false), 30000);
+    return () => clearTimeout(safeguard);
+  }, [isBotTyping]);
+
+  useEffect(() => {
+    if (isBotTyping && messages.length > messageCountBeforeSend.current) {
+      const latest = messages[messages.length - 1];
+      if (latest && latest.sender !== "user") {
+        setIsBotTyping(false);
+      }
+    }
+  }, [messages, isBotTyping]);
+
   const sendMessage = useCallback(
     async (content: string, imageUrl?: string, quickReplyValue?: string) => {
       if (!user) return;
       if (!content.trim() && !imageUrl) return;
       if (planLimitReached) return;
+
+      setIsSending(true);
+      messageCountBeforeSend.current = messages.length;
 
       try {
         const res = await fetch("/api/messages", {
@@ -341,8 +363,12 @@ export function useChat(tenantId?: number | null) {
           }),
         });
 
+        setIsSending(false);
+
         if (res.ok) {
           const msg = await res.json();
+          messageCountBeforeSend.current = (messages.length || 0) + 1;
+          setIsBotTyping(true);
           queryClient.setQueryData(
             ["/api/messages/thread", user.email],
             (old: Message[] | undefined) => {
@@ -377,6 +403,7 @@ export function useChat(tenantId?: number | null) {
           }
         }
       } catch {
+        setIsSending(false);
         try {
           const socket = getSocket();
           if (socket.connected) {
@@ -387,11 +414,12 @@ export function useChat(tenantId?: number | null) {
               userName: user.name,
               sender: "user",
             });
+            setIsBotTyping(true);
           }
         } catch {}
       }
     },
-    [user, pageInfo, productContext, tenantId, planLimitReached],
+    [user, pageInfo, productContext, tenantId, planLimitReached, messages.length],
   );
 
   const requestContact = useCallback(async () => {
@@ -542,6 +570,8 @@ export function useChat(tenantId?: number | null) {
     sessions,
     isConnected,
     isLoading,
+    isSending,
+    isBotTyping,
     contactRequested,
     sendMessage,
     requestContact,
