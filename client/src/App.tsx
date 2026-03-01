@@ -334,6 +334,7 @@ interface TenantConfig {
   welcomeMessage: string;
   welcomeSubtitle: string;
   logoUrl: string | null;
+  logoScale: number;
   launcherImageUrl: string | null;
   botIconUrl: string | null;
   widgetPosition: string;
@@ -400,6 +401,7 @@ function ChatWidget() {
   const widgetName = tenantConfig?.companyName || undefined;
   const widgetWelcome = tenantConfig?.welcomeMessage || undefined;
   const widgetLogo = tenantConfig?.logoUrl || undefined;
+  const widgetLogoScale = tenantConfig?.logoScale || 100;
   const widgetSubtitle = tenantConfig?.welcomeSubtitle || undefined;
   const widgetConsultationOptions = tenantConfig?.consultationOptions || undefined;
   const widgetShowProductSearch = tenantConfig?.showProductSearch || 0;
@@ -507,6 +509,7 @@ function ChatWidget() {
                 brandColor={widgetColor}
                 brandName={widgetName}
                 brandLogo={widgetLogo}
+                brandLogoScale={widgetLogoScale}
                 tenantId={tenantId ?? undefined}
                 headerTextColor={widgetHeaderTextColor}
                 botBubbleColor={widgetBotBubbleColor}

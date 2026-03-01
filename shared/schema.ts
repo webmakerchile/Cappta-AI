@@ -145,6 +145,7 @@ export const tenants = pgTable("tenants", {
   welcomeMessage: text("welcome_message").notNull().default("Hola, ¿en qué podemos ayudarte?"),
   welcomeSubtitle: text("welcome_subtitle").notNull().default("Completa tus datos para iniciar la conversacion"),
   logoUrl: text("logo_url"),
+  logoScale: integer("logo_scale").notNull().default(100),
   avatarUrl: text("avatar_url"),
   launcherImageUrl: text("launcher_image_url"),
   botIconUrl: text("bot_icon_url"),

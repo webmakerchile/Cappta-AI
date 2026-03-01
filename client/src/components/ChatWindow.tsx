@@ -62,6 +62,7 @@ interface ChatWindowProps {
   brandColor?: string;
   brandName?: string;
   brandLogo?: string;
+  brandLogoScale?: number;
   tenantId?: number;
   headerTextColor?: string;
   botBubbleColor?: string;
@@ -633,7 +634,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, isSending, isBotTyping, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, isSending, isBotTyping, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, brandLogoScale, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -855,7 +856,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     >
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: brandColor || "#10b981" }}>
         {brandLogo ? (
-          <img src={brandLogo} alt={brandName || "Logo"} className="w-9 h-9 rounded-full object-cover bg-white/15" data-testid="img-brand-logo" />
+          <img src={brandLogo} alt={brandName || "Logo"} className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(36 * (brandLogoScale || 100) / 100)}px`, height: `${Math.round(36 * (brandLogoScale || 100) / 100)}px`, maxWidth: "72px", maxHeight: "72px" }} data-testid="img-brand-logo" />
         ) : (
           <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
             <Headphones className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />

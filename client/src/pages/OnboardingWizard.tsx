@@ -64,6 +64,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const [userTextColor, setUserTextColor] = useState(tenant.userTextColor || "#ffffff");
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage || "Hola, ¿en qué podemos ayudarte?");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
+  const [logoScale, setLogoScale] = useState(tenant.logoScale || 100);
   const [avatarUrl, setAvatarUrl] = useState(tenant.avatarUrl || "");
   const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
   const [launcherImageUrl, setLauncherImageUrl] = useState(tenant.launcherImageUrl || "");
@@ -258,6 +259,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       welcomeMessage,
       welcomeSubtitle,
       logoUrl: logoUrl || null,
+      logoScale,
       avatarUrl: avatarUrl || null,
       launcherImageUrl: launcherImageUrl || null,
       botIconUrl: botIconUrl || null,

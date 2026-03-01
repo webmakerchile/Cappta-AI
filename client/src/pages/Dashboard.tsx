@@ -311,6 +311,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage);
   const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
+  const [logoScale, setLogoScale] = useState(tenant.logoScale || 100);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [showProductSearch, setShowProductSearch] = useState(tenant.showProductSearch === 1);
@@ -353,6 +354,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setWelcomeMessage(tenant.welcomeMessage);
     setWelcomeSubtitle(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
     setLogoUrl(tenant.logoUrl || "");
+    setLogoScale(tenant.logoScale || 100);
     setShowProductSearch(tenant.showProductSearch === 1);
     setProductSearchLabel(tenant.productSearchLabel || "Buscar producto");
     setProductApiUrl(tenant.productApiUrl || "");
@@ -562,6 +564,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       welcomeMessage,
       welcomeSubtitle,
       logoUrl: logoUrl || null,
+      logoScale,
       avatarUrl: avatarUrl || null,
       launcherImageUrl: launcherImageUrl || null,
       botIconUrl: botIconUrl || null,
@@ -877,6 +880,30 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             />
           </div>
           <p className="text-xs text-white/30">Formato: PNG, JPG, SVG. Maximo 5MB.</p>
+          {logoUrl && (
+            <div className="space-y-1.5 mt-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-white/50">Tamaño del logo</label>
+                <span className="text-xs text-white/40 font-mono">{logoScale}%</span>
+              </div>
+              <input
+                type="range"
+                min="50"
+                max="200"
+                step="10"
+                value={logoScale}
+                onChange={(e) => setLogoScale(Number(e.target.value))}
+                className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary"
+                style={{ accentColor: widgetColor }}
+                data-testid="range-logo-scale"
+              />
+              <div className="flex justify-between text-[10px] text-white/25">
+                <span>50%</span>
+                <span>100%</span>
+                <span>200%</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
@@ -1263,7 +1290,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                   <div className="px-4 py-3 flex items-center justify-between shrink-0" style={{ background: widgetColor }}>
                     <div className="flex items-center gap-2 min-w-0">
                       {logoUrl ? (
-                        <img src={logoUrl} alt="" className="w-8 h-8 rounded-full object-cover bg-white/15" />
+                        <img src={logoUrl} alt="" className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(32 * logoScale / 100)}px`, height: `${Math.round(32 * logoScale / 100)}px`, maxWidth: "64px", maxHeight: "64px" }} />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
                           <Headphones className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
@@ -1302,7 +1329,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 <div className="flex flex-col h-full" style={{ background: "#1a1a1a" }}>
                   <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3 shrink-0" style={{ background: widgetColor }}>
                     {logoUrl ? (
-                      <img src={logoUrl} alt="" className="w-8 h-8 rounded-full object-cover bg-white/15" />
+                      <img src={logoUrl} alt="" className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(32 * logoScale / 100)}px`, height: `${Math.round(32 * logoScale / 100)}px`, maxWidth: "64px", maxHeight: "64px" }} />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
                         <Headphones className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
