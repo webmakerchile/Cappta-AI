@@ -2671,11 +2671,11 @@ Reglas CRITICAS:
           },
           {
             role: "user",
-            content: `Organiza la siguiente informacion de negocio. IMPORTANTE: Solo incluye datos reales que aparezcan en el texto, nunca pongas valores entre corchetes como placeholders:\n\n${text.substring(0, 15000)}`
+            content: `Organiza la siguiente informacion de negocio. IMPORTANTE: Solo incluye datos reales que aparezcan en el texto, nunca pongas valores entre corchetes como placeholders:\n\n${text.substring(0, 50000)}`
           }
         ],
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: 8000,
       });
       const organized = completion.choices[0]?.message?.content || "";
       res.json({ organized });
@@ -2726,11 +2726,11 @@ El resultado debe ser el MISMO texto pero con mejor redaccion, NO un texto compl
           },
           {
             role: "user",
-            content: `Embellece el siguiente texto de entrenamiento de chatbot. Mejora la redaccion manteniendo toda la informacion real intacta:\n\n${text.substring(0, 15000)}`
+            content: `Embellece el siguiente texto de entrenamiento de chatbot. Mejora la redaccion manteniendo toda la informacion real intacta:\n\n${text.substring(0, 50000)}`
           }
         ],
         temperature: 0.4,
-        max_tokens: 5000,
+        max_tokens: 8000,
       });
       const beautified = completion.choices[0]?.message?.content || "";
       res.json({ beautified });
@@ -2818,65 +2818,141 @@ REGLAS:
         return res.status(400).json({ message: "Solo se permiten URLs con protocolo HTTP o HTTPS." });
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      const response = await fetch(cleanUrl, {
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; FoxBot/1.0; +https://foxbot.cl)",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        },
+      const fetchHeaders = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "es-CL,es;q=0.9,en;q=0.8",
+      };
+
+      async function fetchPage(pageUrl: string, timeoutMs: number = 15000): Promise<string | null> {
+        try {
+          const ctrl = new AbortController();
+          const tm = setTimeout(() => ctrl.abort(), timeoutMs);
+          const resp = await fetch(pageUrl, { signal: ctrl.signal, headers: fetchHeaders, redirect: "follow" });
+          clearTimeout(tm);
+          if (!resp.ok) return null;
+          const ct = resp.headers.get("content-type") || "";
+          if (!ct.includes("text/html") && !ct.includes("application/xhtml")) return null;
+          return await resp.text();
+        } catch { return null; }
+      }
+
+      function extractPageData(html: string, pageUrl: string) {
+        const metaParts: string[] = [];
+        const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        if (titleMatch) metaParts.push(`Titulo: ${titleMatch[1].trim()}`);
+        const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
+          || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
+        if (metaDescMatch) metaParts.push(`Descripcion: ${metaDescMatch[1].trim()}`);
+        const ogMatches = html.matchAll(/<meta[^>]*property=["'](og:[^"']+)["'][^>]*content=["']([^"']+)["']/gi);
+        for (const m of ogMatches) metaParts.push(`${m[1]}: ${m[2].trim()}`);
+        const ogMatches2 = html.matchAll(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["'](og:[^"']+)["']/gi);
+        for (const m of ogMatches2) metaParts.push(`${m[2]}: ${m[1].trim()}`);
+        const jsonLdMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+        const jsonLdParts: string[] = [];
+        for (const m of jsonLdMatches) { try { jsonLdParts.push(m[1].trim()); } catch {} }
+
+        const navContent = (html.match(/<nav[^>]*>([\s\S]*?)<\/nav>/gi) || [])
+          .map(n => n.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).join(" ");
+        const footerContent = (html.match(/<footer[^>]*>([\s\S]*?)<\/footer>/gi) || [])
+          .map(f => f.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).join(" ");
+        const headerContent = (html.match(/<header[^>]*>([\s\S]*?)<\/header>/gi) || [])
+          .map(h => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).join(" ");
+
+        const mainContent = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+          .replace(/\s+/g, " ").trim();
+
+        const links: string[] = [];
+        const linkMatches = html.matchAll(/<a[^>]*href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi);
+        for (const lm of linkMatches) {
+          try {
+            const href = lm[1].trim();
+            const linkText = lm[2].replace(/<[^>]+>/g, "").trim();
+            if (!href || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) continue;
+            const resolved = new URL(href, pageUrl);
+            if (resolved.hostname === new URL(pageUrl).hostname) {
+              links.push(resolved.href);
+            }
+          } catch {}
+        }
+
+        return { metaParts, jsonLdParts, mainContent, navContent, footerContent, headerContent, links: [...new Set(links)] };
+      }
+
+      const mainHtml = await fetchPage(cleanUrl, 30000);
+      if (!mainHtml) {
+        return res.status(400).json({ message: "No se pudo acceder a la pagina. Verifica que la URL sea correcta y accesible." });
+      }
+
+      const mainData = extractPageData(mainHtml, cleanUrl);
+
+      const skipPatterns = [/login/i, /register/i, /signup/i, /admin/i, /dashboard/i, /cart/i, /checkout/i, /account/i, /wp-admin/i, /wp-login/i, /\.pdf$/i, /\.jpg$/i, /\.png$/i, /\.gif$/i, /\.zip$/i, /\.css$/i, /\.js$/i, /\?/];
+      const priorityPatterns = [/about/i, /acerca/i, /nosotros/i, /servicios/i, /services/i, /productos/i, /products/i, /contacto/i, /contact/i, /horarios/i, /hours/i, /precios/i, /pricing/i, /planes/i, /faq/i, /preguntas/i, /ayuda/i, /help/i, /info/i, /quienes-somos/i, /equipo/i, /team/i, /galeria/i, /gallery/i, /ubicacion/i, /location/i, /donar/i, /eventos/i, /events/i, /blog/i, /noticias/i, /envios/i, /shipping/i, /politicas/i, /policies/i, /menu/i, /catalogo/i, /tienda/i, /shop/i, /participa/i, /soy-nuevo/i, /mensajes/i];
+      const internalLinks = mainData.links
+        .filter(l => !skipPatterns.some(p => p.test(l)))
+        .filter(l => l !== cleanUrl && l !== cleanUrl + "/");
+
+      const prioritized = internalLinks.sort((a, b) => {
+        const aP = priorityPatterns.some(p => p.test(a)) ? 0 : 1;
+        const bP = priorityPatterns.some(p => p.test(b)) ? 0 : 1;
+        return aP - bP;
       });
-      clearTimeout(timeout);
 
-      if (!response.ok) {
-        return res.status(400).json({ message: `No se pudo acceder a la pagina (HTTP ${response.status})` });
+      const maxSubpages = 10;
+      const subpageUrls = prioritized.slice(0, maxSubpages);
+      const subpageResults: { url: string; title: string; content: string }[] = [];
+
+      const batchSize = 4;
+      for (let i = 0; i < subpageUrls.length; i += batchSize) {
+        const batch = subpageUrls.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(async (spUrl) => {
+          const spHtml = await fetchPage(spUrl, 8000);
+          if (!spHtml) return null;
+          const spData = extractPageData(spHtml, spUrl);
+          const title = spData.metaParts.find(p => p.startsWith("Titulo:"))?.replace("Titulo: ", "") || spUrl;
+          const content = spData.mainContent.substring(0, 2500);
+          if (content.length < 30) return null;
+          return { url: spUrl, title, content };
+        }));
+        for (const r of batchResults) {
+          if (r) subpageResults.push(r);
+        }
       }
-
-      const html = await response.text();
-
-      const metaParts: string[] = [];
-      const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-      if (titleMatch) metaParts.push(`Titulo: ${titleMatch[1].trim()}`);
-      const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
-        || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
-      if (metaDescMatch) metaParts.push(`Descripcion: ${metaDescMatch[1].trim()}`);
-      const ogMatches = html.matchAll(/<meta[^>]*property=["'](og:[^"']+)["'][^>]*content=["']([^"']+)["']/gi);
-      for (const m of ogMatches) metaParts.push(`${m[1]}: ${m[2].trim()}`);
-      const ogMatches2 = html.matchAll(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["'](og:[^"']+)["']/gi);
-      for (const m of ogMatches2) metaParts.push(`${m[2]}: ${m[1].trim()}`);
-      const jsonLdMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
-      const jsonLdParts: string[] = [];
-      for (const m of jsonLdMatches) {
-        try { jsonLdParts.push(m[1].trim()); } catch {}
-      }
-
-      const textContent = html
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
-        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "")
-        .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/\s+/g, " ")
-        .trim();
 
       let combinedText = "";
-      if (metaParts.length > 0) combinedText += "METADATOS DE LA PAGINA:\n" + metaParts.join("\n") + "\n\n";
-      if (jsonLdParts.length > 0) combinedText += "DATOS ESTRUCTURADOS (JSON-LD):\n" + jsonLdParts.join("\n") + "\n\n";
-      if (textContent.length > 10) combinedText += "CONTENIDO DE TEXTO:\n" + textContent;
+      combinedText += `URL PRINCIPAL: ${cleanUrl}\n\n`;
+      if (mainData.metaParts.length > 0) combinedText += "METADATOS:\n" + mainData.metaParts.join("\n") + "\n\n";
+      if (mainData.jsonLdParts.length > 0) combinedText += "DATOS ESTRUCTURADOS (JSON-LD):\n" + mainData.jsonLdParts.join("\n") + "\n\n";
+      if (mainData.headerContent.length > 10) combinedText += "ENCABEZADO DEL SITIO:\n" + mainData.headerContent.substring(0, 500) + "\n\n";
+      if (mainData.navContent.length > 10) combinedText += "NAVEGACION DEL SITIO:\n" + mainData.navContent.substring(0, 500) + "\n\n";
+      if (mainData.mainContent.length > 10) combinedText += "CONTENIDO PRINCIPAL:\n" + mainData.mainContent.substring(0, 8000) + "\n\n";
+      if (mainData.footerContent.length > 10) combinedText += "PIE DE PAGINA:\n" + mainData.footerContent.substring(0, 1000) + "\n\n";
+
+      if (subpageResults.length > 0) {
+        combinedText += "\n========== PAGINAS INTERNAS DEL SITIO ==========\n\n";
+        for (const sp of subpageResults) {
+          combinedText += `--- PAGINA: ${sp.title} (${sp.url}) ---\n${sp.content}\n\n`;
+        }
+      }
+
+      const allInternalLinks = mainData.links.filter(l => !skipPatterns.some(p => p.test(l)));
+      if (allInternalLinks.length > 0) {
+        combinedText += "\nTODOS LOS LINKS INTERNOS ENCONTRADOS:\n";
+        for (const link of allInternalLinks.slice(0, 30)) {
+          combinedText += `• ${link}\n`;
+        }
+      }
 
       if (combinedText.trim().length < 10) {
         return res.status(400).json({ message: "La pagina no tiene contenido accesible. Prueba con otra URL o usa 'Pegar texto' para copiar la info manualmente." });
       }
 
-      const truncatedText = combinedText.substring(0, 15000);
+      const truncatedText = combinedText.substring(0, 50000);
 
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -2885,99 +2961,124 @@ REGLAS:
         messages: [
           {
             role: "system",
-            content: `Eres un asistente experto en analizar sitios web de negocios y extraer toda la informacion relevante para entrenar un chatbot de atencion al cliente.
+            content: `Eres un analista web EXPERTO. Tu trabajo es hacer un analisis ULTRA MINUCIOSO de un sitio web completo para generar la base de conocimiento mas completa posible para un chatbot de atencion al cliente.
 
-Tu tarea: Analizar el contenido de una pagina web y extraer toda la informacion del negocio en formato visual, estructurado y facil de leer/editar.
+Se te proporcionara el contenido de la pagina principal Y de todas las subpaginas internas del sitio. Debes analizar CADA pagina, CADA link, CADA seccion y extraer ABSOLUTAMENTE TODA la informacion.
 
-FORMATO DE SALIDA (usar exactamente estas secciones con emojis, omitir las que no apliquen):
+FORMATO DE SALIDA (usa TODAS las secciones que apliquen, con emojis y separadores):
 
-🏪 NOMBRE DEL NEGOCIO: [nombre]
+🏪 NOMBRE DEL NEGOCIO: [nombre exacto]
+📝 TIPO DE NEGOCIO/SISTEMA: [tipo, ej: tienda online, restaurante, iglesia, clinica, etc.]
 
-📝 DESCRIPCION:
-[breve descripcion del negocio en 1-3 lineas]
+🌐 SITIO WEB: [url principal]
 
-🌐 SITIO WEB: [url]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 DESCRIPCION COMPLETA
+[Descripcion extensa y detallada del negocio/organizacion. 3-5 parrafos minimo. Incluye historia, proposito, mision, vision, valores si los hay. Hazlo como si fueras un empleado orgulloso presentando su empresa.]
 
-🛍️ PRODUCTOS / SERVICIOS:
-• [nombre] — [descripcion breve]
-  💰 Precio: $[precio] | 🏷️ Oferta: $[precio oferta si aplica]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 CONTACTO E INFORMACION GENERAL
+• 📍 Direccion: [si hay]
+• 📱 WhatsApp: [si hay]
+• 📧 Email: [si hay]
+• 📞 Telefono: [si hay]
+• 🌐 Sitio Web: [url]
+• 📺 Redes Sociales: [todas las que encuentres: YouTube, Instagram, Facebook, TikTok, etc.]
 
-📂 CATEGORIAS:
-📌 [categoria 1]:
-  • [producto 1]
-  • [producto 2]
-📌 [categoria 2]:
-  • [producto 1]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🕐 HORARIOS
+• [dia/rango]: [horario] ([descripcion si aplica])
+[Lista COMPLETA de todos los horarios encontrados]
 
-💳 METODOS DE PAGO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛍️ SERVICIOS Y ACTIVIDADES / PRODUCTOS
+[Lista EXHAUSTIVA de cada servicio, producto, actividad. Incluir descripcion, precio, horario, detalles]
+• [nombre] — [descripcion detallada]
+  💰 Precio: [si aplica] | 🕐 Horario: [si aplica]
+
+📌 CATEGORIAS DE SERVICIOS/PRODUCTOS:
+  • [categoria 1]: [items]
+  • [categoria 2]: [items]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 DATOS Y ESTADISTICAS
+[Cualquier numero, estadistica, dato cuantitativo del negocio]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 PAGINAS DEL SITIO WEB
+[Lista COMPLETA de todas las paginas/secciones del sitio con su URL y descripcion de que contiene cada una]
+
+1. 🏠 [nombre pagina]: [url]
+   → [descripcion de que contiene esa pagina]
+
+2. [siguiente pagina...]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 FUNCIONES/SECCIONES INTERNAS (si aplica)
+[Documentar todas las funciones del sistema: panel de usuario, dashboard, formularios, etc.]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💳 METODOS DE PAGO
 • [metodo 1]
 • [metodo 2]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚚 ENVIOS / DESPACHO:
-• [politica de envio]
+🚚 ENVIOS / DESPACHO / LOGISTICA
+• [detalles]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📋 POLITICAS:
+📋 POLITICAS Y GARANTIAS
 • [politica 1]
 • [politica 2]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📞 CONTACTO:
-• 📱 WhatsApp: [numero]
-• 📧 Email: [correo]
-• 🌐 Web: [url]
-• 📍 Direccion: [direccion]
+👥 EQUIPO / ROLES / PERSONAL
+[Si hay info sobre el equipo, lideres, roles, jerarquia]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🕐 HORARIOS:
-• [dia/rango]: [horario]
+❓ PREGUNTAS FRECUENTES (generar al menos 10-15 basadas en la informacion)
+❔ [pregunta que un cliente/visitante haria]
+✅ [respuesta completa basada en los datos]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-❓ PREGUNTAS FRECUENTES:
-❔ [pregunta 1]
-✅ [respuesta 1]
+ℹ️ INFORMACION ADICIONAL
+• [cualquier dato que no encaje en las secciones anteriores]
+• [proyectos, campanas, eventos especiales, etc.]
 
-❔ [pregunta 2]
-✅ [respuesta 2]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ℹ️ INFORMACION ADICIONAL:
-• [dato relevante]
-
-Reglas CRITICAS:
-- Extraer TODOS los productos con sus precios exactos
-- Mantener nombres exactos de productos/servicios
-- Si hay ofertas o descuentos, indicarlos claramente con el emoji 🏷️
-- Agrupar por categorias cuando sea posible
-- Escribir en español
-- NUNCA inventar informacion que no este en la pagina
-- NUNCA usar placeholders como [precio], [numero], [correo], [direccion], [horario], [detalles si aplica], etc. Si no tienes un dato especifico, OMITE esa linea por completo. No pongas corchetes ni texto generico.
-- Si no hay informacion suficiente para una seccion completa, OMITE la seccion entera
-- Si un producto no tiene precio visible, solo pon el nombre y descripcion sin linea de precio
-- Ser conciso pero completo con la info REAL disponible
-- Usar las lineas separadoras ━━━ entre cada seccion para facilitar la lectura
-- Los emojis son obligatorios para cada seccion`
+REGLAS CRITICAS:
+- Se ULTRA MINUCIOSO. Extrae ABSOLUTAMENTE TODO lo que encuentres
+- Analiza CADA subpagina proporcionada, no solo la principal
+- Los links a paginas internas deben documentarse con su URL exacta y que contienen
+- NUNCA inventar informacion. Si no hay un dato, OMITE esa linea
+- NUNCA usar placeholders como [precio], [numero], etc. Solo datos reales
+- Genera MUCHAS preguntas frecuentes (10-15 minimo) basadas en la informacion real
+- La descripcion debe ser EXTENSA y profesional, como un pitch de ventas
+- Escribir TODO en español
+- Emojis obligatorios en cada seccion y subseccion
+- Separadores ━━━ entre secciones
+- Si una seccion no tiene datos, OMITELA completamente
+- El resultado debe ser lo MAS COMPLETO y DETALLADO posible para que un chatbot pueda responder CUALQUIER pregunta sobre el negocio`
           },
           {
             role: "user",
-            content: `Analiza el contenido de esta pagina web (${cleanUrl}) y extrae toda la informacion del negocio. Usa todos los datos disponibles (metadatos, JSON-LD, texto visible) para construir el perfil mas completo posible. IMPORTANTE: Solo incluye datos reales, nunca pongas valores entre corchetes como placeholders:\n\n${truncatedText}`
+            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se te proporciona el contenido de la pagina principal Y ${subpageResults.length} subpaginas internas que fueron escaneadas automaticamente. Analiza CADA pagina, extrae TODA la informacion: servicios, productos, horarios, contacto, links, preguntas frecuentes, y todo lo que pueda servir para que un chatbot responda cualquier pregunta. Solo incluye datos REALES, nunca placeholders:\n\n${truncatedText}`
           }
         ],
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: 16000,
       });
       const organized = completion.choices[0]?.message?.content || "";
       res.json({ organized, sourceUrl: cleanUrl });
