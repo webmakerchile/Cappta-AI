@@ -3079,6 +3079,9 @@ export default function TenantPanel() {
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
+    document.title = "FoxBot Panel - Soporte";
+    const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (appleTitle) appleTitle.setAttribute("content", "FoxBot Panel");
     const manifestLink = document.querySelector('link[rel="manifest"]');
     if (manifestLink) {
       manifestLink.setAttribute("href", "/manifest-panel.json");
@@ -3185,9 +3188,12 @@ export default function TenantPanel() {
               Instalar App
             </button>
           ) : /iPad|iPhone|iPod/.test(navigator.userAgent) ? (
-            <div className="px-3 py-2 rounded-lg text-[10px] text-white/40 bg-white/[0.03] border border-white/[0.06] leading-relaxed" data-testid="text-ios-install-hint">
-              <Download className="w-3.5 h-3.5 inline mr-1 text-[#10b981]" />
-              Toca <strong className="text-white/60">Compartir</strong> y luego <strong className="text-white/60">"Agregar a inicio"</strong> para instalar
+            <div className="px-3 py-2.5 rounded-lg text-[11px] text-white/50 bg-[#10b981]/5 border border-[#10b981]/15 leading-relaxed" data-testid="text-ios-install-hint">
+              <div className="flex items-center gap-1.5 mb-1 text-[#10b981] font-semibold text-xs">
+                <Download className="w-3.5 h-3.5" />
+                Instalar como App
+              </div>
+              Toca el botón <strong className="text-white/70">Compartir</strong> (↑) de Safari y luego <strong className="text-white/70">"Agregar a Inicio"</strong>
             </div>
           ) : null)}
           {!isAgent && (

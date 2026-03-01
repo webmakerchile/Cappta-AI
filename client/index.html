@@ -30,15 +30,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
-    <link rel="manifest" href="/manifest.json" />
     <script>
       (function() {
-        if (window.location.pathname.startsWith('/panel')) {
-          document.querySelector('link[rel="manifest"]').setAttribute('href', '/manifest-panel.json');
+        var isPanel = window.location.pathname.startsWith('/panel');
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = isPanel ? '/manifest-panel.json' : '/manifest.json';
+        document.head.appendChild(link);
+        if (isPanel) {
+          document.title = 'FoxBot Panel - Soporte';
+          var titleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          if (titleMeta) titleMeta.setAttribute('content', 'FoxBot Panel');
         }
       })();
     </script>
-    <meta name="theme-color" content="#1a7a3a" />
+    <meta name="theme-color" content="#10b981" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FoxBot" />
