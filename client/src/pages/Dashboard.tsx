@@ -1359,58 +1359,40 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
-  const pos = tenant.widgetPosition || "right";
-  const posOpp = pos === "left" ? "left" : "right";
   const embedScript = `<script>
   (function() {
     var iframe = document.createElement('iframe');
     iframe.id = 'foxbot-widget';
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
     iframe.allow = 'microphone';
-    iframe.style.cssText = 'position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;';
+    var pos = 'right';
+    function setPos(p, state) {
+      var s = p === 'left' ? 'left' : 'right';
+      var o = p === 'left' ? 'right' : 'left';
+      var mobile = window.innerWidth <= 480;
+      if (state === 'open') {
+        if (mobile) {
+          iframe.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
+        } else {
+          iframe.style.cssText = 'position:fixed;bottom:16px;' + s + ':16px;' + o + ':auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+        }
+      } else {
+        iframe.style.cssText = 'position:fixed;bottom:12px;' + s + ':12px;' + o + ':auto;width:70px;height:70px;border:none;z-index:9999;';
+      }
+    }
+    setPos(pos, 'closed');
     document.body.appendChild(iframe);
     window.addEventListener('message', function(e) {
       if (!e.data || !e.data.type) return;
-      if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
-        var mobile = window.innerWidth <= 480;
-        if (e.data.type === 'open_chat') {
-          if (mobile) {
-            iframe.style.cssText = 'position:fixed;bottom:0;${posOpp}:0;width:100%;height:100%;border:none;z-index:9999;';
-          } else {
-            iframe.style.cssText = 'position:fixed;bottom:16px;${posOpp}:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
-          }
-        } else {
-          iframe.style.cssText = 'position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;';
-        }
-      }
+      if (e.data.position) pos = e.data.position;
+      if (e.data.type === 'foxbot_position') { pos = e.data.position; setPos(pos, 'closed'); }
+      if (e.data.type === 'open_chat') setPos(pos, 'open');
+      if (e.data.type === 'close_chat') setPos(pos, 'closed');
     });
   })();
 </script>`;
 
-  const iframeCode = `<iframe
-  id="foxbot-widget"
-  src="${baseUrl}/widget?tenantId=${tenant.id}"
-  style="position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;"
-  allow="microphone"
-></iframe>
-<script>
-  window.addEventListener('message', function(e) {
-    var f = document.getElementById('foxbot-widget');
-    if (!f || !e.data || !e.data.type) return;
-    if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
-      var mobile = window.innerWidth <= 480;
-      if (e.data.type === 'open_chat') {
-        if (mobile) {
-          f.style.cssText = 'position:fixed;bottom:0;${posOpp}:0;width:100%;height:100%;border:none;z-index:9999;';
-        } else {
-          f.style.cssText = 'position:fixed;bottom:16px;${posOpp}:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
-        }
-      } else {
-        f.style.cssText = 'position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;';
-      }
-    }
-  });
-</script>`;
+  const iframeCode = embedScript;
 
   const platforms: PlatformGuide[] = [
     {

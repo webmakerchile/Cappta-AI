@@ -407,10 +407,11 @@ function ChatWidget() {
         type,
         width: type === "open_chat" ? (isMobile ? "100%" : 400) : 80,
         height: type === "open_chat" ? (isMobile ? "100%" : 620) : 80,
+        position: widgetPosition,
       };
       window.parent.postMessage(payload, "*");
     } catch {}
-  }, []);
+  }, [widgetPosition]);
 
   const toggleChat = useCallback(() => {
     if (isInlineEmbed) {
@@ -446,6 +447,14 @@ function ChatWidget() {
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
+
+  useEffect(() => {
+    if (widgetPosition && !isInlineEmbed) {
+      try {
+        window.parent.postMessage({ type: "foxbot_position", position: widgetPosition }, "*");
+      } catch {}
+    }
+  }, [widgetPosition, isInlineEmbed]);
 
   return (
     <div
