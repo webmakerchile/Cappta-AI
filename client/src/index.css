@@ -293,16 +293,18 @@
   50% { border-color: rgba(16, 185, 129, 0.4); }
 }
 
+@media (prefers-reduced-motion: no-preference) {}
+
 @keyframes count-fade {
   from { opacity: 0; transform: translateY(16px) scale(0.8); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.animate-float { animation: float 6s ease-in-out infinite; }
-.animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
-.animate-gradient-shift { animation: gradient-shift 6s ease infinite; background-size: 200% 200%; }
-.animate-orb-drift { animation: orb-drift 20s ease-in-out infinite; }
-.animate-border-glow { animation: border-glow 3s ease-in-out infinite; }
+.animate-float { }
+.animate-glow-pulse { opacity: 0.6; }
+.animate-gradient-shift { background-size: 200% 200%; }
+.animate-orb-drift { }
+.animate-border-glow { border-color: rgba(16, 185, 129, 0.25); }
 .animate-count-fade { animation: count-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 .glass-card {
@@ -381,7 +383,7 @@
   animation: value-count 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .animate-subtle-breathe {
-  animation: subtle-breathe 4s ease-in-out infinite;
+  opacity: 0.04;
 }
 .animate-sidebar-glow {
   animation: sidebar-glow 4s ease-in-out infinite;
