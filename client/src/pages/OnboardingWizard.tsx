@@ -26,6 +26,9 @@ import {
   ChevronUp,
   Phone,
   ExternalLink,
+  Plus,
+  Trash2,
+  MessageCircle,
 } from "lucide-react";
 import type { Tenant } from "@shared/schema";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
@@ -62,12 +65,29 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const [welcomeMessage, setWelcomeMessage] = useState(tenant.welcomeMessage || "Hola, ¿en qué podemos ayudarte?");
   const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
   const [avatarUrl, setAvatarUrl] = useState(tenant.avatarUrl || "");
+  const [welcomeSubtitle, setWelcomeSubtitle] = useState(tenant.welcomeSubtitle || "Completa tus datos para iniciar la conversación");
+  const [launcherImageUrl, setLauncherImageUrl] = useState(tenant.launcherImageUrl || "");
+  const [botIconUrl, setBotIconUrl] = useState(tenant.botIconUrl || "");
+  const [widgetPosition, setWidgetPosition] = useState(tenant.widgetPosition || "right");
+  const [labelContactButton, setLabelContactButton] = useState(tenant.labelContactButton || "");
+  const [labelTicketButton, setLabelTicketButton] = useState(tenant.labelTicketButton || "");
+  const [labelFinalizeButton, setLabelFinalizeButton] = useState(tenant.labelFinalizeButton || "");
+  const [welcomeBannerText, setWelcomeBannerText] = useState(tenant.welcomeBannerText || "");
+  const [launcherBubbleText, setLauncherBubbleText] = useState(tenant.launcherBubbleText || "");
+  const [consultationOptions, setConsultationOptions] = useState<{ value: string; label: string }[]>(() => {
+    try { return tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []; } catch { return []; }
+  });
+  const [newOption, setNewOption] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingLauncher, setUploadingLauncher] = useState(false);
+  const [uploadingBotIcon, setUploadingBotIcon] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const launcherInputRef = useRef<HTMLInputElement>(null);
+  const botIconInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
-  const [previewMode, setPreviewMode] = useState<"welcome" | "chat">("welcome");
+  const [previewMode, setPreviewMode] = useState<"welcome" | "chat" | "launcher">("welcome");
 
   const handleAnalyzeUrl = async () => {
     const urlToAnalyze = domain.trim();
@@ -164,6 +184,65 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
     setUploadingAvatar(false);
   };
 
+  const handleLauncherUpload = async (file: File) => {
+    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+      toast({ title: "Solo imágenes de hasta 5MB", variant: "destructive" });
+      return;
+    }
+    setUploadingLauncher(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Error al subir archivo");
+      const { objectPath } = await res.json();
+      const saved = await saveFieldToDb("launcherImageUrl", objectPath);
+      if (saved) {
+        setLauncherImageUrl(objectPath);
+        toast({ title: "Imagen del botón subida y guardada" });
+      }
+    } catch {
+      toast({ title: "Error al subir la imagen", variant: "destructive" });
+    }
+    setUploadingLauncher(false);
+  };
+
+  const handleBotIconUpload = async (file: File) => {
+    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+      toast({ title: "Solo imágenes de hasta 5MB", variant: "destructive" });
+      return;
+    }
+    setUploadingBotIcon(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Error al subir archivo");
+      const { objectPath } = await res.json();
+      const saved = await saveFieldToDb("botIconUrl", objectPath);
+      if (saved) {
+        setBotIconUrl(objectPath);
+        toast({ title: "Ícono del bot subido y guardado" });
+      }
+    } catch {
+      toast({ title: "Error al subir la imagen", variant: "destructive" });
+    }
+    setUploadingBotIcon(false);
+  };
+
+  const addConsultationOption = () => {
+    const label = newOption.trim();
+    if (!label) return;
+    const value = label.toLowerCase().replace(/\s+/g, "_");
+    if (consultationOptions.some((o) => o.value === value)) return;
+    setConsultationOptions([...consultationOptions, { value, label }]);
+    setNewOption("");
+  };
+
+  const removeConsultationOption = (value: string) => {
+    setConsultationOptions(consultationOptions.filter((o) => o.value !== value));
+  };
+
   const [savingStep, setSavingStep] = useState(false);
 
   const saveStepAndAdvance = async (nextStep: number) => {
@@ -177,8 +256,18 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       botTextColor,
       userTextColor,
       welcomeMessage,
+      welcomeSubtitle,
       logoUrl: logoUrl || null,
       avatarUrl: avatarUrl || null,
+      launcherImageUrl: launcherImageUrl || null,
+      botIconUrl: botIconUrl || null,
+      widgetPosition,
+      labelContactButton: labelContactButton.trim() || null,
+      labelTicketButton: labelTicketButton.trim() || null,
+      labelFinalizeButton: labelFinalizeButton.trim() || null,
+      welcomeBannerText: welcomeBannerText.trim() || null,
+      launcherBubbleText: launcherBubbleText.trim() || null,
+      consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       botConfigured: nextStep >= 2 ? 1 : 0,
       onboardingStep: nextStep,
     };
@@ -512,6 +601,167 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">Subtítulo del formulario</label>
+                  <Input
+                    data-testid="onboarding-input-subtitle"
+                    value={welcomeSubtitle}
+                    onChange={(e) => setWelcomeSubtitle(e.target.value)}
+                    placeholder="Completa tus datos para iniciar la conversación"
+                    className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/60">Botón flotante (opcional)</label>
+                    <div className="flex items-center gap-3">
+                      {launcherImageUrl ? (
+                        <div className="relative group">
+                          <img src={launcherImageUrl} alt="Botón" className="h-12 w-12 rounded-full object-cover border border-white/[0.08]" onError={() => setLauncherImageUrl("")} />
+                          <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                            <button onClick={() => launcherInputRef.current?.click()} className="p-1 rounded-full bg-white/10 hover:bg-white/20"><Upload className="w-3 h-3 text-white" /></button>
+                            <button onClick={() => { setLauncherImageUrl(""); saveFieldToDb("launcherImageUrl", null); }} className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30"><X className="w-3 h-3 text-red-400" /></button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => launcherInputRef.current?.click()}
+                          disabled={uploadingLauncher}
+                          className="h-12 w-12 rounded-full border-2 border-dashed border-white/[0.1] hover:border-primary/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all flex items-center justify-center text-white/40"
+                          data-testid="onboarding-upload-launcher"
+                        >
+                          {uploadingLauncher ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+                        </button>
+                      )}
+                      <input ref={launcherInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLauncherUpload(f); e.target.value = ""; }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/60">Ícono del bot (opcional)</label>
+                    <div className="flex items-center gap-3">
+                      {botIconUrl ? (
+                        <div className="relative group">
+                          <img src={botIconUrl} alt="Bot" className="h-12 w-12 rounded-full object-cover border border-white/[0.08]" onError={() => setBotIconUrl("")} />
+                          <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                            <button onClick={() => botIconInputRef.current?.click()} className="p-1 rounded-full bg-white/10 hover:bg-white/20"><Upload className="w-3 h-3 text-white" /></button>
+                            <button onClick={() => { setBotIconUrl(""); saveFieldToDb("botIconUrl", null); }} className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/30"><X className="w-3 h-3 text-red-400" /></button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => botIconInputRef.current?.click()}
+                          disabled={uploadingBotIcon}
+                          className="h-12 w-12 rounded-full border-2 border-dashed border-white/[0.1] hover:border-primary/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all flex items-center justify-center text-white/40"
+                          data-testid="onboarding-upload-boticon"
+                        >
+                          {uploadingBotIcon ? <Loader2 className="w-4 h-4 animate-spin" /> : <Headphones className="w-4 h-4" />}
+                        </button>
+                      )}
+                      <input ref={botIconInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBotIconUpload(f); e.target.value = ""; }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">Opciones de consulta (opcional)</label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      data-testid="onboarding-input-option"
+                      value={newOption}
+                      onChange={(e) => setNewOption(e.target.value)}
+                      placeholder="Ej: Ventas, Soporte técnico"
+                      className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addConsultationOption(); } }}
+                    />
+                    <Button onClick={addConsultationOption} size="sm" className="h-9 px-3 rounded-lg shrink-0" disabled={!newOption.trim()} data-testid="onboarding-add-option">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {consultationOptions.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {consultationOptions.map((opt) => (
+                        <span key={opt.value} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-white/[0.06] border border-white/[0.08] text-white/70">
+                          {opt.label}
+                          <button onClick={() => removeConsultationOption(opt.value)} className="text-white/30 hover:text-red-400" data-testid={`onboarding-remove-option-${opt.value}`}><Trash2 className="w-3 h-3" /></button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-white/25">Se muestran como dropdown en el formulario de bienvenida</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/60">Banner de anuncio (opcional)</label>
+                    <Input
+                      data-testid="onboarding-input-banner"
+                      value={welcomeBannerText}
+                      onChange={(e) => setWelcomeBannerText(e.target.value)}
+                      placeholder="Ej: ¡Oferta especial!"
+                      className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/60">Burbuja del botón (opcional)</label>
+                    <Input
+                      data-testid="onboarding-input-bubble"
+                      value={launcherBubbleText}
+                      onChange={(e) => setLauncherBubbleText(e.target.value)}
+                      placeholder="Ej: ¿Necesitas ayuda?"
+                      className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">Posición del widget</label>
+                  <div className="flex items-center gap-1 rounded-lg bg-white/[0.04] border border-white/[0.08] p-1 w-fit">
+                    <button
+                      onClick={() => setWidgetPosition("left")}
+                      className={`text-xs px-3 py-1.5 rounded-md transition-colors font-medium ${widgetPosition === "left" ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white/60"}`}
+                      data-testid="onboarding-position-left"
+                    >
+                      Izquierda
+                    </button>
+                    <button
+                      onClick={() => setWidgetPosition("right")}
+                      className={`text-xs px-3 py-1.5 rounded-md transition-colors font-medium ${widgetPosition === "right" ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white/60"}`}
+                      data-testid="onboarding-position-right"
+                    >
+                      Derecha
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">Textos de botones (opcional)</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Input
+                      data-testid="onboarding-input-label-contact"
+                      value={labelContactButton}
+                      onChange={(e) => setLabelContactButton(e.target.value)}
+                      placeholder="Contactar un ejecutivo"
+                      className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
+                    />
+                    <Input
+                      data-testid="onboarding-input-label-ticket"
+                      value={labelTicketButton}
+                      onChange={(e) => setLabelTicketButton(e.target.value)}
+                      placeholder="Contactar ejecutivo (fuera de horario)"
+                      className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
+                    />
+                    <Input
+                      data-testid="onboarding-input-label-finalize"
+                      value={labelFinalizeButton}
+                      onChange={(e) => setLabelFinalizeButton(e.target.value)}
+                      placeholder="Finalizar y Valorar"
+                      className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
+                    />
+                    <p className="text-[10px] text-white/25">Deja vacío para usar los textos predeterminados</p>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between pt-2">
                   <Button
                     variant="outline"
@@ -542,24 +792,49 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                     Vista previa
                   </p>
                   <div className="flex items-center gap-1 bg-white/[0.04] rounded-lg p-0.5">
-                    <button
-                      onClick={() => setPreviewMode("welcome")}
-                      className={`text-[10px] px-2 py-1 rounded-md transition-colors ${previewMode === "welcome" ? "bg-white/[0.1] text-white/90" : "text-white/40 hover:text-white/60"}`}
-                      data-testid="onboarding-preview-welcome"
-                    >
-                      Formulario
-                    </button>
-                    <button
-                      onClick={() => setPreviewMode("chat")}
-                      className={`text-[10px] px-2 py-1 rounded-md transition-colors ${previewMode === "chat" ? "bg-white/[0.1] text-white/90" : "text-white/40 hover:text-white/60"}`}
-                      data-testid="onboarding-preview-chat"
-                    >
-                      Chat
-                    </button>
+                    {(["welcome", "chat", "launcher"] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => setPreviewMode(mode)}
+                        className={`text-[10px] px-2 py-1 rounded-md transition-colors ${previewMode === mode ? "bg-white/[0.1] text-white/90" : "text-white/40 hover:text-white/60"}`}
+                        data-testid={`onboarding-preview-${mode}`}
+                      >
+                        {mode === "welcome" ? "Formulario" : mode === "chat" ? "Chat" : "Botón"}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="rounded-xl border border-white/[0.08] overflow-hidden" style={{ height: 460 }}>
-                  {previewMode === "welcome" ? (
+                  {previewMode === "launcher" ? (
+                    <div className="flex flex-col h-full items-center justify-center" style={{ background: "#1a1a1a" }}>
+                      <p className="text-[10px] text-white/40 mb-4">Así se verá el botón en tu sitio:</p>
+                      <div className="relative flex items-center gap-2">
+                        {launcherBubbleText && (
+                          <div className="max-w-[140px] px-2 py-1.5 rounded-xl rounded-br-sm text-[9px] font-medium" style={{ backgroundColor: "#1a1a1a", color: "#e0e0e0", border: `1px solid ${widgetColor}30`, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+                            {launcherBubbleText}
+                          </div>
+                        )}
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0" style={{ backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}>
+                          {launcherImageUrl ? (
+                            <img src={launcherImageUrl} alt="Botón" className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            <MessageCircle className="w-6 h-6 text-white" />
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-white/25 mt-3">{launcherImageUrl ? "Imagen personalizada" : "Botón predeterminado"}</p>
+                      <div className="mt-4 flex items-center gap-2">
+                        <p className="text-[10px] text-white/40">Ícono del bot:</p>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center overflow-hidden border" style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}>
+                          {botIconUrl ? <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" /> : <Headphones className="w-3.5 h-3.5" style={{ color: widgetColor }} />}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-1 rounded-lg bg-white/[0.04] border border-white/[0.08] p-0.5">
+                        <button onClick={() => setWidgetPosition("left")} className={`text-[9px] px-2 py-1 rounded-md transition-colors font-medium ${widgetPosition === "left" ? "bg-primary/20 text-primary" : "text-white/40"}`}>Izquierda</button>
+                        <button onClick={() => setWidgetPosition("right")} className={`text-[9px] px-2 py-1 rounded-md transition-colors font-medium ${widgetPosition === "right" ? "bg-primary/20 text-primary" : "text-white/40"}`}>Derecha</button>
+                      </div>
+                    </div>
+                  ) : previewMode === "welcome" ? (
                     <div className="flex flex-col h-full" style={{ background: "#1a1a1a" }}>
                       <div className="px-4 py-3 flex items-center gap-2 shrink-0" style={{ background: widgetColor }}>
                         {logoUrl ? (
@@ -583,8 +858,13 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                           )}
                         </div>
                         <h2 className="text-xs font-bold text-white mb-0.5 text-center">{welcomeMessage || "Hola, ¿en que podemos ayudarte?"}</h2>
-                        <p className="text-[9px] text-white/50 text-center">Completa tus datos para iniciar la conversación</p>
+                        <p className="text-[9px] text-white/50 text-center">{welcomeSubtitle || "Completa tus datos para iniciar la conversación"}</p>
                       </div>
+                      {welcomeBannerText && (
+                        <div className="mx-4 px-2 py-1.5 rounded-md text-[9px] text-center font-medium" style={{ backgroundColor: `${widgetColor}15`, border: `1px solid ${widgetColor}30`, color: widgetColor }}>
+                          {welcomeBannerText}
+                        </div>
+                      )}
                       <div className="flex-1 overflow-y-auto px-4 pb-3 space-y-2">
                         <div className="space-y-1.5">
                           <label className="text-[9px] font-medium text-white/40">Nombre</label>
@@ -598,6 +878,15 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                             <span className="text-[9px] text-white/25">tu@correo.com</span>
                           </div>
                         </div>
+                        {consultationOptions.length > 0 && (
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-medium text-white/40">Tipo de consulta</label>
+                            <div className="h-7 rounded-md bg-white/5 border border-white/10 px-2 flex items-center justify-between">
+                              <span className="text-[9px] text-white/25">Selecciona...</span>
+                              <ChevronDown className="w-3 h-3 text-white/20" />
+                            </div>
+                          </div>
+                        )}
                         <div className="pt-1">
                           <div className="h-8 rounded-md flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: widgetColor, color: headerTextColor }}>
                             Iniciar Conversación
@@ -622,8 +911,8 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                       </div>
                       <div className="flex-1 overflow-y-auto p-3 space-y-2">
                         <div className="flex items-end gap-1.5">
-                          <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 overflow-hidden border" style={{ backgroundColor: `${widgetColor}20`, borderColor: `${widgetColor}30` }}>
-                            {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full rounded-full object-cover" /> : logoUrl ? <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" /> : <Headphones className="w-3 h-3" style={{ color: widgetColor }} />}
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 overflow-hidden border" style={{ backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}>
+                            {botIconUrl ? <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" /> : avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full rounded-full object-cover" /> : logoUrl ? <img src={logoUrl} alt="" className="w-full h-full rounded-full object-cover" /> : <Headphones className="w-3 h-3" style={{ color: widgetColor }} />}
                           </div>
                           <div className="max-w-[80%]">
                             <div className="rounded-md rounded-bl-none px-3 py-2" style={{ backgroundColor: botBubbleColor, border: `1px solid ${botBubbleColor === "#2a2a2a" ? "rgba(255,255,255,0.1)" : botBubbleColor}` }}>

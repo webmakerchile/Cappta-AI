@@ -344,6 +344,8 @@ interface TenantConfig {
   consultationOptions: string | null;
   showProductSearch: number;
   productSearchLabel: string;
+  welcomeBannerText: string | null;
+  launcherBubbleText: string | null;
 }
 
 function ChatWidget() {
@@ -409,6 +411,8 @@ function ChatWidget() {
   const widgetLauncherImage = tenantConfig?.launcherImageUrl || undefined;
   const widgetBotIcon = tenantConfig?.botIconUrl || undefined;
   const widgetPosition = tenantConfig?.widgetPosition || "right";
+  const widgetBannerText = tenantConfig?.welcomeBannerText || undefined;
+  const widgetBubbleText = tenantConfig?.launcherBubbleText || undefined;
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -526,6 +530,7 @@ function ChatWidget() {
                 productSearchLabel={widgetProductSearchLabel}
                 tenantId={tenantId ?? undefined}
                 headerTextColor={widgetHeaderTextColor}
+                welcomeBannerText={widgetBannerText}
               />
             )}
           </div>
@@ -536,7 +541,7 @@ function ChatWidget() {
         </div>
       ) : (
         <div className="p-1.5">
-          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} />
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} bubbleText={widgetBubbleText} />
         </div>
       )}
     </div>

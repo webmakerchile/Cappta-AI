@@ -23,6 +23,7 @@ interface WelcomeFormProps {
   productSearchLabel?: string;
   tenantId?: number;
   headerTextColor?: string;
+  welcomeBannerText?: string;
 }
 
 export function WelcomeForm({
@@ -37,6 +38,7 @@ export function WelcomeForm({
   productSearchLabel,
   tenantId,
   headerTextColor,
+  welcomeBannerText,
 }: WelcomeFormProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -105,6 +107,16 @@ export function WelcomeForm({
           {welcomeSubtitle || "Completa tus datos para iniciar la conversación"}
         </p>
       </div>
+
+      {welcomeBannerText && (
+        <div
+          className="mx-4 sm:mx-6 px-3 py-2 rounded-lg text-xs text-center font-medium shrink-0"
+          style={{ backgroundColor: `${color}15`, border: `1px solid ${color}30`, color: `${color}` }}
+          data-testid="text-welcome-banner"
+        >
+          {welcomeBannerText}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 sm:gap-3 px-4 sm:px-6 pb-3 sm:pb-4 flex-1 overflow-y-auto chat-scrollbar">
         <div className="flex flex-col gap-1">

@@ -331,6 +331,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [labelContactButton, setLabelContactButton] = useState(tenant.labelContactButton || "");
   const [labelTicketButton, setLabelTicketButton] = useState(tenant.labelTicketButton || "");
   const [labelFinalizeButton, setLabelFinalizeButton] = useState(tenant.labelFinalizeButton || "");
+  const [welcomeBannerText, setWelcomeBannerText] = useState(tenant.welcomeBannerText || "");
+  const [launcherBubbleText, setLauncherBubbleText] = useState(tenant.launcherBubbleText || "");
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(null);
 
@@ -362,6 +364,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setLabelContactButton(tenant.labelContactButton || "");
     setLabelTicketButton(tenant.labelTicketButton || "");
     setLabelFinalizeButton(tenant.labelFinalizeButton || "");
+    setWelcomeBannerText(tenant.welcomeBannerText || "");
+    setLauncherBubbleText(tenant.launcherBubbleText || "");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -570,6 +574,8 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
       productSearchLabel,
       productApiUrl: productApiUrl.trim() || null,
+      welcomeBannerText: welcomeBannerText.trim() || null,
+      launcherBubbleText: launcherBubbleText.trim() || null,
       botConfigured: isConfigComplete ? 1 : 0,
     };
     updateMutation.mutate(data);
@@ -784,6 +790,30 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             placeholder="Completa tus datos para iniciar la conversación"
             className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
           />
+        </div>
+
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
+          <label className="text-sm font-medium text-white/60">Banner de anuncio (opcional)</label>
+          <Input
+            data-testid="input-welcome-banner"
+            value={welcomeBannerText}
+            onChange={(e) => setWelcomeBannerText(e.target.value)}
+            placeholder="Ej: ¡Oferta especial esta semana!"
+            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+          />
+          <p className="text-xs text-white/30">Se muestra como banner destacado en el formulario de bienvenida</p>
+        </div>
+
+        <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
+          <label className="text-sm font-medium text-white/60">Burbuja del botón (opcional)</label>
+          <Input
+            data-testid="input-launcher-bubble"
+            value={launcherBubbleText}
+            onChange={(e) => setLauncherBubbleText(e.target.value)}
+            placeholder="Ej: ¿Necesitas ayuda?"
+            className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
+          />
+          <p className="text-xs text-white/30">Texto emergente junto al botón flotante del chat (se oculta tras 5 segundos)</p>
         </div>
 
         <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
@@ -1149,9 +1179,14 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               {previewMode === "launcher" ? (
                 <div className="flex flex-col h-full items-center justify-center" style={{ background: "#1a1a1a" }}>
                   <p className="text-xs text-white/40 mb-6">Así se verá el botón flotante en tu sitio:</p>
-                  <div className="relative">
+                  <div className="relative flex items-center gap-2">
+                    {launcherBubbleText && (
+                      <div className="max-w-[160px] px-2.5 py-1.5 rounded-xl rounded-br-sm text-[10px] font-medium" style={{ backgroundColor: "#1a1a1a", color: "#e0e0e0", border: `1px solid ${widgetColor}30`, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+                        {launcherBubbleText}
+                      </div>
+                    )}
                     <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden"
+                      className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0"
                       style={{ backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
                     >
                       {launcherImageUrl ? (
@@ -1251,6 +1286,11 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     <h2 className="text-sm font-bold text-white mb-0.5 text-center">{welcomeMessage || "Hola, ¿en qué podemos ayudarte?"}</h2>
                     <p className="text-[10px] text-white/50 text-center">{welcomeSubtitle || "Completa tus datos para iniciar la conversación"}</p>
                   </div>
+                  {welcomeBannerText && (
+                    <div className="mx-4 px-2.5 py-1.5 rounded-lg text-[10px] text-center font-medium" style={{ backgroundColor: `${widgetColor}15`, border: `1px solid ${widgetColor}30`, color: widgetColor }}>
+                      {welcomeBannerText}
+                    </div>
+                  )}
                   <PreviewFormBody
                     consultationOptions={consultationOptions}
                     showProductSearch={showProductSearch}
