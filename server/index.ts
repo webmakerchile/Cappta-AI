@@ -31,6 +31,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" },
+  frameguard: false,
 }));
 app.use(compression());
 
