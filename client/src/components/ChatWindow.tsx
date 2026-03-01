@@ -318,7 +318,7 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
         data-testid={`message-bubble-${message.id}`}
         className="flex items-end gap-2 animate-fade-in flex-row"
       >
-        <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: `${Math.round(28 * botIconScale / 100)}px`, height: `${Math.round(28 * botIconScale / 100)}px`, maxWidth: "56px", maxHeight: "56px", backgroundColor: botIconUrl ? "transparent" : hexToRgba(brandColor, 0.2), border: botIconUrl ? "none" : `1px solid ${hexToRgba(brandColor, 0.3)}` }}>
+        <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: `${Math.round(28 * botIconScale / 100)}px`, height: `${Math.round(28 * botIconScale / 100)}px`, aspectRatio: "1 / 1", backgroundColor: botIconUrl ? "transparent" : hexToRgba(brandColor, 0.2), border: botIconUrl ? "none" : `1px solid ${hexToRgba(brandColor, 0.3)}` }}>
           {botIconUrl ? (
             <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
           ) : (
@@ -360,8 +360,7 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
             style={{
               width: `${Math.round(28 * botIconScale / 100)}px`,
               height: `${Math.round(28 * botIconScale / 100)}px`,
-              maxWidth: "56px",
-              maxHeight: "56px",
+              aspectRatio: "1 / 1",
               backgroundColor: (botIconUrl && !msgAdminName) ? "transparent" : hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.12),
               borderColor: (botIconUrl && !msgAdminName) ? "transparent" : hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.19),
             }}
@@ -862,7 +861,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     >
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3" style={{ background: brandColor || "#10b981" }}>
         {brandLogo ? (
-          <img src={brandLogo} alt={brandName || "Logo"} className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(36 * (brandLogoScale || 100) / 100)}px`, height: `${Math.round(36 * (brandLogoScale || 100) / 100)}px`, maxWidth: "72px", maxHeight: "72px" }} data-testid="img-brand-logo" />
+          <img src={brandLogo} alt={brandName || "Logo"} className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(36 * (brandLogoScale || 100) / 100)}px`, height: `${Math.round(36 * (brandLogoScale || 100) / 100)}px`, aspectRatio: "1 / 1" }} data-testid="img-brand-logo" />
         ) : (
           <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
             <Headphones className="w-4 h-4" style={{ color: headerTextColor || "#ffffff" }} />
@@ -1002,8 +1001,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
               style={{
                 width: `${Math.round(24 * (botIconScale || 100) / 100)}px`,
                 height: `${Math.round(24 * (botIconScale || 100) / 100)}px`,
-                maxWidth: "48px",
-                maxHeight: "48px",
+                aspectRatio: "1 / 1",
                 backgroundColor: botIconUrl ? "transparent" : `${brandColor || "#10b981"}20`,
                 borderColor: botIconUrl ? "transparent" : `${brandColor || "#10b981"}30`,
               }}

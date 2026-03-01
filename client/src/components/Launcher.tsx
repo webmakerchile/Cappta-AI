@@ -66,29 +66,26 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
         data-testid="button-launcher"
         onClick={onClick}
         className="
-          relative rounded-full
+          relative rounded-full overflow-hidden
           flex items-center justify-center
           transition-transform duration-200 ease-out
           hover:scale-105 active:scale-95
           focus:outline-none
-          shadow-lg
         "
         style={{
           width: `${Math.round(56 * launcherScale / 100)}px`,
           height: `${Math.round(56 * launcherScale / 100)}px`,
-          maxWidth: "112px",
-          maxHeight: "112px",
           border: "none",
           backgroundColor: launcherImage ? "transparent" : bgColor,
           boxShadow: launcherImage ? "none" : `0 4px 20px ${bgColor}40`,
+          aspectRatio: "1 / 1",
         }}
       >
         {launcherImage ? (
           <img
             src={launcherImage}
             alt="Chat"
-            className="w-full h-full rounded-full object-cover"
-            style={{ display: "block" }}
+            className="absolute inset-0 w-full h-full object-cover rounded-full"
             data-testid="img-launcher-custom"
           />
         ) : (

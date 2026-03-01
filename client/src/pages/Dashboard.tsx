@@ -1268,7 +1268,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     )}
                     <div
                       className="rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0"
-                      style={{ width: `${Math.round(56 * launcherImageScale / 100)}px`, height: `${Math.round(56 * launcherImageScale / 100)}px`, maxWidth: "112px", maxHeight: "112px", backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
+                      style={{ width: `${Math.round(56 * launcherImageScale / 100)}px`, height: `${Math.round(56 * launcherImageScale / 100)}px`, aspectRatio: "1 / 1", backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}
                     >
                       {launcherImageUrl ? (
                         <img src={launcherImageUrl} alt="Botón" className="w-full h-full rounded-full object-cover" />
@@ -1282,7 +1282,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     <p className="text-xs text-white/40">Ícono del bot en mensajes:</p>
                     <div
                       className="rounded-full flex items-center justify-center overflow-hidden border"
-                      style={{ width: `${Math.round(32 * botIconScale / 100)}px`, height: `${Math.round(32 * botIconScale / 100)}px`, maxWidth: "64px", maxHeight: "64px", backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
+                      style={{ width: `${Math.round(32 * botIconScale / 100)}px`, height: `${Math.round(32 * botIconScale / 100)}px`, aspectRatio: "1 / 1", backgroundColor: botIconUrl ? "transparent" : `${widgetColor}20`, borderColor: botIconUrl ? "transparent" : `${widgetColor}30` }}
                     >
                       {botIconUrl ? (
                         <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
@@ -1344,7 +1344,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                   <div className="px-4 py-3 flex items-center justify-between shrink-0" style={{ background: widgetColor }}>
                     <div className="flex items-center gap-2 min-w-0">
                       {logoUrl ? (
-                        <img src={logoUrl} alt="" className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(32 * logoScale / 100)}px`, height: `${Math.round(32 * logoScale / 100)}px`, maxWidth: "64px", maxHeight: "64px" }} />
+                        <img src={logoUrl} alt="" className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(32 * logoScale / 100)}px`, height: `${Math.round(32 * logoScale / 100)}px`, aspectRatio: "1 / 1" }} />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
                           <Headphones className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
@@ -1383,7 +1383,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 <div className="flex flex-col h-full" style={{ background: "#1a1a1a" }}>
                   <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3 shrink-0" style={{ background: widgetColor }}>
                     {logoUrl ? (
-                      <img src={logoUrl} alt="" className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(32 * logoScale / 100)}px`, height: `${Math.round(32 * logoScale / 100)}px`, maxWidth: "64px", maxHeight: "64px" }} />
+                      <img src={logoUrl} alt="" className="rounded-full object-cover bg-white/15" style={{ width: `${Math.round(32 * logoScale / 100)}px`, height: `${Math.round(32 * logoScale / 100)}px`, aspectRatio: "1 / 1" }} />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
                         <Headphones className="w-3.5 h-3.5" style={{ color: headerTextColor }} />
