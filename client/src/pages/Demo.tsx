@@ -57,6 +57,13 @@ import {
 } from "lucide-react";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -688,10 +695,10 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
                   onClick={() => onSelect(ctx)}
                   data-testid={`card-context-${ctx.id}`}
                 >
-                  <div className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `linear-gradient(90deg, transparent, ${ctx.color}60, transparent)` }} />
-                  <div className="absolute -bottom-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700" style={{ background: `radial-gradient(circle, ${ctx.color}08, transparent 60%)` }} />
+                  <div className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `linear-gradient(90deg, transparent, ${hexToRgba(ctx.color, 0.375)}, transparent)` }} />
+                  <div className="absolute -bottom-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700" style={{ background: `radial-gradient(circle, ${hexToRgba(ctx.color, 0.03)}, transparent 60%)` }} />
                   <div className="flex items-start gap-3 relative">
-                    <div className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{ backgroundColor: `${ctx.color}15` }}>
+                    <div className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{ backgroundColor: `${hexToRgba(ctx.color, 0.08)}` }}>
                       <ctx.icon className="w-5 h-5 transition-all duration-300" style={{ color: ctx.color }} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -724,7 +731,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
 function FileCard({ file, color }: { file: DemoFile; color: string }) {
   return (
     <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] mt-1.5 cursor-default group/file" data-testid="card-demo-file">
-      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${hexToRgba(color, 0.08)}` }}>
         <FileText className="w-4 h-4" style={{ color }} />
       </div>
       <div className="flex-1 min-w-0">
@@ -771,7 +778,7 @@ function DemoProductBrowser({ products, color, onSelect, onClose }: { products: 
                 className="w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.04] transition-colors text-left"
                 data-testid={`button-product-${p.id}`}
               >
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}12` }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${hexToRgba(color, 0.07)}` }}>
                   <ShoppingBag className="w-3 h-3" style={{ color }} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -779,7 +786,7 @@ function DemoProductBrowser({ products, color, onSelect, onClose }: { products: 
                   <span className="text-[10px] text-white/35">{p.price}</span>
                 </div>
                 {p.badge && (
-                  <span className="text-[8px] px-1.5 py-0.5 rounded font-bold shrink-0" style={{ backgroundColor: `${color}15`, color }}>{p.badge}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded font-bold shrink-0" style={{ backgroundColor: `${hexToRgba(color, 0.08)}`, color }}>{p.badge}</span>
                 )}
               </button>
             ))}
@@ -980,7 +987,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 chat-scrollbar" style={{ background: "linear-gradient(180deg, rgba(10,10,10,1) 0%, rgba(15,15,15,1) 100%)" }}>
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center min-h-[45vh] text-center px-2">
-            <div className="w-14 h-14 rounded-2xl mb-4 flex items-center justify-center animate-float" style={{ backgroundColor: `${ctx.color}12` }}>
+            <div className="w-14 h-14 rounded-2xl mb-4 flex items-center justify-center animate-float" style={{ backgroundColor: `${hexToRgba(ctx.color, 0.07)}` }}>
               <ctx.icon className="w-7 h-7" style={{ color: ctx.color }} />
             </div>
             <h3 className="text-base font-bold mb-1.5 text-white/80" data-testid="text-demo-greeting">Bienvenido a {ctx.business}!</h3>
@@ -1043,7 +1050,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
 
         {execTyping && (
           <div className="flex justify-start">
-            <div className="px-3 py-2 rounded-2xl rounded-bl-sm border" style={{ backgroundColor: `${ctx.color}08`, borderColor: `${ctx.color}20` }}>
+            <div className="px-3 py-2 rounded-2xl rounded-bl-sm border" style={{ backgroundColor: `${hexToRgba(ctx.color, 0.03)}`, borderColor: `${hexToRgba(ctx.color, 0.125)}` }}>
               <div className="flex items-center gap-2">
                 <Headphones className="w-3 h-3" style={{ color: ctx.color }} />
                 <span className="text-[11px] font-medium" style={{ color: ctx.color }}>Ejecutivo escribiendo</span>
@@ -1072,7 +1079,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
             <button
               onClick={handleContactExecutive}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all border"
-              style={{ borderColor: `${ctx.color}30`, color: ctx.color, backgroundColor: `${ctx.color}08` }}
+              style={{ borderColor: `${hexToRgba(ctx.color, 0.19)}`, color: ctx.color, backgroundColor: `${hexToRgba(ctx.color, 0.03)}` }}
               data-testid="button-contact-executive"
             >
               <Headphones className="w-3 h-3" />
@@ -1270,7 +1277,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
     <div className="flex flex-col h-full" data-testid="demo-executive-panel">
       {incomingNotif && (
         <div className="absolute top-14 right-4 z-50 animate-dash-fade-up">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg" style={{ backgroundColor: "rgba(15,15,15,0.98)", borderColor: `${ctx.color}30`, boxShadow: `0 4px 20px ${ctx.color}15` }}>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg" style={{ backgroundColor: "rgba(15,15,15,0.98)", borderColor: `${hexToRgba(ctx.color, 0.19)}`, boxShadow: `0 4px 20px ${hexToRgba(ctx.color, 0.08)}` }}>
             <Bell className="w-3.5 h-3.5 animate-bounce" style={{ color: ctx.color }} />
             <span className="text-[11px] font-medium text-white/80">{incomingNotif}</span>
           </div>
@@ -1322,7 +1329,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
               >
                 <div className="flex items-center gap-2">
                   <div className="relative shrink-0">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${s.color}25` }}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${hexToRgba(s.color, 0.15)}` }}>
                       <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.initial}</span>
                     </div>
                     {status === "active" && (
@@ -1353,7 +1360,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                     <div className="flex items-center justify-between mt-0.5">
                       <div className="flex items-center gap-1 flex-wrap">
                         {s.tags.map(tag => (
-                          <span key={tag} className="text-[7px] px-1 py-0.5 rounded font-bold" style={{ backgroundColor: `${TAG_COLORS[tag] || "#6b7280"}15`, color: TAG_COLORS[tag] || "#6b7280" }}>{tag}</span>
+                          <span key={tag} className="text-[7px] px-1 py-0.5 rounded font-bold" style={{ backgroundColor: `${hexToRgba(TAG_COLORS[tag] || "#6b7280", 0.08)}`, color: TAG_COLORS[tag] || "#6b7280" }}>{tag}</span>
                         ))}
                       </div>
                       <span className="text-[7px] text-white/15 shrink-0">{elapsedTimes[s.id]}</span>
@@ -1367,7 +1374,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
 
         <div className="flex-1 flex flex-col min-w-0" style={{ background: "rgba(12,12,12,0.98)" }}>
           <div className="shrink-0 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 border-b border-white/[0.06]">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${activeSession.color}20` }}>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${hexToRgba(activeSession.color, 0.125)}` }}>
               <span className="text-[9px] sm:text-[10px] font-bold" style={{ color: activeSession.color }}>{activeSession.initial}</span>
             </div>
             <div className="flex-1 min-w-0">
@@ -1384,7 +1391,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                 <button
                   onClick={handleClaim}
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all hover:scale-105"
-                  style={{ backgroundColor: `${ctx.color}15`, border: `1px solid ${ctx.color}30` }}
+                  style={{ backgroundColor: `${hexToRgba(ctx.color, 0.08)}`, border: `1px solid ${hexToRgba(ctx.color, 0.19)}` }}
                   data-testid="button-exec-claim"
                 >
                   <UserRound className="w-3 h-3" style={{ color: ctx.color }} />
@@ -1396,7 +1403,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                   <button
                     onClick={handleUnclaim}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all hover:scale-105"
-                    style={{ backgroundColor: `${exec.color}15`, border: `1px solid ${exec.color}30` }}
+                    style={{ backgroundColor: `${hexToRgba(exec.color, 0.08)}`, border: `1px solid ${hexToRgba(exec.color, 0.19)}` }}
                     data-testid="button-exec-leave"
                   >
                     <LogOut className="w-3 h-3" style={{ color: exec.color }} />
@@ -1416,7 +1423,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
           </div>
 
           {claimed && (
-            <div className="shrink-0 px-3 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${exec.color}08`, borderBottom: `1px solid ${exec.color}15` }}>
+            <div className="shrink-0 px-3 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${hexToRgba(exec.color, 0.03)}`, borderBottom: `1px solid ${hexToRgba(exec.color, 0.08)}` }}>
               <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: exec.color }} />
               <span className="text-[10px] font-medium" style={{ color: exec.color }}>Chat asignado a {exec.name} — El bot está pausado</span>
               <span className="text-[8px] text-white/20 ml-auto">Tus respuestas llegan directamente al usuario</span>
@@ -1425,7 +1432,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
 
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 chat-scrollbar">
             {activeSession.problemType && (
-              <div className="rounded-xl p-3 mb-3" style={{ backgroundColor: `${ctx.color}06`, border: `1px solid ${ctx.color}12` }}>
+              <div className="rounded-xl p-3 mb-3" style={{ backgroundColor: `${hexToRgba(ctx.color, 0.024)}`, border: `1px solid ${hexToRgba(ctx.color, 0.07)}` }}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <FileText className="w-3 h-3" style={{ color: ctx.color }} />
                   <span className="text-[10px] font-bold" style={{ color: ctx.color }}>Formulario pre-chat</span>
@@ -1483,7 +1490,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                     isUser
                       ? { backgroundColor: "#6b7280" }
                       : isExec
-                        ? { backgroundColor: `${exec.color}08`, borderColor: `${exec.color}15` }
+                        ? { backgroundColor: `${hexToRgba(exec.color, 0.03)}`, borderColor: `${hexToRgba(exec.color, 0.08)}` }
                         : undefined
                   }>
                     {isExec && (
@@ -1559,7 +1566,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendExecMsg(); }}}
                   placeholder="Responde como ejecutivo..."
                   className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-[11px] focus:outline-none transition-all text-white placeholder:text-white/20"
-                  style={{ borderColor: execInput.trim() ? `${exec.color}30` : undefined }}
+                  style={{ borderColor: execInput.trim() ? `${hexToRgba(exec.color, 0.19)}` : undefined }}
                   data-testid="input-exec-message"
                 />
                 <button
@@ -1601,8 +1608,8 @@ export default function Demo() {
 
   return (
     <div className="fixed inset-0 bg-background text-foreground flex flex-col" data-testid="demo-page">
-      <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}06, transparent 60%)` }} />
-      <div className="absolute bottom-[-150px] left-[-100px] w-[350px] h-[350px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${ctx.color}04, transparent 60%)`, animationDelay: "-10s" }} />
+      <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${hexToRgba(ctx.color, 0.024)}, transparent 60%)` }} />
+      <div className="absolute bottom-[-150px] left-[-100px] w-[350px] h-[350px] rounded-full animate-orb-drift pointer-events-none" style={{ background: `radial-gradient(circle, ${hexToRgba(ctx.color, 0.016)}, transparent 60%)`, animationDelay: "-10s" }} />
 
       <nav className="shrink-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl" data-testid="demo-nav">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-2 px-4 py-2">
@@ -1610,7 +1617,7 @@ export default function Demo() {
             <button onClick={changeContext} className="flex items-center gap-1 text-white/30 hover:text-white/60 transition-colors" data-testid="button-change-context">
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg" style={{ backgroundColor: `${ctx.color}15` }}>
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg" style={{ backgroundColor: `${hexToRgba(ctx.color, 0.08)}` }}>
               <ctx.icon className="w-3.5 h-3.5" style={{ color: ctx.color }} />
             </div>
             <span className="text-sm font-bold hidden sm:inline" style={{ color: ctx.color }}>{ctx.business}</span>
@@ -1657,11 +1664,11 @@ export default function Demo() {
 
       <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4">
         {mode === "client" ? (
-          <div className="w-full max-w-[400px] h-full max-h-[700px] rounded-2xl overflow-hidden border border-white/[0.08] flex flex-col" style={{ background: "rgba(10,10,10,0.98)", boxShadow: `0 0 60px ${ctx.color}08, 0 20px 40px rgba(0,0,0,0.4)` }}>
+          <div className="w-full max-w-[400px] h-full max-h-[700px] rounded-2xl overflow-hidden border border-white/[0.08] flex flex-col" style={{ background: "rgba(10,10,10,0.98)", boxShadow: `0 0 60px ${hexToRgba(ctx.color, 0.03)}, 0 20px 40px rgba(0,0,0,0.4)` }}>
             <DemoChat ctx={ctx} onBack={changeContext} />
           </div>
         ) : (
-          <div className="w-full max-w-5xl h-full max-h-[700px] rounded-2xl overflow-hidden border border-white/[0.08] flex flex-col" style={{ background: "rgba(10,10,10,0.98)", boxShadow: `0 0 60px ${ctx.color}08, 0 20px 40px rgba(0,0,0,0.4)` }}>
+          <div className="w-full max-w-5xl h-full max-h-[700px] rounded-2xl overflow-hidden border border-white/[0.08] flex flex-col" style={{ background: "rgba(10,10,10,0.98)", boxShadow: `0 0 60px ${hexToRgba(ctx.color, 0.03)}, 0 20px 40px rgba(0,0,0,0.4)` }}>
             <DemoExecutivePanel ctx={ctx} onBack={changeContext} />
           </div>
         )}

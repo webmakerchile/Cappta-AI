@@ -58,6 +58,13 @@ import {
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
 
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const features = [
   {
     icon: Brain,
@@ -1322,7 +1329,7 @@ export default function Landing() {
             ].map(({ value, label, icon: Icon, desc, color }, i) => (
               <div key={label} className="group" data-testid={`stat-${label}`}>
                 <div className="rounded-2xl glass-card glass-card-hover p-6 text-center transition-all duration-500 h-full" style={{ transitionDelay: `${i * 80}ms` }}>
-                  <div className="flex items-center justify-center w-11 h-11 rounded-xl mx-auto mb-4" style={{ backgroundColor: `${color}15` }}>
+                  <div className="flex items-center justify-center w-11 h-11 rounded-xl mx-auto mb-4" style={{ backgroundColor: hexToRgba(color, 0.08) }}>
                     <Icon className="w-5 h-5" style={{ color }} />
                   </div>
                   <p className="text-3xl sm:text-4xl font-black mb-1" style={{ color }}>
@@ -1439,10 +1446,10 @@ export default function Landing() {
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: item.gradient }} />
                   <div className="relative">
                     <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundColor: `${item.color}15` }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundColor: hexToRgba(item.color, 0.08) }}>
                         <item.icon className="w-5 h-5" style={{ color: item.color }} />
                       </div>
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ color: item.color, backgroundColor: `${item.color}10`, border: `1px solid ${item.color}25` }}>
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ color: item.color, backgroundColor: hexToRgba(item.color, 0.06), border: `1px solid ${hexToRgba(item.color, 0.15)}` }}>
                         {item.step}
                       </div>
                     </div>
@@ -1528,10 +1535,10 @@ export default function Landing() {
                 <div key={item.step} className={`group ${stepsSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: `${index * 150}ms` }} data-testid={`step-${index}`}>
                   <div className="rounded-2xl glass-card glass-card-hover p-8 h-full text-center transition-all duration-500">
                     <div className="relative mx-auto mb-6">
-                      <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center transition-all duration-500 group-hover:scale-110" style={{ backgroundColor: `${item.color}10`, boxShadow: `0 0 40px ${item.color}08` }}>
+                      <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center transition-all duration-500 group-hover:scale-110" style={{ backgroundColor: hexToRgba(item.color, 0.06), boxShadow: `0 0 40px ${hexToRgba(item.color, 0.03)}` }}>
                         <item.icon className="w-9 h-9" style={{ color: item.color }} />
                       </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-background flex items-center justify-center text-xs font-black" style={{ color: item.color, border: `1px solid ${item.color}30` }}>
+                      <div className="absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-background flex items-center justify-center text-xs font-black" style={{ color: item.color, border: `1px solid ${hexToRgba(item.color, 0.19)}` }}>
                         {item.step}
                       </div>
                     </div>
@@ -1653,12 +1660,12 @@ export default function Landing() {
                   </div>
 
                   <div className="px-7 pb-4 flex-1">
-                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${plan.accentColor}33, transparent)` }} />
+                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${hexToRgba(plan.accentColor, 0.2)}, transparent)` }} />
 
                     <div className="space-y-3 mb-5">
                       {plan.highlights.map((h) => (
                         <div key={h.text} className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-lg" style={{ backgroundColor: `${plan.accentColor}18` }}>
+                          <div className="flex items-center justify-center w-6 h-6 rounded-lg" style={{ backgroundColor: hexToRgba(plan.accentColor, 0.1) }}>
                             {h.text.includes("ilimitad") ? (
                               <Infinity className="w-3.5 h-3.5" style={{ color: plan.accentColor }} />
                             ) : (
@@ -1670,7 +1677,7 @@ export default function Landing() {
                       ))}
                     </div>
 
-                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${plan.accentColor}15, transparent)` }} />
+                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${hexToRgba(plan.accentColor, 0.08)}, transparent)` }} />
 
                     <ul className="space-y-3">
                       {plan.extras.map((extra) => (
@@ -1683,9 +1690,9 @@ export default function Landing() {
                       ))}
                     </ul>
 
-                    <div className="mt-5 flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-dashed" style={{ borderColor: `${plan.accentColor}25`, backgroundColor: `${plan.accentColor}06` }}>
+                    <div className="mt-5 flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-dashed" style={{ borderColor: hexToRgba(plan.accentColor, 0.15), backgroundColor: hexToRgba(plan.accentColor, 0.025) }}>
                       <Handshake className="w-4 h-4 shrink-0" style={{ color: plan.accentColor }} />
-                      <span className="text-xs font-medium" style={{ color: `${plan.accentColor}cc` }}>{plan.supportLine}</span>
+                      <span className="text-xs font-medium" style={{ color: hexToRgba(plan.accentColor, 0.8) }}>{plan.supportLine}</span>
                     </div>
                   </div>
 
