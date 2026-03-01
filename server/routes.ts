@@ -1318,14 +1318,14 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, botIconUrl: tenant.botIconUrl, widgetPosition: tenant.widgetPosition, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, botIconUrl: tenant.botIconUrl, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
-      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, launcherImageUrl, botIconUrl, widgetPosition, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep } = req.body;
+      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, launcherImageUrl, botIconUrl, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep } = req.body;
       const updates: any = {};
       if (companyName !== undefined) updates.companyName = companyName;
       if (widgetColor !== undefined) updates.widgetColor = widgetColor;
@@ -1348,11 +1348,14 @@ ${DEMO_BASE_RULES}`,
       if (launcherImageUrl !== undefined) updates.launcherImageUrl = launcherImageUrl;
       if (botIconUrl !== undefined) updates.botIconUrl = botIconUrl;
       if (widgetPosition !== undefined && (widgetPosition === "left" || widgetPosition === "right")) updates.widgetPosition = widgetPosition;
+      if (labelContactButton !== undefined) updates.labelContactButton = labelContactButton || null;
+      if (labelTicketButton !== undefined) updates.labelTicketButton = labelTicketButton || null;
+      if (labelFinalizeButton !== undefined) updates.labelFinalizeButton = labelFinalizeButton || null;
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, botIconUrl: tenant.botIconUrl, widgetPosition: tenant.widgetPosition, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, botIconUrl: tenant.botIconUrl, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
@@ -1547,6 +1550,9 @@ ${DEMO_BASE_RULES}`,
         launcherImageUrl: tenant.launcherImageUrl,
         botIconUrl: tenant.botIconUrl,
         widgetPosition: tenant.widgetPosition,
+        labelContactButton: tenant.labelContactButton,
+        labelTicketButton: tenant.labelTicketButton,
+        labelFinalizeButton: tenant.labelFinalizeButton,
         formFields: tenant.formFields,
         consultationOptions: tenant.consultationOptions,
         showProductSearch: tenant.showProductSearch,

@@ -328,6 +328,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [uploadingBotIcon, setUploadingBotIcon] = useState(false);
   const botIconInputRef = useRef<HTMLInputElement>(null);
   const [widgetPosition, setWidgetPosition] = useState(tenant.widgetPosition || "right");
+  const [labelContactButton, setLabelContactButton] = useState(tenant.labelContactButton || "");
+  const [labelTicketButton, setLabelTicketButton] = useState(tenant.labelTicketButton || "");
+  const [labelFinalizeButton, setLabelFinalizeButton] = useState(tenant.labelFinalizeButton || "");
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(null);
 
@@ -356,6 +359,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setLauncherImageUrl(tenant.launcherImageUrl || "");
     setBotIconUrl(tenant.botIconUrl || "");
     setWidgetPosition(tenant.widgetPosition || "right");
+    setLabelContactButton(tenant.labelContactButton || "");
+    setLabelTicketButton(tenant.labelTicketButton || "");
+    setLabelFinalizeButton(tenant.labelFinalizeButton || "");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -528,6 +534,9 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       launcherImageUrl: launcherImageUrl || null,
       botIconUrl: botIconUrl || null,
       widgetPosition,
+      labelContactButton: labelContactButton.trim() || null,
+      labelTicketButton: labelTicketButton.trim() || null,
+      labelFinalizeButton: labelFinalizeButton.trim() || null,
       domain: domain.trim() || null,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
@@ -1156,6 +1165,33 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                       >
                         Derecha
                       </button>
+                    </div>
+                  </div>
+                  <div className="mt-6 w-full max-w-[280px] mx-auto space-y-2">
+                    <p className="text-xs text-white/40 text-center">Textos de los botones del chat:</p>
+                    <div className="space-y-1.5">
+                      <input
+                        data-testid="input-label-contact"
+                        value={labelContactButton}
+                        onChange={(e) => setLabelContactButton(e.target.value)}
+                        placeholder="Contactar un ejecutivo"
+                        className="w-full text-[11px] px-2.5 py-1.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-white/80 placeholder:text-white/20 focus:outline-none focus:border-primary/40"
+                      />
+                      <input
+                        data-testid="input-label-ticket"
+                        value={labelTicketButton}
+                        onChange={(e) => setLabelTicketButton(e.target.value)}
+                        placeholder="Contactar un ejecutivo (fuera de horario)"
+                        className="w-full text-[11px] px-2.5 py-1.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-white/80 placeholder:text-white/20 focus:outline-none focus:border-primary/40"
+                      />
+                      <input
+                        data-testid="input-label-finalize"
+                        value={labelFinalizeButton}
+                        onChange={(e) => setLabelFinalizeButton(e.target.value)}
+                        placeholder="Finalizar y Valorar"
+                        className="w-full text-[11px] px-2.5 py-1.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-white/80 placeholder:text-white/20 focus:outline-none focus:border-primary/40"
+                      />
+                      <p className="text-[9px] text-white/20 text-center">Deja vacío para usar los textos predeterminados</p>
                     </div>
                   </div>
                 </div>

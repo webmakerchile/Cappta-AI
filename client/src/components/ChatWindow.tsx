@@ -66,6 +66,9 @@ interface ChatWindowProps {
   botTextColor?: string;
   userTextColor?: string;
   botIconUrl?: string;
+  labelContactButton?: string;
+  labelTicketButton?: string;
+  labelFinalizeButton?: string;
 }
 
 function formatTime(timestamp: string | Date) {
@@ -456,7 +459,7 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
   );
 });
 
-function FinalizeRateButton({ sessionId }: { sessionId: string }) {
+function FinalizeRateButton({ sessionId, labelFinalizeButton }: { sessionId: string; labelFinalizeButton?: string }) {
   const [confirmState, setConfirmState] = useState<"idle" | "confirming" | "sent">("idle");
   const [sending, setSending] = useState(false);
 
@@ -522,7 +525,7 @@ function FinalizeRateButton({ sessionId }: { sessionId: string }) {
       ) : (
         <>
           <Star className="w-4 h-4 mr-2" />
-          Finalizar y Valorar
+          {labelFinalizeButton || "Finalizar y Valorar"}
         </>
       )}
     </Button>
@@ -628,7 +631,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -996,7 +999,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             style={{ backgroundColor: brandColor || "#10b981", borderWidth: 1, borderStyle: "solid", borderColor: brandColor || "#10b981", boxShadow: `0 0 12px ${hexToRgba(brandColor || "#10b981", 0.4)}` }}
           >
             <Ticket className="w-4 h-4" />
-            Crear ticket de soporte
+            {labelTicketButton || "Contactar un ejecutivo"}
           </a>
         ) : (
           <Button
@@ -1017,10 +1020,10 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             }
           >
             <UserRound className="w-4 h-4 mr-2" />
-            {contactRequested ? "Solicitud enviada" : "Contactar un Ejecutivo"}
+            {contactRequested ? "Solicitud enviada" : (labelContactButton || "Contactar un ejecutivo")}
           </Button>
         )}
-        <FinalizeRateButton sessionId={latestSession?.sessionId || sessionId} />
+        <FinalizeRateButton sessionId={latestSession?.sessionId || sessionId} labelFinalizeButton={labelFinalizeButton} />
       </div>
 
       <div className="relative px-3 pb-3">

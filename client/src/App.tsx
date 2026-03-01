@@ -329,6 +329,9 @@ interface TenantConfig {
   launcherImageUrl: string | null;
   botIconUrl: string | null;
   widgetPosition: string;
+  labelContactButton: string | null;
+  labelTicketButton: string | null;
+  labelFinalizeButton: string | null;
   formFields: string | null;
   consultationOptions: string | null;
   showProductSearch: number;
@@ -485,6 +488,9 @@ function ChatWidget() {
                 botTextColor={widgetBotTextColor}
                 userTextColor={widgetUserTextColor}
                 botIconUrl={widgetBotIcon}
+                labelContactButton={tenantConfig?.labelContactButton || undefined}
+                labelTicketButton={tenantConfig?.labelTicketButton || undefined}
+                labelFinalizeButton={tenantConfig?.labelFinalizeButton || undefined}
               />
             ) : (
               <WelcomeForm

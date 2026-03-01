@@ -1468,9 +1468,10 @@ export async function getSmartAutoReply(
       const tenant = await storage.getTenantById(tenantId);
       if (tenant) {
         if (tenant.aiEnabled === 0) {
+          const contactLabel = tenant.labelContactButton || "Contactar un ejecutivo";
           return withButtons(
             "¡Hola! En este momento un agente se pondra en contacto contigo por este mismo chat.",
-            [{label: "Contactar agente", value: "__qr:contact"}]
+            [{label: contactLabel, value: "__qr:contact"}]
           );
         }
 
@@ -1646,7 +1647,7 @@ async function _processTenantAutoReply(
   const buttons: Array<{label: string, value?: string, url?: string}> = [];
   buttons.push(...fileButtons);
   if (!isOfflineHours) {
-    buttons.push({label: "Contactar agente", value: "__qr:contact"});
+    buttons.push({label: tenant?.labelContactButton || "Contactar un ejecutivo", value: "__qr:contact"});
   }
 
   if (buttons.length > 0) {
