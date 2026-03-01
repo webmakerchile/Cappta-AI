@@ -148,6 +148,7 @@ export const tenants = pgTable("tenants", {
   avatarUrl: text("avatar_url"),
   launcherImageUrl: text("launcher_image_url"),
   botIconUrl: text("bot_icon_url"),
+  widgetPosition: text("widget_position").notNull().default("right"),
   formFields: text("form_fields"),
   consultationOptions: text("consultation_options"),
   showProductSearch: integer("show_product_search").notNull().default(0),

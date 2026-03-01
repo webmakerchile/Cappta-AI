@@ -327,6 +327,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [botIconUrl, setBotIconUrl] = useState(tenant.botIconUrl || "");
   const [uploadingBotIcon, setUploadingBotIcon] = useState(false);
   const botIconInputRef = useRef<HTMLInputElement>(null);
+  const [widgetPosition, setWidgetPosition] = useState(tenant.widgetPosition || "right");
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(null);
 
@@ -354,6 +355,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setAvatarUrl(tenant.avatarUrl || "");
     setLauncherImageUrl(tenant.launcherImageUrl || "");
     setBotIconUrl(tenant.botIconUrl || "");
+    setWidgetPosition(tenant.widgetPosition || "right");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -525,6 +527,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       avatarUrl: avatarUrl || null,
       launcherImageUrl: launcherImageUrl || null,
       botIconUrl: botIconUrl || null,
+      widgetPosition,
       domain: domain.trim() || null,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
@@ -1136,6 +1139,25 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </div>
                     <p className="text-[10px] text-white/25">{botIconUrl ? "Personalizado" : "Predeterminado"}</p>
                   </div>
+                  <div className="mt-6 flex flex-col items-center gap-2">
+                    <p className="text-xs text-white/40">Posición del widget:</p>
+                    <div className="flex items-center gap-1 rounded-lg bg-white/[0.04] border border-white/[0.08] p-1" data-testid="widget-position-toggle">
+                      <button
+                        data-testid="button-position-left"
+                        onClick={() => setWidgetPosition("left")}
+                        className={`text-[11px] px-3 py-1.5 rounded-md transition-colors font-medium ${widgetPosition === "left" ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white/60"}`}
+                      >
+                        Izquierda
+                      </button>
+                      <button
+                        data-testid="button-position-right"
+                        onClick={() => setWidgetPosition("right")}
+                        className={`text-[11px] px-3 py-1.5 rounded-md transition-colors font-medium ${widgetPosition === "right" ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white/60"}`}
+                      >
+                        Derecha
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ) : previewMode === "welcome" ? (
                 <div className="flex flex-col h-full" style={{ background: "#1a1a1a" }}>
@@ -1301,13 +1323,15 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
+  const pos = tenant.widgetPosition || "right";
+  const posOpp = pos === "left" ? "left" : "right";
   const embedScript = `<script>
   (function() {
     var iframe = document.createElement('iframe');
     iframe.id = 'foxbot-widget';
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
     iframe.allow = 'microphone';
-    iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+    iframe.style.cssText = 'position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;';
     document.body.appendChild(iframe);
     window.addEventListener('message', function(e) {
       if (!e.data || !e.data.type) return;
@@ -1315,12 +1339,12 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         var mobile = window.innerWidth <= 480;
         if (e.data.type === 'open_chat') {
           if (mobile) {
-            iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+            iframe.style.cssText = 'position:fixed;bottom:0;${posOpp}:0;width:100%;height:100%;border:none;z-index:9999;';
           } else {
-            iframe.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+            iframe.style.cssText = 'position:fixed;bottom:16px;${posOpp}:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
           }
         } else {
-          iframe.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+          iframe.style.cssText = 'position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;';
         }
       }
     });
@@ -1330,7 +1354,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const iframeCode = `<iframe
   id="foxbot-widget"
   src="${baseUrl}/widget?tenantId=${tenant.id}"
-  style="position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;"
+  style="position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;"
   allow="microphone"
 ></iframe>
 <script>
@@ -1341,12 +1365,12 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
       var mobile = window.innerWidth <= 480;
       if (e.data.type === 'open_chat') {
         if (mobile) {
-          f.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;';
+          f.style.cssText = 'position:fixed;bottom:0;${posOpp}:0;width:100%;height:100%;border:none;z-index:9999;';
         } else {
-          f.style.cssText = 'position:fixed;bottom:16px;right:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+          f.style.cssText = 'position:fixed;bottom:16px;${posOpp}:16px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
         }
       } else {
-        f.style.cssText = 'position:fixed;bottom:12px;right:12px;width:70px;height:70px;border:none;z-index:9999;';
+        f.style.cssText = 'position:fixed;bottom:12px;${posOpp}:12px;width:70px;height:70px;border:none;z-index:9999;';
       }
     }
   });

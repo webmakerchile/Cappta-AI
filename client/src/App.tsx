@@ -328,6 +328,7 @@ interface TenantConfig {
   logoUrl: string | null;
   launcherImageUrl: string | null;
   botIconUrl: string | null;
+  widgetPosition: string;
   formFields: string | null;
   consultationOptions: string | null;
   showProductSearch: number;
@@ -394,6 +395,7 @@ function ChatWidget() {
   const widgetUserTextColor = tenantConfig?.userTextColor || undefined;
   const widgetLauncherImage = tenantConfig?.launcherImageUrl || undefined;
   const widgetBotIcon = tenantConfig?.botIconUrl || undefined;
+  const widgetPosition = tenantConfig?.widgetPosition || "right";
 
   const postMessageToParent = useCallback((type: string) => {
     try {
@@ -444,7 +446,7 @@ function ChatWidget() {
 
   return (
     <div
-      className="w-full h-full flex items-end justify-end"
+      className={`w-full h-full flex items-end ${widgetPosition === "left" ? "justify-start" : "justify-end"}`}
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       {isOpen ? (
