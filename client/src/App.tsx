@@ -539,7 +539,7 @@ function ChatWidget() {
         <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a] text-white/40 text-sm">
           Cargando...
         </div>
-      ) : (
+      ) : !configLoaded ? null : (
         <div className="p-1.5">
           <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} bubbleText={widgetBubbleText} />
         </div>

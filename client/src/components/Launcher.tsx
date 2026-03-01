@@ -13,6 +13,19 @@ interface LauncherProps {
 export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, bubbleText }: LauncherProps) {
   const bgColor = color || "#10b981";
   const [showBubble, setShowBubble] = useState(!!bubbleText);
+  const [imageReady, setImageReady] = useState(!launcherImage);
+
+  useEffect(() => {
+    if (!launcherImage) {
+      setImageReady(true);
+      return;
+    }
+    setImageReady(false);
+    const img = new Image();
+    img.onload = () => setImageReady(true);
+    img.onerror = () => setImageReady(true);
+    img.src = launcherImage;
+  }, [launcherImage]);
 
   useEffect(() => {
     if (!bubbleText) return;
@@ -20,6 +33,8 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, bub
     const timer = setTimeout(() => setShowBubble(false), 5000);
     return () => clearTimeout(timer);
   }, [bubbleText]);
+
+  if (!imageReady) return null;
 
   return (
     <div className="relative flex items-center gap-2">
