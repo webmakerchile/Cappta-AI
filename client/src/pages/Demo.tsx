@@ -1277,31 +1277,31 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
         </div>
       )}
 
-      <div className="shrink-0 px-3.5 py-2.5 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${ctx.color} 0%, ${ctx.colorAccent} 100%)` }}>
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-white" />
-          <span className="text-[13px] font-bold text-white" data-testid="text-exec-panel-title">Panel de Ejecutivos — {ctx.business}</span>
+      <div className="shrink-0 px-2.5 sm:px-3.5 py-2 sm:py-2.5 flex items-center justify-between gap-2 flex-wrap" style={{ background: `linear-gradient(135deg, ${ctx.color} 0%, ${ctx.colorAccent} 100%)` }}>
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <Shield className="w-4 h-4 text-white shrink-0" />
+          <span className="text-[11px] sm:text-[13px] font-bold text-white truncate" data-testid="text-exec-panel-title">Panel de Ejecutivos — {ctx.business}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {totalPending > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/30 animate-pulse">
+            <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/30 animate-pulse">
               <Bell className="w-2.5 h-2.5 text-amber-300" />
-              <span className="text-[10px] text-amber-200 font-bold">{totalPending} pendiente{totalPending > 1 ? "s" : ""}</span>
+              <span className="text-[9px] sm:text-[10px] text-amber-200 font-bold">{totalPending}</span>
             </div>
           )}
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/15 border border-white/20">
+          <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-white/15 border border-white/20">
             <Eye className="w-2.5 h-2.5 text-white" />
-            <span className="text-[10px] text-white font-bold">{sessions.filter(s => getStatus(s.id, s.status) === "active").length} activos</span>
+            <span className="text-[9px] sm:text-[10px] text-white font-bold">{sessions.filter(s => getStatus(s.id, s.status) === "active").length}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: exec.color }} />
-            <span className="text-[10px] text-white font-medium">{exec.name}</span>
+          <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-white/10 border border-white/15">
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: exec.color }} />
+            <span className="text-[9px] sm:text-[10px] text-white font-medium truncate max-w-[60px] sm:max-w-none">{exec.name}</span>
           </div>
         </div>
       </div>
 
       <div className="flex flex-1 min-h-0">
-        <div className="w-[180px] sm:w-[220px] shrink-0 border-r border-white/[0.06] overflow-y-auto" style={{ background: "rgba(8,8,8,0.98)" }}>
+        <div className="w-[140px] sm:w-[220px] shrink-0 border-r border-white/[0.06] overflow-y-auto" style={{ background: "rgba(8,8,8,0.98)" }}>
           <div className="p-2 border-b border-white/[0.04]">
             <span className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Chats ({sessions.length})</span>
           </div>
@@ -1366,18 +1366,18 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
         </div>
 
         <div className="flex-1 flex flex-col min-w-0" style={{ background: "rgba(12,12,12,0.98)" }}>
-          <div className="shrink-0 flex items-center gap-2 px-3 py-2 border-b border-white/[0.06]">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${activeSession.color}20` }}>
-              <span className="text-[10px] font-bold" style={{ color: activeSession.color }}>{activeSession.initial}</span>
+          <div className="shrink-0 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 border-b border-white/[0.06]">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${activeSession.color}20` }}>
+              <span className="text-[9px] sm:text-[10px] font-bold" style={{ color: activeSession.color }}>{activeSession.initial}</span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-white/80">{activeSession.userName}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-white/80 truncate">{activeSession.userName}</span>
                 {getStatus(selectedSession, activeSession.status) === "active" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 )}
               </div>
-              <span className="text-[9px] text-white/25">{activeSession.userEmail}</span>
+              <span className="text-[8px] sm:text-[9px] text-white/25 truncate">{activeSession.userEmail}</span>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {getStatus(selectedSession, activeSession.status) === "active" && !claimed && (
@@ -1388,7 +1388,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                   data-testid="button-exec-claim"
                 >
                   <UserRound className="w-3 h-3" style={{ color: ctx.color }} />
-                  <span className="text-[10px] font-bold" style={{ color: ctx.color }}>Entrar al Chat</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold" style={{ color: ctx.color }}><span className="hidden sm:inline">Entrar al </span>Chat</span>
                 </button>
               )}
               {claimed && (
@@ -1400,7 +1400,7 @@ function DemoExecutivePanel({ ctx, onBack }: { ctx: DemoContext; onBack: () => v
                     data-testid="button-exec-leave"
                   >
                     <LogOut className="w-3 h-3" style={{ color: exec.color }} />
-                    <span className="text-[10px] font-bold" style={{ color: exec.color }}>Salir del Chat</span>
+                    <span className="text-[9px] sm:text-[10px] font-bold" style={{ color: exec.color }}><span className="hidden sm:inline">Salir del </span>Chat</span>
                   </button>
                   <button
                     onClick={handleCloseSession}

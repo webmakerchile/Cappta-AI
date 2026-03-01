@@ -1732,7 +1732,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="referidos" className="py-28 px-6 relative overflow-hidden" ref={referralSection.ref as any} data-testid="section-referral">
+      <section id="referidos" className="py-16 sm:py-28 px-4 sm:px-6 relative overflow-hidden" ref={referralSection.ref as any} data-testid="section-referral">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.2) 50%, transparent 100%)" }} />
           <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(245,158,11,0.04) 0%, transparent 50%)", animationDelay: "-5s" }} />
@@ -1797,8 +1797,8 @@ export default function Landing() {
           </div>
 
           <div className={`mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "550ms" }}>
-            <h3 className="text-center text-lg font-bold text-white/70 mb-8">Escalera de recompensas</h3>
-            <div className="max-w-3xl mx-auto space-y-4">
+            <h3 className="text-center text-base sm:text-lg font-bold text-white/70 mb-6 sm:mb-8">Escalera de recompensas</h3>
+            <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
               {[
                 { refs: 1, reward: "$3.000 CLP + 1 mes Fox Pro", detail: "Tu primer referido: dinero real + plan premium", color: "16,185,129", icon: <Gift className="w-5 h-5" />, tier: "$3.000" },
                 { refs: 3, reward: "$9.000 CLP + 2 meses Fox Pro", detail: "$3.000 por cada referido, se acumula sin límite", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "$9.000" },
@@ -1808,7 +1808,7 @@ export default function Landing() {
               ].map((tier, i) => (
                 <div
                   key={tier.refs}
-                  className={`group relative flex items-center gap-5 rounded-2xl p-5 transition-all duration-500 hover:scale-[1.02] ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
+                  className={`group relative flex items-center gap-3 sm:gap-5 rounded-2xl p-3 sm:p-5 transition-all duration-500 hover:scale-[1.02] ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
                   style={{
                     animationDelay: `${600 + i * 120}ms`,
                     background: `linear-gradient(135deg, rgba(${tier.color},0.08), rgba(${tier.color},0.02))`,
@@ -1820,12 +1820,12 @@ export default function Landing() {
                     <span style={{ color: `rgb(${tier.color})` }}>{tier.icon}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <span className="text-lg font-black" style={{ color: `rgb(${tier.color})` }}>{tier.refs} {tier.refs === 1 ? "referido" : "referidos"}</span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider" style={{ background: `rgba(${tier.color},0.15)`, color: `rgb(${tier.color})` }}>{tier.tier}</span>
+                    <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
+                      <span className="text-base sm:text-lg font-black" style={{ color: `rgb(${tier.color})` }}>{tier.refs} {tier.refs === 1 ? "referido" : "referidos"}</span>
+                      <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wider" style={{ background: `rgba(${tier.color},0.15)`, color: `rgb(${tier.color})` }}>{tier.tier}</span>
                     </div>
-                    <p className="text-sm font-semibold text-white/70">{tier.reward}</p>
-                    <p className="text-xs text-white/30 mt-0.5">{tier.detail}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-white/70">{tier.reward}</p>
+                    <p className="text-[11px] sm:text-xs text-white/30 mt-0.5">{tier.detail}</p>
                   </div>
                   <ArrowRight className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: `rgba(${tier.color},0.4)` }} />
                 </div>
@@ -1833,14 +1833,14 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className={`max-w-3xl mx-auto rounded-2xl p-6 mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1000ms", background: "linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.1)" }} data-testid="referral-both-win">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))" }}>
-                <Handshake className="w-5 h-5 text-primary" />
+          <div className={`max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 mb-10 sm:mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1000ms", background: "linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.1)" }} data-testid="referral-both-win">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))" }}>
+                <Handshake className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              <div>
-                <h4 className="text-base font-bold text-white/80 mb-2">¿Cómo funciona exactamente?</h4>
-                <p className="text-sm text-white/40 leading-relaxed">
+              <div className="min-w-0">
+                <h4 className="text-sm sm:text-base font-bold text-white/80 mb-2">¿Cómo funciona exactamente?</h4>
+                <p className="text-xs sm:text-sm text-white/40 leading-relaxed">
                   Tu referido se registra gratis con tu enlace y prueba FoxBot sin compromiso. Cuando decide comprar <span className="text-primary font-semibold">Fox Pro o Fox Enterprise</span>, tú recibes <span className="text-amber-400 font-semibold">$3.000 CLP en saldo</span> automáticamente al instante. Además, al alcanzar hitos (1, 3, 5, 10, 15 referidos) desbloqueas meses de plan premium gratis. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.
                 </p>
               </div>
