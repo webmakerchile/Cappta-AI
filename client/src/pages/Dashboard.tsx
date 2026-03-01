@@ -1280,7 +1280,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         <div className="relative flex items-start justify-between">
           <div>
             <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Instala tu chatbot</h3>
-            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">FoxBot se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeno código y tu asistente estará listo.</p>
+            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">FoxBot se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeño código y tu asistente estará listo.</p>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 shrink-0 ml-4">
             <CircleCheck className="w-4 h-4 text-green-400" />
@@ -1764,7 +1764,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
     free: {
       sessions: "50 / mes",
       messages: "500 / mes",
-      features: ["Chat en vivo", "Respuestas automaticas basicas", "Widget personalizable"],
+      features: ["Chat en vivo", "Respuestas automáticas básicas", "Widget personalizable"],
     },
     basic: {
       sessions: "500 / mes",

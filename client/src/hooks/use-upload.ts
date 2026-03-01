@@ -35,7 +35,7 @@ export function useUpload(options: UseUploadOptions = {}) {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Upload failed");
+          throw new Error(errorData.error || "Error al subir archivo");
         }
 
         const data = await response.json();
@@ -45,7 +45,7 @@ export function useUpload(options: UseUploadOptions = {}) {
         options.onSuccess?.(result);
         return result;
       } catch (err) {
-        const error = err instanceof Error ? err : new Error("Upload failed");
+        const error = err instanceof Error ? err : new Error("Error al subir archivo");
         setError(error);
         options.onError?.(error);
         return null;

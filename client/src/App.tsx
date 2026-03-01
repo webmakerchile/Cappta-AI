@@ -142,7 +142,7 @@ function FullScreenChat() {
           </div>
           <h1 data-testid="text-invalid-access-title" className="text-xl font-bold text-white">Acceso al Chat</h1>
           <p data-testid="text-invalid-access-message" className="text-white/60 text-sm leading-relaxed">
-            Para acceder al chat, utiliza el enlace que recibiste en tu correo electronico. El enlace contiene tus datos de acceso.
+            Para acceder al chat, utiliza el enlace que recibiste en tu correo electrónico. El enlace contiene tus datos de acceso.
           </p>
           <a
             href="/"

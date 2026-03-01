@@ -1415,7 +1415,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         {currentSession?.assignedTo === adminUser?.id && (
           <div className="mt-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-            <span className="text-[11px] text-emerald-300">Chat asignado a ti — El bot esta pausado. Tus respuestas se envian directamente al usuario.</span>
+            <span className="text-[11px] text-emerald-300">Chat asignado a ti — El bot está pausado. Tus respuestas se envían directamente al usuario.</span>
           </div>
         )}
 
@@ -4329,7 +4329,7 @@ export default function AdminPage() {
       fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
         .then(res => {
           if (res.ok) return res.json();
-          throw new Error("Invalid");
+          throw new Error("Sesión inválida");
         })
         .then(data => {
           setAdminUser(data);
@@ -5032,7 +5032,7 @@ export default function AdminPage() {
                     <button
                       data-testid="button-clear-all-chats"
                       onClick={async () => {
-                        if (!window.confirm("¿Estas seguro de eliminar TODOS los chats? Esta acción no se puede deshacer.")) return;
+                        if (!window.confirm("¿Estás seguro de eliminar TODOS los chats? Esta acción no se puede deshacer.")) return;
                         try {
                           const res = await adminFetch("/api/admin/sessions/all", { method: "DELETE" });
                           if (res.ok) {
@@ -5111,7 +5111,7 @@ export default function AdminPage() {
                 <div className="h-full flex flex-col items-center justify-center text-center px-4">
                   <MessageSquare className="w-10 h-10 text-white/10 mb-3" />
                   <p className="text-sm text-white/30">
-                    {isSearching ? "No se encontraron resultados" : "No hay conversaciones aun"}
+                    {isSearching ? "No se encontraron resultados" : "No hay conversaciones aún"}
                   </p>
                 </div>
               ) : (

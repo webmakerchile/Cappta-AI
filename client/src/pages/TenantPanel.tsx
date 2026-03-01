@@ -86,7 +86,7 @@ function useAuth() {
       const res = await fetch("/api/tenants/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) throw new Error("No autorizado");
       return res.json();
     },
   });

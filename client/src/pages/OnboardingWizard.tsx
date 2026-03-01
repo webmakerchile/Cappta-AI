@@ -104,7 +104,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
 
   const handleLogoUpload = async (file: File) => {
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
-      toast({ title: "Solo imagenes de hasta 5MB", variant: "destructive" });
+      toast({ title: "Solo imágenes de hasta 5MB", variant: "destructive" });
       return;
     }
     setUploadingLogo(true);
@@ -112,7 +112,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
       setLogoUrl(objectPath);
       toast({ title: "Logo subido" });
@@ -124,7 +124,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
 
   const handleAvatarUpload = async (file: File) => {
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
-      toast({ title: "Solo imagenes de hasta 5MB", variant: "destructive" });
+      toast({ title: "Solo imágenes de hasta 5MB", variant: "destructive" });
       return;
     }
     setUploadingAvatar(true);
@@ -132,7 +132,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/uploads/direct", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) throw new Error("Error al subir archivo");
       const { objectPath } = await res.json();
       setAvatarUrl(objectPath);
       toast({ title: "Avatar subido" });

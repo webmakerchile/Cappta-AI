@@ -20,7 +20,7 @@ export function registerObjectStorageRoutes(app: Express): void {
   app.post("/api/uploads/direct", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ error: "No file provided" });
+        return res.status(400).json({ error: "Archivo no proporcionado" });
       }
       const ext = path.extname(req.file.originalname || "") || getExtFromMime(req.file.mimetype);
       const objectId = randomUUID() + ext;
@@ -30,7 +30,7 @@ export function registerObjectStorageRoutes(app: Express): void {
       res.json({ objectPath });
     } catch (error) {
       console.error("Error in direct upload:", error);
-      res.status(500).json({ error: "Failed to upload file" });
+      res.status(500).json({ error: "Error al subir archivo" });
     }
   });
 
@@ -41,10 +41,10 @@ export function registerObjectStorageRoutes(app: Express): void {
       const filePath = path.join(UPLOAD_DIR, reqPath);
       const resolved = path.resolve(filePath);
       if (!resolved.startsWith(path.resolve(UPLOAD_DIR))) {
-        return res.status(403).json({ error: "Forbidden" });
+        return res.status(403).json({ error: "Acceso prohibido" });
       }
       if (!fs.existsSync(resolved)) {
-        return res.status(404).json({ error: "Object not found" });
+        return res.status(404).json({ error: "Archivo no encontrado" });
       }
       const ext = path.extname(resolved).toLowerCase();
       const mimeMap: Record<string, string> = {
@@ -71,7 +71,7 @@ export function registerObjectStorageRoutes(app: Express): void {
       stream.pipe(res);
     } catch (error) {
       console.error("Error serving object:", error);
-      return res.status(500).json({ error: "Failed to serve object" });
+      return res.status(500).json({ error: "Error al servir archivo" });
     }
   });
 }

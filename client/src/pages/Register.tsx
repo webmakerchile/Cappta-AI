@@ -107,7 +107,7 @@ export default function Register() {
             <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
           </h2>
           <p className="text-white/40 text-sm leading-relaxed mb-8 animate-dash-fade-up dash-stagger-2">
-            Crea tu cuenta gratis y en 5 minutos tendras tu asistente de ventas con IA funcionando en tu sitio web.
+            Crea tu cuenta gratis y en 5 minutos tendrás tu asistente de ventas con IA funcionando en tu sitio web.
           </p>
 
           <div className="space-y-4">
