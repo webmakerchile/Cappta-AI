@@ -243,7 +243,7 @@ const notifSound = typeof window !== "undefined" ? new Audio("data:audio/wav;bas
 type AgentFilter = "all" | "bot" | "ejecutivo";
 type AssignFilter = "all" | "pendientes" | "mis";
 
-function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
+function ChatsTab({ token, tenant, currentName }: { token: string; tenant: TenantProfile; currentName: string }) {
   const { toast } = useToast();
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
@@ -3264,7 +3264,7 @@ export default function TenantPanel() {
         </header>
 
         <main className="flex-1 overflow-hidden flex flex-col">
-          {activeTab === "chats" && <ChatsTab token={token} tenant={tenant} />}
+          {activeTab === "chats" && <ChatsTab token={token} tenant={tenant} currentName={currentName} />}
           {activeTab === "atajos" && <AtajosTab />}
           {activeTab === "etiquetas" && <EtiquetasTab />}
           {activeTab === "productos" && canAccessTab({ id: "productos", label: "", icon: null, minRole: "admin" }) && <ProductosTab />}
