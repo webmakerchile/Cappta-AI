@@ -485,6 +485,7 @@ export function useChat(tenantId?: number | null) {
         ? `Hola, mi consulta es: ${label}. Producto: ${gameName}`
         : `Hola, mi consulta es: ${label}`;
 
+      setIsSending(true);
       setTimeout(async () => {
         try {
           const res = await fetch("/api/messages", {
@@ -503,12 +504,17 @@ export function useChat(tenantId?: number | null) {
               tenantId: tenantId || undefined,
             }),
           });
+          setIsSending(false);
           if (res.ok) {
+            messageCountBeforeSend.current = 1;
+            setIsBotTyping(true);
             setTimeout(() => {
               queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", email] });
             }, 2500);
           }
-        } catch {}
+        } catch {
+          setIsSending(false);
+        }
       }, 500);
     }
   }, [pageInfo, tenantId]);
@@ -526,6 +532,7 @@ export function useChat(tenantId?: number | null) {
       ? `Hola, mi consulta es: ${label}. Producto: ${gameName}`
       : `Hola, mi consulta es: ${label}`;
 
+    setIsSending(true);
     setTimeout(async () => {
       try {
         const res = await fetch("/api/messages", {
@@ -544,7 +551,10 @@ export function useChat(tenantId?: number | null) {
             tenantId: tenantId || undefined,
           }),
         });
+        setIsSending(false);
         if (res.ok) {
+          messageCountBeforeSend.current = 1;
+          setIsBotTyping(true);
           queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
           queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
           setTimeout(() => {
@@ -552,7 +562,9 @@ export function useChat(tenantId?: number | null) {
             queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
           }, 2000);
         }
-      } catch {}
+      } catch {
+        setIsSending(false);
+      }
     }, 500);
   }, [user, pageInfo, tenantId]);
 
