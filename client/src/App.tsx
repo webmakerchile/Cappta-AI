@@ -420,13 +420,15 @@ function ChatWidget() {
   const widgetBannerText = tenantConfig?.welcomeBannerText || undefined;
   const widgetBubbleText = tenantConfig?.launcherBubbleText || undefined;
 
-  const postMessageToParent = useCallback((type: string) => {
+  const postMessageToParent = useCallback((type: string, hasBubble?: boolean) => {
     try {
       const isMobile = window.innerWidth <= 480;
+      const closedWidth = hasBubble ? 320 : 80;
+      const closedHeight = hasBubble ? 100 : 80;
       const payload = {
         type,
-        width: type === "open_chat" ? (isMobile ? "100%" : 400) : 80,
-        height: type === "open_chat" ? (isMobile ? "100%" : 620) : 80,
+        width: type === "open_chat" ? (isMobile ? "100%" : 400) : closedWidth,
+        height: type === "open_chat" ? (isMobile ? "100%" : 620) : closedHeight,
         position: widgetPosition,
       };
       window.parent.postMessage(payload, "*");
@@ -472,9 +474,12 @@ function ChatWidget() {
     if (widgetPosition && !isInlineEmbed) {
       try {
         window.parent.postMessage({ type: "foxbot_position", position: widgetPosition }, "*");
+        if (widgetBubbleText) {
+          postMessageToParent("close_chat", true);
+        }
       } catch {}
     }
-  }, [widgetPosition, isInlineEmbed]);
+  }, [widgetPosition, isInlineEmbed, widgetBubbleText]);
 
   return (
     <div
@@ -549,7 +554,9 @@ function ChatWidget() {
         </div>
       ) : !configLoaded ? null : (
         <div className="p-1.5">
-          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} launcherScale={widgetLauncherScale} bubbleText={widgetBubbleText} />
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} launcherScale={widgetLauncherScale} bubbleText={widgetBubbleText} position={widgetPosition} onBubbleChange={(visible) => {
+            postMessageToParent("close_chat", visible);
+          }} />
         </div>
       )}
     </div>

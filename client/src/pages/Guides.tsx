@@ -31,14 +31,14 @@ const EMBED_SCRIPT = `<script>
     document.body.appendChild(iframe);
     window.addEventListener('message', function(e) {
       if (!e.data || !e.data.type) return;
-      if (e.data.type === 'open_chat' || e.data.type === 'close_chat') {
+      if (e.data.type === 'open_chat') {
         var mobile = window.innerWidth <= 480;
-        if (e.data.type === 'open_chat') {
-          if (mobile) { iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'; }
-          else { iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);'; }
-        } else {
-          iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';
-        }
+        if (mobile) { iframe.style.cssText = 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'; }
+        else { iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);'; }
+      } else if (e.data.type === 'close_chat') {
+        var cw = (e.data.width || 80) + 'px';
+        var ch = (e.data.height || 80) + 'px';
+        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:' + cw + ';height:' + ch + ';border:none;z-index:9999;';
       }
     });
   })();

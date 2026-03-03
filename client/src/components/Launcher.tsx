@@ -9,11 +9,14 @@ interface LauncherProps {
   launcherImage?: string;
   launcherScale?: number;
   bubbleText?: string;
+  position?: string;
+  onBubbleChange?: (visible: boolean) => void;
 }
 
-export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, launcherScale = 100, bubbleText }: LauncherProps) {
+export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, launcherScale = 100, bubbleText, position = "right", onBubbleChange }: LauncherProps) {
   const bgColor = color || "#10b981";
   const [showBubble, setShowBubble] = useState(!!bubbleText);
+  const isLeft = position === "left";
   const [imageReady, setImageReady] = useState(!launcherImage);
 
   const sizePx = Math.round(56 * launcherScale / 100);
@@ -37,17 +40,29 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
   useEffect(() => {
     if (!bubbleText) return;
     setShowBubble(true);
-    const timer = setTimeout(() => setShowBubble(false), 5000);
+    onBubbleChange?.(true);
+    const timer = setTimeout(() => {
+      setShowBubble(false);
+      onBubbleChange?.(false);
+    }, 8000);
     return () => clearTimeout(timer);
   }, [bubbleText]);
 
   if (!imageReady) return null;
 
+  const handleCloseBubble = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowBubble(false);
+    onBubbleChange?.(false);
+  };
+
   return (
-    <div className="relative flex items-center gap-2">
+    <div className={`relative flex items-center gap-2 ${isLeft ? "flex-row-reverse" : "flex-row"}`}>
       {showBubble && bubbleText && !isOpen && (
         <div
-          className="absolute right-full mr-2 max-w-[200px] px-3 py-2 rounded-xl rounded-br-sm text-xs font-medium animate-in fade-in slide-in-from-right-2 duration-300 whitespace-pre-wrap"
+          className={`absolute max-w-[200px] px-3 py-2 rounded-xl text-xs font-medium animate-in fade-in duration-300 whitespace-pre-wrap ${
+            isLeft ? "left-full ml-2 rounded-bl-sm slide-in-from-left-2" : "right-full mr-2 rounded-br-sm slide-in-from-right-2"
+          }`}
           style={{
             backgroundColor: "#1a1a1a",
             color: "#e0e0e0",
@@ -58,8 +73,10 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
         >
           {bubbleText}
           <button
-            onClick={(e) => { e.stopPropagation(); setShowBubble(false); }}
-            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/50 hover:text-white/80 text-[8px]"
+            onClick={handleCloseBubble}
+            className={`absolute -top-1 w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/50 hover:text-white/80 text-[8px] ${
+              isLeft ? "-right-1" : "-right-1"
+            }`}
             data-testid="button-close-bubble"
           >
             ×

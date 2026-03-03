@@ -1528,7 +1528,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
     iframe.allow = 'microphone';
     var pos = 'right';
-    function setPos(p, state) {
+    function setPos(p, state, w, h) {
       var s = p === 'left' ? 'left' : 'right';
       var o = p === 'left' ? 'right' : 'left';
       var mobile = window.innerWidth <= 480;
@@ -1539,7 +1539,9 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
           iframe.style.cssText = 'position:fixed;bottom:16px;' + s + ':16px;' + o + ':auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
         }
       } else {
-        iframe.style.cssText = 'position:fixed;bottom:12px;' + s + ':12px;' + o + ':auto;width:70px;height:70px;border:none;z-index:9999;';
+        var cw = (w || 70) + 'px';
+        var ch = (h || 70) + 'px';
+        iframe.style.cssText = 'position:fixed;bottom:12px;' + s + ':12px;' + o + ':auto;width:' + cw + ';height:' + ch + ';border:none;z-index:9999;';
       }
     }
     setPos(pos, 'closed');
@@ -1549,7 +1551,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
       if (e.data.position) pos = e.data.position;
       if (e.data.type === 'foxbot_position') { pos = e.data.position; setPos(pos, 'closed'); }
       if (e.data.type === 'open_chat') setPos(pos, 'open');
-      if (e.data.type === 'close_chat') setPos(pos, 'closed');
+      if (e.data.type === 'close_chat') setPos(pos, 'closed', e.data.width, e.data.height);
     });
   })();
 </script>`;
