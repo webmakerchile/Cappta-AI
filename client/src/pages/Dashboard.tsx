@@ -1595,7 +1595,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   const handleDownloadWPPlugin = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("tenant_token");
       const response = await fetch("/api/tenants/me/wordpress-plugin", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1934,7 +1934,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               </a>
 
               <a
-                href="mailto:contacto@webmakerchile.cl?subject=Ayuda%20instalaci%C3%B3n%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
+                href="mailto:contacto@foxbot.cl?subject=Ayuda%20instalaci%C3%B3n%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group"
                 data-testid="link-email-help"
               >
@@ -1943,12 +1943,12 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-white/70">Correo</p>
-                  <p className="text-[10px] text-white/40">contacto@webmakerchile.cl</p>
+                  <p className="text-[10px] text-white/40">contacto@foxbot.cl</p>
                 </div>
               </a>
 
               <a
-                href="https://www.webmakerchile.cl"
+                href="https://www.foxbot.cl"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-orange-500/5 hover:border-orange-500/20 transition-all group"
@@ -1958,8 +1958,8 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                   <Bot className="w-4 h-4 text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-white/70">Web Maker Chile</p>
-                  <p className="text-[10px] text-white/40">webmakerchile.cl</p>
+                  <p className="text-xs font-semibold text-white/70">FoxBot</p>
+                  <p className="text-[10px] text-white/40">foxbot.cl</p>
                 </div>
               </a>
             </div>

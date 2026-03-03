@@ -414,7 +414,7 @@ function ChatbotPreview() {
         </div>
 
         <div className="px-3 pb-2 text-center">
-          <span className="text-[9px] text-white/15">Potenciado por webmakerchile.com</span>
+          <span className="text-[9px] text-white/15">Potenciado por foxbot.cl</span>
         </div>
       </div>
     </div>
