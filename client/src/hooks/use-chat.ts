@@ -147,6 +147,8 @@ export function useChat(tenantId?: number | null) {
   const [productContext, setProductContext] = useState<ProductContext | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
   const initializedRef = useRef(false);
+  const tenantIdRef = useRef(tenantId);
+  tenantIdRef.current = tenantId;
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -279,13 +281,13 @@ export function useChat(tenantId?: number | null) {
       });
 
       socket.on("chat_history", (history: Message[]) => {
-        queryClient.setQueryData(["/api/messages/thread", user.email, tenantId], history);
+        queryClient.setQueryData(["/api/messages/thread", user.email, tenantIdRef.current], history);
       });
 
       socket.on("new_message", (msg: Message) => {
         setStreamingText("");
         queryClient.setQueryData(
-          ["/api/messages/thread", user.email, tenantId],
+          ["/api/messages/thread", user.email, tenantIdRef.current],
           (old: Message[] | undefined) => {
             const existing = old || [];
             if (existing.some(m => m.id === msg.id)) return existing;
@@ -326,7 +328,7 @@ export function useChat(tenantId?: number | null) {
         disconnectSocket();
       } catch {}
     };
-  }, [user, tenantId]);
+  }, [user]);
 
   const [isSending, setIsSending] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);

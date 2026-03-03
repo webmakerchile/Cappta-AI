@@ -5262,13 +5262,13 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", (reason) => {
       const session = userSessions.get(socket.id);
       if (session) {
         removeSessionConnection(session.sessionId, socket.id);
       }
       userSessions.delete(socket.id);
-      log(`Usuario desconectado: ${name} (${email})`, "socket.io");
+      log(`Usuario desconectado: ${name} (${email}) reason:${reason}`, "socket.io");
 
       const disconnectedSessionId = sessionId;
       const disconnectedEmail = email;
