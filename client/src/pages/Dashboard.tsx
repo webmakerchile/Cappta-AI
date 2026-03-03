@@ -1556,22 +1556,43 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
 
   const iframeCode = embedScript;
 
+  const handleDownloadWPPlugin = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/tenants/me/wordpress-plugin", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Error al descargar");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "foxbot-chat.zip";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast({ title: "Plugin descargado", description: "Sube el archivo .zip en tu WordPress: Plugins > Añadir nuevo > Subir plugin" });
+    } catch {
+      toast({ title: "Error", description: "No se pudo descargar el plugin", variant: "destructive" });
+    }
+  };
+
   const platforms: PlatformGuide[] = [
     {
       id: "wordpress", name: "WordPress", icon: SiWordpress, color: "#21759b", difficulty: "fácil",
       steps: [
-        { title: "Accede a tu panel de WordPress", description: "Ingresa a tu administrador de WordPress (tu-sitio.com/wp-admin)." },
-        { title: "Ve a Apariencia > Editor de temas", description: "En el menú lateral, navega a Apariencia > Editor de temas. Si prefieres no editar archivos, instala el plugin gratuito 'WPCode' o 'Insert Headers and Footers'.", note: "Con WPCode: Ve a Code Snippets > Header & Footer > pega el código en el campo 'Footer'." },
-        { title: "Abre el archivo footer.php", description: "En el editor de temas, selecciona footer.php de la lista de archivos del tema." },
-        { title: "Pega el código antes de </body>", description: "Agrega el siguiente código justo antes de la etiqueta </body>:", code: embedScript },
-        { title: "Guarda los cambios", description: "Haz clic en 'Actualizar archivo'. El chatbot aparecerá automáticamente en todas las paginas de tu sitio." },
+        { title: "Descarga el plugin de FoxBot", description: "Haz clic en el botón de abajo para descargar tu plugin personalizado. Ya viene preconfigurado con tu cuenta." },
+        { title: "Sube el plugin a WordPress", description: "En tu panel de WordPress, ve a Plugins > Añadir nuevo > Subir plugin. Selecciona el archivo foxbot-chat.zip que descargaste." },
+        { title: "Activa el plugin", description: "Después de instalar, haz clic en 'Activar plugin'. Listo, el chatbot aparecerá automáticamente en todas las páginas de tu sitio." },
       ],
     },
     {
       id: "woocommerce", name: "WooCommerce", icon: SiWoocommerce, color: "#96588a", difficulty: "fácil",
       steps: [
-        { title: "Mismos pasos que WordPress", description: "WooCommerce funciona sobre WordPress, así que el proceso es idéntico. Sigue los pasos de WordPress." },
-        { title: "Pega el código en footer.php", description: "Ve a Apariencia > Editor de temas > footer.php y pega este código antes de </body>:", code: embedScript },
+        { title: "Descarga el plugin de FoxBot", description: "WooCommerce funciona sobre WordPress. Haz clic en el botón de abajo para descargar tu plugin personalizado." },
+        { title: "Sube el plugin a WordPress", description: "En tu panel de WordPress/WooCommerce, ve a Plugins > Añadir nuevo > Subir plugin. Selecciona el archivo foxbot-chat.zip." },
+        { title: "Activa el plugin", description: "Haz clic en 'Activar plugin'. El chatbot aparecerá en tu tienda automáticamente." },
         { title: "Conecta tu catálogo (opcional)", description: "Para que el bot muestre tus productos, activa el buscador de productos en Configuración > API de Productos e ingresa tu URL de WooCommerce REST API.", note: "Formato de URL: https://tu-tienda.com/wp-json/wc/v3/products" },
       ],
     },
@@ -1736,6 +1757,16 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                   <div className="flex-1 pb-4">
                     <p className="text-sm font-semibold text-white/80 mb-1">{step.title}</p>
                     <p className="text-xs text-white/50 leading-relaxed">{step.description}</p>
+                    {(selectedGuide.id === "wordpress" || selectedGuide.id === "woocommerce") && i === 0 && (
+                      <Button
+                        onClick={handleDownloadWPPlugin}
+                        className="mt-3 rounded-lg bg-[#21759b] hover:bg-[#1a5f7e] text-white text-xs h-9 px-4 gap-2"
+                        data-testid="button-download-wp-plugin"
+                      >
+                        <Download className="w-4 h-4" />
+                        Descargar Plugin WordPress (.zip)
+                      </Button>
+                    )}
                     {step.note && (
                       <div className="mt-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/15">
                         <p className="text-[11px] text-amber-300/80 flex items-start gap-1.5">

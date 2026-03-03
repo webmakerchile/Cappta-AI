@@ -11,6 +11,7 @@ import { getSmartAutoReply } from "./autoReply";
 import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuiltinWords, getCustomWords, setCustomWords } from "./profanityFilter";
 
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
+import archiver from "archiver";
 import { getFlowApi, PLAN_PRICES, PLAN_LIMITS } from "./flow";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -1364,6 +1365,155 @@ ${DEMO_BASE_RULES}`,
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  // ========== WORDPRESS PLUGIN DOWNLOAD ==========
+  app.get("/api/tenants/me/wordpress-plugin", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const tenantId = tenant.id;
+      const pluginSlug = "foxbot-chat";
+      const companyName = tenant.companyName || "FoxBot";
+
+      const pluginPhp = `<?php
+/**
+ * Plugin Name: FoxBot Chat - ${companyName}
+ * Plugin URI: https://foxbot.cl
+ * Description: Chatbot inteligente de FoxBot para ${companyName}. Se instala automaticamente en todas las paginas de tu sitio WordPress.
+ * Version: 1.0.0
+ * Author: Web Maker Chile
+ * Author URI: https://foxbot.cl
+ * License: GPL v2 or later
+ * Text Domain: foxbot-chat
+ */
+
+if (!defined('ABSPATH')) exit;
+
+define('FOXBOT_TENANT_ID', '${tenantId}');
+define('FOXBOT_BASE_URL', '${baseUrl}');
+
+function foxbot_enqueue_widget() {
+    $tenant_id = FOXBOT_TENANT_ID;
+    $base_url = FOXBOT_BASE_URL;
+
+    $script = "
+    (function() {
+        if (document.getElementById('foxbot-widget')) return;
+        var iframe = document.createElement('iframe');
+        iframe.id = 'foxbot-widget';
+        iframe.src = '" . esc_url($base_url) . "/widget?tenantId=" . intval($tenant_id) . "';
+        iframe.allow = 'microphone';
+        var pos = 'right';
+        function setPos(p, state) {
+            var s = p === 'left' ? 'left' : 'right';
+            var o = p === 'left' ? 'right' : 'left';
+            var mobile = window.innerWidth <= 480;
+            if (state === 'open') {
+                if (mobile) {
+                    iframe.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
+                } else {
+                    iframe.style.cssText = 'position:fixed;bottom:16px;' + s + ':16px;' + o + ':auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+                }
+            } else {
+                iframe.style.cssText = 'position:fixed;bottom:12px;' + s + ':12px;' + o + ':auto;width:70px;height:70px;border:none;z-index:9999;';
+            }
+        }
+        setPos(pos, 'closed');
+        document.body.appendChild(iframe);
+        window.addEventListener('message', function(e) {
+            if (!e.data || !e.data.type) return;
+            if (e.data.position) pos = e.data.position;
+            if (e.data.type === 'foxbot_position') { pos = e.data.position; setPos(pos, 'closed'); }
+            if (e.data.type === 'open_chat') setPos(pos, 'open');
+            if (e.data.type === 'close_chat') setPos(pos, 'closed');
+        });
+    })();
+    ";
+
+    wp_register_script('foxbot-widget', '', array(), '1.0.0', true);
+    wp_enqueue_script('foxbot-widget');
+    wp_add_inline_script('foxbot-widget', $script);
+}
+add_action('wp_enqueue_scripts', 'foxbot_enqueue_widget');
+
+function foxbot_settings_link($links) {
+    $settings_link = '<a href="https://foxbot.cl/dashboard" target="_blank">Configurar en FoxBot</a>';
+    array_unshift($links, $settings_link);
+    return $links;
+}
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'foxbot_settings_link');
+
+function foxbot_admin_notice() {
+    if (!current_user_can('manage_options')) return;
+    echo '<div class="notice notice-success is-dismissible"><p><strong>FoxBot Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://foxbot.cl/dashboard" target="_blank">Ir al panel de FoxBot</a></p></div>';
+}
+register_activation_hook(__FILE__, function() {
+    set_transient('foxbot_activation_notice', true, 5);
+});
+add_action('admin_notices', function() {
+    if (get_transient('foxbot_activation_notice')) {
+        foxbot_admin_notice();
+        delete_transient('foxbot_activation_notice');
+    }
+});
+?>`;
+
+      const readmeTxt = `=== FoxBot Chat - ${companyName} ===
+Contributors: webmakerchile
+Tags: chatbot, ai, live chat, customer support, foxbot
+Requires at least: 5.0
+Tested up to: 6.7
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Chatbot inteligente de FoxBot para ${companyName}.
+
+== Description ==
+
+FoxBot es un chatbot impulsado por inteligencia artificial que se integra automaticamente en tu sitio WordPress. No requiere configuracion adicional - simplemente activa el plugin y tu chatbot estara funcionando.
+
+Caracteristicas:
+* Respuestas inteligentes con IA
+* Soporte en tiempo real
+* Totalmente personalizable desde foxbot.cl/dashboard
+* Compatible con todos los temas de WordPress
+* Responsive - funciona en escritorio y movil
+
+== Installation ==
+
+1. Sube el archivo ZIP desde Plugins > Añadir nuevo > Subir plugin
+2. Activa el plugin
+3. Listo! El chatbot aparecera automaticamente en tu sitio
+
+Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
+
+== Changelog ==
+
+= 1.0.0 =
+* Version inicial
+`;
+
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", `attachment; filename="${pluginSlug}.zip"`);
+
+      const archive = archiver("zip", { zlib: { level: 9 } });
+      archive.pipe(res);
+      archive.append(pluginPhp, { name: `${pluginSlug}/${pluginSlug}.php` });
+      archive.append(readmeTxt, { name: `${pluginSlug}/readme.txt` });
+      await archive.finalize();
+
+    } catch (error: any) {
+      log(`Error generando plugin WordPress: ${error.message}`, "api");
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Error al generar plugin" });
+      }
     }
   });
 
