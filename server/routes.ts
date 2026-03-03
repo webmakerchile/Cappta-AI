@@ -3612,7 +3612,7 @@ REGLAS CRITICAS:
           },
           {
             role: "user",
-            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se escaneo la pagina principal + ${subpageResults.length} subpaginas internas${sitemapUrls.length > 0 ? ` (se encontraron ${sitemapUrls.length} URLs en el sitemap)` : ""}. Se extrajeron automaticamente: encabezados, precios, tablas, listas, emails, telefonos y redes sociales de CADA pagina.
+            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se escaneo la pagina principal + ${crawledPages.length} subpaginas internas${sitemapUrlCount > 0 ? ` (se encontraron ${sitemapUrlCount} URLs en el sitemap)` : ""} en ${crawlRound} rondas de crawling recursivo. Se extrajeron automaticamente: encabezados, precios, tablas, listas, emails, telefonos y redes sociales de CADA pagina.
 
 ATENCION ESPECIAL: Busca y documenta TODOS los precios, planes, tarifas, costos. Si hay secciones de pricing/planes, extrae cada precio exacto con lo que incluye.
 
