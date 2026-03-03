@@ -57,6 +57,9 @@ import {
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
 import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import caseAngelGlow from "@assets/image_1772551984490.png";
+import caseManaChile from "@assets/image_1772552079372.png";
+import caseCjmDigitales from "@assets/image_1772552113098.png";
 
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -1167,6 +1170,7 @@ export default function Landing() {
   const stepsSection = useInView(0.1);
   const pricingSection = useInView(0.1);
   const referralSection = useInView(0.15);
+  const casesSection = useInView(0.1);
 
   useEffect(() => {
     if (document.getElementById("foxbot-widget")) return;
@@ -1559,6 +1563,94 @@ export default function Landing() {
                 Prueba la demo en vivo
               </Button>
             </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="casos" className="py-28 px-6 relative overflow-hidden" ref={casesSection.ref as any} data-testid="section-cases">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.15) 50%, transparent 100%)" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.1) 50%, transparent 100%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+              <Trophy className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span className="text-xs font-semibold text-[#f59e0b] tracking-wide">CASOS DE ÉXITO</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
+              Empresas que <span className="text-gradient-orange">ya venden con FoxBot</span>
+            </h2>
+            <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
+              Negocios reales que automatizaron su atención al cliente y aumentaron sus ventas.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Angel Glow",
+                url: "angelglow.cl",
+                href: "https://www.angelglow.cl/",
+                image: caseAngelGlow,
+                description: "Tienda de cosméticos que atiende consultas de productos y precios 24/7 con IA.",
+                color: "#f97316",
+                industry: "E-commerce / Belleza",
+              },
+              {
+                name: "Iglesia Mana Chile",
+                url: "manachile.cl",
+                href: "https://manachile.cl/inicio",
+                image: caseManaChile,
+                description: "Comunidad religiosa que brinda atención personalizada a sus miembros con asistente virtual.",
+                color: "#dc2626",
+                industry: "Comunidad / Servicios",
+              },
+              {
+                name: "CJM Digitales",
+                url: "cjmdigitales.cl",
+                href: "https://cjmdigitales.cl/",
+                image: caseCjmDigitales,
+                description: "Soporte técnico automatizado con transferencia a agentes humanos cuando es necesario.",
+                color: "#8b5cf6",
+                industry: "Tecnología / Soporte",
+              },
+            ].map((caseItem, index) => (
+              <a
+                key={caseItem.name}
+                href={caseItem.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group block ${casesSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
+                style={{ animationDelay: `${index * 150}ms` }}
+                data-testid={`case-${index}`}
+              >
+                <div className="rounded-2xl glass-card glass-card-hover overflow-hidden h-full transition-all duration-500 hover:scale-[1.02]">
+                  <div className="relative overflow-hidden" style={{ height: "340px" }}>
+                    <img
+                      src={caseItem.image}
+                      alt={`${caseItem.name} - FoxBot en acción`}
+                      className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
+                    <div className="absolute top-3 right-3">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wide text-white/90" style={{ backgroundColor: hexToRgba(caseItem.color, 0.85), backdropFilter: "blur(8px)" }}>
+                        {caseItem.industry}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6 -mt-8 relative z-10">
+                    <h3 className="text-lg font-bold mb-1 group-hover:text-white transition-colors">{caseItem.name}</h3>
+                    <p className="text-xs font-medium mb-3" style={{ color: caseItem.color }}>{caseItem.url}</p>
+                    <p className="text-white/40 text-sm leading-relaxed">{caseItem.description}</p>
+                    <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span>Visitar sitio</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
+                  </div>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       </section>
