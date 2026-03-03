@@ -145,8 +145,8 @@ function FullScreenChat() {
   }, [user, login, autoLoginDone]);
 
   const handleRatingComplete = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email, undefined] });
-    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email, undefined] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
   }, [user?.email]);
 
   if (isLoading || paramsValid === null) {
@@ -276,8 +276,8 @@ function ContactChat() {
   }, []);
 
   const handleRatingComplete = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email, undefined] });
-    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email, undefined] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
   }, [user?.email]);
 
   if (isLoading) {
@@ -394,31 +394,32 @@ function ChatWidget() {
   const isInlineEmbed = params0.get("embedded") === "inline";
   const [isOpen, setIsOpen] = useState(isInlineEmbed);
   const [hasUnread, setHasUnread] = useState(false);
-  const [tenantId] = useState<number | null>(() => {
-    const tid = params0.get("tenantId");
-    if (tid) {
-      const parsed = parseInt(tid, 10);
-      return !isNaN(parsed) ? parsed : null;
-    }
-    return null;
-  });
+  const [tenantId, setTenantId] = useState<number | null>(null);
   const [tenantConfig, setTenantConfig] = useState<TenantConfig | null>(null);
 
   const [configLoaded, setConfigLoaded] = useState(false);
 
   useEffect(() => {
-    if (tenantId) {
-      fetch(`/api/tenants/${tenantId}/config`)
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data) setTenantConfig(data);
-          setConfigLoaded(true);
-        })
-        .catch(() => { setConfigLoaded(true); });
+    const params = new URLSearchParams(window.location.search);
+    const tid = params.get("tenantId");
+    if (tid) {
+      const parsed = parseInt(tid, 10);
+      if (!isNaN(parsed)) {
+        setTenantId(parsed);
+        fetch(`/api/tenants/${parsed}/config`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) setTenantConfig(data);
+            setConfigLoaded(true);
+          })
+          .catch(() => { setConfigLoaded(true); });
+      } else {
+        setConfigLoaded(true);
+      }
     } else {
       setConfigLoaded(true);
     }
-  }, [tenantId]);
+  }, []);
 
   const {
     user,
@@ -492,9 +493,9 @@ function ChatWidget() {
   }, [logout]);
 
   const handleRatingComplete = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email, tenantId] });
-    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email, tenantId] });
-  }, [user?.email, tenantId]);
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
+  }, [user?.email]);
 
   useEffect(() => {
     if (!isOpen && messages.length > 0) {

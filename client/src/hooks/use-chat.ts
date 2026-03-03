@@ -147,8 +147,6 @@ export function useChat(tenantId?: number | null) {
   const [productContext, setProductContext] = useState<ProductContext | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
   const initializedRef = useRef(false);
-  const tenantIdRef = useRef(tenantId);
-  tenantIdRef.current = tenantId;
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -273,13 +271,13 @@ export function useChat(tenantId?: number | null) {
       });
 
       socket.on("chat_history", (history: Message[]) => {
-        queryClient.setQueryData(["/api/messages/thread", user.email, tenantIdRef.current], history);
+        queryClient.setQueryData(["/api/messages/thread", user.email], history);
       });
 
       socket.on("new_message", (msg: Message) => {
         setStreamingText("");
         queryClient.setQueryData(
-          ["/api/messages/thread", user.email, tenantIdRef.current],
+          ["/api/messages/thread", user.email],
           (old: Message[] | undefined) => {
             const existing = old || [];
             if (existing.some(m => m.id === msg.id)) return existing;
@@ -379,7 +377,7 @@ export function useChat(tenantId?: number | null) {
           messageCountBeforeSend.current = (messages.length || 0) + 1;
           setIsBotTyping(true);
           queryClient.setQueryData(
-            ["/api/messages/thread", user.email, tenantId],
+            ["/api/messages/thread", user.email],
             (old: Message[] | undefined) => {
               const existing = old || [];
               if (existing.some(m => m.id === msg.id)) return existing;
@@ -388,7 +386,7 @@ export function useChat(tenantId?: number | null) {
           );
 
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
           }, 1000);
         } else if (res.status === 429) {
           if (!planLimitReached) {
@@ -406,7 +404,7 @@ export function useChat(tenantId?: number | null) {
               timestamp: new Date(),
             };
             queryClient.setQueryData(
-              ["/api/messages/thread", user.email, tenantId],
+              ["/api/messages/thread", user.email],
               (old: Message[] | undefined) => [...(old || []), limitMsg],
             );
           }
@@ -453,7 +451,7 @@ export function useChat(tenantId?: number | null) {
       if (res.ok) {
         setContactRequested(true);
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
         }, 1500);
       }
     } catch {
@@ -518,7 +516,7 @@ export function useChat(tenantId?: number | null) {
             messageCountBeforeSend.current = 1;
             setIsBotTyping(true);
             setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", email, tenantId] });
+              queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", email] });
             }, 2500);
           }
         } catch {
@@ -564,11 +562,11 @@ export function useChat(tenantId?: number | null) {
         if (res.ok) {
           messageCountBeforeSend.current = 1;
           setIsBotTyping(true);
-          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
-          queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email, tenantId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
-            queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email, tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
+            queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
           }, 2000);
         }
       } catch {
