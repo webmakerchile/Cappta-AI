@@ -233,11 +233,7 @@ export function useChat(tenantId?: number | null) {
       if (!user) return [];
       const res = await fetch(`/api/messages/thread/${encodeURIComponent(user.email)}${tenantQuery}`);
       if (!res.ok) throw new Error("Error loading messages");
-      const data: Message[] = await res.json();
-      if (tenantId) {
-        return data.filter((m: any) => m.tenantId === Number(tenantId));
-      }
-      return data;
+      return res.json();
     },
     enabled: !!user,
     refetchInterval: 4000,
@@ -250,11 +246,7 @@ export function useChat(tenantId?: number | null) {
       if (!user) return [];
       const res = await fetch(`/api/sessions/by-email/${encodeURIComponent(user.email)}${tenantQuery}`);
       if (!res.ok) throw new Error("Error loading sessions");
-      const data: Session[] = await res.json();
-      if (tenantId) {
-        return data.filter((s: any) => s.tenantId === Number(tenantId));
-      }
-      return data;
+      return res.json();
     },
     enabled: !!user,
     refetchInterval: 8000,

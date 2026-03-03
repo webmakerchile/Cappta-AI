@@ -12,6 +12,12 @@ const app = express();
 app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 app.get("/api/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
+app.post("/api/client-error", express.json(), (req, res) => {
+  const { message, stack, component, url } = req.body || {};
+  console.error(`[CLIENT ERROR] url:${url} message:${message} stack:${stack} component:${component}`);
+  res.status(200).json({ ok: true });
+});
+
 const httpServer = createServer(app);
 
 declare module "http" {

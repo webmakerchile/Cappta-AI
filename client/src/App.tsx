@@ -20,6 +20,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[ErrorBoundary]", error, info.componentStack);
+    try {
+      fetch("/api/client-error", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: error.message,
+          stack: error.stack?.substring(0, 500),
+          component: info.componentStack?.substring(0, 300),
+          url: window.location.href,
+        }),
+      }).catch(() => {});
+    } catch {}
     if (this.state.retryCount < 2) {
       this.retryTimer = setTimeout(() => {
         this.setState((prev) => ({ hasError: false, retryCount: prev.retryCount + 1 }));
