@@ -676,6 +676,19 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                   <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${session.adminActive ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-blue-500/15 text-blue-400"}`}>
                     {session.adminActive ? "Ejecutivo" : "Bot"}
                   </span>
+                  {session.assignedToName && (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold border"
+                      style={{
+                        backgroundColor: `${session.assignedToColor || "#10b981"}20`,
+                        color: session.assignedToColor || "#10b981",
+                        borderColor: `${session.assignedToColor || "#10b981"}40`,
+                      }}
+                      data-testid={`badge-assigned-${session.sessionId}`}
+                    >
+                      {session.assignedToName}
+                    </span>
+                  )}
                   {session.status === "closed" && <span className="px-1.5 py-0.5 rounded bg-white/10 text-white/40 text-[9px]">Cerrado</span>}
                   {session.sessionRating && (
                     <span className="flex items-center gap-0.5">
