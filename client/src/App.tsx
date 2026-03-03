@@ -349,6 +349,7 @@ interface TenantConfig {
   productSearchLabel: string;
   welcomeBannerText: string | null;
   launcherBubbleText: string | null;
+  launcherBubbleStyle: string;
 }
 
 function ChatWidget() {
@@ -419,6 +420,7 @@ function ChatWidget() {
   const widgetPosition = tenantConfig?.widgetPosition || "right";
   const widgetBannerText = tenantConfig?.welcomeBannerText || undefined;
   const widgetBubbleText = tenantConfig?.launcherBubbleText || undefined;
+  const widgetBubbleStyle = tenantConfig?.launcherBubbleStyle || "normal";
 
   const postMessageToParent = useCallback((type: string, hasBubble?: boolean) => {
     try {
@@ -554,7 +556,7 @@ function ChatWidget() {
         </div>
       ) : !configLoaded ? null : (
         <div className="p-1.5">
-          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} launcherScale={widgetLauncherScale} bubbleText={widgetBubbleText} position={widgetPosition} onBubbleChange={(visible) => {
+          <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} launcherScale={widgetLauncherScale} bubbleText={widgetBubbleText} bubbleStyle={widgetBubbleStyle} position={widgetPosition} onBubbleChange={(visible) => {
             postMessageToParent("close_chat", visible);
           }} />
         </div>

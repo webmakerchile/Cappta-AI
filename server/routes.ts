@@ -1319,14 +1319,14 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
-      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, logoScale, avatarUrl, launcherImageUrl, launcherImageScale, botIconUrl, botIconScale, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, welcomeBannerText, launcherBubbleText } = req.body;
+      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, logoScale, avatarUrl, launcherImageUrl, launcherImageScale, botIconUrl, botIconScale, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, welcomeBannerText, launcherBubbleText, launcherBubbleStyle } = req.body;
       const updates: any = {};
       if (companyName !== undefined) updates.companyName = companyName;
       if (widgetColor !== undefined) updates.widgetColor = widgetColor;
@@ -1357,11 +1357,12 @@ ${DEMO_BASE_RULES}`,
       if (labelFinalizeButton !== undefined) updates.labelFinalizeButton = labelFinalizeButton || null;
       if (welcomeBannerText !== undefined) updates.welcomeBannerText = welcomeBannerText || null;
       if (launcherBubbleText !== undefined) updates.launcherBubbleText = launcherBubbleText || null;
+      if (launcherBubbleStyle !== undefined) updates.launcherBubbleStyle = launcherBubbleStyle || "normal";
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
@@ -1719,6 +1720,7 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
         productSearchLabel: tenant.productSearchLabel,
         welcomeBannerText: tenant.welcomeBannerText,
         launcherBubbleText: tenant.launcherBubbleText,
+        launcherBubbleStyle: tenant.launcherBubbleStyle,
       });
     } catch (error: any) {
       res.status(500).json({ message: "Error al obtener configuración" });

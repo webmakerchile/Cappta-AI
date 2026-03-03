@@ -9,11 +9,12 @@ interface LauncherProps {
   launcherImage?: string;
   launcherScale?: number;
   bubbleText?: string;
+  bubbleStyle?: string;
   position?: string;
   onBubbleChange?: (visible: boolean) => void;
 }
 
-export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, launcherScale = 100, bubbleText, position = "right", onBubbleChange }: LauncherProps) {
+export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, launcherScale = 100, bubbleText, bubbleStyle = "normal", position = "right", onBubbleChange }: LauncherProps) {
   const bgColor = color || "#10b981";
   const [showBubble, setShowBubble] = useState(!!bubbleText);
   const isLeft = position === "left";
@@ -51,33 +52,100 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
     onBubbleChange?.(false);
   };
 
-  return (
-    <div className={`relative flex items-center gap-2 ${isLeft ? "flex-row-reverse" : "flex-row"}`}>
-      {showBubble && bubbleText && !isOpen && (
+  const renderBubble = () => {
+    if (!showBubble || !bubbleText || isOpen) return null;
+
+    if (bubbleStyle === "subtle") {
+      return (
         <div
-          className={`absolute max-w-[200px] px-3 py-2 rounded-xl text-xs font-medium animate-in fade-in duration-300 whitespace-pre-wrap ${
-            isLeft ? "left-full ml-2 rounded-bl-sm slide-in-from-left-2" : "right-full mr-2 rounded-br-sm slide-in-from-right-2"
+          className={`absolute max-w-[180px] px-2 py-1 rounded-md text-[10px] text-white/60 animate-in fade-in duration-500 whitespace-pre-wrap ${
+            isLeft ? "left-full ml-2 slide-in-from-left-2" : "right-full mr-2 slide-in-from-right-2"
           }`}
           style={{
-            backgroundColor: "#1a1a1a",
-            color: "#e0e0e0",
-            border: `1px solid ${bgColor}30`,
-            boxShadow: `0 4px 12px rgba(0,0,0,0.3)`,
+            backgroundColor: "rgba(255,255,255,0.06)",
+            backdropFilter: "blur(8px)",
           }}
           data-testid="text-launcher-bubble"
         >
           {bubbleText}
+        </div>
+      );
+    }
+
+    if (bubbleStyle === "bold") {
+      return (
+        <div
+          className={`absolute max-w-[220px] animate-in fade-in duration-300 whitespace-pre-wrap ${
+            isLeft ? "left-full ml-3 slide-in-from-left-2" : "right-full mr-3 slide-in-from-right-2"
+          }`}
+          data-testid="text-launcher-bubble"
+        >
+          <div
+            className="relative px-4 py-2.5 rounded-2xl text-sm font-bold shadow-2xl"
+            style={{
+              background: `linear-gradient(135deg, ${bgColor}, ${bgColor}dd)`,
+              color: "#ffffff",
+              boxShadow: `0 6px 24px ${bgColor}50, 0 2px 8px rgba(0,0,0,0.3)`,
+            }}
+          >
+            {bubbleText}
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${
+                isLeft ? "-left-2 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent" : "-right-2 border-t-[6px] border-b-[6px] border-l-[8px] border-t-transparent border-b-transparent"
+              }`}
+              style={{
+                borderRightColor: isLeft ? bgColor : undefined,
+                borderLeftColor: !isLeft ? bgColor : undefined,
+              }}
+            />
+            <div
+              className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full animate-ping"
+              style={{ backgroundColor: bgColor }}
+            />
+            <div
+              className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full"
+              style={{ backgroundColor: bgColor, border: "2px solid #1a1a1a" }}
+            />
+          </div>
           <button
             onClick={handleCloseBubble}
-            className={`absolute -top-1 w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/50 hover:text-white/80 text-[8px] ${
-              isLeft ? "-right-1" : "-right-1"
-            }`}
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-[10px] backdrop-blur-sm border border-white/10"
             data-testid="button-close-bubble"
           >
             ×
           </button>
         </div>
-      )}
+      );
+    }
+
+    return (
+      <div
+        className={`absolute max-w-[200px] px-3 py-2 rounded-xl text-xs font-medium animate-in fade-in duration-300 whitespace-pre-wrap ${
+          isLeft ? "left-full ml-2 rounded-bl-sm slide-in-from-left-2" : "right-full mr-2 rounded-br-sm slide-in-from-right-2"
+        }`}
+        style={{
+          backgroundColor: "#1a1a1a",
+          color: "#e0e0e0",
+          border: `1px solid ${bgColor}30`,
+          boxShadow: `0 4px 12px rgba(0,0,0,0.3)`,
+        }}
+        data-testid="text-launcher-bubble"
+      >
+        {bubbleText}
+        <button
+          onClick={handleCloseBubble}
+          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/50 hover:text-white/80 text-[8px]"
+          data-testid="button-close-bubble"
+        >
+          ×
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`relative flex items-center gap-2 ${isLeft ? "flex-row-reverse" : "flex-row"}`}>
+      {renderBubble()}
       <div
         className="relative"
         style={{ width: `${sizePx}px`, height: `${sizePx}px` }}

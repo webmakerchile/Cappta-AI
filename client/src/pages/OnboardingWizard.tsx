@@ -77,6 +77,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const [labelFinalizeButton, setLabelFinalizeButton] = useState(tenant.labelFinalizeButton || "");
   const [welcomeBannerText, setWelcomeBannerText] = useState(tenant.welcomeBannerText || "");
   const [launcherBubbleText, setLauncherBubbleText] = useState(tenant.launcherBubbleText || "");
+  const [launcherBubbleStyle, setLauncherBubbleStyle] = useState(tenant.launcherBubbleStyle || "normal");
   const [consultationOptions, setConsultationOptions] = useState<{ value: string; label: string }[]>(() => {
     try { return tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []; } catch { return []; }
   });
@@ -273,6 +274,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       labelFinalizeButton: labelFinalizeButton.trim() || null,
       welcomeBannerText: welcomeBannerText.trim() || null,
       launcherBubbleText: launcherBubbleText.trim() || null,
+      launcherBubbleStyle,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       botConfigured: nextStep >= 2 ? 1 : 0,
       onboardingStep: nextStep,
@@ -717,6 +719,24 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                       placeholder="Ej: ¿Necesitas ayuda?"
                       className="h-9 rounded-lg bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-sm"
                     />
+                    {launcherBubbleText.trim() && (
+                      <div className="flex items-center gap-1 rounded-lg bg-white/[0.04] border border-white/[0.08] p-0.5 w-fit mt-1">
+                        {([
+                          { id: "subtle", label: "Discreta" },
+                          { id: "normal", label: "Normal" },
+                          { id: "bold", label: "Vistosa" },
+                        ] as const).map((s) => (
+                          <button
+                            key={s.id}
+                            onClick={() => setLauncherBubbleStyle(s.id)}
+                            className={`text-[10px] px-2 py-1 rounded transition-colors font-medium ${launcherBubbleStyle === s.id ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white/60"}`}
+                            data-testid={`onboarding-bubble-style-${s.id}`}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -815,9 +835,20 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                     <div className="flex flex-col h-full items-center justify-center" style={{ background: "#1a1a1a" }}>
                       <p className="text-[10px] text-white/40 mb-4">Así se verá el botón en tu sitio:</p>
                       <div className="relative flex items-center gap-2">
-                        {launcherBubbleText && (
+                        {launcherBubbleText && launcherBubbleStyle === "subtle" && (
+                          <div className="max-w-[140px] px-2 py-1 rounded-md text-[8px] text-white/60" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+                            {launcherBubbleText}
+                          </div>
+                        )}
+                        {launcherBubbleText && launcherBubbleStyle === "normal" && (
                           <div className="max-w-[140px] px-2 py-1.5 rounded-xl rounded-br-sm text-[9px] font-medium" style={{ backgroundColor: "#1a1a1a", color: "#e0e0e0", border: `1px solid ${widgetColor}30`, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
                             {launcherBubbleText}
+                          </div>
+                        )}
+                        {launcherBubbleText && launcherBubbleStyle === "bold" && (
+                          <div className="relative max-w-[160px] px-2.5 py-1.5 rounded-2xl text-[10px] font-bold text-white shadow-2xl" style={{ background: `linear-gradient(135deg, ${widgetColor}, ${widgetColor}dd)`, boxShadow: `0 4px 16px ${widgetColor}50` }}>
+                            {launcherBubbleText}
+                            <div className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-0 h-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent" style={{ borderLeftColor: widgetColor }} />
                           </div>
                         )}
                         <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden shrink-0" style={{ backgroundColor: launcherImageUrl ? "transparent" : widgetColor }}>

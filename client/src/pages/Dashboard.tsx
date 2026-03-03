@@ -336,6 +336,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [labelFinalizeButton, setLabelFinalizeButton] = useState(tenant.labelFinalizeButton || "");
   const [welcomeBannerText, setWelcomeBannerText] = useState(tenant.welcomeBannerText || "");
   const [launcherBubbleText, setLauncherBubbleText] = useState(tenant.launcherBubbleText || "");
+  const [launcherBubbleStyle, setLauncherBubbleStyle] = useState(tenant.launcherBubbleStyle || "normal");
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(null);
 
@@ -372,6 +373,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
     setLabelFinalizeButton(tenant.labelFinalizeButton || "");
     setWelcomeBannerText(tenant.welcomeBannerText || "");
     setLauncherBubbleText(tenant.launcherBubbleText || "");
+    setLauncherBubbleStyle(tenant.launcherBubbleStyle || "normal");
     try {
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
@@ -585,6 +587,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       productApiUrl: productApiUrl.trim() || null,
       welcomeBannerText: welcomeBannerText.trim() || null,
       launcherBubbleText: launcherBubbleText.trim() || null,
+      launcherBubbleStyle,
       botConfigured: isConfigComplete ? 1 : 0,
     };
     updateMutation.mutate(data);
@@ -822,7 +825,28 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             placeholder="Ej: ¿Necesitas ayuda?"
             className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300 focus:shadow-[0_0_16px_rgba(16,185,129,0.1)]"
           />
-          <p className="text-xs text-white/30">Texto emergente junto al botón flotante del chat (se oculta tras 5 segundos)</p>
+          {launcherBubbleText.trim() && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-white/40">Estilo de burbuja</label>
+              <div className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] p-1 w-fit">
+                {([
+                  { id: "subtle", label: "Discreta" },
+                  { id: "normal", label: "Normal" },
+                  { id: "bold", label: "Vistosa" },
+                ] as const).map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setLauncherBubbleStyle(s.id)}
+                    className={`text-xs px-3 py-1.5 rounded-md transition-colors font-medium ${launcherBubbleStyle === s.id ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white/60"}`}
+                    data-testid={`button-bubble-style-${s.id}`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-white/30">Texto emergente junto al botón flotante del chat</p>
         </div>
 
         <div className="space-y-2 animate-dash-fade-up dash-stagger-4 relative">
@@ -1261,9 +1285,20 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 <div className="flex flex-col h-full items-center justify-center" style={{ background: "#1a1a1a" }}>
                   <p className="text-xs text-white/40 mb-6">Así se verá el botón flotante en tu sitio:</p>
                   <div className="relative flex items-center gap-2">
-                    {launcherBubbleText && (
+                    {launcherBubbleText && launcherBubbleStyle === "subtle" && (
+                      <div className="max-w-[160px] px-2 py-1 rounded-md text-[9px] text-white/60" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+                        {launcherBubbleText}
+                      </div>
+                    )}
+                    {launcherBubbleText && launcherBubbleStyle === "normal" && (
                       <div className="max-w-[160px] px-2.5 py-1.5 rounded-xl rounded-br-sm text-[10px] font-medium" style={{ backgroundColor: "#1a1a1a", color: "#e0e0e0", border: `1px solid ${widgetColor}30`, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
                         {launcherBubbleText}
+                      </div>
+                    )}
+                    {launcherBubbleText && launcherBubbleStyle === "bold" && (
+                      <div className="relative max-w-[180px] px-3 py-2 rounded-2xl text-[11px] font-bold text-white shadow-2xl" style={{ background: `linear-gradient(135deg, ${widgetColor}, ${widgetColor}dd)`, boxShadow: `0 6px 24px ${widgetColor}50, 0 2px 8px rgba(0,0,0,0.3)` }}>
+                        {launcherBubbleText}
+                        <div className="absolute top-1/2 -translate-y-1/2 -right-2 w-0 h-0 border-t-[5px] border-b-[5px] border-l-[7px] border-t-transparent border-b-transparent" style={{ borderLeftColor: widgetColor }} />
                       </div>
                     )}
                     <div className="relative" style={{ width: `${Math.round(56 * launcherImageScale / 100)}px`, height: `${Math.round(56 * launcherImageScale / 100)}px` }}>

@@ -162,6 +162,7 @@ export const tenants = pgTable("tenants", {
   productApiUrl: text("product_api_url"),
   welcomeBannerText: text("welcome_banner_text"),
   launcherBubbleText: text("launcher_bubble_text"),
+  launcherBubbleStyle: text("launcher_bubble_style").notNull().default("normal"),
   botConfigured: integer("bot_configured").notNull().default(0),
   onboardingStep: integer("onboarding_step").notNull().default(0),
   aiEnabled: integer("ai_enabled").notNull().default(1),
