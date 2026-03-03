@@ -3561,7 +3561,10 @@ REGLAS:
 
       if (jsBundleContent.length > 0) {
         combinedText += `\n========== CONTENIDO DE ARCHIVOS JAVASCRIPT (SPA) ==========\n`;
-        combinedText += `(Este sitio es una aplicacion de pagina unica. El contenido real esta en los JS bundles)\n\n`;
+        combinedText += `⚠️ ADVERTENCIA CRITICA: Este sitio es una SPA (Single Page Application). El contenido real esta en estos JS bundles.\n`;
+        combinedText += `⚠️ IMPORTANTE: Los bundles pueden contener DEMOS/EJEMPLOS de como se ve el producto en diferentes negocios (ej: tiendas, restaurantes, clinicas). Estas conversaciones de ejemplo NO son datos reales del negocio.\n`;
+        combinedText += `⚠️ REGLA: Si ves textos como "¡Hola! Tenemos el iPhone...", "Envio gratis sobre $500.000", "$89.990 blanqueamiento", "$459.990 PS5" — estos son DEMOS de ejemplo, NO precios reales del negocio analizado.\n`;
+        combinedText += `⚠️ REGLA: Los PRECIOS REALES del negocio estan en las secciones de "planes", "pricing", "tarifas". Los precios en conversaciones de chat simuladas son DEMOS.\n\n`;
         combinedText += jsBundleContent.join("\n\n").substring(0, 60000) + "\n\n";
         console.log(`[analyze-url] Added ${jsBundleContent.length} JS bundle extractions to context`);
       }
@@ -3635,6 +3638,15 @@ INSTRUCCIONES DE ANALISIS:
 5. Extrae horarios, ubicaciones, metodos de pago, politicas
 6. Documenta las funcionalidades del sitio/sistema si es una plataforma digital
 7. Genera preguntas frecuentes REALES que un cliente haria
+8. Si hay un programa de REFERIDOS, documenta EXACTAMENTE: como funciona, cuanto gana por cada referido, las recompensas por hitos, como se activa, etc. Incluye CADA detalle del programa
+
+⚠️ REGLA CRITICA DE PRECISION:
+- Si el contenido viene de archivos JavaScript (SPA), puede haber DEMOS/EJEMPLOS de conversaciones simuladas que muestran como se ve el producto en otros negocios (tiendas, restaurantes, clinicas, etc.)
+- NUNCA mezcles datos de demos/ejemplos con datos reales del negocio
+- Las conversaciones tipo "¡Hola! Tenemos el iPhone...", "Envio gratis sobre $X", "PS5 a $459.990" son DEMOS, NO datos del negocio
+- Los PRECIOS REALES del negocio estan en secciones de planes/pricing/tarifas, NO en conversaciones de ejemplo
+- Los datos de ENVIO, PRODUCTOS Y PRECIOS dentro de simulaciones de chat son EJEMPLOS de otros negocios, no del negocio analizado
+- Si el negocio es una PLATAFORMA/SOFTWARE (como un chatbot, SaaS, etc.), sus precios son los PLANES DE SUSCRIPCION, no los precios de productos en demos
 
 FORMATO DE SALIDA (usa TODAS las secciones que apliquen, con emojis y separadores):
 
@@ -3701,6 +3713,15 @@ FORMATO DE SALIDA (usa TODAS las secciones que apliquen, con emojis y separadore
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+🤝 PROGRAMA DE REFERIDOS (si existe)
+• Como funciona: [paso a paso detallado]
+• Recompensa por referido: [monto exacto, beneficios]
+• Hitos y escalera de recompensas: [cada nivel con sus beneficios exactos]
+• Como empezar: [instrucciones]
+• Condiciones: [requisitos para que se confirme un referido]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 💳 METODOS DE PAGO
 • [metodo con detalles]
 
@@ -3739,6 +3760,8 @@ REGLAS CRITICAS:
 - Si una subpagina tiene precios, listas o tablas, documenta TODO el detalle
 - NUNCA inventar informacion. Si no hay un dato, OMITE esa linea
 - NUNCA usar placeholders como [precio], [numero]. Solo datos reales encontrados
+- NUNCA mezclar datos de DEMOS/EJEMPLOS con datos reales. Las conversaciones simuladas, capturas de ejemplo y demos NO son datos del negocio
+- Si hay un programa de REFERIDOS, documentalo COMPLETO: monto por referido, hitos, recompensas, como funciona paso a paso
 - Genera al menos 15-25 preguntas frecuentes especificas y utiles
 - La descripcion debe ser EXTENSA y profesional
 - Escribir TODO en español
