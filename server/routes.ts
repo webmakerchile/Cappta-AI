@@ -3189,7 +3189,29 @@ REGLAS:
           } catch {}
         }
 
-        return { metaParts, jsonLdParts, mainContent: cleanMain, navContent, footerContent, headerContent, headings, paragraphs, pricing, tables, lists, emails, phones, socials, links: [...new Set(links)], linkTexts };
+        const embeddedData: string[] = [];
+        const scriptContents = html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+        for (const sc of scriptContents) {
+          const scriptText = sc[1].trim();
+          if (scriptText.length < 50 || scriptText.length > 500000) continue;
+          if (/type=["']application\/ld\+json["']/i.test(sc[0])) continue;
+          if (/(?:__INITIAL_STATE__|__NEXT_DATA__|__NUXT__|window\.__data|window\.pageData|window\.appData|preloadedState|initialProps)/i.test(scriptText)) {
+            embeddedData.push(scriptText.substring(0, 15000));
+          }
+          const stringLiterals = scriptText.matchAll(/["'`]([^"'`]{20,500})["'`]/g);
+          const meaningfulStrings: string[] = [];
+          for (const sl of stringLiterals) {
+            const str = sl[1];
+            if (/(?:precio|plan|gratis|free|pro|enterprise|basic|premium|mes|month|anual|year|\$\d|usd|clp|contacto|email|tel[eé]fono|whatsapp|horario|direcci[oó]n|servicio|producto|env[ií]o|garant[ií]a|pago|oferta|descuento|soporte|funcionalidad|caracter[ií]stica|beneficio)/i.test(str)) {
+              meaningfulStrings.push(str);
+            }
+          }
+          if (meaningfulStrings.length > 0) {
+            embeddedData.push("DATOS EN SCRIPTS JS:\n" + meaningfulStrings.slice(0, 100).join("\n"));
+          }
+        }
+
+        return { metaParts, jsonLdParts, mainContent: cleanMain, navContent, footerContent, headerContent, headings, paragraphs, pricing, tables, lists, emails, phones, socials, links: [...new Set(links)], linkTexts, embeddedData };
       }
 
       const mainHtml = await fetchPage(cleanUrl, 30000);
