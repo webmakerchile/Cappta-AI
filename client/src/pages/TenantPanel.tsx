@@ -446,7 +446,7 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
     }
     const cleanAnswer = msg.content.replace(/\{\{QUICK_REPLIES:.*?\}\}/g, "").replace(/\{\{SHOW_RATING\}\}/g, "").trim();
     setCorrectionModal({ msgId: msg.id, originalAnswer: cleanAnswer, userQuestion });
-    setCorrectionAnswer("");
+    setCorrectionAnswer(cleanAnswer);
   };
 
   const handleSlashSelect = (content: string) => {
