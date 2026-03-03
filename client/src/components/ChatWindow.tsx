@@ -798,17 +798,23 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     }
   }, [showSearch]);
 
+  const searchMatchIndices = searchQuery.length >= 2
+    ? messages.reduce<number[]>((acc, m, idx) => {
+        const { text } = parseQuickReplies(m.content);
+        if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
+        return acc;
+      }, [])
+    : [];
+
+  const matchCount = searchMatchIndices.length;
+  const filteredMessages = messages;
+
   useEffect(() => {
     setSearchIndex(0);
     if (searchQuery.length >= 2) {
       setTimeout(() => {
-        const indices = messages.reduce<number[]>((acc, m, idx) => {
-          const { text } = parseQuickReplies(m.content);
-          if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
-          return acc;
-        }, []);
-        if (indices.length > 0) {
-          const msgId = messages[indices[0]]?.id;
+        if (searchMatchIndices.length > 0) {
+          const msgId = messages[searchMatchIndices[0]]?.id;
           if (msgId) {
             const el = document.querySelector(`[data-testid="message-bubble-${msgId}"]`);
             el?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -874,17 +880,6 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
       onSend(value);
     }
   }, [onSend, toggleProductBrowser]);
-
-  const searchMatchIndices = searchQuery.length >= 2
-    ? messages.reduce<number[]>((acc, m, idx) => {
-        const { text } = parseQuickReplies(m.content);
-        if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
-        return acc;
-      }, [])
-    : [];
-
-  const matchCount = searchMatchIndices.length;
-  const filteredMessages = messages;
 
   const lastSupportIdx = (() => {
     for (let i = filteredMessages.length - 1; i >= 0; i--) {
