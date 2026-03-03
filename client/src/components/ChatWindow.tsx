@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle, Ticket } from "lucide-react";
+import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle, Ticket, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message, Session } from "@shared/schema";
 import { useUpload } from "@/hooks/use-upload";
@@ -664,6 +664,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [searchIndex, setSearchIndex] = useState(0);
   const [showProductBrowser, setShowProductBrowser] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [isOfflineHours, setIsOfflineHours] = useState(false);
@@ -796,6 +797,51 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     }
   }, [showSearch]);
 
+  useEffect(() => {
+    setSearchIndex(0);
+    if (searchQuery.length >= 2) {
+      setTimeout(() => {
+        const indices = messages.reduce<number[]>((acc, m, idx) => {
+          const { text } = parseQuickReplies(m.content);
+          if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
+          return acc;
+        }, []);
+        if (indices.length > 0) {
+          const msgId = messages[indices[0]]?.id;
+          if (msgId) {
+            const el = document.querySelector(`[data-testid="message-bubble-${msgId}"]`);
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }, 100);
+    }
+  }, [searchQuery]);
+
+  const scrollToMatch = useCallback((index: number) => {
+    if (searchMatchIndices.length === 0) return;
+    const clampedIndex = ((index % searchMatchIndices.length) + searchMatchIndices.length) % searchMatchIndices.length;
+    setSearchIndex(clampedIndex);
+    const msgIdx = searchMatchIndices[clampedIndex];
+    const msgId = messages[msgIdx]?.id;
+    if (msgId) {
+      const el = document.querySelector(`[data-testid="message-bubble-${msgId}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [searchMatchIndices, messages]);
+
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      scrollToMatch(e.shiftKey ? searchIndex - 1 : searchIndex + 1);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      scrollToMatch(searchIndex + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      scrollToMatch(searchIndex - 1);
+    }
+  }, [scrollToMatch, searchIndex]);
+
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const textarea = e.target;
@@ -828,14 +874,16 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     }
   }, [onSend, toggleProductBrowser]);
 
-  const filteredMessages = searchQuery.length >= 2
-    ? messages.filter(m => {
+  const searchMatchIndices = searchQuery.length >= 2
+    ? messages.reduce<number[]>((acc, m, idx) => {
         const { text } = parseQuickReplies(m.content);
-        return text.toLowerCase().includes(searchQuery.toLowerCase());
-      })
-    : messages;
+        if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
+        return acc;
+      }, [])
+    : [];
 
-  const matchCount = searchQuery.length >= 2 ? filteredMessages.length : 0;
+  const matchCount = searchMatchIndices.length;
+  const filteredMessages = messages;
 
   const lastSupportIdx = (() => {
     for (let i = filteredMessages.length - 1; i >= 0; i--) {
@@ -935,17 +983,39 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
             data-testid="input-chat-search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Buscar en la conversación..."
             className="flex-1 bg-transparent text-white text-sm placeholder:text-white/25 focus:outline-none"
           />
-          {searchQuery.length >= 2 && (
-            <span className="text-[11px] text-white/30 flex-shrink-0">
-              {matchCount} resultado{matchCount !== 1 ? "s" : ""}
-            </span>
+          {searchQuery.length >= 2 && matchCount > 0 && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-[11px] text-white/30">
+                {searchIndex + 1}/{matchCount}
+              </span>
+              <button
+                data-testid="button-search-prev"
+                onClick={() => scrollToMatch(searchIndex - 1)}
+                className="w-5 h-5 rounded flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/10 transition-colors"
+                title="Anterior"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                data-testid="button-search-next"
+                onClick={() => scrollToMatch(searchIndex + 1)}
+                className="w-5 h-5 rounded flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/10 transition-colors"
+                title="Siguiente"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+          {searchQuery.length >= 2 && matchCount === 0 && (
+            <span className="text-[11px] text-white/30 flex-shrink-0">0 resultados</span>
           )}
           <button
             data-testid="button-close-search"
-            onClick={() => { setShowSearch(false); setSearchQuery(""); }}
+            onClick={() => { setShowSearch(false); setSearchQuery(""); setSearchIndex(0); }}
             className="text-white/30 hover:text-white/60"
           >
             <X className="w-3.5 h-3.5" />
@@ -954,11 +1024,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
       )}
 
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 chat-scrollbar" style={{ contain: "content", WebkitOverflowScrolling: "touch" } as any}>
-        {filteredMessages.length === 0 && searchQuery.length >= 2 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <p className="text-sm text-white/40">No se encontraron mensajes con "{searchQuery}"</p>
-          </div>
-        ) : filteredMessages.length === 0 ? (
+        {filteredMessages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: hexToRgba(brandColor || "#10b981", 0.1), border: `1px solid ${hexToRgba(brandColor || "#10b981", 0.2)}` }}>
               <Headphones className="w-7 h-7" style={{ color: hexToRgba(brandColor || "#10b981", 0.6) }} />
