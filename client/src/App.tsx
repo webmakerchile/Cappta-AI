@@ -77,6 +77,7 @@ function FullScreenChat() {
     contactRequested,
     isSending,
     isBotTyping,
+    streamingText,
     sendMessage,
     requestContact,
     login,
@@ -198,6 +199,7 @@ function FullScreenChat() {
             isConnected={isConnected}
             isSending={isSending}
             isBotTyping={isBotTyping}
+            streamingText={streamingText}
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
@@ -230,6 +232,7 @@ function ContactChat() {
     contactRequested,
     isSending,
     isBotTyping,
+    streamingText: contactStreamingText,
     sendMessage,
     requestContact,
     login,
@@ -300,6 +303,7 @@ function ContactChat() {
             isConnected={isConnected}
             isSending={isSending}
             isBotTyping={isBotTyping}
+            streamingText={contactStreamingText}
             userName={user.name}
             userEmail={user.email}
             contactRequested={contactRequested}
@@ -395,6 +399,7 @@ function ChatWidget() {
     contactRequested,
     isSending,
     isBotTyping,
+    streamingText,
     sendMessage,
     requestContact,
     login,
@@ -511,6 +516,7 @@ function ChatWidget() {
                 isConnected={isConnected}
                 isSending={isSending}
                 isBotTyping={isBotTyping}
+                streamingText={streamingText}
                 userName={user.name}
                 userEmail={user.email}
                 contactRequested={contactRequested}

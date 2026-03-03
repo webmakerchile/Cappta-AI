@@ -1,5 +1,5 @@
 import { containsProfanity } from "./profanityFilter";
-import { getAIReply } from "./aiReply";
+import { getAIReply, getAIReplyStreaming } from "./aiReply";
 import { storage } from "./storage";
 
 
@@ -1456,7 +1456,8 @@ export async function getSmartAutoReply(
   conversationHistory: Array<{ sender: string; content: string }>,
   sessionData?: SessionData,
   catalogLookup?: CatalogLookup,
-  tenantId?: number | null
+  tenantId?: number | null,
+  onChunk?: (chunk: string, accumulated: string) => void
 ): Promise<string> {
   let isOfflineHours = false;
   let offlineTicketUrl = "";
@@ -1492,7 +1493,8 @@ export async function getSmartAutoReply(
 
         return await _processTenantAutoReply(
           userMessage, conversationHistory, sessionData, tenant,
-          isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd
+          isOfflineHours, offlineTicketUrl, offlineHoursStart, offlineHoursEnd,
+          onChunk
         );
       }
     } catch (e) {
@@ -1537,7 +1539,8 @@ async function _processTenantAutoReply(
   isOfflineHours: boolean,
   offlineTicketUrl: string,
   offlineHoursStart: number,
-  offlineHoursEnd: number
+  offlineHoursEnd: number,
+  onChunk?: (chunk: string, accumulated: string) => void
 ): Promise<string> {
   const msg = normalize(userMessage);
 
@@ -1601,7 +1604,8 @@ async function _processTenantAutoReply(
     kPages = pages.map(p => ({ title: p.title, content: p.content }));
   } catch {}
 
-  const aiResponse = await getAIReply(
+  const aiCallFn = onChunk ? getAIReplyStreaming : getAIReply;
+  const aiResponse = await aiCallFn(
     userMessage,
     conversationHistory,
     sessionData ? {
@@ -1627,7 +1631,8 @@ async function _processTenantAutoReply(
         knowledgePages: kPages.length > 0 ? kPages : undefined,
       },
       tenantFiles: tenantFiles.length > 0 ? tenantFiles : undefined,
-    }
+    },
+    onChunk
   );
 
   let processedResponse = aiResponse;

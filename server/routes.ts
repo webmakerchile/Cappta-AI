@@ -969,6 +969,11 @@ ${DEMO_BASE_RULES}`,
             };
 
             const autoReplyInput = req.body.quickReplyValue || parsed.data.content;
+
+            const streamChunkHandler = (chunk: string, accumulated: string) => {
+              io.to(`session:${sessionId}`).emit("bot_typing_chunk", { sessionId, chunk, accumulated });
+            };
+
             const replyContent = await getSmartAutoReply(
               autoReplyInput,
               conversationHistory,
@@ -983,7 +988,8 @@ ${DEMO_BASE_RULES}`,
                 wpProductUrl: req.body.productUrl || null,
               },
               catalogLookup,
-              tenantId || null
+              tenantId || null,
+              streamChunkHandler
             );
 
             const autoReply = await storage.createMessage({
@@ -1011,7 +1017,7 @@ ${DEMO_BASE_RULES}`,
           } catch (err: any) {
             log(`Error en auto-respuesta: ${err.message}`, "api");
           }
-        }, 1500);
+        }, 500);
       }
 
       if (parsed.data.sender === "support" && !isSessionOnline(sessionId)) {
@@ -5119,6 +5125,11 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
               };
 
               const socketAutoReplyInput = (data as any)?.quickReplyValue || parsed.data.content;
+
+              const socketStreamHandler = (chunk: string, accumulated: string) => {
+                io.to(`session:${sid}`).emit("bot_typing_chunk", { sessionId: sid, chunk, accumulated });
+              };
+
               const replyContent = await getSmartAutoReply(
                 socketAutoReplyInput,
                 conversationHistory,
@@ -5130,7 +5141,8 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
                   userName: parsed.data.userName || null,
                 },
                 socketCatalogLookup,
-                socketTenantId || null
+                socketTenantId || null,
+                socketStreamHandler
               );
 
               const autoReply = await storage.createMessage({
@@ -5147,7 +5159,7 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
             } catch (err: any) {
               log(`Error en auto-respuesta: ${err.message}`, "socket.io");
             }
-          }, 1500);
+          }, 500);
         }
       } catch (error: any) {
         log(`Error al guardar mensaje: ${error.message}`, "socket.io");

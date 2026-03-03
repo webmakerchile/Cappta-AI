@@ -275,6 +275,7 @@ export function useChat(tenantId?: number | null) {
       });
 
       socket.on("new_message", (msg: Message) => {
+        setStreamingText("");
         queryClient.setQueryData(
           ["/api/messages/thread", user.email],
           (old: Message[] | undefined) => {
@@ -286,6 +287,10 @@ export function useChat(tenantId?: number | null) {
         if (msg.sender !== "user") {
           playUserNotificationSound();
         }
+      });
+
+      socket.on("bot_typing_chunk", (data: { sessionId: string; chunk: string; accumulated: string }) => {
+        setStreamingText(data.accumulated);
       });
 
       socket.on("contact_confirmed", () => {
@@ -308,6 +313,7 @@ export function useChat(tenantId?: number | null) {
         socket.off("disconnect");
         socket.off("chat_history");
         socket.off("new_message");
+        socket.off("bot_typing_chunk");
         socket.off("contact_confirmed");
         disconnectSocket();
       } catch {}
@@ -316,6 +322,7 @@ export function useChat(tenantId?: number | null) {
 
   const [isSending, setIsSending] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
   const messageCountBeforeSend = useRef(0);
 
   useEffect(() => {
@@ -380,7 +387,7 @@ export function useChat(tenantId?: number | null) {
 
           setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
-          }, 2500);
+          }, 1000);
         } else if (res.status === 429) {
           if (!planLimitReached) {
             setPlanLimitReached(true);
@@ -584,6 +591,7 @@ export function useChat(tenantId?: number | null) {
     isLoading,
     isSending,
     isBotTyping,
+    streamingText,
     contactRequested,
     sendMessage,
     requestContact,

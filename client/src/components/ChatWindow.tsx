@@ -51,6 +51,7 @@ interface ChatWindowProps {
   isConnected: boolean;
   isSending?: boolean;
   isBotTyping?: boolean;
+  streamingText?: string;
   userName: string;
   userEmail: string;
   contactRequested: boolean;
@@ -660,7 +661,7 @@ function SessionDivider({ session, brandColor = "#10b981" }: { session: Session;
   );
 }
 
-export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, isSending, isBotTyping, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, brandLogoScale, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, botIconScale, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
+export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isConnected, isSending, isBotTyping, streamingText, userName, userEmail, contactRequested, onClose, onExitChat, sessionId, onRatingComplete, onStartNewSession, brandColor, brandName, brandLogo, brandLogoScale, tenantId, headerTextColor, botBubbleColor, botTextColor, userTextColor, botIconUrl, botIconScale, labelContactButton, labelTicketButton, labelFinalizeButton }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -1103,25 +1104,28 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
               className="px-4 py-3 rounded-2xl rounded-bl-md max-w-[85%]"
               style={{ backgroundColor: botBubbleColor || "#2a2a2a" }}
             >
-              <div className="flex items-center gap-1.5">
-                {isSending ? (
-                  <span className="text-xs flex items-center gap-1.5" style={{ color: `${botTextColor || "#e0e0e0"}99` }}>
-                    <Send className="w-3 h-3 animate-pulse" />
-                    Enviando...
-                  </span>
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    <div className="flex items-center gap-[3px]">
-                      <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "0ms", animationDuration: "1s" }} />
-                      <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "150ms", animationDuration: "1s" }} />
-                      <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "300ms", animationDuration: "1s" }} />
-                    </div>
-                    <span className="text-xs ml-1" style={{ color: `${botTextColor || "#e0e0e0"}99` }}>
-                      Pensando...
-                    </span>
+              {isSending ? (
+                <span className="text-xs flex items-center gap-1.5" style={{ color: `${botTextColor || "#e0e0e0"}99` }}>
+                  <Send className="w-3 h-3 animate-pulse" />
+                  Enviando...
+                </span>
+              ) : streamingText ? (
+                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: botTextColor || "#e0e0e0" }}>
+                  {streamingText}
+                  <span className="inline-block w-[6px] h-[14px] ml-0.5 animate-pulse rounded-sm" style={{ backgroundColor: brandColor || "#10b981" }} />
+                </p>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-[3px]">
+                    <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "0ms", animationDuration: "1s" }} />
+                    <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "150ms", animationDuration: "1s" }} />
+                    <span className="w-[6px] h-[6px] rounded-full animate-bounce" style={{ backgroundColor: brandColor || "#10b981", animationDelay: "300ms", animationDuration: "1s" }} />
                   </div>
-                )}
-              </div>
+                  <span className="text-xs ml-1" style={{ color: `${botTextColor || "#e0e0e0"}99` }}>
+                    Pensando...
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

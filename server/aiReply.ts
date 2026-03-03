@@ -374,6 +374,49 @@ function convertToOpenAIMessages(
   return cleaned.slice(-20);
 }
 
+async function prepareAIMessages(
+  userMessage: string,
+  conversationHistory: ConversationEntry[],
+  sessionData?: SessionData,
+  catalogProducts?: CatalogProduct[],
+  options?: AIReplyOptions
+) {
+  let knowledgeEntries: KnowledgeEntry[] = [];
+  try {
+    const searchTenantId = options?.tenantId || undefined;
+    const knowledgeResults = await storage.searchKnowledgeEntries(userMessage, 5, searchTenantId);
+    if (knowledgeResults.length > 0) {
+      knowledgeEntries = knowledgeResults.map(k => ({
+        id: k.id,
+        question: k.question,
+        answer: k.answer,
+        category: k.category,
+        confidence: k.confidence,
+      }));
+      for (const k of knowledgeResults) {
+        storage.incrementKnowledgeUsage(k.id).catch(() => {});
+      }
+    }
+  } catch (error) {
+    console.error("Error searching knowledge base:", error);
+  }
+
+  const enrichedOptions = { ...options, knowledgeEntries };
+  const systemPrompt = buildSystemPrompt(sessionData, catalogProducts, enrichedOptions);
+
+  return [
+    { role: "system" as const, content: systemPrompt },
+    ...convertToOpenAIMessages(conversationHistory),
+    { role: "user" as const, content: userMessage },
+  ];
+}
+
+function cleanReply(reply: string): string {
+  reply = reply.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$2');
+  reply = reply.replace(/\*\*([^*]+)\*\*/g, '$1');
+  return reply;
+}
+
 export async function getAIReply(
   userMessage: string,
   conversationHistory: ConversationEntry[] = [],
@@ -382,40 +425,7 @@ export async function getAIReply(
   options?: AIReplyOptions
 ): Promise<string> {
   try {
-    let knowledgeEntries: KnowledgeEntry[] = [];
-    try {
-      const searchTenantId = options?.tenantId || undefined;
-      const knowledgeResults = await storage.searchKnowledgeEntries(userMessage, 5, searchTenantId);
-      if (knowledgeResults.length > 0) {
-        knowledgeEntries = knowledgeResults.map(k => ({
-          id: k.id,
-          question: k.question,
-          answer: k.answer,
-          category: k.category,
-          confidence: k.confidence,
-        }));
-        for (const k of knowledgeResults) {
-          storage.incrementKnowledgeUsage(k.id).catch(() => {});
-        }
-      }
-    } catch (error) {
-      console.error("Error searching knowledge base:", error);
-    }
-
-    const enrichedOptions = { ...options, knowledgeEntries };
-    const systemPrompt = buildSystemPrompt(sessionData, catalogProducts, enrichedOptions);
-
-    const messages: Array<{ role: "user" | "assistant" | "system"; content: string }> = [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      ...convertToOpenAIMessages(conversationHistory),
-      {
-        role: "user",
-        content: userMessage,
-      },
-    ];
+    const messages = await prepareAIMessages(userMessage, conversationHistory, sessionData, catalogProducts, options);
 
     const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
@@ -429,12 +439,48 @@ export async function getAIReply(
       return "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo o contacta a un agente.";
     }
 
-    reply = reply.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$2');
-    reply = reply.replace(/\*\*([^*]+)\*\*/g, '$1');
-
-    return reply;
+    return cleanReply(reply);
   } catch (error) {
     console.error("Error en AI reply:", error);
+    return "Lo siento, estoy experimentando dificultades tecnicas. Por favor, contacta a un agente para obtener ayuda.";
+  }
+}
+
+export async function getAIReplyStreaming(
+  userMessage: string,
+  conversationHistory: ConversationEntry[] = [],
+  sessionData?: SessionData,
+  catalogProducts?: CatalogProduct[],
+  options?: AIReplyOptions,
+  onChunk?: (chunk: string, accumulated: string) => void,
+): Promise<string> {
+  try {
+    const messages = await prepareAIMessages(userMessage, conversationHistory, sessionData, catalogProducts, options);
+
+    const stream = await getOpenAIClient().chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: messages as any,
+      temperature: 0.75,
+      max_completion_tokens: 1000,
+      stream: true,
+    });
+
+    let accumulated = "";
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content;
+      if (delta) {
+        accumulated += delta;
+        if (onChunk) onChunk(delta, accumulated);
+      }
+    }
+
+    if (!accumulated) {
+      return "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo o contacta a un agente.";
+    }
+
+    return cleanReply(accumulated);
+  } catch (error) {
+    console.error("Error en AI reply streaming:", error);
     return "Lo siento, estoy experimentando dificultades tecnicas. Por favor, contacta a un agente para obtener ayuda.";
   }
 }
