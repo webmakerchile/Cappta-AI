@@ -9,19 +9,38 @@ import { useChat } from "@/hooks/use-chat";
 import { MessageCircle, ArrowLeft, Headphones, Loader2, AlertTriangle } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; retryCount: number }> {
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
   constructor(props: { children: ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, retryCount: 0 };
   }
   static getDerivedStateFromError() {
     return { hasError: true };
   }
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[ErrorBoundary]", error, info.componentStack);
+    if (this.state.retryCount < 2) {
+      this.retryTimer = setTimeout(() => {
+        this.setState((prev) => ({ hasError: false, retryCount: prev.retryCount + 1 }));
+      }, 1500);
+    }
+  }
+  componentWillUnmount() {
+    if (this.retryTimer) clearTimeout(this.retryTimer);
   }
   render() {
     if (this.state.hasError) {
+      if (this.state.retryCount < 2) {
+        return (
+          <div className="h-screen flex items-center justify-center bg-[#111111]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+              <p className="text-white/50 text-sm">Reconectando...</p>
+            </div>
+          </div>
+        );
+      }
       return (
         <div className="h-screen flex items-center justify-center bg-[#111111]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           <div className="flex flex-col items-center gap-4 max-w-md px-6 text-center">
