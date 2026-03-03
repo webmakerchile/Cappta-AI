@@ -33,7 +33,7 @@ const getPlatformBadge = (platform: string): string => {
     pc: "PC",
     all: "",
   };
-  return platformMap[platform] || platform;
+  return platform in platformMap ? platformMap[platform] : platform;
 };
 
 
