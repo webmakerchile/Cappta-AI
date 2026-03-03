@@ -3221,6 +3221,112 @@ REGLAS:
 
       const mainData = extractPageData(mainHtml, cleanUrl);
 
+      const jsBundleContent: string[] = [];
+      try {
+        const scriptSrcMatches = mainHtml.matchAll(/<script[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi);
+        const jsBundleUrls: string[] = [];
+        for (const sm of scriptSrcMatches) {
+          try {
+            const scriptUrl = new URL(sm[1], cleanUrl).href;
+            if (/\.(js|mjs)(\?|$)/i.test(scriptUrl) && !/(analytics|gtag|gtm|google|facebook|pixel|hotjar|clarity|sentry|cdn\.jsdelivr|cdnjs|unpkg|polyfill)/i.test(scriptUrl)) {
+              jsBundleUrls.push(scriptUrl);
+            }
+          } catch {}
+        }
+
+        const mainBundleUrls = [...jsBundleUrls];
+        for (const bundleUrl of mainBundleUrls) {
+          try {
+            const preResp = await fetch(bundleUrl, { signal: AbortSignal.timeout(10000), headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } });
+            if (!preResp.ok) continue;
+            const preText = await preResp.text();
+            const chunkImports = preText.matchAll(/import\(\s*["']\.\/([^"']+\.js)["']\s*\)/g);
+            for (const ci of chunkImports) {
+              const chunkName = ci[1];
+              if (/(Landing|Home|Pricing|About|Contact|Services|Products|Features|Plans|FAQ|Demo)/i.test(chunkName)) {
+                try {
+                  const chunkUrl = new URL(`./assets/${chunkName}`, bundleUrl).href.replace(/\/assets\/assets\//, "/assets/");
+                  const baseUrl = bundleUrl.substring(0, bundleUrl.lastIndexOf("/") + 1);
+                  const resolvedChunkUrl = new URL(chunkName, baseUrl).href;
+                  if (!jsBundleUrls.includes(resolvedChunkUrl)) {
+                    jsBundleUrls.push(resolvedChunkUrl);
+                  }
+                } catch {}
+              }
+            }
+          } catch {}
+        }
+
+        console.log(`[analyze-url] Found ${jsBundleUrls.length} JS bundles/chunks to analyze`);
+
+        function extractStringsFromBundle(bundleText: string): string[] {
+          const extracted: string[] = [];
+          const seen = new Set<string>();
+
+          function addUnique(str: string) {
+            const clean = str.replace(/\\n/g, "\n").replace(/\\t/g, " ").replace(/\\\//g, "/").trim();
+            if (clean.length >= 15 && !seen.has(clean)) {
+              seen.add(clean);
+              extracted.push(clean);
+            }
+          }
+
+          const spanishStrings = bundleText.matchAll(/["']([^"'\n]{15,1000})["']/g);
+          for (const ss of spanishStrings) {
+            const str = ss[1];
+            if (/[áéíóúñÁÉÍÓÚÑ¿¡]/.test(str) && !/\\u[0-9a-f]{4}/i.test(str) && !/function|prototype|constructor|Component|Error|Warning|typeof|Symbol/.test(str)) {
+              addUnique(str);
+            }
+          }
+
+          const businessStrings = bundleText.matchAll(/["']([^"'\n]{15,1500})["']/g);
+          for (const bs of businessStrings) {
+            const str = bs[1];
+            if (/\\u|\\x|function|prototype|constructor|className|querySelector|addEventListener|__webpack|__esModule/.test(str)) continue;
+            const wordCount = str.split(/\s+/).length;
+            if (wordCount >= 3 && /[a-záéíóúñA-ZÁÉÍÓÚÑ]/.test(str) && !/^[a-zA-Z0-9_\-./\\:;,{}()\[\]<>=!@#$%^&*+|~`?\s]+$/.test(str)) {
+              addUnique(str);
+            }
+            if (/(?:precio|plan|gratis|free|pro|enterprise|premium|basic|starter|mensual|anual|\$\s*[\d.,]+|usd|clp|uf\b|contacto|email|tel[eé]fono|whatsapp|servicio|producto|funcionalidad|beneficio|incluye|soporte|garant[ií]a|horario|env[ií]o|oferta|descuento|pago|suscripci[oó]n|chatbot|inteligencia|artificial|widget|configuraci[oó]n|autom[aá]tic)/i.test(str) && wordCount >= 2) {
+              addUnique(str);
+            }
+          }
+
+          const pricePatterns = bundleText.matchAll(/\$\s*[\d.,]+(?:\s*(?:\/\s*mes|mensual|anual|usd|clp))?/gi);
+          for (const pp of pricePatterns) {
+            if (pp[0].length >= 3) addUnique(`PRECIO DETECTADO: ${pp[0]}`);
+          }
+
+          return extracted;
+        }
+
+        const bundleLimit = Math.min(jsBundleUrls.length, 8);
+        for (let bi = 0; bi < bundleLimit; bi++) {
+          try {
+            const bundleResp = await fetch(jsBundleUrls[bi], {
+              signal: AbortSignal.timeout(12000),
+              headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+            });
+            if (!bundleResp.ok) continue;
+            const bundleText = await bundleResp.text();
+            if (bundleText.length < 100) continue;
+
+            const extractedStrings = extractStringsFromBundle(bundleText);
+
+            if (extractedStrings.length > 0) {
+              const unique = extractedStrings.slice(0, 300);
+              const fileName = jsBundleUrls[bi].split("/").pop() || `bundle-${bi}`;
+              jsBundleContent.push(`CONTENIDO JS (${fileName}) - ${unique.length} textos extraidos:\n${unique.join("\n")}`);
+              console.log(`[analyze-url] Bundle ${fileName}: extracted ${unique.length} text strings`);
+            }
+          } catch (e: any) {
+            console.log(`[analyze-url] Error fetching bundle ${bi}: ${e.message}`);
+          }
+        }
+      } catch (e: any) {
+        console.log(`[analyze-url] Error in JS bundle analysis: ${e.message}`);
+      }
+
       const skipPatterns = [/login/i, /register/i, /signup/i, /admin/i, /dashboard/i, /cart\b/i, /checkout/i, /account/i, /wp-admin/i, /wp-login/i, /\.pdf$/i, /\.jpg$/i, /\.png$/i, /\.gif$/i, /\.zip$/i, /\.css$/i, /\.js$/i, /wp-json/i, /feed\/?$/i, /xmlrpc/i, /wp-content/i, /wp-includes/i, /\?replytocom/i, /\?share=/i, /\?p=/i, /#/, /\/page\/\d+/i, /\/tag\//i, /\/author\//i, /\/attachment\//i, /\/trackback/i, /\/embed\/?$/i, /\/amp\/?$/i, /\.xml$/i, /\/rss\/?$/i];
       const priorityPatterns = [/about/i, /acerca/i, /nosotros/i, /servicios/i, /services/i, /productos/i, /products/i, /contacto/i, /contact/i, /horarios/i, /hours/i, /precios/i, /pricing/i, /planes/i, /plans/i, /faq/i, /preguntas/i, /ayuda/i, /help/i, /info/i, /quienes-somos/i, /equipo/i, /team/i, /galeria/i, /gallery/i, /ubicacion/i, /location/i, /donar/i, /eventos/i, /events/i, /blog/i, /noticias/i, /envios/i, /shipping/i, /politicas/i, /policies/i, /menu/i, /catalogo/i, /tienda/i, /shop/i, /participa/i, /soy-nuevo/i, /garantia/i, /warranty/i, /demo/i, /features/i, /caracteristicas/i, /metodos-de-pago/i, /payment/i, /terminos/i, /terms/i, /privacidad/i, /privacy/i, /soporte/i, /support/i, /tarifas/i, /rates/i, /reserva/i, /booking/i, /cita/i, /appointment/i, /testimoni/i, /reviews/i, /resenas/i, /ofertas/i, /deals/i, /promo/i, /descuento/i, /sucursal/i, /branch/i, /como-funciona/i, /how-it-works/i, /beneficios/i, /benefits/i, /soluciones/i, /solutions/i, /clientes/i, /clients/i, /portafolio/i, /portfolio/i, /casos/i, /case/i, /guia/i, /guide/i, /recursos/i, /resources/i, /cobertura/i, /coverage/i, /alianzas/i, /partners/i];
 
@@ -3440,6 +3546,7 @@ REGLAS:
         if (data.phones.length > 0) out += `📞 TELEFONOS ${label}: ${data.phones.join(", ")}\n`;
         if (data.socials.length > 0) out += `📱 REDES SOCIALES ${label}:\n${data.socials.map(s => `• ${s}`).join("\n")}\n`;
         if (data.linkTexts.length > 0) out += `🔗 LINKS CON TEXTO ${label}:\n${data.linkTexts.slice(0, 40).map(lt => `• "${lt.text}" → ${lt.href}`).join("\n")}\n`;
+        if (data.embeddedData.length > 0) out += `📦 DATOS EMBEBIDOS EN SCRIPTS ${label}:\n${data.embeddedData.join("\n\n")}\n\n`;
         return out;
       }
 
@@ -3451,6 +3558,13 @@ REGLAS:
 
       combinedText += "========== PAGINA PRINCIPAL ==========\n\n";
       combinedText += formatStructuredData(mainData, "(PRINCIPAL)", 18000);
+
+      if (jsBundleContent.length > 0) {
+        combinedText += `\n========== CONTENIDO DE ARCHIVOS JAVASCRIPT (SPA) ==========\n`;
+        combinedText += `(Este sitio es una aplicacion de pagina unica. El contenido real esta en los JS bundles)\n\n`;
+        combinedText += jsBundleContent.join("\n\n").substring(0, 60000) + "\n\n";
+        console.log(`[analyze-url] Added ${jsBundleContent.length} JS bundle extractions to context`);
+      }
 
       const priorityPages = crawledPages.filter(p => p.isPriority);
       const normalPages = crawledPages.filter(p => !p.isPriority);
@@ -3511,7 +3625,7 @@ REGLAS:
             role: "system",
             content: `Eres un analista web EXPERTO de nivel empresarial. Tu trabajo es hacer el analisis MAS EXHAUSTIVO Y DETALLADO POSIBLE de un sitio web completo para generar la base de conocimiento definitiva para un chatbot de atencion al cliente.
 
-Se te proporcionara contenido extraido automaticamente de la pagina principal Y de TODAS las subpaginas internas del sitio, incluyendo datos estructurados, tablas, listas, precios detectados, encabezados, emails, telefonos y redes sociales. Debes analizar ABSOLUTAMENTE TODO.
+Se te proporcionara contenido extraido automaticamente de la pagina principal, subpaginas internas, Y de los archivos JavaScript del sitio (para SPAs/aplicaciones de pagina unica). Incluye datos estructurados, tablas, listas, precios detectados, encabezados, emails, telefonos, redes sociales y texto extraido de los JS bundles. Debes analizar ABSOLUTAMENTE TODO, especialmente el contenido de los JS bundles que contiene el texto real del sitio.
 
 INSTRUCCIONES DE ANALISIS:
 1. Lee CADA pagina proporcionada de principio a fin
@@ -3634,11 +3748,15 @@ REGLAS CRITICAS:
           },
           {
             role: "user",
-            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se escaneo la pagina principal + ${crawledPages.length} subpaginas internas${sitemapUrlCount > 0 ? ` (se encontraron ${sitemapUrlCount} URLs en el sitemap)` : ""} en ${crawlRound} rondas de crawling recursivo. Se extrajeron automaticamente: encabezados, precios, tablas, listas, emails, telefonos y redes sociales de CADA pagina.
+            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se escaneo la pagina principal + ${crawledPages.length} subpaginas internas${sitemapUrlCount > 0 ? ` (se encontraron ${sitemapUrlCount} URLs en el sitemap)` : ""} en ${crawlRound} rondas de crawling recursivo.${jsBundleContent.length > 0 ? ` Ademas se descargaron y analizaron ${jsBundleContent.length} archivos JavaScript del sitio (SPA) para extraer el contenido renderizado dinamicamente.` : ""} Se extrajeron automaticamente: encabezados, precios, tablas, listas, emails, telefonos y redes sociales.
 
-ATENCION ESPECIAL: Busca y documenta TODOS los precios, planes, tarifas, costos. Si hay secciones de pricing/planes, extrae cada precio exacto con lo que incluye.
+ATENCION ESPECIAL:
+1. Busca y documenta TODOS los precios, planes, tarifas, costos. Si hay secciones de pricing/planes, extrae cada precio exacto con lo que incluye.
+2. Si el sitio es una SPA (aplicacion de pagina unica), el contenido de los JS bundles contiene TODA la informacion real del sitio - analiza esos textos con especial atencion.
+3. Busca precios en formatos como: $9.990, $19.990/mes, USD $29, 0.02 USD, CLP, UF, etc.
+4. Busca nombres de planes como: Free, Basic, Pro, Enterprise, Starter, Premium, Gratis, etc.
 
-Analiza CADA pagina, extrae TODA la informacion. Solo incluye datos REALES:\n\n${truncatedText}`
+Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incluye datos REALES:\n\n${truncatedText}`
           }
         ],
         temperature: 0.2,
