@@ -343,52 +343,73 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
 
   const msgAdminName = (message as any).adminName;
   const msgAdminColor = (message as any).adminColor || "#6200EA";
+  const isAdmin = !isUser && !!msgAdminName;
+  const alignRight = isUser || isAdmin;
 
   return (
     <div data-testid={`message-bubble-${message.id}`} className="animate-fade-in">
-      {!isUser && msgAdminName && (
-        <div className="flex items-center gap-1 ml-9 mb-0.5">
+      {isAdmin && (
+        <div className="flex items-center gap-1 justify-end mr-9 mb-0.5">
           <span className="text-[10px] font-semibold" style={{ color: msgAdminColor }}>
             {msgAdminName}
           </span>
         </div>
       )}
-      <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
-        {!isUser && (
+      <div className={`flex items-end gap-2 ${alignRight ? "flex-row-reverse" : "flex-row"}`}>
+        {!alignRight && (
           <div
             className="rounded-full flex items-center justify-center flex-shrink-0 border overflow-hidden"
             style={{
               width: `${Math.round(28 * botIconScale / 100)}px`,
               height: `${Math.round(28 * botIconScale / 100)}px`,
               aspectRatio: "1 / 1",
-              backgroundColor: (botIconUrl && !msgAdminName) ? "transparent" : hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.12),
-              borderColor: (botIconUrl && !msgAdminName) ? "transparent" : hexToRgba(msgAdminName ? msgAdminColor : brandColor, 0.19),
+              backgroundColor: botIconUrl ? "transparent" : hexToRgba(brandColor, 0.12),
+              borderColor: botIconUrl ? "transparent" : hexToRgba(brandColor, 0.19),
             }}
           >
-            {botIconUrl && !msgAdminName ? (
+            {botIconUrl ? (
               <img src={botIconUrl} alt="" className="w-full h-full rounded-full object-cover" />
             ) : (
-              <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminName ? msgAdminColor : brandColor }} />
+              <Headphones className="w-3.5 h-3.5" style={{ color: brandColor }} />
             )}
+          </div>
+        )}
+        {isAdmin && (
+          <div
+            className="rounded-full flex items-center justify-center flex-shrink-0 border overflow-hidden"
+            style={{
+              width: `${Math.round(28 * botIconScale / 100)}px`,
+              height: `${Math.round(28 * botIconScale / 100)}px`,
+              aspectRatio: "1 / 1",
+              backgroundColor: hexToRgba(msgAdminColor, 0.15),
+              borderColor: hexToRgba(msgAdminColor, 0.25),
+            }}
+          >
+            <Headphones className="w-3.5 h-3.5" style={{ color: msgAdminColor }} />
           </div>
         )}
         <div className="flex flex-col gap-1.5 max-w-[80%]">
           <div
             className={`
               rounded-md overflow-hidden
-              ${isUser
+              ${alignRight
                 ? "rounded-br-none"
                 : "rounded-bl-none"
               }
             `}
             style={isUser
               ? { backgroundColor: brandColor, color: userTextColor || "#ffffff" }
-              : {
-                  backgroundColor: botBubbleColor || "rgba(255,255,255,0.05)",
-                  border: botBubbleColor ? `1px solid ${botBubbleColor}` : "1px solid rgba(255,255,255,0.1)",
-                  color: botTextColor || "rgba(255,255,255,0.9)",
-                  ...(msgAdminName ? { boxShadow: `inset 3px 0 0 ${msgAdminColor}60` } : {}),
-                }
+              : isAdmin
+                ? {
+                    backgroundColor: hexToRgba(msgAdminColor, 0.15),
+                    border: `1px solid ${hexToRgba(msgAdminColor, 0.3)}`,
+                    color: "rgba(255,255,255,0.9)",
+                  }
+                : {
+                    backgroundColor: botBubbleColor || "rgba(255,255,255,0.05)",
+                    border: botBubbleColor ? `1px solid ${botBubbleColor}` : "1px solid rgba(255,255,255,0.1)",
+                    color: botTextColor || "rgba(255,255,255,0.9)",
+                  }
             }
           >
             {hasImage && (
@@ -457,7 +478,7 @@ const MessageBubble = memo(function MessageBubble({ message, searchQuery, isLast
             </div>
           )}
           <span
-            className={`text-[10px] text-white/30 ${isUser ? "text-right" : "text-left"}`}
+            className={`text-[10px] text-white/30 ${alignRight ? "text-right" : "text-left"}`}
           >
             {formatTime(message.timestamp)}
           </span>
