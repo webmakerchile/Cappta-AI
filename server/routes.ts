@@ -3199,72 +3199,36 @@ REGLAS:
 
       const mainData = extractPageData(mainHtml, cleanUrl);
 
-      const skipPatterns = [/login/i, /register/i, /signup/i, /admin/i, /dashboard/i, /cart\b/i, /checkout/i, /account/i, /wp-admin/i, /wp-login/i, /\.pdf$/i, /\.jpg$/i, /\.png$/i, /\.gif$/i, /\.zip$/i, /\.css$/i, /\.js$/i, /wp-json/i, /feed\/?$/i, /xmlrpc/i, /wp-content/i, /wp-includes/i, /#/];
-      const priorityPatterns = [/about/i, /acerca/i, /nosotros/i, /servicios/i, /services/i, /productos/i, /products/i, /contacto/i, /contact/i, /horarios/i, /hours/i, /precios/i, /pricing/i, /planes/i, /plans/i, /faq/i, /preguntas/i, /ayuda/i, /help/i, /info/i, /quienes-somos/i, /equipo/i, /team/i, /galeria/i, /gallery/i, /ubicacion/i, /location/i, /donar/i, /eventos/i, /events/i, /blog/i, /noticias/i, /envios/i, /shipping/i, /politicas/i, /policies/i, /menu/i, /catalogo/i, /tienda/i, /shop/i, /participa/i, /soy-nuevo/i, /mensajes/i, /garantia/i, /warranty/i, /demo/i, /features/i, /caracteristicas/i, /metodos-de-pago/i, /payment/i, /terminos/i, /terms/i, /privacidad/i, /privacy/i, /soporte/i, /support/i, /tarifas/i, /rates/i, /reserva/i, /booking/i, /cita/i, /appointment/i, /testimoni/i, /reviews/i, /resenas/i, /ofertas/i, /deals/i, /promo/i, /descuento/i, /sucursal/i, /branch/i];
+      const skipPatterns = [/login/i, /register/i, /signup/i, /admin/i, /dashboard/i, /cart\b/i, /checkout/i, /account/i, /wp-admin/i, /wp-login/i, /\.pdf$/i, /\.jpg$/i, /\.png$/i, /\.gif$/i, /\.zip$/i, /\.css$/i, /\.js$/i, /wp-json/i, /feed\/?$/i, /xmlrpc/i, /wp-content/i, /wp-includes/i, /\?replytocom/i, /\?share=/i, /\?p=/i, /#/, /\/page\/\d+/i, /\/tag\//i, /\/author\//i, /\/attachment\//i, /\/trackback/i, /\/embed\/?$/i, /\/amp\/?$/i, /\.xml$/i, /\/rss\/?$/i];
+      const priorityPatterns = [/about/i, /acerca/i, /nosotros/i, /servicios/i, /services/i, /productos/i, /products/i, /contacto/i, /contact/i, /horarios/i, /hours/i, /precios/i, /pricing/i, /planes/i, /plans/i, /faq/i, /preguntas/i, /ayuda/i, /help/i, /info/i, /quienes-somos/i, /equipo/i, /team/i, /galeria/i, /gallery/i, /ubicacion/i, /location/i, /donar/i, /eventos/i, /events/i, /blog/i, /noticias/i, /envios/i, /shipping/i, /politicas/i, /policies/i, /menu/i, /catalogo/i, /tienda/i, /shop/i, /participa/i, /soy-nuevo/i, /garantia/i, /warranty/i, /demo/i, /features/i, /caracteristicas/i, /metodos-de-pago/i, /payment/i, /terminos/i, /terms/i, /privacidad/i, /privacy/i, /soporte/i, /support/i, /tarifas/i, /rates/i, /reserva/i, /booking/i, /cita/i, /appointment/i, /testimoni/i, /reviews/i, /resenas/i, /ofertas/i, /deals/i, /promo/i, /descuento/i, /sucursal/i, /branch/i, /como-funciona/i, /how-it-works/i, /beneficios/i, /benefits/i, /soluciones/i, /solutions/i, /clientes/i, /clients/i, /portafolio/i, /portfolio/i, /casos/i, /case/i, /guia/i, /guide/i, /recursos/i, /resources/i, /cobertura/i, /coverage/i, /alianzas/i, /partners/i];
 
-      const MAX_SITEMAP_URLS = 300;
-      let sitemapUrls: string[] = [];
-      try {
-        const sitemapResp = await fetchPage(`${parsedUrl.origin}/sitemap.xml`, 8000);
-        if (sitemapResp) {
-          const locMatches = sitemapResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
-          for (const m of locMatches) {
-            if (sitemapUrls.length >= MAX_SITEMAP_URLS) break;
-            try {
-              const sUrl = new URL(m[1].trim());
-              if (sUrl.hostname === hostname && !skipPatterns.some(p => p.test(sUrl.href))) {
-                sitemapUrls.push(sUrl.href);
-              }
-            } catch {}
-          }
-        }
-      } catch {}
-      if (sitemapUrls.length === 0) {
+      function isValidInternalUrl(link: string): boolean {
         try {
-          const sitemapIndexResp = await fetchPage(`${parsedUrl.origin}/sitemap_index.xml`, 6000);
-          if (sitemapIndexResp) {
-            const indexLocs = sitemapIndexResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
-            const subSitemaps: string[] = [];
-            for (const m of indexLocs) subSitemaps.push(m[1].trim());
-            for (const subSm of subSitemaps.slice(0, 3)) {
-              try {
-                const subResp = await fetchPage(subSm, 6000);
-                if (subResp) {
-                  const subLocs = subResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
-                  for (const m of subLocs) {
-                    if (sitemapUrls.length >= MAX_SITEMAP_URLS) break;
-                    try {
-                      const sUrl = new URL(m[1].trim());
-                      if (sUrl.hostname === hostname && !skipPatterns.some(p => p.test(sUrl.href))) {
-                        sitemapUrls.push(sUrl.href);
-                      }
-                    } catch {}
-                  }
-                }
-              } catch {}
-            }
-          }
-        } catch {}
+          const u = new URL(link);
+          return u.hostname === hostname && !skipPatterns.some(p => p.test(link));
+        } catch { return false; }
       }
 
-      const allDiscoveredLinks = new Set<string>([...mainData.links, ...sitemapUrls]);
-      const internalLinks = [...allDiscoveredLinks]
-        .filter(l => !skipPatterns.some(p => p.test(l)))
-        .filter(l => {
-          try { const u = new URL(l); return u.hostname === hostname; } catch { return false; }
-        })
-        .filter(l => l !== cleanUrl && l !== cleanUrl + "/" && l !== cleanUrl + "/index.html");
+      function normalizeUrl(link: string): string {
+        try {
+          const u = new URL(link);
+          u.hash = "";
+          u.search = "";
+          let path = u.pathname.replace(/\/+$/, "") || "/";
+          u.pathname = path;
+          return u.href;
+        } catch { return link; }
+      }
 
-      const prioritized = internalLinks.sort((a, b) => {
-        const aP = priorityPatterns.some(p => p.test(a)) ? 0 : 1;
-        const bP = priorityPatterns.some(p => p.test(b)) ? 0 : 1;
-        return aP - bP;
-      });
+      const MAX_TOTAL_PAGES = 30;
+      const CRAWL_BATCH_SIZE = 6;
+      const PAGE_TIMEOUT = 10000;
 
-      const maxSubpages = 20;
-      const subpageUrls = prioritized.slice(0, maxSubpages);
+      const visited = new Set<string>();
+      const discovered = new Set<string>();
+      const normalizedVisited = new Set<string>();
 
-      interface SubpageResult {
+      interface CrawlResult {
         url: string;
         title: string;
         content: string;
@@ -3275,75 +3239,168 @@ REGLAS:
         emails: string[];
         phones: string[];
         socials: string[];
-        newLinks: string[];
+        jsonLd: string[];
+        metaParts: string[];
+        linkTexts: { href: string; text: string }[];
+        isPriority: boolean;
       }
-      const subpageResults: SubpageResult[] = [];
+      const crawledPages: CrawlResult[] = [];
 
-      const batchSize = 5;
-      for (let i = 0; i < subpageUrls.length; i += batchSize) {
-        const batch = subpageUrls.slice(i, i + batchSize);
-        const batchResults = await Promise.all(batch.map(async (spUrl) => {
-          const spHtml = await fetchPage(spUrl, 12000);
-          if (!spHtml) return null;
-          const spData = extractPageData(spHtml, spUrl);
-          const title = spData.metaParts.find(p => p.startsWith("Titulo:"))?.replace("Titulo: ", "") || spUrl;
-          const content = spData.mainContent.substring(0, 6000);
+      visited.add(cleanUrl);
+      normalizedVisited.add(normalizeUrl(cleanUrl));
+      for (const link of mainData.links) {
+        if (isValidInternalUrl(link)) {
+          const norm = normalizeUrl(link);
+          if (!normalizedVisited.has(norm)) discovered.add(link);
+        }
+      }
+
+      let sitemapUrlCount = 0;
+      try {
+        const sitemapResp = await fetchPage(`${parsedUrl.origin}/sitemap.xml`, 8000);
+        if (sitemapResp && sitemapResp.includes("<loc>")) {
+          const locMatches = sitemapResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
+          for (const m of locMatches) {
+            const sUrl = m[1].trim();
+            if (isValidInternalUrl(sUrl)) {
+              const norm = normalizeUrl(sUrl);
+              if (!normalizedVisited.has(norm)) { discovered.add(sUrl); sitemapUrlCount++; }
+            }
+            if (sitemapUrlCount > 500) break;
+          }
+          if (sitemapUrlCount === 0) {
+            const subSitemaps = sitemapResp.matchAll(/<loc>([^<]*sitemap[^<]*)<\/loc>/gi);
+            for (const sm of subSitemaps) {
+              try {
+                const subResp = await fetchPage(sm[1].trim(), 6000);
+                if (subResp) {
+                  const subLocs = subResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
+                  for (const sl of subLocs) {
+                    const slUrl = sl[1].trim();
+                    if (isValidInternalUrl(slUrl)) {
+                      const norm = normalizeUrl(slUrl);
+                      if (!normalizedVisited.has(norm)) { discovered.add(slUrl); sitemapUrlCount++; }
+                    }
+                    if (sitemapUrlCount > 500) break;
+                  }
+                }
+              } catch {}
+            }
+          }
+        }
+      } catch {}
+      if (sitemapUrlCount === 0) {
+        try {
+          const sitemapIndexResp = await fetchPage(`${parsedUrl.origin}/sitemap_index.xml`, 6000);
+          if (sitemapIndexResp && sitemapIndexResp.includes("<loc>")) {
+            const indexLocs = [...sitemapIndexResp.matchAll(/<loc>([^<]+)<\/loc>/gi)].map(m => m[1].trim());
+            for (const subSm of indexLocs.slice(0, 4)) {
+              try {
+                const subResp = await fetchPage(subSm, 6000);
+                if (subResp) {
+                  const subLocs = subResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
+                  for (const m of subLocs) {
+                    const sUrl = m[1].trim();
+                    if (isValidInternalUrl(sUrl)) {
+                      const norm = normalizeUrl(sUrl);
+                      if (!normalizedVisited.has(norm)) { discovered.add(sUrl); sitemapUrlCount++; }
+                    }
+                    if (sitemapUrlCount > 500) break;
+                  }
+                }
+              } catch {}
+            }
+          }
+        } catch {}
+      }
+      console.log(`[analyze-url] Discovered ${discovered.size} internal links (${sitemapUrlCount} from sitemap) for ${cleanUrl}`);
+
+      function prioritizeUrls(urls: string[]): string[] {
+        const scored = urls.map(url => {
+          let score = 0;
+          if (priorityPatterns.some(p => p.test(url))) score += 100;
+          const depth = (new URL(url).pathname.match(/\//g) || []).length;
+          if (depth <= 2) score += 50;
+          if (depth <= 3) score += 20;
+          if (/preci|pricing|plan|tarif|cost|valor/i.test(url)) score += 200;
+          if (/servici|product|tienda|shop|catalog/i.test(url)) score += 150;
+          if (/contact|nosotros|about|faq|ayuda|help/i.test(url)) score += 120;
+          if (/envio|shipping|pago|payment|garantia|politic/i.test(url)) score += 110;
+          if (/demo|features|caracteristic|como-funciona|how-it-works|beneficio/i.test(url)) score += 130;
+          if (/testimoni|reviews|resena|caso|client/i.test(url)) score += 80;
+          if (/blog|noticia|articul/i.test(url)) score += 30;
+          return { url, score };
+        });
+        scored.sort((a, b) => b.score - a.score);
+        return scored.map(s => s.url);
+      }
+
+      async function crawlBatch(urls: string[]): Promise<void> {
+        const results = await Promise.all(urls.map(async (pageUrl) => {
+          if (crawledPages.length >= MAX_TOTAL_PAGES) return null;
+          const norm = normalizeUrl(pageUrl);
+          if (normalizedVisited.has(norm)) return null;
+          normalizedVisited.add(norm);
+          visited.add(pageUrl);
+
+          const html = await fetchPage(pageUrl, PAGE_TIMEOUT);
+          if (!html) return null;
+          const data = extractPageData(html, pageUrl);
+          const title = data.metaParts.find(p => p.startsWith("Titulo:"))?.replace("Titulo: ", "") || pageUrl;
+          const content = data.mainContent.substring(0, 8000);
           if (content.length < 30) return null;
+
+          for (const link of data.links) {
+            if (isValidInternalUrl(link)) {
+              const linkNorm = normalizeUrl(link);
+              if (!normalizedVisited.has(linkNorm) && !visited.has(link)) {
+                discovered.add(link);
+              }
+            }
+          }
+
           return {
-            url: spUrl,
+            url: pageUrl,
             title,
             content,
-            headings: spData.headings.slice(0, 30),
-            pricing: spData.pricing.slice(0, 20),
-            tables: spData.tables.slice(0, 5),
-            lists: spData.lists.slice(0, 10),
-            emails: spData.emails,
-            phones: spData.phones,
-            socials: spData.socials,
-            newLinks: spData.links.filter(l => {
-              if (allDiscoveredLinks.has(l) || skipPatterns.some(p => p.test(l))) return false;
-              try { return new URL(l).hostname === hostname; } catch { return false; }
-            }),
-          };
+            headings: data.headings.slice(0, 40),
+            pricing: data.pricing.slice(0, 25),
+            tables: data.tables.slice(0, 8),
+            lists: data.lists.slice(0, 15),
+            emails: data.emails,
+            phones: data.phones,
+            socials: data.socials,
+            jsonLd: data.jsonLdParts,
+            metaParts: data.metaParts,
+            linkTexts: data.linkTexts.slice(0, 30),
+            isPriority: priorityPatterns.some(p => p.test(pageUrl)),
+          } as CrawlResult;
         }));
-        for (const r of batchResults) {
-          if (r) subpageResults.push(r);
+        for (const r of results) {
+          if (r && crawledPages.length < MAX_TOTAL_PAGES) crawledPages.push(r);
         }
       }
 
-      const secondLevelLinks = new Set<string>();
-      for (const sp of subpageResults) {
-        for (const nl of sp.newLinks) secondLevelLinks.add(nl);
-      }
-      const extraLinks = [...secondLevelLinks]
-        .filter(l => {
-          if (subpageUrls.includes(l) || !priorityPatterns.some(p => p.test(l))) return false;
-          try { return new URL(l).hostname === hostname; } catch { return false; }
-        })
-        .slice(0, 8);
+      let crawlRound = 0;
+      const MAX_CRAWL_ROUNDS = 6;
+      while (crawledPages.length < MAX_TOTAL_PAGES && discovered.size > 0 && crawlRound < MAX_CRAWL_ROUNDS) {
+        crawlRound++;
+        const pending = [...discovered].filter(u => !visited.has(u) && !normalizedVisited.has(normalizeUrl(u)));
+        discovered.clear();
+        if (pending.length === 0) break;
 
-      if (extraLinks.length > 0) {
-        const extraResults = await Promise.all(extraLinks.map(async (spUrl) => {
-          const spHtml = await fetchPage(spUrl, 10000);
-          if (!spHtml) return null;
-          const spData = extractPageData(spHtml, spUrl);
-          const title = spData.metaParts.find(p => p.startsWith("Titulo:"))?.replace("Titulo: ", "") || spUrl;
-          const content = spData.mainContent.substring(0, 5000);
-          if (content.length < 30) return null;
-          return {
-            url: spUrl, title, content,
-            headings: spData.headings.slice(0, 20),
-            pricing: spData.pricing.slice(0, 15),
-            tables: spData.tables.slice(0, 3),
-            lists: spData.lists.slice(0, 8),
-            emails: spData.emails, phones: spData.phones, socials: spData.socials,
-            newLinks: [] as string[],
-          };
-        }));
-        for (const r of extraResults) {
-          if (r) subpageResults.push(r);
+        const sorted = prioritizeUrls(pending);
+        const toFetch = sorted.slice(0, Math.min(CRAWL_BATCH_SIZE * 2, MAX_TOTAL_PAGES - crawledPages.length));
+
+        for (let i = 0; i < toFetch.length; i += CRAWL_BATCH_SIZE) {
+          if (crawledPages.length >= MAX_TOTAL_PAGES) break;
+          const batch = toFetch.slice(i, i + CRAWL_BATCH_SIZE);
+          await crawlBatch(batch);
         }
+        console.log(`[analyze-url] Round ${crawlRound}: crawled ${crawledPages.length} pages, ${discovered.size} new links discovered`);
       }
+
+      const allDiscoveredLinks = new Set<string>([...visited, ...discovered]);
 
       function formatStructuredData(data: ReturnType<typeof extractPageData>, label: string, maxMainContent: number): string {
         let out = "";
@@ -3365,32 +3422,54 @@ REGLAS:
       }
 
       let combinedText = `URL PRINCIPAL: ${cleanUrl}\n`;
-      combinedText += `PAGINAS ESCANEADAS: ${subpageResults.length + 1}\n`;
-      if (sitemapUrls.length > 0) combinedText += `URLS EN SITEMAP: ${sitemapUrls.length}\n`;
-      combinedText += "\n";
+      combinedText += `TOTAL PAGINAS RASTREADAS: ${crawledPages.length + 1} (principal + ${crawledPages.length} internas)\n`;
+      combinedText += `TOTAL URLs DESCUBIERTAS: ${allDiscoveredLinks.size}\n`;
+      if (sitemapUrlCount > 0) combinedText += `URLs del sitemap.xml: ${sitemapUrlCount}\n`;
+      combinedText += `Rondas de crawling: ${crawlRound}\n\n`;
 
       combinedText += "========== PAGINA PRINCIPAL ==========\n\n";
-      combinedText += formatStructuredData(mainData, "(PRINCIPAL)", 15000);
+      combinedText += formatStructuredData(mainData, "(PRINCIPAL)", 18000);
 
-      if (subpageResults.length > 0) {
-        combinedText += `\n========== PAGINAS INTERNAS DEL SITIO (${subpageResults.length} paginas) ==========\n\n`;
-        for (const sp of subpageResults) {
+      const priorityPages = crawledPages.filter(p => p.isPriority);
+      const normalPages = crawledPages.filter(p => !p.isPriority);
+
+      if (priorityPages.length > 0) {
+        combinedText += `\n========== PAGINAS PRIORITARIAS (${priorityPages.length}) ==========\n`;
+        combinedText += `(Precios, servicios, contacto, FAQ, etc.)\n\n`;
+        for (const sp of priorityPages) {
           combinedText += `\n--- PAGINA: ${sp.title} (${sp.url}) ---\n`;
+          if (sp.metaParts.length > 0) combinedText += `Meta: ${sp.metaParts.join(" | ")}\n`;
           if (sp.headings.length > 0) combinedText += `Encabezados: ${sp.headings.join(" | ")}\n`;
-          if (sp.pricing.length > 0) combinedText += `💰 Precios detectados: ${sp.pricing.join(" | ")}\n`;
+          if (sp.pricing.length > 0) combinedText += `💰 PRECIOS: ${sp.pricing.join(" | ")}\n`;
+          if (sp.jsonLd.length > 0) combinedText += `JSON-LD: ${sp.jsonLd.join("\n")}\n`;
           if (sp.tables.length > 0) combinedText += `Tablas:\n${sp.tables.join("\n")}\n`;
           if (sp.lists.length > 0) combinedText += `Listas:\n${sp.lists.join("\n")}\n`;
           if (sp.emails.length > 0) combinedText += `Emails: ${sp.emails.join(", ")}\n`;
           if (sp.phones.length > 0) combinedText += `Teléfonos: ${sp.phones.join(", ")}\n`;
           if (sp.socials.length > 0) combinedText += `Redes: ${sp.socials.join(", ")}\n`;
+          if (sp.linkTexts.length > 0) combinedText += `Links: ${sp.linkTexts.map(lt => `"${lt.text}" → ${lt.href}`).join(" | ")}\n`;
           combinedText += `Contenido:\n${sp.content}\n\n`;
         }
       }
 
-      const allInternalLinks = [...allDiscoveredLinks].filter(l => !skipPatterns.some(p => p.test(l)));
-      if (allInternalLinks.length > 0) {
-        combinedText += "\nTODOS LOS LINKS INTERNOS ENCONTRADOS (" + allInternalLinks.length + "):\n";
-        for (const link of allInternalLinks.slice(0, 50)) {
+      if (normalPages.length > 0) {
+        combinedText += `\n========== OTRAS PAGINAS (${normalPages.length}) ==========\n\n`;
+        for (const sp of normalPages) {
+          combinedText += `\n--- PAGINA: ${sp.title} (${sp.url}) ---\n`;
+          if (sp.headings.length > 0) combinedText += `Encabezados: ${sp.headings.join(" | ")}\n`;
+          if (sp.pricing.length > 0) combinedText += `💰 PRECIOS: ${sp.pricing.join(" | ")}\n`;
+          if (sp.tables.length > 0) combinedText += `Tablas:\n${sp.tables.join("\n")}\n`;
+          if (sp.lists.length > 0) combinedText += `Listas:\n${sp.lists.join("\n")}\n`;
+          if (sp.emails.length > 0) combinedText += `Emails: ${sp.emails.join(", ")}\n`;
+          if (sp.phones.length > 0) combinedText += `Teléfonos: ${sp.phones.join(", ")}\n`;
+          combinedText += `Contenido:\n${sp.content}\n\n`;
+        }
+      }
+
+      const unvisitedLinks = [...allDiscoveredLinks].filter(l => !visited.has(l));
+      if (unvisitedLinks.length > 0) {
+        combinedText += `\nPAGINAS NO VISITADAS (${unvisitedLinks.length} URLs adicionales encontradas pero no rastreadas):\n`;
+        for (const link of unvisitedLinks.slice(0, 60)) {
           combinedText += `• ${link}\n`;
         }
       }
@@ -3399,7 +3478,7 @@ REGLAS:
         return res.status(400).json({ message: "La pagina no tiene contenido accesible. Prueba con otra URL o usa 'Pegar texto' para copiar la info manualmente." });
       }
 
-      const truncatedText = combinedText.substring(0, 100000);
+      const truncatedText = combinedText.substring(0, 120000);
 
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
