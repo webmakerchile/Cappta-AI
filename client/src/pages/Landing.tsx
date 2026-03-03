@@ -1579,10 +1579,10 @@ export default function Landing() {
               <span className="text-xs font-semibold text-[#f59e0b] tracking-wide">CASOS DE ÉXITO</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
-              Empresas que <span className="text-gradient-orange">ya venden con FoxBot</span>
+              Empresas que <span className="text-gradient-orange">ya confían en FoxBot</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
-              Negocios reales que automatizaron su atención al cliente y aumentaron sus ventas.
+              Negocios reales que automatizaron su atención y ganaron más tiempo para lo que importa.
             </p>
           </div>
 
@@ -1593,7 +1593,7 @@ export default function Landing() {
                 url: "angelglow.cl",
                 href: "https://www.angelglow.cl/",
                 image: caseAngelGlow,
-                description: "Tienda de cosméticos que atiende consultas de productos y precios 24/7 con IA.",
+                description: "Tienda de cosméticos que aumentó sus ventas atendiendo consultas de productos y precios 24/7 con IA.",
                 color: "#f97316",
                 industry: "E-commerce / Belleza",
               },
@@ -1602,7 +1602,7 @@ export default function Landing() {
                 url: "manachile.cl",
                 href: "https://manachile.cl/inicio",
                 image: caseManaChile,
-                description: "Comunidad religiosa que brinda atención personalizada a sus miembros con asistente virtual.",
+                description: "Comunidad que ganó productividad al automatizar la atención de sus miembros, liberando tiempo para lo esencial.",
                 color: "#dc2626",
                 industry: "Comunidad / Servicios",
               },
@@ -1611,7 +1611,7 @@ export default function Landing() {
                 url: "cjmdigitales.cl",
                 href: "https://cjmdigitales.cl/",
                 image: caseCjmDigitales,
-                description: "Soporte técnico automatizado con transferencia a agentes humanos cuando es necesario.",
+                description: "Empresa tech que redujo tiempos de soporte con IA y transferencia a agentes humanos cuando es necesario.",
                 color: "#8b5cf6",
                 industry: "Tecnología / Soporte",
               },
