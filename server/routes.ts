@@ -3199,11 +3199,61 @@ REGLAS:
 
       const mainData = extractPageData(mainHtml, cleanUrl);
 
-      const skipPatterns = [/login/i, /register/i, /signup/i, /admin/i, /dashboard/i, /cart/i, /checkout/i, /account/i, /wp-admin/i, /wp-login/i, /\.pdf$/i, /\.jpg$/i, /\.png$/i, /\.gif$/i, /\.zip$/i, /\.css$/i, /\.js$/i, /\?/];
-      const priorityPatterns = [/about/i, /acerca/i, /nosotros/i, /servicios/i, /services/i, /productos/i, /products/i, /contacto/i, /contact/i, /horarios/i, /hours/i, /precios/i, /pricing/i, /planes/i, /faq/i, /preguntas/i, /ayuda/i, /help/i, /info/i, /quienes-somos/i, /equipo/i, /team/i, /galeria/i, /gallery/i, /ubicacion/i, /location/i, /donar/i, /eventos/i, /events/i, /blog/i, /noticias/i, /envios/i, /shipping/i, /politicas/i, /policies/i, /menu/i, /catalogo/i, /tienda/i, /shop/i, /participa/i, /soy-nuevo/i, /mensajes/i];
-      const internalLinks = mainData.links
+      const skipPatterns = [/login/i, /register/i, /signup/i, /admin/i, /dashboard/i, /cart\b/i, /checkout/i, /account/i, /wp-admin/i, /wp-login/i, /\.pdf$/i, /\.jpg$/i, /\.png$/i, /\.gif$/i, /\.zip$/i, /\.css$/i, /\.js$/i, /wp-json/i, /feed\/?$/i, /xmlrpc/i, /wp-content/i, /wp-includes/i, /#/];
+      const priorityPatterns = [/about/i, /acerca/i, /nosotros/i, /servicios/i, /services/i, /productos/i, /products/i, /contacto/i, /contact/i, /horarios/i, /hours/i, /precios/i, /pricing/i, /planes/i, /plans/i, /faq/i, /preguntas/i, /ayuda/i, /help/i, /info/i, /quienes-somos/i, /equipo/i, /team/i, /galeria/i, /gallery/i, /ubicacion/i, /location/i, /donar/i, /eventos/i, /events/i, /blog/i, /noticias/i, /envios/i, /shipping/i, /politicas/i, /policies/i, /menu/i, /catalogo/i, /tienda/i, /shop/i, /participa/i, /soy-nuevo/i, /mensajes/i, /garantia/i, /warranty/i, /demo/i, /features/i, /caracteristicas/i, /metodos-de-pago/i, /payment/i, /terminos/i, /terms/i, /privacidad/i, /privacy/i, /soporte/i, /support/i, /tarifas/i, /rates/i, /reserva/i, /booking/i, /cita/i, /appointment/i, /testimoni/i, /reviews/i, /resenas/i, /ofertas/i, /deals/i, /promo/i, /descuento/i, /sucursal/i, /branch/i];
+
+      const MAX_SITEMAP_URLS = 300;
+      let sitemapUrls: string[] = [];
+      try {
+        const sitemapResp = await fetchPage(`${parsedUrl.origin}/sitemap.xml`, 8000);
+        if (sitemapResp) {
+          const locMatches = sitemapResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
+          for (const m of locMatches) {
+            if (sitemapUrls.length >= MAX_SITEMAP_URLS) break;
+            try {
+              const sUrl = new URL(m[1].trim());
+              if (sUrl.hostname === hostname && !skipPatterns.some(p => p.test(sUrl.href))) {
+                sitemapUrls.push(sUrl.href);
+              }
+            } catch {}
+          }
+        }
+      } catch {}
+      if (sitemapUrls.length === 0) {
+        try {
+          const sitemapIndexResp = await fetchPage(`${parsedUrl.origin}/sitemap_index.xml`, 6000);
+          if (sitemapIndexResp) {
+            const indexLocs = sitemapIndexResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
+            const subSitemaps: string[] = [];
+            for (const m of indexLocs) subSitemaps.push(m[1].trim());
+            for (const subSm of subSitemaps.slice(0, 3)) {
+              try {
+                const subResp = await fetchPage(subSm, 6000);
+                if (subResp) {
+                  const subLocs = subResp.matchAll(/<loc>([^<]+)<\/loc>/gi);
+                  for (const m of subLocs) {
+                    if (sitemapUrls.length >= MAX_SITEMAP_URLS) break;
+                    try {
+                      const sUrl = new URL(m[1].trim());
+                      if (sUrl.hostname === hostname && !skipPatterns.some(p => p.test(sUrl.href))) {
+                        sitemapUrls.push(sUrl.href);
+                      }
+                    } catch {}
+                  }
+                }
+              } catch {}
+            }
+          }
+        } catch {}
+      }
+
+      const allDiscoveredLinks = new Set<string>([...mainData.links, ...sitemapUrls]);
+      const internalLinks = [...allDiscoveredLinks]
         .filter(l => !skipPatterns.some(p => p.test(l)))
-        .filter(l => l !== cleanUrl && l !== cleanUrl + "/");
+        .filter(l => {
+          try { const u = new URL(l); return u.hostname === hostname; } catch { return false; }
+        })
+        .filter(l => l !== cleanUrl && l !== cleanUrl + "/" && l !== cleanUrl + "/index.html");
 
       const prioritized = internalLinks.sort((a, b) => {
         const aP = priorityPatterns.some(p => p.test(a)) ? 0 : 1;
@@ -3211,47 +3261,136 @@ REGLAS:
         return aP - bP;
       });
 
-      const maxSubpages = 10;
+      const maxSubpages = 20;
       const subpageUrls = prioritized.slice(0, maxSubpages);
-      const subpageResults: { url: string; title: string; content: string }[] = [];
 
-      const batchSize = 4;
+      interface SubpageResult {
+        url: string;
+        title: string;
+        content: string;
+        headings: string[];
+        pricing: string[];
+        tables: string[];
+        lists: string[];
+        emails: string[];
+        phones: string[];
+        socials: string[];
+        newLinks: string[];
+      }
+      const subpageResults: SubpageResult[] = [];
+
+      const batchSize = 5;
       for (let i = 0; i < subpageUrls.length; i += batchSize) {
         const batch = subpageUrls.slice(i, i + batchSize);
         const batchResults = await Promise.all(batch.map(async (spUrl) => {
-          const spHtml = await fetchPage(spUrl, 8000);
+          const spHtml = await fetchPage(spUrl, 12000);
           if (!spHtml) return null;
           const spData = extractPageData(spHtml, spUrl);
           const title = spData.metaParts.find(p => p.startsWith("Titulo:"))?.replace("Titulo: ", "") || spUrl;
-          const content = spData.mainContent.substring(0, 2500);
+          const content = spData.mainContent.substring(0, 6000);
           if (content.length < 30) return null;
-          return { url: spUrl, title, content };
+          return {
+            url: spUrl,
+            title,
+            content,
+            headings: spData.headings.slice(0, 30),
+            pricing: spData.pricing.slice(0, 20),
+            tables: spData.tables.slice(0, 5),
+            lists: spData.lists.slice(0, 10),
+            emails: spData.emails,
+            phones: spData.phones,
+            socials: spData.socials,
+            newLinks: spData.links.filter(l => {
+              if (allDiscoveredLinks.has(l) || skipPatterns.some(p => p.test(l))) return false;
+              try { return new URL(l).hostname === hostname; } catch { return false; }
+            }),
+          };
         }));
         for (const r of batchResults) {
           if (r) subpageResults.push(r);
         }
       }
 
-      let combinedText = "";
-      combinedText += `URL PRINCIPAL: ${cleanUrl}\n\n`;
-      if (mainData.metaParts.length > 0) combinedText += "METADATOS:\n" + mainData.metaParts.join("\n") + "\n\n";
-      if (mainData.jsonLdParts.length > 0) combinedText += "DATOS ESTRUCTURADOS (JSON-LD):\n" + mainData.jsonLdParts.join("\n") + "\n\n";
-      if (mainData.headerContent.length > 10) combinedText += "ENCABEZADO DEL SITIO:\n" + mainData.headerContent.substring(0, 500) + "\n\n";
-      if (mainData.navContent.length > 10) combinedText += "NAVEGACION DEL SITIO:\n" + mainData.navContent.substring(0, 500) + "\n\n";
-      if (mainData.mainContent.length > 10) combinedText += "CONTENIDO PRINCIPAL:\n" + mainData.mainContent.substring(0, 8000) + "\n\n";
-      if (mainData.footerContent.length > 10) combinedText += "PIE DE PAGINA:\n" + mainData.footerContent.substring(0, 1000) + "\n\n";
+      const secondLevelLinks = new Set<string>();
+      for (const sp of subpageResults) {
+        for (const nl of sp.newLinks) secondLevelLinks.add(nl);
+      }
+      const extraLinks = [...secondLevelLinks]
+        .filter(l => {
+          if (subpageUrls.includes(l) || !priorityPatterns.some(p => p.test(l))) return false;
+          try { return new URL(l).hostname === hostname; } catch { return false; }
+        })
+        .slice(0, 8);
 
-      if (subpageResults.length > 0) {
-        combinedText += "\n========== PAGINAS INTERNAS DEL SITIO ==========\n\n";
-        for (const sp of subpageResults) {
-          combinedText += `--- PAGINA: ${sp.title} (${sp.url}) ---\n${sp.content}\n\n`;
+      if (extraLinks.length > 0) {
+        const extraResults = await Promise.all(extraLinks.map(async (spUrl) => {
+          const spHtml = await fetchPage(spUrl, 10000);
+          if (!spHtml) return null;
+          const spData = extractPageData(spHtml, spUrl);
+          const title = spData.metaParts.find(p => p.startsWith("Titulo:"))?.replace("Titulo: ", "") || spUrl;
+          const content = spData.mainContent.substring(0, 5000);
+          if (content.length < 30) return null;
+          return {
+            url: spUrl, title, content,
+            headings: spData.headings.slice(0, 20),
+            pricing: spData.pricing.slice(0, 15),
+            tables: spData.tables.slice(0, 3),
+            lists: spData.lists.slice(0, 8),
+            emails: spData.emails, phones: spData.phones, socials: spData.socials,
+            newLinks: [] as string[],
+          };
+        }));
+        for (const r of extraResults) {
+          if (r) subpageResults.push(r);
         }
       }
 
-      const allInternalLinks = mainData.links.filter(l => !skipPatterns.some(p => p.test(l)));
+      function formatStructuredData(data: ReturnType<typeof extractPageData>, label: string, maxMainContent: number): string {
+        let out = "";
+        if (data.metaParts.length > 0) out += `METADATOS ${label}:\n${data.metaParts.join("\n")}\n\n`;
+        if (data.jsonLdParts.length > 0) out += `DATOS ESTRUCTURADOS JSON-LD ${label}:\n${data.jsonLdParts.join("\n")}\n\n`;
+        if (data.headings.length > 0) out += `ENCABEZADOS ${label}:\n${data.headings.map(h => `• ${h}`).join("\n")}\n\n`;
+        if (data.headerContent.length > 10) out += `HEADER ${label}:\n${data.headerContent.substring(0, 800)}\n\n`;
+        if (data.navContent.length > 10) out += `NAVEGACION ${label}:\n${data.navContent.substring(0, 600)}\n\n`;
+        if (data.pricing.length > 0) out += `💰 PRECIOS/PLANES DETECTADOS ${label}:\n${data.pricing.map(p => `• ${p}`).join("\n")}\n\n`;
+        if (data.tables.length > 0) out += `📊 TABLAS ${label}:\n${data.tables.join("\n---\n")}\n\n`;
+        if (data.lists.length > 0) out += `📋 LISTAS ${label}:\n${data.lists.join("\n---\n")}\n\n`;
+        if (data.mainContent.length > 10) out += `CONTENIDO ${label}:\n${data.mainContent.substring(0, maxMainContent)}\n\n`;
+        if (data.footerContent.length > 10) out += `PIE DE PAGINA ${label}:\n${data.footerContent.substring(0, 1200)}\n\n`;
+        if (data.emails.length > 0) out += `📧 EMAILS ${label}: ${data.emails.join(", ")}\n`;
+        if (data.phones.length > 0) out += `📞 TELEFONOS ${label}: ${data.phones.join(", ")}\n`;
+        if (data.socials.length > 0) out += `📱 REDES SOCIALES ${label}:\n${data.socials.map(s => `• ${s}`).join("\n")}\n`;
+        if (data.linkTexts.length > 0) out += `🔗 LINKS CON TEXTO ${label}:\n${data.linkTexts.slice(0, 40).map(lt => `• "${lt.text}" → ${lt.href}`).join("\n")}\n`;
+        return out;
+      }
+
+      let combinedText = `URL PRINCIPAL: ${cleanUrl}\n`;
+      combinedText += `PAGINAS ESCANEADAS: ${subpageResults.length + 1}\n`;
+      if (sitemapUrls.length > 0) combinedText += `URLS EN SITEMAP: ${sitemapUrls.length}\n`;
+      combinedText += "\n";
+
+      combinedText += "========== PAGINA PRINCIPAL ==========\n\n";
+      combinedText += formatStructuredData(mainData, "(PRINCIPAL)", 15000);
+
+      if (subpageResults.length > 0) {
+        combinedText += `\n========== PAGINAS INTERNAS DEL SITIO (${subpageResults.length} paginas) ==========\n\n`;
+        for (const sp of subpageResults) {
+          combinedText += `\n--- PAGINA: ${sp.title} (${sp.url}) ---\n`;
+          if (sp.headings.length > 0) combinedText += `Encabezados: ${sp.headings.join(" | ")}\n`;
+          if (sp.pricing.length > 0) combinedText += `💰 Precios detectados: ${sp.pricing.join(" | ")}\n`;
+          if (sp.tables.length > 0) combinedText += `Tablas:\n${sp.tables.join("\n")}\n`;
+          if (sp.lists.length > 0) combinedText += `Listas:\n${sp.lists.join("\n")}\n`;
+          if (sp.emails.length > 0) combinedText += `Emails: ${sp.emails.join(", ")}\n`;
+          if (sp.phones.length > 0) combinedText += `Teléfonos: ${sp.phones.join(", ")}\n`;
+          if (sp.socials.length > 0) combinedText += `Redes: ${sp.socials.join(", ")}\n`;
+          combinedText += `Contenido:\n${sp.content}\n\n`;
+        }
+      }
+
+      const allInternalLinks = [...allDiscoveredLinks].filter(l => !skipPatterns.some(p => p.test(l)));
       if (allInternalLinks.length > 0) {
-        combinedText += "\nTODOS LOS LINKS INTERNOS ENCONTRADOS:\n";
-        for (const link of allInternalLinks.slice(0, 30)) {
+        combinedText += "\nTODOS LOS LINKS INTERNOS ENCONTRADOS (" + allInternalLinks.length + "):\n";
+        for (const link of allInternalLinks.slice(0, 50)) {
           combinedText += `• ${link}\n`;
         }
       }
@@ -3260,132 +3399,148 @@ REGLAS:
         return res.status(400).json({ message: "La pagina no tiene contenido accesible. Prueba con otra URL o usa 'Pegar texto' para copiar la info manualmente." });
       }
 
-      const truncatedText = combinedText.substring(0, 50000);
+      const truncatedText = combinedText.substring(0, 100000);
 
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: `Eres un analista web EXPERTO. Tu trabajo es hacer un analisis ULTRA MINUCIOSO de un sitio web completo para generar la base de conocimiento mas completa posible para un chatbot de atencion al cliente.
+            content: `Eres un analista web EXPERTO de nivel empresarial. Tu trabajo es hacer el analisis MAS EXHAUSTIVO Y DETALLADO POSIBLE de un sitio web completo para generar la base de conocimiento definitiva para un chatbot de atencion al cliente.
 
-Se te proporcionara el contenido de la pagina principal Y de todas las subpaginas internas del sitio. Debes analizar CADA pagina, CADA link, CADA seccion y extraer ABSOLUTAMENTE TODA la informacion.
+Se te proporcionara contenido extraido automaticamente de la pagina principal Y de TODAS las subpaginas internas del sitio, incluyendo datos estructurados, tablas, listas, precios detectados, encabezados, emails, telefonos y redes sociales. Debes analizar ABSOLUTAMENTE TODO.
+
+INSTRUCCIONES DE ANALISIS:
+1. Lee CADA pagina proporcionada de principio a fin
+2. Extrae TODOS los precios, planes, tarifas, costos que aparezcan — esto es CRITICO
+3. Documenta CADA producto, servicio, opcion disponible con su precio exacto
+4. Identifica TODAS las formas de contacto
+5. Extrae horarios, ubicaciones, metodos de pago, politicas
+6. Documenta las funcionalidades del sitio/sistema si es una plataforma digital
+7. Genera preguntas frecuentes REALES que un cliente haria
 
 FORMATO DE SALIDA (usa TODAS las secciones que apliquen, con emojis y separadores):
 
 🏪 NOMBRE DEL NEGOCIO: [nombre exacto]
-📝 TIPO DE NEGOCIO/SISTEMA: [tipo, ej: tienda online, restaurante, iglesia, clinica, etc.]
+📝 TIPO DE NEGOCIO/SISTEMA: [tipo detallado]
 
 🌐 SITIO WEB: [url principal]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📖 DESCRIPCION COMPLETA
-[Descripcion extensa y detallada del negocio/organizacion. 3-5 parrafos minimo. Incluye historia, proposito, mision, vision, valores si los hay. Hazlo como si fueras un empleado orgulloso presentando su empresa.]
+[Descripcion extensa y detallada. 3-5 parrafos minimo. Incluye historia, proposito, mision, vision, valores. Como un empleado orgulloso presentando su empresa.]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📞 CONTACTO E INFORMACION GENERAL
 • 📍 Direccion: [si hay]
 • 📱 WhatsApp: [si hay]
-• 📧 Email: [si hay]
-• 📞 Telefono: [si hay]
+• 📧 Email: [todos los encontrados]
+• 📞 Telefono: [todos los encontrados]
 • 🌐 Sitio Web: [url]
-• 📺 Redes Sociales: [todas las que encuentres: YouTube, Instagram, Facebook, TikTok, etc.]
+• 📺 Redes Sociales: [todas: YouTube, Instagram, Facebook, TikTok, LinkedIn, etc. con URLs]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🕐 HORARIOS
 • [dia/rango]: [horario] ([descripcion si aplica])
-[Lista COMPLETA de todos los horarios encontrados]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🛍️ SERVICIOS Y ACTIVIDADES / PRODUCTOS
-[Lista EXHAUSTIVA de cada servicio, producto, actividad. Incluir descripcion, precio, horario, detalles]
-• [nombre] — [descripcion detallada]
-  💰 Precio: [si aplica] | 🕐 Horario: [si aplica]
+💰 PRECIOS, PLANES Y TARIFAS (SECCION CRITICA - extraer TODOS los precios)
+[Documentar EXHAUSTIVAMENTE cada plan, precio, tarifa, costo, suscripcion, paquete]
+• [nombre del plan/producto]: $[precio exacto] — [que incluye, caracteristicas]
+• [comparativa entre planes si existe]
+• [precios por periodo: mensual, anual, etc.]
+• [descuentos, ofertas, promociones activas]
 
-📌 CATEGORIAS DE SERVICIOS/PRODUCTOS:
-  • [categoria 1]: [items]
-  • [categoria 2]: [items]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛍️ SERVICIOS, PRODUCTOS Y FUNCIONALIDADES
+[Lista EXHAUSTIVA de cada servicio/producto/funcionalidad con descripcion detallada]
+• [nombre] — [descripcion completa y detallada]
+  💰 Precio: [si aplica] | 🕐 Horario: [si aplica] | 📋 Requisitos: [si aplica]
+
+📌 CATEGORIAS:
+  • [categoria 1]: [items con detalles]
+  • [categoria 2]: [items con detalles]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 DATOS Y ESTADISTICAS
-[Cualquier numero, estadistica, dato cuantitativo del negocio]
+[Cualquier numero, estadistica, dato cuantitativo]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🌐 PAGINAS DEL SITIO WEB
-[Lista COMPLETA de todas las paginas/secciones del sitio con su URL y descripcion de que contiene cada una]
-
-1. 🏠 [nombre pagina]: [url]
-   → [descripcion de que contiene esa pagina]
-
-2. [siguiente pagina...]
+[Lista COMPLETA de todas las paginas/secciones con URL y descripcion]
+1. 🏠 [nombre]: [url] → [que contiene]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔐 FUNCIONES/SECCIONES INTERNAS (si aplica)
-[Documentar todas las funciones del sistema: panel de usuario, dashboard, formularios, etc.]
+🔐 FUNCIONES/SECCIONES INTERNAS (si es una plataforma/sistema)
+[Documentar funciones del sistema: panel, dashboard, formularios, etc.]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 💳 METODOS DE PAGO
-• [metodo 1]
-• [metodo 2]
+• [metodo con detalles]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚚 ENVIOS / DESPACHO / LOGISTICA
-• [detalles]
+• [detalles completos]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📋 POLITICAS Y GARANTIAS
-• [politica 1]
-• [politica 2]
+• [cada politica con detalles]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👥 EQUIPO / ROLES / PERSONAL
-[Si hay info sobre el equipo, lideres, roles, jerarquia]
+[Info del equipo, lideres, roles]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-❓ PREGUNTAS FRECUENTES (generar al menos 10-15 basadas en la informacion)
-❔ [pregunta que un cliente/visitante haria]
-✅ [respuesta completa basada en los datos]
+❓ PREGUNTAS FRECUENTES (generar 15-25 basadas en la informacion REAL)
+❔ [pregunta ESPECIFICA que un cliente haria]
+✅ [respuesta DETALLADA y PRECISA basada en los datos reales del sitio]
+
+[Las preguntas deben cubrir: precios, planes, productos, envios, pagos, horarios, contacto, garantias, como funciona el servicio, diferencias entre opciones, etc.]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ℹ️ INFORMACION ADICIONAL
-• [cualquier dato que no encaje en las secciones anteriores]
-• [proyectos, campanas, eventos especiales, etc.]
+• [cualquier dato que no encaje arriba]
+• [proyectos, campanas, eventos, testimonios, casos de exito]
 
 REGLAS CRITICAS:
-- Se ULTRA MINUCIOSO. Extrae ABSOLUTAMENTE TODO lo que encuentres
-- Analiza CADA subpagina proporcionada, no solo la principal
-- Los links a paginas internas deben documentarse con su URL exacta y que contienen
+- PRIORIDAD MAXIMA: Extraer TODOS los precios, planes y tarifas. Un chatbot DEBE poder responder "¿cuanto cuesta?"
+- Se ULTRA MINUCIOSO. Lee CADA pagina proporcionada completa, no resumas
+- Si una subpagina tiene precios, listas o tablas, documenta TODO el detalle
 - NUNCA inventar informacion. Si no hay un dato, OMITE esa linea
-- NUNCA usar placeholders como [precio], [numero], etc. Solo datos reales
-- Genera MUCHAS preguntas frecuentes (10-15 minimo) basadas en la informacion real
-- La descripcion debe ser EXTENSA y profesional, como un pitch de ventas
+- NUNCA usar placeholders como [precio], [numero]. Solo datos reales encontrados
+- Genera al menos 15-25 preguntas frecuentes especificas y utiles
+- La descripcion debe ser EXTENSA y profesional
 - Escribir TODO en español
-- Emojis obligatorios en cada seccion y subseccion
-- Separadores ━━━ entre secciones
+- Emojis obligatorios
 - Si una seccion no tiene datos, OMITELA completamente
-- El resultado debe ser lo MAS COMPLETO y DETALLADO posible para que un chatbot pueda responder CUALQUIER pregunta sobre el negocio`
+- El resultado debe permitir que un chatbot responda CUALQUIER pregunta sobre el negocio con datos reales y precisos`
           },
           {
             role: "user",
-            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se te proporciona el contenido de la pagina principal Y ${subpageResults.length} subpaginas internas que fueron escaneadas automaticamente. Analiza CADA pagina, extrae TODA la informacion: servicios, productos, horarios, contacto, links, preguntas frecuentes, y todo lo que pueda servir para que un chatbot responda cualquier pregunta. Solo incluye datos REALES, nunca placeholders:\n\n${truncatedText}`
+            content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se escaneo la pagina principal + ${subpageResults.length} subpaginas internas${sitemapUrls.length > 0 ? ` (se encontraron ${sitemapUrls.length} URLs en el sitemap)` : ""}. Se extrajeron automaticamente: encabezados, precios, tablas, listas, emails, telefonos y redes sociales de CADA pagina.
+
+ATENCION ESPECIAL: Busca y documenta TODOS los precios, planes, tarifas, costos. Si hay secciones de pricing/planes, extrae cada precio exacto con lo que incluye.
+
+Analiza CADA pagina, extrae TODA la informacion. Solo incluye datos REALES:\n\n${truncatedText}`
           }
         ],
-        temperature: 0.3,
+        temperature: 0.2,
         max_tokens: 16000,
       });
       const organized = completion.choices[0]?.message?.content || "";
