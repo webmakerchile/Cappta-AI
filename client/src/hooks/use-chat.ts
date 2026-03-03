@@ -231,7 +231,11 @@ export function useChat(tenantId?: number | null) {
       if (!user) return [];
       const res = await fetch(`/api/messages/thread/${encodeURIComponent(user.email)}${tenantQuery}`);
       if (!res.ok) throw new Error("Error loading messages");
-      return res.json();
+      const data: Message[] = await res.json();
+      if (tenantId) {
+        return data.filter((m: any) => m.tenantId === Number(tenantId));
+      }
+      return data;
     },
     enabled: !!user,
     refetchInterval: 4000,
@@ -244,7 +248,11 @@ export function useChat(tenantId?: number | null) {
       if (!user) return [];
       const res = await fetch(`/api/sessions/by-email/${encodeURIComponent(user.email)}${tenantQuery}`);
       if (!res.ok) throw new Error("Error loading sessions");
-      return res.json();
+      const data: Session[] = await res.json();
+      if (tenantId) {
+        return data.filter((s: any) => s.tenantId === Number(tenantId));
+      }
+      return data;
     },
     enabled: !!user,
     refetchInterval: 8000,
@@ -271,13 +279,13 @@ export function useChat(tenantId?: number | null) {
       });
 
       socket.on("chat_history", (history: Message[]) => {
-        queryClient.setQueryData(["/api/messages/thread", user.email], history);
+        queryClient.setQueryData(["/api/messages/thread", user.email, tenantId], history);
       });
 
       socket.on("new_message", (msg: Message) => {
         setStreamingText("");
         queryClient.setQueryData(
-          ["/api/messages/thread", user.email],
+          ["/api/messages/thread", user.email, tenantId],
           (old: Message[] | undefined) => {
             const existing = old || [];
             if (existing.some(m => m.id === msg.id)) return existing;
@@ -318,7 +326,7 @@ export function useChat(tenantId?: number | null) {
         disconnectSocket();
       } catch {}
     };
-  }, [user]);
+  }, [user, tenantId]);
 
   const [isSending, setIsSending] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
@@ -377,7 +385,7 @@ export function useChat(tenantId?: number | null) {
           messageCountBeforeSend.current = (messages.length || 0) + 1;
           setIsBotTyping(true);
           queryClient.setQueryData(
-            ["/api/messages/thread", user.email],
+            ["/api/messages/thread", user.email, tenantId],
             (old: Message[] | undefined) => {
               const existing = old || [];
               if (existing.some(m => m.id === msg.id)) return existing;
@@ -386,7 +394,7 @@ export function useChat(tenantId?: number | null) {
           );
 
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
+            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
           }, 1000);
         } else if (res.status === 429) {
           if (!planLimitReached) {
@@ -404,7 +412,7 @@ export function useChat(tenantId?: number | null) {
               timestamp: new Date(),
             };
             queryClient.setQueryData(
-              ["/api/messages/thread", user.email],
+              ["/api/messages/thread", user.email, tenantId],
               (old: Message[] | undefined) => [...(old || []), limitMsg],
             );
           }
@@ -451,7 +459,7 @@ export function useChat(tenantId?: number | null) {
       if (res.ok) {
         setContactRequested(true);
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
+          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
         }, 1500);
       }
     } catch {
@@ -516,7 +524,7 @@ export function useChat(tenantId?: number | null) {
             messageCountBeforeSend.current = 1;
             setIsBotTyping(true);
             setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", email] });
+              queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", email, tenantId] });
             }, 2500);
           }
         } catch {
@@ -562,11 +570,11 @@ export function useChat(tenantId?: number | null) {
         if (res.ok) {
           messageCountBeforeSend.current = 1;
           setIsBotTyping(true);
-          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
-          queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
+          queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email, tenantId] });
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email] });
-            queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email] });
+            queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user.email, tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user.email, tenantId] });
           }, 2000);
         }
       } catch {

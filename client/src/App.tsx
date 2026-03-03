@@ -133,8 +133,8 @@ function FullScreenChat() {
   }, [user, login, autoLoginDone]);
 
   const handleRatingComplete = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
-    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email, undefined] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email, undefined] });
   }, [user?.email]);
 
   if (isLoading || paramsValid === null) {
@@ -264,8 +264,8 @@ function ContactChat() {
   }, []);
 
   const handleRatingComplete = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
-    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email, undefined] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email, undefined] });
   }, [user?.email]);
 
   if (isLoading) {
@@ -481,9 +481,9 @@ function ChatWidget() {
   }, [logout]);
 
   const handleRatingComplete = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email] });
-    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email] });
-  }, [user?.email]);
+    queryClient.invalidateQueries({ queryKey: ["/api/sessions/by-email", user?.email, tenantId] });
+    queryClient.invalidateQueries({ queryKey: ["/api/messages/thread", user?.email, tenantId] });
+  }, [user?.email, tenantId]);
 
   useEffect(() => {
     if (!isOpen && messages.length > 0) {
