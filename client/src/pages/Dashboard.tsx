@@ -59,6 +59,9 @@ import {
   Clock,
   MessageCircle,
   Shield,
+  Package,
+  ShoppingBag,
+  Trash2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -317,6 +320,14 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
   const [showProductSearch, setShowProductSearch] = useState(tenant.showProductSearch === 1);
   const [productSearchLabel, setProductSearchLabel] = useState(tenant.productSearchLabel || "Buscar producto");
   const [productApiUrl, setProductApiUrl] = useState(tenant.productApiUrl || "");
+  const [manualProducts, setManualProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductPrice, setNewProductPrice] = useState("");
+  const [newProductUrl, setNewProductUrl] = useState("");
+  const [newProductDescription, setNewProductDescription] = useState("");
+  const [addingProduct, setAddingProduct] = useState(false);
+  const [showAddProduct, setShowAddProduct] = useState(false);
   const [saved, setSaved] = useState(false);
   const [domain, setDomain] = useState(tenant.domain || "");
   const [avatarUrl, setAvatarUrl] = useState(tenant.avatarUrl || "");
@@ -378,6 +389,70 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       setConsultationOptions(tenant.consultationOptions ? JSON.parse(tenant.consultationOptions) : []);
     } catch { setConsultationOptions([]); }
   }, [tenant]);
+
+  const fetchManualProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const res = await fetch("/api/tenant-panel/products", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setManualProducts(data);
+      }
+    } catch {} finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchManualProducts();
+  }, []);
+
+  const handleAddProduct = async () => {
+    if (!newProductName.trim()) return;
+    setAddingProduct(true);
+    try {
+      const res = await fetch("/api/tenant-panel/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: newProductName.trim(),
+          price: newProductPrice.trim() || null,
+          productUrl: newProductUrl.trim() || null,
+          description: newProductDescription.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        setNewProductName("");
+        setNewProductPrice("");
+        setNewProductUrl("");
+        setNewProductDescription("");
+        setShowAddProduct(false);
+        await fetchManualProducts();
+        toast({ title: "Producto agregado" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo agregar el producto", variant: "destructive" });
+    } finally {
+      setAddingProduct(false);
+    }
+  };
+
+  const handleDeleteProduct = async (id: number) => {
+    try {
+      const res = await fetch(`/api/tenant-panel/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setManualProducts(prev => prev.filter(p => p.id !== id));
+        toast({ title: "Producto eliminado" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo eliminar", variant: "destructive" });
+    }
+  };
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -582,7 +657,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       labelFinalizeButton: labelFinalizeButton.trim() || null,
       domain: domain.trim() || null,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
-      showProductSearch: (showProductSearch && productApiUrl.trim()) ? 1 : 0,
+      showProductSearch: showProductSearch ? 1 : 0,
       productSearchLabel,
       productApiUrl: productApiUrl.trim() || null,
       welcomeBannerText: welcomeBannerText.trim() || null,
@@ -1158,16 +1233,16 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
       <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-6 animate-dash-scale-in relative overflow-hidden">
         <div className="relative">
           <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
-            <Search className="w-5 h-5 text-primary" />
-            API de Productos
+            <ShoppingBag className="w-5 h-5 text-primary" />
+            Catálogo de Productos
           </h3>
-          <p className="text-sm text-white/40">Conecta tu catálogo de productos para que los clientes puedan buscar en el chat</p>
+          <p className="text-sm text-white/40">Agrega productos para que tus clientes los encuentren desde el chat</p>
         </div>
 
         <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
           <div>
             <p className="text-sm font-medium text-white/80">Habilitar buscador de productos</p>
-            <p className="text-xs text-white/40 mt-0.5">Requiere una URL de API de productos configurada</p>
+            <p className="text-xs text-white/40 mt-0.5">Permite a tus clientes buscar productos directamente en el chat</p>
           </div>
           <Switch
             checked={showProductSearch}
@@ -1179,28 +1254,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
         </div>
 
         {showProductSearch && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white/60">
-                URL de API de Productos <span className="text-red-400">*</span>
-              </label>
-              <Input
-                value={productApiUrl}
-                onChange={(e) => setProductApiUrl(e.target.value)}
-                placeholder="https://tutienda.com/wp-json/wc/v3/products"
-                className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
-                data-testid="input-product-api-url"
-              />
-              <p className="text-xs text-white/30">
-                Ingresa la URL de tu API de productos (WooCommerce, Shopify, API personalizada). Si no tienes una, contacta a Web Maker Chile para generar una.
-              </p>
-              {showProductSearch && !productApiUrl.trim() && (
-                <p className="text-xs text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  Debes ingresar una URL de API para activar el buscador de productos
-                </p>
-              )}
-            </div>
+          <div className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white/60">Etiqueta del buscador</label>
               <Input
@@ -1210,6 +1264,145 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                 className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
                 data-testid="input-product-search-label"
               />
+            </div>
+
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+              <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-white/80">Productos manuales</p>
+                    <p className="text-xs text-white/40">Agrega productos uno a uno desde aqui</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddProduct(!showAddProduct)}
+                  className="text-xs rounded-lg border-white/[0.08] hover:border-primary/30"
+                  data-testid="button-toggle-add-product"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Agregar
+                </Button>
+              </div>
+
+              {showAddProduct && (
+                <div className="p-4 border-b border-white/[0.06] bg-white/[0.02] space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input
+                      value={newProductName}
+                      onChange={(e) => setNewProductName(e.target.value)}
+                      placeholder="Nombre del producto *"
+                      className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
+                      data-testid="input-new-product-name"
+                    />
+                    <Input
+                      value={newProductPrice}
+                      onChange={(e) => setNewProductPrice(e.target.value)}
+                      placeholder="Precio (ej: $9.990)"
+                      className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
+                      data-testid="input-new-product-price"
+                    />
+                  </div>
+                  <Input
+                    value={newProductUrl}
+                    onChange={(e) => setNewProductUrl(e.target.value)}
+                    placeholder="URL del producto (opcional)"
+                    className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
+                    data-testid="input-new-product-url"
+                  />
+                  <Input
+                    value={newProductDescription}
+                    onChange={(e) => setNewProductDescription(e.target.value)}
+                    placeholder="Descripción breve (opcional)"
+                    className="h-9 text-xs bg-white/[0.04] border-white/[0.08]"
+                    data-testid="input-new-product-description"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setShowAddProduct(false); setNewProductName(""); setNewProductPrice(""); setNewProductUrl(""); setNewProductDescription(""); }}
+                      className="text-xs h-8"
+                      data-testid="button-cancel-add-product"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleAddProduct}
+                      disabled={addingProduct || !newProductName.trim()}
+                      className="text-xs h-8 bg-primary"
+                      data-testid="button-confirm-add-product"
+                    >
+                      {addingProduct ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Plus className="w-3 h-3 mr-1" />}
+                      Agregar producto
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="max-h-[240px] overflow-y-auto">
+                {loadingProducts ? (
+                  <div className="p-6 text-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-white/30 mx-auto" />
+                  </div>
+                ) : manualProducts.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <Package className="w-8 h-8 text-white/10 mx-auto mb-2" />
+                    <p className="text-xs text-white/30">No hay productos manuales aun</p>
+                    <p className="text-[10px] text-white/20 mt-1">Agrega productos con el boton de arriba</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-white/[0.04]">
+                    {manualProducts.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.02] transition-colors group" data-testid={`product-row-${p.id}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-white/70 truncate">{p.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {p.price && <span className="text-[10px] text-primary font-semibold">{p.price}</span>}
+                            {p.description && <span className="text-[10px] text-white/30 truncate">{p.description}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteProduct(p.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all"
+                          title="Eliminar"
+                          data-testid={`button-delete-product-${p.id}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {manualProducts.length > 0 && (
+                <div className="px-4 py-2 border-t border-white/[0.04] bg-white/[0.01]">
+                  <p className="text-[10px] text-white/25">{manualProducts.length} producto{manualProducts.length !== 1 ? "s" : ""} en tu catálogo</p>
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Globe className="w-4 h-4 text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium text-white/80">Conectar plataforma externa</p>
+                  <p className="text-xs text-white/40">Si tienes muchos productos en WooCommerce, Shopify u otra plataforma, conecta su API para sincronizar tu catálogo automaticamente</p>
+                </div>
+              </div>
+              <Input
+                value={productApiUrl}
+                onChange={(e) => setProductApiUrl(e.target.value)}
+                placeholder="https://tutienda.com/wp-json/wc/v3/products"
+                className="h-11 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 transition-all duration-300"
+                data-testid="input-product-api-url"
+              />
+              <p className="text-[11px] text-white/25">
+                Compatible con WooCommerce REST API, Shopify Storefront API, y APIs personalizadas que retornen JSON con productos.
+              </p>
             </div>
           </div>
         )}
