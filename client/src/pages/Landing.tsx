@@ -56,7 +56,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
-import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Loader2, UserPlus, ArrowLeft, Shield, Zap, Bot, Sparkles } from "lucide-react";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
-import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 
 const registerSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),

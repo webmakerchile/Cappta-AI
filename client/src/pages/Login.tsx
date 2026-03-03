@@ -17,7 +17,7 @@ import {
 import { useState } from "react";
 import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, Zap, UserCog, Building2 } from "lucide-react";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
-import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un correo válido"),

@@ -61,7 +61,7 @@ import {
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
 import type { Tenant } from "@shared/schema";
-import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 

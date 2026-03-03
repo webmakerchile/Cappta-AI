@@ -67,7 +67,7 @@ import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
-import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 import OnboardingWizard from "./OnboardingWizard";
 import DashboardTour, { TourPrompt } from "./DashboardTour";
 

@@ -18,7 +18,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiHtml5, SiGodaddy } from "react-icons/si";
-import logoSinFondo from "@assets/Logo_sin_fondo_1772247619250.png";
+import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 
 const WIDGET_BASE_URL = window.location.origin;
 
