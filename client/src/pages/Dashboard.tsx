@@ -2715,7 +2715,7 @@ function DownloadAppSection() {
     }
   };
 
-  const currentUrl = window.location.origin + "/dashboard";
+  const currentUrl = "https://www.foxbot.cl/panel";
 
   return (
     <div className="space-y-6">
@@ -2727,7 +2727,7 @@ function DownloadAppSection() {
             <Download className="w-5 h-5 text-primary" />
             Descarga FoxBot en tus dispositivos
           </h3>
-          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Lleva tu panel de soporte a cualquier lugar. Responde a tus clientes desde el celular o tu computador como si fuera una app nativa.</p>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Instala FoxBot como app en tu celular o computador desde <span className="text-primary font-medium">foxbot.cl/panel</span>. Tu panel es personal — solo tu puedes ver y gestionar tu negocio. Una vez que inicies sesión, no tendras que volver a hacerlo.</p>
         </div>
 
         {isInstalled && (
@@ -2808,11 +2808,11 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">Android (Chrome)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Chrome y visita esta página" },
-              { step: "2", text: 'Toca el menú (3 puntos arriba a la derecha)' },
-              { step: "3", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicación"' },
-              { step: "4", text: 'Confirma tocando "Agregar"' },
-              { step: "5", text: "FoxBot aparecerá como una app en tu celular" },
+              { step: "1", text: "Abre Chrome y visita foxbot.cl/panel" },
+              { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
+              { step: "3", text: 'Toca el menú (3 puntos arriba a la derecha)' },
+              { step: "4", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicación"' },
+              { step: "5", text: "FoxBot se instalara como app y tu sesión quedara activa" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
@@ -2829,11 +2829,11 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">iPhone / iPad (Safari)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Safari y visita esta página" },
-              { step: "2", text: 'Toca el botón de compartir (cuadrado con flecha hacia arriba)' },
-              { step: "3", text: 'Desplazate y selecciona "Agregar a pantalla de inicio"' },
-              { step: "4", text: 'Toca "Agregar" en la esquina superior derecha' },
-              { step: "5", text: "FoxBot aparecerá como una app en tu iPhone" },
+              { step: "1", text: "Abre Safari y visita foxbot.cl/panel" },
+              { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
+              { step: "3", text: 'Toca el botón de compartir (cuadrado con flecha hacia arriba)' },
+              { step: "4", text: 'Selecciona "Agregar a pantalla de inicio" y confirma' },
+              { step: "5", text: "FoxBot se instalara como app y tu sesión quedara activa" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-blue-400">{item.step}</div>
@@ -2855,10 +2855,11 @@ function DownloadAppSection() {
 
         <div className="space-y-4">
           {[
-            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita esta página" },
-            { step: "2", text: 'Busca el icono de instalar en la barra de direcciones (un monitor con flecha hacia abajo) o ve al menú del navegador' },
-            { step: "3", text: 'Haz clic en "Instalar FoxBot" o "Instalar aplicación"' },
-            { step: "4", text: "FoxBot se abrira como una ventana independiente, como cualquier otra app de tu computador" },
+            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita foxbot.cl/panel" },
+            { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
+            { step: "3", text: 'Busca el icono de instalar en la barra de direcciones o ve al menú del navegador' },
+            { step: "4", text: 'Haz clic en "Instalar FoxBot" o "Instalar aplicación"' },
+            { step: "5", text: "FoxBot se abrira como ventana independiente con tu sesión activa" },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
               <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
@@ -2893,6 +2894,14 @@ function DownloadAppSection() {
             <Copy className="mr-1.5 h-3 w-3" />
             Copiar
           </Button>
+        </div>
+
+        <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 space-y-1.5">
+          <p className="text-xs text-white/60 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="font-medium">Tu panel es privado y personal</span>
+          </p>
+          <p className="text-[11px] text-white/35 leading-relaxed pl-5">Cada persona que acceda a foxbot.cl/panel vera unicamente su propio negocio. Si no tiene cuenta, podra registrarse e iniciar sesión. Una vez dentro, la sesión se mantiene activa — no tendra que iniciar sesión cada vez.</p>
         </div>
       </div>
     </div>
