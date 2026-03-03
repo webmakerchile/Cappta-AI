@@ -30,7 +30,8 @@ const getPlatformBadge = (platform: string): string => {
     pc: "PC",
     all: "",
   };
-  return platformMap[platform] || platform;
+  if (platform in platformMap) return platformMap[platform];
+  return platform;
 };
 
 export function ProductSelector({
