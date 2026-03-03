@@ -41,11 +41,6 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
     if (!bubbleText) return;
     setShowBubble(true);
     onBubbleChange?.(true);
-    const timer = setTimeout(() => {
-      setShowBubble(false);
-      onBubbleChange?.(false);
-    }, 8000);
-    return () => clearTimeout(timer);
   }, [bubbleText]);
 
   if (!imageReady) return null;
@@ -89,7 +84,7 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
       >
         <button
           data-testid="button-launcher"
-          onClick={onClick}
+          onClick={() => { if (showBubble) { setShowBubble(false); onBubbleChange?.(false); } onClick(); }}
           className="
             w-full h-full rounded-full
             flex items-center justify-center
