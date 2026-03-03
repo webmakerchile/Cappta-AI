@@ -3031,24 +3031,42 @@ REGLAS:
 
       function extractPricingData(html: string): string[] {
         const pricing: string[] = [];
-        const pricePatterns = [
-          /\$[\d.,]+/g,
-          /USD\s*[\d.,]+/g,
-          /CLP\s*[\d.,]+/g,
-          /€[\d.,]+/g,
-          /[\d.,]+\s*(?:€|\$|USD|CLP|pesos|clp)/gi,
-        ];
+        const seen = new Set<string>();
+        const addUnique = (s: string) => { const k = s.trim().substring(0, 120); if (k.length > 5 && !seen.has(k)) { seen.add(k); pricing.push(k); } };
+
         const priceBlocks = html.match(/<(?:div|section|article|table|ul|ol|li|span|p|h[1-6]|td|th|dt|dd)[^>]*(?:pric|plan|cost|tarif|valor|monto|cuota|suscri|membresi|precio|oferta)[^>]*>[\s\S]*?<\/(?:div|section|article|table|ul|ol|li|span|p|h[1-6]|td|th|dt|dd)>/gi) || [];
         for (const block of priceBlocks) {
           const text = block.replace(/<[^>]+>/g, " ");
           const clean = cleanHtmlEntities(text);
-          if (clean.length > 10) pricing.push(clean);
+          if (clean.length > 10) addUnique(clean);
         }
         const ariaLabels = html.matchAll(/aria-label=["']([^"']*(?:pric|plan|precio|tarif|costo)[^"']*)["']/gi);
-        for (const m of ariaLabels) pricing.push(m[1]);
+        for (const m of ariaLabels) addUnique(m[1]);
         const dataAttrs = html.matchAll(/data-(?:price|plan|amount|cost|value)=["']([^"']+)["']/gi);
-        for (const m of dataAttrs) pricing.push(`${m[0].split("=")[0].replace("data-","")}: ${m[1]}`);
-        return pricing;
+        for (const m of dataAttrs) addUnique(`${m[0].split("=")[0].replace("data-","")}: ${m[1]}`);
+
+        const strippedText = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+          .replace(/<[^>]+>/g, "\n");
+        const cleanText = cleanHtmlEntities(strippedText);
+        const lines = cleanText.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+
+        const priceLineRegex = /(?:\$\s*[\d.,]{3,}|USD\s*[\d.,]{3,}|CLP\s*[\d.,]{3,}|€\s*[\d.,]{3,}|[\d.,]{3,}\s*(?:€|\$|USD|CLP|UF|pesos))/i;
+        for (let i = 0; i < lines.length; i++) {
+          if (priceLineRegex.test(lines[i])) {
+            const contextStart = Math.max(0, i - 2);
+            const contextEnd = Math.min(lines.length - 1, i + 2);
+            const context: string[] = [];
+            for (let j = contextStart; j <= contextEnd; j++) {
+              if (lines[j].length > 1 && lines[j].length < 200) context.push(lines[j]);
+            }
+            const entry = context.join(" — ");
+            if (entry.length > 10) addUnique(entry);
+          }
+        }
+
+        return pricing.slice(0, 80);
       }
 
       function extractTables(html: string): string[] {
@@ -3301,6 +3319,11 @@ REGLAS:
           const pricePatterns = bundleText.matchAll(/\$\s*[\d.,]+(?:\s*(?:\/\s*mes|mensual|anual|usd|clp))?/gi);
           for (const pp of pricePatterns) {
             if (pp[0].length >= 3) addUnique(`PRECIO DETECTADO: ${pp[0]}`);
+          }
+
+          const productPriceBlocks = bundleText.matchAll(/["']([^"'\n]{2,80})["'][^"'\n]{0,30}["']?\s*(?:\$|precio|price)\s*[\d.,]+|(?:\$|precio|price)\s*[\d.,]+[^"'\n]{0,30}["']([^"'\n]{2,80})["']/gi);
+          for (const pb of productPriceBlocks) {
+            addUnique(pb[0].substring(0, 200));
           }
 
           return extracted;
@@ -3569,8 +3592,9 @@ REGLAS:
         combinedText += `\n========== CONTENIDO DE ARCHIVOS JAVASCRIPT (SPA) ==========\n`;
         combinedText += `⚠️ ADVERTENCIA CRITICA: Este sitio es una SPA (Single Page Application). El contenido real esta en estos JS bundles.\n`;
         combinedText += `⚠️ IMPORTANTE: Los bundles pueden contener DEMOS/EJEMPLOS de como se ve el producto en diferentes negocios (ej: tiendas, restaurantes, clinicas). Estas conversaciones de ejemplo NO son datos reales del negocio.\n`;
-        combinedText += `⚠️ REGLA: Si ves textos como "¡Hola! Tenemos el iPhone...", "Envio gratis sobre $500.000", "$89.990 blanqueamiento", "$459.990 PS5" — estos son DEMOS de ejemplo, NO precios reales del negocio analizado.\n`;
-        combinedText += `⚠️ REGLA: Los PRECIOS REALES del negocio estan en las secciones de "planes", "pricing", "tarifas". Los precios en conversaciones de chat simuladas son DEMOS.\n\n`;
+        combinedText += `⚠️ REGLA: Si ves CONVERSACIONES DE CHAT SIMULADAS como "¡Hola! Tenemos el iPhone...", "PS5 a $459.990" — esos son DEMOS de como funciona un chatbot, NO datos del negocio.\n`;
+        combinedText += `⚠️ REGLA: Los precios en CONVERSACIONES DE CHAT simuladas son DEMOS. Pero los precios en CATALOGOS, FICHAS DE PRODUCTO, LISTADOS DE TIENDA si son datos reales del negocio.\n`;
+        combinedText += `⚠️ REGLA: Si el negocio es una tienda/e-commerce, los precios junto a nombres de productos (ej: "Ribbon Soft Pink $10.990") SON datos reales.\n\n`;
         combinedText += jsBundleContent.join("\n\n").substring(0, 60000) + "\n\n";
         console.log(`[analyze-url] Added ${jsBundleContent.length} JS bundle extractions to context`);
       }
@@ -3650,9 +3674,10 @@ INSTRUCCIONES DE ANALISIS:
 - Si el contenido viene de archivos JavaScript (SPA), puede haber DEMOS/EJEMPLOS de conversaciones simuladas que muestran como se ve el producto en otros negocios (tiendas, restaurantes, clinicas, etc.)
 - NUNCA mezcles datos de demos/ejemplos con datos reales del negocio
 - Las conversaciones tipo "¡Hola! Tenemos el iPhone...", "Envio gratis sobre $X", "PS5 a $459.990" son DEMOS, NO datos del negocio
-- Los PRECIOS REALES del negocio estan en secciones de planes/pricing/tarifas, NO en conversaciones de ejemplo
+- Los PRECIOS REALES del negocio estan en secciones de planes/pricing/tarifas, catalogo de productos, o fichas de producto, NO en conversaciones de ejemplo/demo
 - Los datos de ENVIO, PRODUCTOS Y PRECIOS dentro de simulaciones de chat son EJEMPLOS de otros negocios, no del negocio analizado
 - Si el negocio es una PLATAFORMA/SOFTWARE (como un chatbot, SaaS, etc.), sus precios son los PLANES DE SUSCRIPCION, no los precios de productos en demos
+- Si el negocio es una TIENDA/E-COMMERCE, los precios de los productos SON datos reales del negocio — documentalos TODOS con nombre del producto, precio normal, precio oferta si hay, y cualquier detalle relevante
 
 FORMATO DE SALIDA (usa TODAS las secciones que apliquen, con emojis y separadores):
 
@@ -3780,10 +3805,12 @@ REGLAS CRITICAS:
             content: `Analiza EXHAUSTIVAMENTE este sitio web completo (${cleanUrl}). Se escaneo la pagina principal + ${crawledPages.length} subpaginas internas${sitemapUrlCount > 0 ? ` (se encontraron ${sitemapUrlCount} URLs en el sitemap)` : ""} en ${crawlRound} rondas de crawling recursivo.${jsBundleContent.length > 0 ? ` Ademas se descargaron y analizaron ${jsBundleContent.length} archivos JavaScript del sitio (SPA) para extraer el contenido renderizado dinamicamente.` : ""} Se extrajeron automaticamente: encabezados, precios, tablas, listas, emails, telefonos y redes sociales.
 
 ATENCION ESPECIAL:
-1. Busca y documenta TODOS los precios, planes, tarifas, costos. Si hay secciones de pricing/planes, extrae cada precio exacto con lo que incluye.
+1. Busca y documenta TODOS los precios, planes, tarifas, costos. Si hay secciones de pricing/planes/catalogo/tienda, extrae cada precio exacto con lo que incluye.
 2. Si el sitio es una SPA (aplicacion de pagina unica), el contenido de los JS bundles contiene TODA la informacion real del sitio - analiza esos textos con especial atencion.
 3. Busca precios en formatos como: $9.990, $19.990/mes, USD $29, 0.02 USD, CLP, UF, etc.
 4. Busca nombres de planes como: Free, Basic, Pro, Enterprise, Starter, Premium, Gratis, etc.
+5. Si es una tienda/e-commerce, documenta CADA producto individual con su nombre, variante/color, precio normal, precio oferta si aplica, y descripcion. Los precios en fichas de producto SON datos reales del negocio.
+6. Presta atencion a precios que aparecen junto a nombres de productos, incluso si no estan en elementos HTML con clases de "pricing".
 
 Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incluye datos REALES:\n\n${truncatedText}`
           }
