@@ -1383,7 +1383,9 @@ ${DEMO_BASE_RULES}`,
       const tenant = await storage.getTenantById(auth.id);
       if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
 
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "foxbot.cl";
+      const proto = req.get("x-forwarded-proto") || req.protocol || "https";
+      const baseUrl = `${proto}://${forwardedHost}`;
       const tenantId = tenant.id;
       const pluginSlug = "foxbot-chat";
       const companyName = tenant.companyName || "FoxBot";
@@ -1402,54 +1404,50 @@ ${DEMO_BASE_RULES}`,
 
 if (!defined('ABSPATH')) exit;
 
-define('FOXBOT_TENANT_ID', '${tenantId}');
+define('FOXBOT_TENANT_ID', ${tenantId});
 define('FOXBOT_BASE_URL', '${baseUrl}');
 
-function foxbot_enqueue_widget() {
-    $tenant_id = FOXBOT_TENANT_ID;
-    $base_url = FOXBOT_BASE_URL;
-
-    $script = "
-    (function() {
-        if (document.getElementById('foxbot-widget')) return;
-        var iframe = document.createElement('iframe');
-        iframe.id = 'foxbot-widget';
-        iframe.src = '" . esc_url($base_url) . "/widget?tenantId=" . intval($tenant_id) . "';
-        iframe.allow = 'microphone';
-        var pos = 'right';
-        function setPos(p, state, w, h) {
-            var s = p === 'left' ? 'left' : 'right';
-            var o = p === 'left' ? 'right' : 'left';
-            var mobile = window.innerWidth <= 480;
-            if (state === 'open') {
-                if (mobile) {
-                    iframe.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
-                } else {
-                    iframe.style.cssText = 'position:fixed;bottom:16px;' + s + ':16px;' + o + ':auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
-                }
+function foxbot_render_widget() {
+    if (is_admin()) return;
+    $tenant_id = intval(FOXBOT_TENANT_ID);
+    $base_url = esc_url(FOXBOT_BASE_URL);
+    echo '<script id="foxbot-loader">
+(function() {
+    if (document.getElementById("foxbot-widget")) return;
+    var iframe = document.createElement("iframe");
+    iframe.id = "foxbot-widget";
+    iframe.src = "' . $base_url . '/widget?tenantId=' . $tenant_id . '";
+    iframe.allow = "microphone";
+    var pos = "right";
+    function setPos(p, state, w, h) {
+        var s = p === "left" ? "left" : "right";
+        var o = p === "left" ? "right" : "left";
+        var mobile = window.innerWidth <= 480;
+        if (state === "open") {
+            if (mobile) {
+                iframe.style.cssText = "position:fixed;bottom:0;left:0;width:100%;height:100%;border:none;z-index:9999;";
             } else {
-                var cw = (w || 70) + 'px';
-                var ch = (h || 70) + 'px';
-                iframe.style.cssText = 'position:fixed;bottom:12px;' + s + ':12px;' + o + ':auto;width:' + cw + ';height:' + ch + ';border:none;z-index:9999;';
+                iframe.style.cssText = "position:fixed;bottom:16px;" + s + ":16px;" + o + ":auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);";
             }
+        } else {
+            var cw = (w || 70) + "px";
+            var ch = (h || 70) + "px";
+            iframe.style.cssText = "position:fixed;bottom:12px;" + s + ":12px;" + o + ":auto;width:" + cw + ";height:" + ch + ";border:none;z-index:9999;";
         }
-        setPos(pos, 'closed');
-        document.body.appendChild(iframe);
-        window.addEventListener('message', function(e) {
-            if (!e.data || !e.data.type) return;
-            if (e.data.position) pos = e.data.position;
-            if (e.data.type === 'foxbot_position') { pos = e.data.position; setPos(pos, 'closed'); }
-            if (e.data.type === 'open_chat') setPos(pos, 'open');
-            if (e.data.type === 'close_chat') setPos(pos, 'closed', e.data.width, e.data.height);
-        });
-    })();
-    ";
-
-    wp_register_script('foxbot-widget', '', array(), '1.0.0', true);
-    wp_enqueue_script('foxbot-widget');
-    wp_add_inline_script('foxbot-widget', $script);
+    }
+    setPos(pos, "closed");
+    document.body.appendChild(iframe);
+    window.addEventListener("message", function(e) {
+        if (!e.data || !e.data.type) return;
+        if (e.data.position) pos = e.data.position;
+        if (e.data.type === "foxbot_position") { pos = e.data.position; setPos(pos, "closed"); }
+        if (e.data.type === "open_chat") setPos(pos, "open");
+        if (e.data.type === "close_chat") setPos(pos, "closed", e.data.width, e.data.height);
+    });
+})();
+</script>';
 }
-add_action('wp_enqueue_scripts', 'foxbot_enqueue_widget');
+add_action('wp_footer', 'foxbot_render_widget');
 
 function foxbot_settings_link($links) {
     $settings_link = '<a href="https://foxbot.cl/dashboard" target="_blank">Configurar en FoxBot</a>';

@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 app.get("/api/health", (_req, res) => res.status(200).json({ status: "ok" }));
