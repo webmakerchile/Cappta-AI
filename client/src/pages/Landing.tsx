@@ -1942,18 +1942,18 @@ export default function Landing() {
             <div>
               <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Integraciones</h4>
               <ul className="space-y-3 text-sm text-white/30">
-                <li><span data-testid="link-footer-woo">WooCommerce</span></li>
-                <li><span data-testid="link-footer-shopify">Shopify</span></li>
-                <li><span data-testid="link-footer-wordpress">WordPress</span></li>
-                <li><span data-testid="link-footer-api">API Custom</span></li>
+                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-woo">WooCommerce</a></li>
+                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-shopify">Shopify</a></li>
+                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-wordpress">WordPress</a></li>
+                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-api">API Custom</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Legal</h4>
               <ul className="space-y-3 text-sm text-white/30">
-                <li><span data-testid="link-footer-privacy">Privacidad</span></li>
-                <li><span data-testid="link-footer-terms">Terminos de Uso</span></li>
-                <li><span data-testid="link-footer-contact">Contacto</span></li>
+                <li><a href="/privacidad" className="hover:text-primary transition-colors" data-testid="link-footer-privacy">Privacidad</a></li>
+                <li><a href="/terminos" className="hover:text-primary transition-colors" data-testid="link-footer-terms">Términos de Uso</a></li>
+                <li><a href="mailto:webmakerchile@gmail.com" className="hover:text-primary transition-colors" data-testid="link-footer-contact">Contacto</a></li>
               </ul>
             </div>
           </div>

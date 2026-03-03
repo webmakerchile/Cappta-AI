@@ -64,6 +64,8 @@ const DashboardPage = lazy(() => import("@/pages/Dashboard"));
 const DemoPage = lazy(() => import("@/pages/Demo"));
 const GuidesPage = lazy(() => import("@/pages/Guides"));
 const TenantPanelPage = lazy(() => import("@/pages/TenantPanel"));
+const PrivacyPage = lazy(() => import("@/pages/Privacy"));
+const TermsPage = lazy(() => import("@/pages/Terms"));
 
 function FullScreenChat() {
   const {
@@ -584,8 +586,10 @@ function App() {
   const isDemo = pathname === "/demo";
   const isGuides = pathname === "/guias";
   const isPanel = pathname === "/panel";
+  const isPrivacy = pathname === "/privacidad";
+  const isTerms = pathname === "/terminos";
 
-  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel;
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isPrivacy || isTerms;
 
   const isFixedLayout = isDashboard || isPanel;
 
@@ -637,6 +641,14 @@ function App() {
       ) : isPanel ? (
         <Suspense fallback={<SuspenseLoader />}>
           <TenantPanelPage />
+        </Suspense>
+      ) : isPrivacy ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <PrivacyPage />
+        </Suspense>
+      ) : isTerms ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <TermsPage />
         </Suspense>
       ) : isContactChat ? (
         <ContactChat />
