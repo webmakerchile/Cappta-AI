@@ -3001,6 +3001,134 @@ REGLAS:
         } catch { return null; }
       }
 
+      function cleanHtmlEntities(text: string): string {
+        return text
+          .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+          .replace(/&#x27;/g, "'").replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)))
+          .replace(/\s+/g, " ").trim();
+      }
+
+      function extractSectionsByTag(html: string, tags: string[]): string[] {
+        const results: string[] = [];
+        for (const tag of tags) {
+          const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "gi");
+          const matches = html.matchAll(regex);
+          for (const m of matches) {
+            const text = m[1].replace(/<[^>]+>/g, " ");
+            const clean = cleanHtmlEntities(text);
+            if (clean.length > 15) results.push(clean);
+          }
+        }
+        return results;
+      }
+
+      function extractPricingData(html: string): string[] {
+        const pricing: string[] = [];
+        const pricePatterns = [
+          /\$[\d.,]+/g,
+          /USD\s*[\d.,]+/g,
+          /CLP\s*[\d.,]+/g,
+          /€[\d.,]+/g,
+          /[\d.,]+\s*(?:€|\$|USD|CLP|pesos|clp)/gi,
+        ];
+        const priceBlocks = html.match(/<(?:div|section|article|table|ul|ol|li|span|p|h[1-6]|td|th|dt|dd)[^>]*(?:pric|plan|cost|tarif|valor|monto|cuota|suscri|membresi|precio|oferta)[^>]*>[\s\S]*?<\/(?:div|section|article|table|ul|ol|li|span|p|h[1-6]|td|th|dt|dd)>/gi) || [];
+        for (const block of priceBlocks) {
+          const text = block.replace(/<[^>]+>/g, " ");
+          const clean = cleanHtmlEntities(text);
+          if (clean.length > 10) pricing.push(clean);
+        }
+        const ariaLabels = html.matchAll(/aria-label=["']([^"']*(?:pric|plan|precio|tarif|costo)[^"']*)["']/gi);
+        for (const m of ariaLabels) pricing.push(m[1]);
+        const dataAttrs = html.matchAll(/data-(?:price|plan|amount|cost|value)=["']([^"']+)["']/gi);
+        for (const m of dataAttrs) pricing.push(`${m[0].split("=")[0].replace("data-","")}: ${m[1]}`);
+        return pricing;
+      }
+
+      function extractTables(html: string): string[] {
+        const tables: string[] = [];
+        const tableMatches = html.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi);
+        for (const tm of tableMatches) {
+          const rows = tm[1].matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+          const tableRows: string[] = [];
+          for (const row of rows) {
+            const cells = row[1].matchAll(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi);
+            const cellTexts: string[] = [];
+            for (const cell of cells) {
+              const t = cleanHtmlEntities(cell[1].replace(/<[^>]+>/g, " "));
+              if (t) cellTexts.push(t);
+            }
+            if (cellTexts.length > 0) tableRows.push(cellTexts.join(" | "));
+          }
+          if (tableRows.length > 0) tables.push(tableRows.join("\n"));
+        }
+        return tables;
+      }
+
+      function extractLists(html: string): string[] {
+        const lists: string[] = [];
+        const listMatches = html.matchAll(/<(?:ul|ol)[^>]*>([\s\S]*?)<\/(?:ul|ol)>/gi);
+        for (const lm of listMatches) {
+          const items = lm[1].matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi);
+          const itemTexts: string[] = [];
+          for (const item of items) {
+            const t = cleanHtmlEntities(item[1].replace(/<[^>]+>/g, " "));
+            if (t.length > 5) itemTexts.push(`• ${t}`);
+          }
+          if (itemTexts.length >= 2) lists.push(itemTexts.join("\n"));
+        }
+        return lists;
+      }
+
+      function extractEmails(html: string): string[] {
+        const emails = new Set<string>();
+        const mailtoMatches = html.matchAll(/mailto:([^\s"'?]+)/gi);
+        for (const m of mailtoMatches) emails.add(m[1]);
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+        const textContent = html.replace(/<[^>]+>/g, " ");
+        const textEmails = textContent.matchAll(emailRegex);
+        for (const m of textEmails) emails.add(m[0]);
+        return [...emails];
+      }
+
+      function extractPhones(html: string): string[] {
+        const phones = new Set<string>();
+        const telMatches = html.matchAll(/tel:([^\s"']+)/gi);
+        for (const m of telMatches) phones.add(m[1]);
+        const waMatches = html.matchAll(/wa\.me\/(\d+)/gi);
+        for (const m of waMatches) phones.add(`+${m[1]}`);
+        const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
+        const textContent = html.replace(/<[^>]+>/g, " ");
+        const textPhones = textContent.matchAll(phoneRegex);
+        for (const m of textPhones) {
+          const clean = m[0].replace(/\s+/g, "");
+          if (clean.length >= 8 && clean.length <= 16) phones.add(m[0].trim());
+        }
+        return [...phones];
+      }
+
+      function extractSocialLinks(html: string): string[] {
+        const socials = new Set<string>();
+        const socialPatterns = [
+          /https?:\/\/(?:www\.)?(?:facebook|fb)\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?instagram\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?twitter\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?x\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?linkedin\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?youtube\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?tiktok\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?wa\.me\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?api\.whatsapp\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?pinterest\.com\/[^\s"'<>]+/gi,
+          /https?:\/\/(?:www\.)?threads\.net\/[^\s"'<>]+/gi,
+        ];
+        for (const pattern of socialPatterns) {
+          const matches = html.matchAll(pattern);
+          for (const m of matches) socials.add(m[0].replace(/["'<>]/g, ""));
+        }
+        return [...socials];
+      }
+
       function extractPageData(html: string, pageUrl: string) {
         const metaParts: string[] = [];
         const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
@@ -3012,26 +3140,41 @@ REGLAS:
         for (const m of ogMatches) metaParts.push(`${m[1]}: ${m[2].trim()}`);
         const ogMatches2 = html.matchAll(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["'](og:[^"']+)["']/gi);
         for (const m of ogMatches2) metaParts.push(`${m[2]}: ${m[1].trim()}`);
+        const twitterMeta = html.matchAll(/<meta[^>]*name=["'](twitter:[^"']+)["'][^>]*content=["']([^"']+)["']/gi);
+        for (const m of twitterMeta) metaParts.push(`${m[1]}: ${m[2].trim()}`);
+        const keywordsMatch = html.match(/<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']+)["']/i);
+        if (keywordsMatch) metaParts.push(`Keywords: ${keywordsMatch[1].trim()}`);
+
         const jsonLdMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
         const jsonLdParts: string[] = [];
         for (const m of jsonLdMatches) { try { jsonLdParts.push(m[1].trim()); } catch {} }
 
         const navContent = (html.match(/<nav[^>]*>([\s\S]*?)<\/nav>/gi) || [])
-          .map(n => n.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).join(" ");
+          .map(n => n.replace(/<[^>]+>/g, " ")).map(n => cleanHtmlEntities(n)).join(" | ");
         const footerContent = (html.match(/<footer[^>]*>([\s\S]*?)<\/footer>/gi) || [])
-          .map(f => f.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).join(" ");
+          .map(f => f.replace(/<[^>]+>/g, " ")).map(f => cleanHtmlEntities(f)).join(" ");
         const headerContent = (html.match(/<header[^>]*>([\s\S]*?)<\/header>/gi) || [])
-          .map(h => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).join(" ");
+          .map(h => h.replace(/<[^>]+>/g, " ")).map(h => cleanHtmlEntities(h)).join(" ");
+
+        const headings = extractSectionsByTag(html, ["h1", "h2", "h3", "h4", "h5", "h6"]);
+        const paragraphs = extractSectionsByTag(html, ["p"]);
+        const pricing = extractPricingData(html);
+        const tables = extractTables(html);
+        const lists = extractLists(html);
+        const emails = extractEmails(html);
+        const phones = extractPhones(html);
+        const socials = extractSocialLinks(html);
 
         const mainContent = html
           .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-          .replace(/\s+/g, " ").trim();
+          .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, "")
+          .replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, "")
+          .replace(/<[^>]+>/g, " ");
+        const cleanMain = cleanHtmlEntities(mainContent);
 
         const links: string[] = [];
+        const linkTexts: { href: string; text: string }[] = [];
         const linkMatches = html.matchAll(/<a[^>]*href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi);
         for (const lm of linkMatches) {
           try {
@@ -3041,11 +3184,12 @@ REGLAS:
             const resolved = new URL(href, pageUrl);
             if (resolved.hostname === new URL(pageUrl).hostname) {
               links.push(resolved.href);
+              if (linkText.length > 2) linkTexts.push({ href: resolved.href, text: linkText });
             }
           } catch {}
         }
 
-        return { metaParts, jsonLdParts, mainContent, navContent, footerContent, headerContent, links: [...new Set(links)] };
+        return { metaParts, jsonLdParts, mainContent: cleanMain, navContent, footerContent, headerContent, headings, paragraphs, pricing, tables, lists, emails, phones, socials, links: [...new Set(links)], linkTexts };
       }
 
       const mainHtml = await fetchPage(cleanUrl, 30000);
