@@ -67,7 +67,7 @@ export function WelcomeForm({
       newErrors.name = "El nombre es obligatorio";
     }
     if (hasConsultationField && !problemType) {
-      newErrors.problemType = "Selecciona una opción";
+      setProblemType("general");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -151,6 +151,13 @@ export function WelcomeForm({
                 <SelectValue placeholder="Selecciona una opción" />
               </SelectTrigger>
               <SelectContent className="bg-[#2a2a2a] border-white/10">
+                <SelectItem
+                  value="general"
+                  data-testid="option-general"
+                  className="text-white/80 focus:bg-white/10 focus:text-white"
+                >
+                  Consulta general
+                </SelectItem>
                 {parsedOptions.map((opt) => (
                   <SelectItem
                     key={opt.value}
