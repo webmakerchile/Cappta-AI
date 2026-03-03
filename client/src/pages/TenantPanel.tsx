@@ -56,6 +56,7 @@ import {
   EyeOff,
   Copy,
   Download,
+  Lock,
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
@@ -704,7 +705,9 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
 
       <div className={`flex-1 flex flex-col ${!mobileShowChat ? "hidden md:flex" : "flex"}`}>
         {selectedSession && selectedSessionData ? (
-          <>
+          (() => {
+            const isClaimedByOther = selectedSessionData.adminActive && selectedSessionData.assignedToName && selectedSessionData.assignedToName !== currentName;
+            return <>
             <div className="flex items-center justify-between gap-2 p-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2 min-w-0">
                 <button
@@ -722,38 +725,47 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                   <p className="text-[11px] text-white/40 truncate">{selectedSessionData.userEmail}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {selectedSessionData.adminActive ? (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {selectedSessionData.adminActive && !isClaimedByOther ? (
                   <Button data-testid="button-unclaim" size="sm" variant="outline" onClick={() => handleUnclaim(selectedSession)} className="text-xs border-white/[0.08] h-7 px-2">
                     <ShieldOff className="w-3 h-3 mr-1" />Liberar
                   </Button>
-                ) : (
+                ) : !selectedSessionData.adminActive ? (
                   <Button data-testid="button-claim" size="sm" variant="outline" onClick={() => handleClaim(selectedSession)} className="text-xs border-emerald-500/30 text-emerald-400 h-7 px-2">
                     <ShieldCheck className="w-3 h-3 mr-1" />Entrar
                   </Button>
-                )}
-                {selectedSessionData.sessionRating && (
-                  <div className="flex items-center px-1" data-testid="chat-rating-display">
-                    <StarRating rating={selectedSessionData.sessionRating} size={12} />
-                  </div>
-                )}
-                <button
-                  data-testid="button-chat-search"
-                  onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }}
-                  className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-white/[0.06] text-white/40"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                </button>
-                {selectedSessionData.status === "active" && (
-                  <Button data-testid="button-close-session" size="sm" variant="outline" onClick={() => handleCloseSession(selectedSession)} className="text-xs border-white/[0.08] h-7 px-2">
-                    <XCircle className="w-3 h-3 mr-1" />Cerrar
-                  </Button>
-                )}
-                <Button data-testid="button-delete-session" size="sm" variant="outline" onClick={() => handleDeleteSession(selectedSession)} className="text-xs border-red-500/30 text-red-400 h-7 px-2">
-                  <Trash2 className="w-3 h-3" />
-                </Button>
+                ) : null}
+                <div className="flex items-center gap-0.5">
+                  {selectedSessionData.sessionRating && (
+                    <div className="flex items-center px-1" data-testid="chat-rating-display">
+                      <StarRating rating={selectedSessionData.sessionRating} size={12} />
+                    </div>
+                  )}
+                  <button
+                    data-testid="button-chat-search"
+                    onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }}
+                    className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-white/[0.06] text-white/40"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    data-testid="button-delete-session"
+                    onClick={() => handleDeleteSession(selectedSession)}
+                    className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-colors"
+                    title="Eliminar sesión"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
+
+            {isClaimedByOther && (
+              <div className="px-3 py-2 border-b border-amber-500/20 bg-amber-500/10 flex items-center gap-2" data-testid="banner-claimed-by-other">
+                <Lock className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                <p className="text-[11px] text-amber-400">Chat asignado a <strong>{selectedSessionData.assignedToName}</strong>. No puedes realizar acciones en este chat.</p>
+              </div>
+            )}
 
             {showChatSearch && (
               <div className="px-3 py-2 border-b border-white/[0.06] bg-white/[0.02]">
@@ -958,6 +970,12 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
               <div ref={messagesEndRef} />
             </div>
 
+            {isClaimedByOther ? (
+              <div className="px-4 py-3 border-t border-white/[0.06] bg-white/[0.02] flex items-center justify-center gap-2" data-testid="reply-blocked">
+                <Lock className="w-3.5 h-3.5 text-white/30" />
+                <p className="text-[11px] text-white/40">Chat asignado a <strong className="text-white/60">{selectedSessionData.assignedToName}</strong>. Solo el agente asignado puede responder.</p>
+              </div>
+            ) : (
             <div className="p-3 border-t border-white/[0.06] relative">
               {showSlashMenu && cannedResponses.length > 0 && (
                 <div className="absolute bottom-full left-3 right-3 mb-1 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-xl max-h-48 overflow-y-auto z-10" data-testid="slash-menu">
@@ -1075,7 +1093,9 @@ function ChatsTab({ token, tenant }: { token: string; tenant: TenantProfile }) {
                 </Button>
               </div>
             </div>
-          </>
+            )}
+          </>;
+          })()
         ) : (
           <div className="flex-1 flex items-center justify-center" data-testid="text-no-chat-selected">
             <div className="text-center">
