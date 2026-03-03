@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import { Send, Wifi, WifiOff, Headphones, UserRound, X, Search, ImagePlus, Loader2, ExternalLink, LogOut, ShoppingBag, Star, CheckCircle, Ticket, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Message, Session } from "@shared/schema";
@@ -798,13 +798,14 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
     }
   }, [showSearch]);
 
-  const searchMatchIndices = searchQuery.length >= 2
-    ? messages.reduce<number[]>((acc, m, idx) => {
-        const { text } = parseQuickReplies(m.content);
-        if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
-        return acc;
-      }, [])
-    : [];
+  const searchMatchIndices = useMemo(() => {
+    if (searchQuery.length < 2) return [];
+    return messages.reduce<number[]>((acc, m, idx) => {
+      const { text } = parseQuickReplies(m.content);
+      if (text.toLowerCase().includes(searchQuery.toLowerCase())) acc.push(idx);
+      return acc;
+    }, []);
+  }, [searchQuery, messages]);
 
   const matchCount = searchMatchIndices.length;
   const filteredMessages = messages;
