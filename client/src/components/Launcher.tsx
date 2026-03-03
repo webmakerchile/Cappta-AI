@@ -144,11 +144,11 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
   };
 
   return (
-    <div className={`relative flex items-center gap-2 ${isLeft ? "flex-row-reverse" : "flex-row"}`}>
+    <div className={`relative flex items-center ${isLeft ? "flex-row-reverse" : "flex-row"}`} style={{ width: `${sizePx}px`, height: `${sizePx}px`, flexShrink: 0 }}>
       {renderBubble()}
       <div
-        className="relative"
-        style={{ width: `${sizePx}px`, height: `${sizePx}px` }}
+        className="relative flex-shrink-0"
+        style={{ width: `${sizePx}px`, height: `${sizePx}px`, minWidth: `${sizePx}px`, minHeight: `${sizePx}px` }}
       >
         <button
           data-testid="button-launcher"
@@ -170,7 +170,8 @@ export function Launcher({ isOpen, onClick, hasUnread, color, launcherImage, lau
             <img
               src={launcherImage}
               alt="Chat"
-              className="w-full h-full rounded-full object-cover block"
+              className="rounded-full object-cover block"
+              style={{ width: `${sizePx}px`, height: `${sizePx}px`, maxWidth: `${sizePx}px`, maxHeight: `${sizePx}px` }}
               data-testid="img-launcher-custom"
             />
           ) : (

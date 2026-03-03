@@ -463,8 +463,11 @@ function ChatWidget() {
   const postMessageToParent = useCallback((type: string, hasBubble?: boolean) => {
     try {
       const isMobile = window.innerWidth <= 480;
-      const closedWidth = hasBubble ? 320 : 80;
-      const closedHeight = hasBubble ? 100 : 80;
+      const launcherSizePx = Math.round(56 * (widgetLauncherScale || 100) / 100);
+      const pad = 16;
+      const baseSize = launcherSizePx + pad;
+      const closedWidth = hasBubble ? Math.max(320, baseSize) : baseSize;
+      const closedHeight = hasBubble ? Math.max(100, baseSize) : baseSize;
       const payload = {
         type,
         width: type === "open_chat" ? (isMobile ? "100%" : 400) : closedWidth,
@@ -473,7 +476,7 @@ function ChatWidget() {
       };
       window.parent.postMessage(payload, "*");
     } catch {}
-  }, [widgetPosition]);
+  }, [widgetPosition, widgetLauncherScale]);
 
   const toggleChat = useCallback(() => {
     if (isInlineEmbed) {
@@ -594,7 +597,7 @@ function ChatWidget() {
           Cargando...
         </div>
       ) : !configLoaded ? null : (
-        <div className="p-1.5">
+        <div className="w-full h-full flex items-end" style={{ padding: "4px", justifyContent: widgetPosition === "left" ? "flex-start" : "flex-end" }}>
           <Launcher isOpen={isOpen} onClick={toggleChat} hasUnread={hasUnread} color={widgetColor} launcherImage={widgetLauncherImage} launcherScale={widgetLauncherScale} bubbleText={widgetBubbleText} bubbleStyle={widgetBubbleStyle} position={widgetPosition} onBubbleChange={(visible) => {
             postMessageToParent("close_chat", visible);
           }} />
