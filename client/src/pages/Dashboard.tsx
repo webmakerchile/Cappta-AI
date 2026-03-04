@@ -3095,6 +3095,9 @@ export default function Dashboard() {
       if (payment === "success") {
         toast({ title: "¡Pago exitoso!", description: "Tu plan ha sido actualizado. Ahora instala el chat en tu sitio web." });
         queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+        if (typeof window !== "undefined" && (window as any).ttq) {
+          (window as any).ttq.track("CompletePayment", { content_type: "product", content_name: "FoxBot Plan" });
+        }
         setActiveTab("guides");
       } else if (payment === "rejected") {
         toast({ title: "Pago rechazado", description: "Tu pago fue rechazado. Intenta con otro medio de pago.", variant: "destructive" });

@@ -60,6 +60,9 @@ export default function Register() {
     },
     onSuccess: (data: { token: string }) => {
       localStorage.setItem("tenant_token", data.token);
+      if (typeof window !== "undefined" && (window as any).ttq) {
+        (window as any).ttq.track("CompleteRegistration", { content_name: "FoxBot" });
+      }
       toast({
         title: "Cuenta creada",
         description: "Tu cuenta ha sido creada exitosamente.",

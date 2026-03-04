@@ -192,4 +192,5 @@ Created automatically on server startup (skipped in production):
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
 - **Flow.cl**: Chilean payment gateway for plan billing (via flowcl-node-api-client).
 - **Twilio**: WhatsApp Business API integration for multi-channel chat support.
+- **TikTok Pixel**: Conversion tracking (Pixel ID: D6K986RC77U8SKV71PDG). Base code in index.html. Events: CompleteRegistration (on signup), CompletePayment (on successful plan purchase).
 - **Helmet**: Express security headers middleware.
