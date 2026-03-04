@@ -2127,7 +2127,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               </a>
 
               <a
-                href="mailto:contacto@foxbot.cl?subject=Ayuda%20instalaci%C3%B3n%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
+                href="mailto:webmakerchile@gmail.com?subject=Ayuda%20instalaci%C3%B3n%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group"
                 data-testid="link-email-help"
               >
@@ -2136,7 +2136,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-white/70">Correo</p>
-                  <p className="text-[10px] text-white/40">contacto@foxbot.cl</p>
+                  <p className="text-[10px] text-white/40">webmakerchile@gmail.com</p>
                 </div>
               </a>
 
