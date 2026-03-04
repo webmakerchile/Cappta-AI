@@ -121,15 +121,31 @@ Key architectural decisions and features include:
 - Admin.tsx: "Dashboard" tab (superadmin only) shows KPI cards + revenue/plan/tenant growth charts using recharts
 - Admin.tsx: "Tenants" tab (superadmin only) shows searchable tenant table with plan badges, domain column, and payments history with status badges
 
+## WhatsApp Integration (Twilio)
+- **Provider**: Twilio WhatsApp Business API
+- **Package**: `twilio` npm package
+- **Service File**: `server/whatsapp.ts` - Twilio client, message sending, incoming message handler with AI
+- **Environment Variables**: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
+- **Webhook**: `POST /api/whatsapp/webhook` - Receives messages from Twilio, routes to tenant by WhatsApp number, responds with AI
+- **Status**: `GET /api/whatsapp/status` - Returns whether Twilio is configured
+- **Tenant Fields**: `whatsappEnabled` (int, default 0), `whatsappNumber` (text), `whatsappGreeting` (text)
+- **Admin Management**: Superadmin can toggle WhatsApp and assign numbers per tenant from Admin panel
+- **Dashboard**: Tenants see WhatsApp tab — free plans see upgrade prompt, paid plans see activation request or config (if enabled by admin)
+- **Pricing**: Optional add-on at $14.990 CLP/month for paid plans (Fox Pro or Fox Enterprise)
+- **Conversation History**: In-memory per phone number with 30-minute TTL, max 20 messages
+
 ## Payment Integration (Flow.cl)
 - **Provider**: Flow.cl (Chilean payment gateway, used instead of Stripe)
 - **Package**: `flowcl-node-api-client` (CommonJS, imported via createRequire)
 - **Service File**: `server/flow.ts` - Flow API client configuration and plan pricing
 - **Environment Variables**: `FLOW_API_KEY`, `FLOW_SECRET_KEY`
 - **Plans & Pricing**:
-  - `free` (Gratis): $0 — 50 sessions/month, 500 messages/month
+  - `free` (Gratis): $0 — 10 sessions/month, 100 messages/month
   - `basic` (Pro): $19,990 CLP/month — 500 sessions, 5,000 messages, AI + catalog + KB
   - `pro` (Enterprise): $49,990 CLP/month — unlimited, priority support, API, multi-agent
+  - `basic_whatsapp` (Pro + WhatsApp): $34,990 CLP/month
+  - `pro_whatsapp` (Enterprise + WhatsApp): $64,990 CLP/month
+- **WhatsApp Add-on**: $14,990 CLP/month (WHATSAPP_ADDON_PRICE constant in flow.ts)
 - **Payment Flow**:
   1. Tenant clicks "Contratar" → `POST /api/tenants/me/checkout` → creates Flow payment order
   2. Redirect to Flow.cl hosted checkout page
@@ -175,4 +191,5 @@ Created automatically on server startup (skipped in production):
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
 - **Flow.cl**: Chilean payment gateway for plan billing (via flowcl-node-api-client).
+- **Twilio**: WhatsApp Business API integration for multi-channel chat support.
 - **Helmet**: Express security headers middleware.

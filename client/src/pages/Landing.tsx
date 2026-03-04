@@ -185,6 +185,7 @@ const pricingPlans = [
     extras: [
       "Todas las funcionalidades incluidas",
       "Soporte prioritario",
+      "WhatsApp integrado disponible (+$14.990/mes)",
     ],
     supportLine: "Un ejecutivo de FoxBot te ayuda a configurarlo",
     cta: "Elegir Fox Pro",
@@ -212,6 +213,7 @@ const pricingPlans = [
       "Onboarding personalizado 1 a 1",
       "Ejecutivo dedicado que te acompaña siempre",
       "Soporte prioritario 24/7",
+      "WhatsApp integrado disponible (+$14.990/mes)",
     ],
     supportLine: "Tu ejecutivo dedicado se encarga de todo",
     cta: "Elegir Fox Enterprise",

@@ -32,4 +32,16 @@ export const PLAN_PRICES: Record<string, { amount: number; label: string; subjec
     label: "Fox Enterprise",
     subject: "Fox Enterprise - Suscripcion Mensual",
   },
+  basic_whatsapp: {
+    amount: 34990,
+    label: "Fox Pro + WhatsApp",
+    subject: "Fox Pro + WhatsApp - Suscripcion Mensual",
+  },
+  pro_whatsapp: {
+    amount: 64990,
+    label: "Fox Enterprise + WhatsApp",
+    subject: "Fox Enterprise + WhatsApp - Suscripcion Mensual",
+  },
 };
+
+export const WHATSAPP_ADDON_PRICE = 14990;

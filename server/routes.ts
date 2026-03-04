@@ -12,7 +12,8 @@ import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuil
 
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import archiver from "archiver";
-import { getFlowApi, PLAN_PRICES, PLAN_LIMITS } from "./flow";
+import { getFlowApi, PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE } from "./flow";
+import { handleIncomingWhatsApp, sendWhatsAppMessage, isWhatsAppConfigured } from "./whatsapp";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
@@ -1325,14 +1326,14 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
-      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, logoScale, avatarUrl, launcherImageUrl, launcherImageScale, botIconUrl, botIconScale, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, welcomeBannerText, launcherBubbleText, launcherBubbleStyle } = req.body;
+      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, logoScale, avatarUrl, launcherImageUrl, launcherImageScale, botIconUrl, botIconScale, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, welcomeBannerText, launcherBubbleText, launcherBubbleStyle, whatsappGreeting } = req.body;
       const updates: any = {};
       if (companyName !== undefined) updates.companyName = companyName;
       if (widgetColor !== undefined) updates.widgetColor = widgetColor;
@@ -1364,11 +1365,12 @@ ${DEMO_BASE_RULES}`,
       if (welcomeBannerText !== undefined) updates.welcomeBannerText = welcomeBannerText || null;
       if (launcherBubbleText !== undefined) updates.launcherBubbleText = launcherBubbleText || null;
       if (launcherBubbleStyle !== undefined) updates.launcherBubbleStyle = launcherBubbleStyle || "normal";
+      if (whatsappGreeting !== undefined) updates.whatsappGreeting = whatsappGreeting || null;
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
@@ -1913,6 +1915,65 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
       log(`Error en retorno Flow: ${error.message}`, "api");
       return res.redirect("/dashboard?payment=error");
     }
+  });
+
+  app.post("/api/whatsapp/webhook", async (req, res) => {
+    try {
+      const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+      if (twilioAuthToken) {
+        const twilioSignature = req.headers["x-twilio-signature"] as string;
+        if (!twilioSignature) {
+          log("WhatsApp webhook rejected: missing Twilio signature", "whatsapp");
+          return res.status(403).send("<Response></Response>");
+        }
+        const twilio = await import("twilio");
+        const validateRequest = twilio.validateRequest || (twilio as any).default?.validateRequest;
+        if (validateRequest) {
+          const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+          const host = req.headers["host"] || req.hostname;
+          const fullUrl = `${protocol}://${host}${req.originalUrl}`;
+          const isValid = validateRequest(twilioAuthToken, twilioSignature, fullUrl, req.body);
+          if (!isValid) {
+            log("WhatsApp webhook rejected: invalid Twilio signature", "whatsapp");
+            return res.status(403).send("<Response></Response>");
+          }
+        }
+      }
+
+      const { Body, From, To } = req.body;
+      if (!Body || !From) {
+        return res.status(400).send("<Response></Response>");
+      }
+
+      log(`WhatsApp incoming from ${From}: ${Body.substring(0, 100)}`, "whatsapp");
+
+      const allTenants = await storage.getAllTenants();
+      const cleanTo = (To || "").replace("whatsapp:", "").replace(/\D/g, "");
+      const matchedTenant = allTenants.find(
+        (t) => t.whatsappEnabled === 1 && t.whatsappNumber && cleanTo.includes(t.whatsappNumber.replace(/\D/g, ""))
+      );
+
+      if (!matchedTenant) {
+        log(`WhatsApp webhook: no tenant matched for number ${cleanTo}`, "whatsapp");
+        res.set("Content-Type", "text/xml");
+        return res.status(200).send("<Response></Response>");
+      }
+
+      const response = await handleIncomingWhatsApp(From, Body, matchedTenant.id);
+
+      await sendWhatsAppMessage(From, response);
+
+      res.set("Content-Type", "text/xml");
+      res.status(200).send("<Response></Response>");
+    } catch (error: any) {
+      log(`WhatsApp webhook error: ${error.message}`, "whatsapp");
+      res.set("Content-Type", "text/xml");
+      res.status(200).send("<Response></Response>");
+    }
+  });
+
+  app.get("/api/whatsapp/status", async (req, res) => {
+    res.json({ configured: isWhatsAppConfigured() });
   });
 
   app.get("/api/tenants/me/sessions", async (req, res) => {
@@ -4415,7 +4476,7 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     }
     try {
       const tenantId = parseInt(req.params.id, 10);
-      const { plan, isTrial } = req.body;
+      const { plan, isTrial, whatsappEnabled, whatsappNumber } = req.body;
       const updates: any = {};
       if (plan) {
         if (!["free", "basic", "pro"].includes(plan)) {
@@ -4426,6 +4487,12 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       if (isTrial !== undefined) {
         updates.isTrial = isTrial ? 1 : 0;
       }
+      if (whatsappEnabled !== undefined) {
+        updates.whatsappEnabled = whatsappEnabled ? 1 : 0;
+      }
+      if (whatsappNumber !== undefined) {
+        updates.whatsappNumber = whatsappNumber || null;
+      }
       if (Object.keys(updates).length === 0) {
         return res.status(400).json({ message: "No hay cambios" });
       }
@@ -4433,8 +4500,8 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       if (!updated) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      log(`Superadmin ${user.email} cambió plan de tenant ${tenantId} a ${plan}`, "api");
-      res.json({ id: updated.id, plan: updated.plan });
+      log(`Superadmin ${user.email} actualizó tenant ${tenantId}: ${JSON.stringify(updates)}`, "api");
+      res.json({ id: updated.id, plan: updated.plan, whatsappEnabled: updated.whatsappEnabled, whatsappNumber: updated.whatsappNumber });
     } catch (error: any) {
       log(`Error al actualizar tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar tenant" });

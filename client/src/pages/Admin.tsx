@@ -3913,6 +3913,8 @@ interface TenantRow {
   plan: string;
   isTrial: number;
   domain: string | null;
+  whatsappEnabled: number;
+  whatsappNumber: string | null;
   createdAt: string;
   sessionsCount: number;
   messagesCount: number;
@@ -4143,6 +4145,38 @@ function TenantsPanel() {
     },
   });
 
+  const toggleWhatsAppMutation = useMutation({
+    mutationFn: async ({ tenantId, whatsappEnabled }: { tenantId: number; whatsappEnabled: boolean }) => {
+      const token = getAuthToken();
+      const res = await fetch(`/api/admin/tenants/${tenantId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ whatsappEnabled }),
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+    },
+  });
+
+  const updateWhatsAppNumberMutation = useMutation({
+    mutationFn: async ({ tenantId, whatsappNumber }: { tenantId: number; whatsappNumber: string }) => {
+      const token = getAuthToken();
+      const res = await fetch(`/api/admin/tenants/${tenantId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ whatsappNumber }),
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+    },
+  });
+
   const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
@@ -4212,6 +4246,7 @@ function TenantsPanel() {
                   <th className="pb-2.5 pr-4">Email</th>
                   <th className="pb-2.5 pr-4">Plan</th>
                   <th className="pb-2.5 pr-4">Tipo</th>
+                  <th className="pb-2.5 pr-4">WhatsApp</th>
                   <th className="pb-2.5 pr-4">Dominio</th>
                   <th className="pb-2.5 pr-4">Sesiones</th>
                   <th className="pb-2.5 pr-4">Mensajes</th>
@@ -4243,6 +4278,35 @@ function TenantsPanel() {
                       >
                         {t.isTrial ? "Gratis / Prueba" : "Cliente"}
                       </button>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="flex flex-col gap-1">
+                        <button
+                          data-testid={`button-whatsapp-${t.id}`}
+                          onClick={() => toggleWhatsAppMutation.mutate({ tenantId: t.id, whatsappEnabled: !t.whatsappEnabled })}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-colors cursor-pointer ${
+                            t.whatsappEnabled
+                              ? "bg-[#25d366]/20 text-[#25d366] border-[#25d366]/30 hover:bg-[#25d366]/30"
+                              : "bg-white/5 text-white/30 border-white/10 hover:bg-white/10"
+                          }`}
+                          title={t.whatsappEnabled ? "Clic para desactivar WhatsApp" : "Clic para activar WhatsApp"}
+                        >
+                          {t.whatsappEnabled ? "Activo" : "Off"}
+                        </button>
+                        <input
+                          data-testid={`input-whatsapp-number-${t.id}`}
+                          type="text"
+                          placeholder="+56..."
+                          defaultValue={t.whatsappNumber || ""}
+                          onBlur={(e) => {
+                            const val = e.target.value.trim();
+                            if (val !== (t.whatsappNumber || "")) {
+                              updateWhatsAppNumberMutation.mutate({ tenantId: t.id, whatsappNumber: val });
+                            }
+                          }}
+                          className="w-24 px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-white/10 text-white/60 placeholder-white/20 focus:border-[#25d366]/50 focus:outline-none"
+                        />
+                      </div>
                     </td>
                     <td className="py-3 pr-4 text-white/40 text-xs">
                       {t.domain ? (
