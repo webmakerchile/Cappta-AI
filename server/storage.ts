@@ -67,7 +67,7 @@ export interface IStorage {
   updateSessionManualEmailAt(sessionId: string): Promise<void>;
   // Knowledge Base
   createKnowledgeEntry(data: InsertKnowledgeBase): Promise<KnowledgeBase>;
-  getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]>;
+  getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string; tenantId?: number }): Promise<KnowledgeBase[]>;
   getKnowledgeEntryById(id: number): Promise<KnowledgeBase | null>;
   updateKnowledgeEntry(id: number, data: Partial<InsertKnowledgeBase>): Promise<KnowledgeBase | null>;
   deleteKnowledgeEntry(id: number): Promise<boolean>;
@@ -958,7 +958,7 @@ export class DatabaseStorage implements IStorage {
     return entry;
   }
 
-  async getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string }): Promise<KnowledgeBase[]> {
+  async getKnowledgeEntries(filter?: { status?: string; category?: string; query?: string; tenantId?: number }): Promise<KnowledgeBase[]> {
     let query = db.select().from(knowledgeBase);
     const conditions = [];
     if (filter?.status) {
@@ -974,6 +974,9 @@ export class DatabaseStorage implements IStorage {
           ilike(knowledgeBase.answer, `%${filter.query}%`)
         )!
       );
+    }
+    if (filter?.tenantId) {
+      conditions.push(eq(knowledgeBase.tenantId, filter.tenantId));
     }
     if (conditions.length > 0) {
       return await query.where(and(...conditions)).orderBy(desc(knowledgeBase.createdAt));

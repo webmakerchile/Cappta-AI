@@ -2601,6 +2601,8 @@ function showForegroundNotification(title: string, body: string, sessionId: stri
 
 interface KnowledgeEntry {
   id: number;
+  tenantId: number | null;
+  tenantName: string;
   category: string;
   question: string;
   answer: string;
@@ -2617,6 +2619,7 @@ interface KnowledgeEntry {
 function KnowledgePanel() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [tenantFilter, setTenantFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingEntry, setEditingEntry] = useState<KnowledgeEntry | null>(null);
   const [editQuestion, setEditQuestion] = useState("");
@@ -2626,10 +2629,20 @@ function KnowledgePanel() {
   const [extracting, setExtracting] = useState(false);
   const [extractResult, setExtractResult] = useState<{ sessionsProcessed: number; entriesCreated: number } | null>(null);
 
+  const { data: tenantsList = [] } = useQuery<{ id: number; name: string; companyName: string }[]>({
+    queryKey: ["/api/admin/tenants-list"],
+    queryFn: async () => {
+      const res = await adminFetch("/api/admin/tenants");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
   const queryParams = new URLSearchParams();
   if (statusFilter !== "all") queryParams.set("status", statusFilter);
   if (categoryFilter !== "all") queryParams.set("category", categoryFilter);
   if (searchQuery) queryParams.set("query", searchQuery);
+  if (tenantFilter !== "all") queryParams.set("tenantId", tenantFilter);
   const queryString = queryParams.toString();
 
   const { data: entries = [], isLoading } = useQuery<KnowledgeEntry[]>({
@@ -2815,6 +2828,17 @@ function KnowledgePanel() {
               <SelectItem value="general" className="text-white text-xs">General</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={tenantFilter} onValueChange={setTenantFilter}>
+            <SelectTrigger data-testid="select-knowledge-tenant" className="w-[150px] bg-white/5 border-white/10 text-white text-xs h-8">
+              <SelectValue placeholder="Tenant" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1a2e] border-white/10 max-h-[300px]">
+              <SelectItem value="all" className="text-white text-xs">Todos los tenants</SelectItem>
+              {tenantsList.map((t: any) => (
+                <SelectItem key={t.id} value={String(t.id)} className="text-white text-xs">{t.companyName || t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -2914,6 +2938,9 @@ function KnowledgePanel() {
                         }}
                       >
                         {statusLabels[entry.status] || entry.status}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/10 text-blue-400/80">
+                        {entry.tenantName || "Global"}
                       </span>
                       {entry.usageCount > 0 && (
                         <span className="text-[10px] text-white/30">

@@ -3874,12 +3874,16 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     const adminUser = requireAuth(req, res);
     if (!adminUser) return;
     try {
-      const filter: { status?: string; category?: string; query?: string } = {};
+      const filter: { status?: string; category?: string; query?: string; tenantId?: number } = {};
       if (req.query.status) filter.status = req.query.status as string;
       if (req.query.category) filter.category = req.query.category as string;
       if (req.query.query) filter.query = req.query.query as string;
+      if (req.query.tenantId) filter.tenantId = parseInt(req.query.tenantId as string);
       const entries = await storage.getKnowledgeEntries(filter);
-      res.json(entries);
+      const tenants = await storage.getAllTenants();
+      const tenantMap = new Map(tenants.map(t => [t.id, t.companyName || t.name]));
+      const enriched = entries.map(e => ({ ...e, tenantName: e.tenantId ? tenantMap.get(e.tenantId) || `Tenant #${e.tenantId}` : "Global" }));
+      res.json(enriched);
     } catch (error: any) {
       log(`Error al obtener conocimiento: ${error.message}`, "api");
       res.status(500).json({ message: "Error al obtener conocimiento" });
