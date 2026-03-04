@@ -1156,6 +1156,7 @@ export class DatabaseStorage implements IStorage {
         t.email,
         t.company_name AS "companyName",
         t.plan,
+        t.is_trial AS "isTrial",
         t.domain,
         t.created_at AS "createdAt",
         (SELECT COUNT(*)::int FROM sessions WHERE tenant_id = t.id) AS "sessionsCount",

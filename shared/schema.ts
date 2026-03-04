@@ -169,6 +169,7 @@ export const tenants = pgTable("tenants", {
   botContext: text("bot_context"),
   businessHoursConfig: text("business_hours_config"),
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
+  isTrial: integer("is_trial").notNull().default(0),
   flowCustomerId: text("flow_customer_id"),
   referralCode: text("referral_code").unique(),
   referredBy: integer("referred_by"),

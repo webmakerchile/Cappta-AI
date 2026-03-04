@@ -3911,6 +3911,7 @@ interface TenantRow {
   email: string;
   companyName: string;
   plan: string;
+  isTrial: number;
   domain: string | null;
   createdAt: string;
   sessionsCount: number;
@@ -4126,6 +4127,22 @@ function TenantsPanel() {
     },
   });
 
+  const toggleTrialMutation = useMutation({
+    mutationFn: async ({ tenantId, isTrial }: { tenantId: number; isTrial: boolean }) => {
+      const token = getAuthToken();
+      const res = await fetch(`/api/admin/tenants/${tenantId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isTrial }),
+      });
+      if (!res.ok) throw new Error("Error al cambiar estado");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+    },
+  });
+
   const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
@@ -4194,6 +4211,7 @@ function TenantsPanel() {
                   <th className="pb-2.5 pr-4">Empresa</th>
                   <th className="pb-2.5 pr-4">Email</th>
                   <th className="pb-2.5 pr-4">Plan</th>
+                  <th className="pb-2.5 pr-4">Tipo</th>
                   <th className="pb-2.5 pr-4">Dominio</th>
                   <th className="pb-2.5 pr-4">Sesiones</th>
                   <th className="pb-2.5 pr-4">Mensajes</th>
@@ -4211,6 +4229,20 @@ function TenantsPanel() {
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${planColors[t.plan] || planColors.free} ${t.plan === "basic" ? "border-[#34d399]/30" : t.plan === "pro" ? "border-yellow-500/30" : "border-white/10"}`}>
                         {planLabels[t.plan] || t.plan}
                       </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <button
+                        data-testid={`button-trial-${t.id}`}
+                        onClick={() => toggleTrialMutation.mutate({ tenantId: t.id, isTrial: !t.isTrial })}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-colors cursor-pointer ${
+                          t.isTrial
+                            ? "bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30"
+                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30"
+                        }`}
+                        title={t.isTrial ? "Clic para marcar como cliente real" : "Clic para marcar como prueba/gratis"}
+                      >
+                        {t.isTrial ? "Gratis / Prueba" : "Cliente"}
+                      </button>
                     </td>
                     <td className="py-3 pr-4 text-white/40 text-xs">
                       {t.domain ? (

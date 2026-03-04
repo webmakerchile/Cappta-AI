@@ -4415,11 +4415,21 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     }
     try {
       const tenantId = parseInt(req.params.id, 10);
-      const { plan } = req.body;
-      if (!plan || !["free", "basic", "pro"].includes(plan)) {
-        return res.status(400).json({ message: "Plan invalido" });
+      const { plan, isTrial } = req.body;
+      const updates: any = {};
+      if (plan) {
+        if (!["free", "basic", "pro"].includes(plan)) {
+          return res.status(400).json({ message: "Plan invalido" });
+        }
+        updates.plan = plan;
       }
-      const updated = await storage.updateTenant(tenantId, { plan } as any);
+      if (isTrial !== undefined) {
+        updates.isTrial = isTrial ? 1 : 0;
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No hay cambios" });
+      }
+      const updated = await storage.updateTenant(tenantId, updates);
       if (!updated) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
