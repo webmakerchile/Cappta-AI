@@ -97,6 +97,7 @@ const GuidesPage = lazy(() => import("@/pages/Guides"));
 const TenantPanelPage = lazy(() => import("@/pages/TenantPanel"));
 const PrivacyPage = lazy(() => import("@/pages/Privacy"));
 const TermsPage = lazy(() => import("@/pages/Terms"));
+const FoxBotPromoPage = lazy(() => import("@/pages/FoxBotPromoSection"));
 
 function FullScreenChat() {
   const {
@@ -628,8 +629,9 @@ function App() {
   const isPanel = pathname === "/panel";
   const isPrivacy = pathname === "/privacidad";
   const isTerms = pathname === "/terminos";
+  const isPromo = pathname === "/promo-foxbot";
 
-  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isPrivacy || isTerms;
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isPrivacy || isTerms || isPromo;
 
   const isFixedLayout = isDashboard || isPanel;
 
@@ -689,6 +691,10 @@ function App() {
       ) : isTerms ? (
         <Suspense fallback={<SuspenseLoader />}>
           <TermsPage />
+        </Suspense>
+      ) : isPromo ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <FoxBotPromoPage />
         </Suspense>
       ) : isContactChat ? (
         <ContactChat />
