@@ -51,28 +51,20 @@ async function mpFetch(path: string, method: string = "GET", body?: any): Promis
   return data;
 }
 
-const planCache = new Map<string, string>();
-
-export async function getOrCreatePlan(planKey: string): Promise<string> {
-  if (planCache.has(planKey)) return planCache.get(planKey)!;
+export async function createSubscription(
+  planKey: string,
+  email: string,
+  tenantId: number
+): Promise<{ subscriptionId: string; initPoint: string }> {
+  if (!MP_ACCESS_TOKEN) throw new Error("Mercado Pago no configurado");
 
   const planInfo = PLAN_PRICES[planKey];
   if (!planInfo) throw new Error(`Plan not found: ${planKey}`);
 
-  const existing = await mpFetch("/preapproval_plan/search?status=active");
-  if (existing.results) {
-    const match = existing.results.find((p: any) =>
-      p.auto_recurring?.transaction_amount === planInfo.amount &&
-      p.reason === planInfo.reason
-    );
-    if (match) {
-      planCache.set(planKey, match.id);
-      return match.id;
-    }
-  }
-
-  const plan = await mpFetch("/preapproval_plan", "POST", {
+  const subscription = await mpFetch("/preapproval", "POST", {
     reason: planInfo.reason,
+    external_reference: `foxbot_${tenantId}_${planKey}`,
+    payer_email: email,
     auto_recurring: {
       frequency: 1,
       frequency_type: "months",
@@ -84,26 +76,7 @@ export async function getOrCreatePlan(planKey: string): Promise<string> {
       },
     },
     back_url: "https://foxbot.cl/api/mercadopago/return",
-  });
-
-  planCache.set(planKey, plan.id);
-  return plan.id;
-}
-
-export async function createSubscription(
-  planKey: string,
-  email: string,
-  tenantId: number
-): Promise<{ subscriptionId: string; initPoint: string }> {
-  if (!MP_ACCESS_TOKEN) throw new Error("Mercado Pago no configurado");
-
-  const planId = await getOrCreatePlan(planKey);
-
-  const subscription = await mpFetch("/preapproval", "POST", {
-    preapproval_plan_id: planId,
-    payer_email: email,
-    external_reference: `foxbot_${tenantId}_${planKey}`,
-    back_url: "https://foxbot.cl/api/mercadopago/return",
+    status: "pending",
   });
 
   return {
