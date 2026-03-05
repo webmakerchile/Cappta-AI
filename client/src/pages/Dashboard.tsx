@@ -2824,7 +2824,8 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     <div className="text-right">
                       <p className="text-2xl font-black transition-all duration-300 group-hover:scale-105" style={{ color }} data-testid={`badge-price-${key}`}>{planPrices[key]}</p>
                       <p className="text-xs text-white/30">CLP/mes</p>
-                      <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">7 días gratis</p>
+                      <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">7 días para probar</p>
+                      <p className="text-[9px] text-white/30 mt-0.5">No incluye chatbot WhatsApp</p>
                     </div>
                   </div>
 

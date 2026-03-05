@@ -1756,7 +1756,7 @@ export default function Landing() {
                     {plan.tier !== "free" && (
                       <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
                         <Gift className="w-3 h-3" />
-                        7 días gratis para probar
+                        7 días para probar (No incluye chatbot WhatsApp)
                       </div>
                     )}
                   </div>
