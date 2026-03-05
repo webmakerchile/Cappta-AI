@@ -1754,9 +1754,12 @@ export default function Landing() {
                       <span className="text-white/35 text-sm">{plan.period}</span>
                     </div>
                     {plan.tier !== "free" && (
-                      <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                        <Gift className="w-3 h-3" />
-                        7 días para probar (No incluye chatbot WhatsApp)
+                      <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                        <div className="flex items-center gap-1.5">
+                          <Gift className="w-3 h-3" />
+                          7 días para probar
+                        </div>
+                        <span className="text-[10px] text-white/40 font-normal">No incluye chatbot WhatsApp</span>
                       </div>
                     )}
                   </div>
