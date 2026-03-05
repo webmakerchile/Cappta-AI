@@ -109,40 +109,45 @@ if (process.env.NODE_ENV === "production") {
 const port = parseInt(process.env.PORT || "5000", 10);
 
 (async () => {
-  await registerRoutes(httpServer, app);
+  try {
+    await registerRoutes(httpServer, app);
 
-  import("./seed").then(({ seedDatabase }) => {
-    seedDatabase().catch(err => log(`Seed error: ${err.message}`));
-  });
+    import("./seed").then(({ seedDatabase }) => {
+      seedDatabase().catch(err => log(`Seed error: ${err.message}`));
+    });
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    console.error("Internal Server Error:", err);
+      console.error("Internal Server Error:", err);
 
-    if (res.headersSent) {
-      return next(err);
+      if (res.headersSent) {
+        return next(err);
+      }
+
+      return res.status(status).json({ message });
+    });
+
+    if (process.env.NODE_ENV === "production") {
+      const distPath = path.resolve(__dirname, "public");
+      if (fs.existsSync(distPath)) {
+        app.use("/{*path}", (_req, res) => {
+          res.sendFile(path.resolve(distPath, "index.html"));
+        });
+      }
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
     }
 
-    return res.status(status).json({ message });
-  });
+    httpServer.listen(port, "0.0.0.0", () => {
+      log(`serving on port ${port}`);
+    });
 
-  if (process.env.NODE_ENV === "production") {
-    const distPath = path.resolve(__dirname, "public");
-    if (fs.existsSync(distPath)) {
-      app.use("/{*path}", (_req, res) => {
-        res.sendFile(path.resolve(distPath, "index.html"));
-      });
-    }
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    log("all routes registered");
+  } catch (err: any) {
+    console.error("FATAL: Server failed to start:", err);
+    process.exit(1);
   }
-
-  httpServer.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
-  });
-
-  log("all routes registered");
 })();
