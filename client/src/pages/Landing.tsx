@@ -1831,6 +1831,9 @@ export default function Landing() {
                           <ArrowRight className="w-4 h-4 ml-1.5" />
                         </Button>
                       )}
+                      {plan.tier !== "free" && (
+                        <p className="text-[9px] text-white/25 text-center mt-2">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
+                      )}
                     </a>
                   </div>
                 </div>

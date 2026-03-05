@@ -2869,6 +2869,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                       </span>
                     )}
                   </Button>
+                  <p className="text-[9px] text-white/25 text-center mt-2">Al suscribirte aceptas que no se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
                 </div>
               );
             })}

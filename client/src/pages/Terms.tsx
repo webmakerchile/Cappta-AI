@@ -53,10 +53,17 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white/80">4. Planes y pagos</h2>
+          <h2 className="text-xl font-bold text-white/80">4. Planes, pagos y suscripciones</h2>
           <p className="text-sm text-white/50 leading-relaxed">
             FoxBot ofrece diferentes planes de servicio (Fox Free, Fox Pro, Fox Enterprise). Los detalles de precios y características de cada plan están disponibles en nuestra página de precios. Nos reservamos el derecho de modificar los precios con previo aviso de 30 días.
           </p>
+          <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
+            <li><strong className="text-white/70">Período de prueba:</strong> Los planes pagados incluyen un período de prueba gratuito de 7 días. Durante este período puedes cancelar sin costo alguno. El período de prueba no incluye el servicio de chatbot WhatsApp.</li>
+            <li><strong className="text-white/70">Facturación:</strong> Una vez finalizado el período de prueba, se realizará el cobro automático mensual a través de Mercado Pago según el plan contratado.</li>
+            <li><strong className="text-white/70">Cancelación:</strong> Puedes cancelar tu suscripción en cualquier momento desde el panel de control. La cancelación será efectiva al final del período de facturación actual.</li>
+            <li><strong className="text-red-400 font-bold">Política de no reembolso:</strong> No se admiten reembolsos bajo ninguna circunstancia. Una vez realizado el cobro, el pago no es reembolsable. Al contratar un plan de pago, aceptas expresamente esta política. Te recomendamos aprovechar el período de prueba gratuito de 7 días para evaluar el servicio antes de comprometerte con un plan de pago.</li>
+            <li><strong className="text-white/70">Procesador de pagos:</strong> Los pagos son procesados por Mercado Pago. Al suscribirte, aceptas también los términos y condiciones de Mercado Pago.</li>
+          </ul>
         </section>
 
         <section className="space-y-4">
@@ -101,10 +108,16 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white/80">10. Terminación</h2>
+          <h2 className="text-xl font-bold text-white/80">10. Terminación y cancelación</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            Puedes cancelar tu cuenta en cualquier momento. Nos reservamos el derecho de suspender o cancelar cuentas que violen estos términos. En caso de cancelación, tus datos serán eliminados según nuestra política de privacidad.
+            Puedes cancelar tu cuenta en cualquier momento desde el panel de control. Nos reservamos el derecho de suspender o cancelar cuentas que violen estos términos. En caso de cancelación:
           </p>
+          <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
+            <li>La suscripción se cancelará y no se realizarán cobros futuros.</li>
+            <li>El acceso a las funcionalidades del plan pagado se mantendrá hasta el final del período facturado.</li>
+            <li>Los pagos ya realizados no son reembolsables.</li>
+            <li>Tus datos serán eliminados según nuestra política de privacidad.</li>
+          </ul>
         </section>
 
         <section className="space-y-4">

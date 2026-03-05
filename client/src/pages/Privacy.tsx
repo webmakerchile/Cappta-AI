@@ -53,6 +53,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
             <li><strong className="text-white/70">Proveedores de IA:</strong> utilizamos OpenAI para procesar las conversaciones del chatbot. Los mensajes se envían a sus servidores para generar respuestas.</li>
+            <li><strong className="text-white/70">Procesador de pagos:</strong> utilizamos Mercado Pago para procesar suscripciones y pagos. Al suscribirte, tus datos de pago son gestionados directamente por Mercado Pago según sus propias políticas de privacidad. FoxBot no almacena datos de tarjetas de crédito ni información financiera sensible.</li>
             <li><strong className="text-white/70">Infraestructura:</strong> utilizamos servicios de hosting y base de datos de terceros para operar la plataforma.</li>
             <li><strong className="text-white/70">Obligaciones legales:</strong> podemos divulgar información si la ley lo requiere.</li>
           </ul>
@@ -85,14 +86,21 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white/80">7. Cookies</h2>
+          <h2 className="text-xl font-bold text-white/80">7. Datos de pago</h2>
+          <p className="text-sm text-white/50 leading-relaxed">
+            Los pagos y suscripciones se procesan a través de Mercado Pago. FoxBot no almacena ni tiene acceso a los datos de tu tarjeta de crédito o débito. Toda la información financiera es gestionada de forma segura por Mercado Pago bajo sus estándares de seguridad PCI DSS. Solo almacenamos un identificador de suscripción para gestionar el estado de tu plan.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-white/80">8. Cookies</h2>
           <p className="text-sm text-white/50 leading-relaxed">
             FoxBot utiliza cookies esenciales para el funcionamiento de la plataforma (autenticación y sesiones). No utilizamos cookies de seguimiento ni publicidad de terceros.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white/80">8. Contacto</h2>
+          <h2 className="text-xl font-bold text-white/80">9. Contacto</h2>
           <p className="text-sm text-white/50 leading-relaxed">
             Para consultas sobre privacidad, contacta a Web Maker Chile en: <a href="mailto:webmakerchile@gmail.com" className="text-primary hover:underline" data-testid="link-privacy-email">webmakerchile@gmail.com</a>
           </p>
