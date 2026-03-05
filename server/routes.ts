@@ -1785,6 +1785,30 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
 
   app.post("/api/mercadopago/webhook", async (req, res) => {
     try {
+      const mpSecret = process.env.MP_WEBHOOK_SECRET;
+      if (mpSecret) {
+        const xSignature = req.headers["x-signature"] as string;
+        const xRequestId = req.headers["x-request-id"] as string;
+        if (xSignature && xRequestId) {
+          const parts = xSignature.split(",");
+          let ts = "";
+          let hash = "";
+          for (const part of parts) {
+            const [key, value] = part.trim().split("=");
+            if (key === "ts") ts = value;
+            if (key === "v1") hash = value;
+          }
+          const dataId = req.query["data.id"] || req.body?.data?.id || "";
+          const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+          const crypto = await import("crypto");
+          const expected = crypto.createHmac("sha256", mpSecret).update(manifest).digest("hex");
+          if (hash !== expected) {
+            log(`MP webhook: signature mismatch - rejecting`, "api");
+            return res.status(401).json({ error: "Invalid signature" });
+          }
+        }
+      }
+
       const { type, data, action } = req.body;
       log(`MP webhook: type=${type} action=${action} data=${JSON.stringify(data)}`, "api");
 
