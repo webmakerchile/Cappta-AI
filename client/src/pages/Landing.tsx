@@ -884,7 +884,7 @@ function MobileNav() {
     <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-xl" data-testid="nav-bar">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3">
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
-          <img src={logoSinFondo} alt="FoxBot" className="w-14 h-14 object-contain transition-transform duration-300 group-hover:scale-110" data-testid="img-nav-logo" />
+          <img src={logoSinFondo} alt="FoxBot" className="w-[4.5rem] h-[4.5rem] object-contain transition-transform duration-300 group-hover:scale-110" data-testid="img-nav-logo" />
           <span className="text-xl font-extrabold tracking-tight">
             <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
           </span>
