@@ -107,9 +107,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const port = parseInt(process.env.PORT || "5000", 10);
-httpServer.listen(port, "0.0.0.0", () => {
-  log(`serving on port ${port}`);
-});
 
 (async () => {
   await registerRoutes(httpServer, app);
@@ -142,6 +139,10 @@ httpServer.listen(port, "0.0.0.0", () => {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
+
+  httpServer.listen(port, "0.0.0.0", () => {
+    log(`serving on port ${port}`);
+  });
 
   log("all routes registered");
 })();

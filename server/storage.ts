@@ -84,6 +84,7 @@ export interface IStorage {
   getTenantMonthlyUsage(tenantId: number): Promise<{ sessionsCount: number; messagesCount: number }>;
   getAllTenants(): Promise<Tenant[]>;
   getRecentPaymentOrders(limit?: number): Promise<(typeof paymentOrders.$inferSelect)[]>;
+  getPaymentOrdersByTenantId(tenantId: number): Promise<(typeof paymentOrders.$inferSelect)[]>;
   getAllTenantsWithStats(): Promise<{ id: number; name: string; email: string; companyName: string; plan: string; createdAt: Date; sessionsCount: number; messagesCount: number }[]>;
   getSessionsByTenantId(tenantId: number): Promise<{ sessionId: string; userName: string; userEmail: string; status: string; messageCount: number; lastMessage: Date | null; lastMessageContent: string | null; problemType: string | null; createdAt: Date | null }[]>;
   getTenantSessionsFull(tenantId: number, statusFilter?: string): Promise<any[]>;
@@ -1146,6 +1147,10 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentPaymentOrders(limit = 50) {
     return await db.select().from(paymentOrders).orderBy(desc(paymentOrders.createdAt)).limit(limit);
+  }
+
+  async getPaymentOrdersByTenantId(tenantId: number) {
+    return await db.select().from(paymentOrders).where(eq(paymentOrders.tenantId, tenantId)).orderBy(desc(paymentOrders.createdAt));
   }
 
   async getAllTenantsWithStats() {

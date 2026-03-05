@@ -188,7 +188,7 @@ const pricingPlans = [
       "WhatsApp integrado disponible (+$14.990/mes)",
     ],
     supportLine: "Un ejecutivo de FoxBot te ayuda a configurarlo",
-    cta: "Elegir Fox Pro",
+    cta: "Probar 7 días gratis",
     highlighted: true,
     tier: "pro" as const,
     borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 35%) 25%, hsl(30, 90%, 52%) 50%, hsl(142, 72%, 40%) 75%, hsl(160, 60%, 35%) 100%)",
@@ -216,7 +216,7 @@ const pricingPlans = [
       "WhatsApp integrado disponible (+$14.990/mes)",
     ],
     supportLine: "Tu ejecutivo dedicado se encarga de todo",
-    cta: "Elegir Fox Enterprise",
+    cta: "Probar 7 días gratis",
     highlighted: false,
     tier: "enterprise" as const,
     borderGradient: "linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(45, 93%, 58%) 25%, hsl(28, 80%, 52%) 50%, hsl(38, 92%, 50%) 75%, hsl(45, 93%, 58%) 100%)",
@@ -1749,10 +1749,16 @@ export default function Landing() {
                       {plan.tier === "enterprise" && <><span style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Fox</span> <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span></>}
                     </h3>
                     <p className="text-sm text-white/35 mb-6">{plan.description}</p>
-                    <div className="mb-6">
+                    <div className="mb-4">
                       <span className="text-5xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.price}</span>
                       <span className="text-white/35 text-sm">{plan.period}</span>
                     </div>
+                    {plan.tier !== "free" && (
+                      <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                        <Gift className="w-3 h-3" />
+                        7 días gratis para probar
+                      </div>
+                    )}
                   </div>
 
                   <div className="px-7 pb-4 flex-1">

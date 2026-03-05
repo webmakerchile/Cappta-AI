@@ -2762,6 +2762,43 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
         </div>
       </div>
 
+      {tenant.plan !== "free" && (
+        <div className="rounded-xl glass-card p-4 animate-dash-fade-up">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white/60">Suscripción activa</p>
+              <p className="text-xs text-white/30 mt-0.5">Se renueva automáticamente cada mes</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs text-red-400 border-red-500/20 hover:bg-red-500/10 hover:text-red-300"
+              data-testid="button-cancel-subscription"
+              onClick={async () => {
+                if (!confirm("¿Estás seguro de cancelar tu suscripción? Volverás al plan gratuito.")) return;
+                try {
+                  const token = localStorage.getItem("tenant_token");
+                  const res = await fetch("/api/tenants/me/cancel-subscription", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (res.ok) {
+                    toast({ title: "Suscripción cancelada", description: "Tu plan ha sido degradado a Fox Free." });
+                    queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+                  } else {
+                    toast({ title: "Error", description: "No se pudo cancelar la suscripción", variant: "destructive" });
+                  }
+                } catch {
+                  toast({ title: "Error", description: "Error de conexión", variant: "destructive" });
+                }
+              }}
+            >
+              Cancelar suscripción
+            </Button>
+          </div>
+        </div>
+      )}
+
       {upgradePlans.length > 0 && (
         <div className="animate-dash-fade-up dash-stagger-4">
           <h3 className="text-base font-bold mb-4 text-white/70 flex items-center gap-2">
@@ -2787,6 +2824,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     <div className="text-right">
                       <p className="text-2xl font-black transition-all duration-300 group-hover:scale-105" style={{ color }} data-testid={`badge-price-${key}`}>{planPrices[key]}</p>
                       <p className="text-xs text-white/30">CLP/mes</p>
+                      <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">7 días gratis</p>
                     </div>
                   </div>
 
@@ -2826,7 +2864,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     ) : (
                       <span className="flex items-center gap-2 relative">
                         <Zap className="h-4 w-4 transition-transform duration-300 group-hover/btn:rotate-12" />
-                        Contratar {planLabels[key]}
+                        Probar 7 días gratis
                       </span>
                     )}
                   </Button>

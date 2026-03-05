@@ -134,11 +134,10 @@ Key architectural decisions and features include:
 - **Pricing**: Optional add-on at $14.990 CLP/month for paid plans (Fox Pro or Fox Enterprise)
 - **Conversation History**: In-memory per phone number with 30-minute TTL, max 20 messages
 
-## Payment Integration (Flow.cl)
-- **Provider**: Flow.cl (Chilean payment gateway, used instead of Stripe)
-- **Package**: `flowcl-node-api-client` (CommonJS, imported via createRequire)
-- **Service File**: `server/flow.ts` - Flow API client configuration and plan pricing
-- **Environment Variables**: `FLOW_API_KEY`, `FLOW_SECRET_KEY`
+## Payment Integration (Mercado Pago)
+- **Provider**: Mercado Pago (Chilean payment gateway with recurring subscriptions)
+- **Service File**: `server/flow.ts` - Mercado Pago API client, subscription management, plan pricing
+- **Environment Variables**: `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`
 - **Plans & Pricing**:
   - `free` (Gratis): $0 — 10 sessions/month, 100 messages/month
   - `basic` (Pro): $19,990 CLP/month — 500 sessions, 5,000 messages, AI + catalog + KB
@@ -146,18 +145,23 @@ Key architectural decisions and features include:
   - `basic_whatsapp` (Pro + WhatsApp): $34,990 CLP/month
   - `pro_whatsapp` (Enterprise + WhatsApp): $64,990 CLP/month
 - **WhatsApp Add-on**: $14,990 CLP/month (WHATSAPP_ADDON_PRICE constant in flow.ts)
-- **Payment Flow**:
-  1. Tenant clicks "Contratar" → `POST /api/tenants/me/checkout` → creates Flow payment order
-  2. Redirect to Flow.cl hosted checkout page
-  3. Flow.cl calls `POST /api/flow/confirm` webhook on payment completion → updates tenant plan in DB
-  4. User redirected to `GET /api/flow/return` → redirects to `/dashboard?payment=success|rejected|pending|error`
-  5. Dashboard shows toast notification based on payment result and refreshes tenant data
-- **DB Field**: `tenants.flowCustomerId` — reserved for future recurring billing via Flow customer/charge API
+- **Free Trial**: 7 days free trial on all paid plans (FREE_TRIAL_DAYS constant)
+- **Subscription Flow**:
+  1. Tenant clicks "Probar 7 días gratis" → `POST /api/tenants/me/checkout` → creates Mercado Pago subscription with 7-day trial
+  2. Redirect to Mercado Pago checkout page for card registration
+  3. Mercado Pago sends webhook to `POST /api/mercadopago/webhook` on subscription status changes
+  4. Webhook handles: authorized (upgrade plan), cancelled/paused (downgrade to free)
+  5. User redirected to `GET /api/mercadopago/return` → `/dashboard?payment=success|pending|error`
+- **Cancel Subscription**: `POST /api/tenants/me/cancel-subscription` — cancels MP subscription, downgrades to free
+- **Subscription Status**: `GET /api/tenants/me/subscription-status` — returns subscription status and next payment date
+- **DB Fields**: `tenants.mpSubscriptionId` — Mercado Pago subscription ID, `tenants.flowCustomerId` — legacy (unused)
 
 ## Payment API Routes
-- `POST /api/tenants/me/checkout` - Create Flow.cl payment (auth required, body: { plan })
-- `POST /api/flow/confirm` - Flow.cl webhook (receives token, verifies payment status)
-- `GET /api/flow/return` - Post-payment redirect (redirects to dashboard with status)
+- `POST /api/tenants/me/checkout` - Create Mercado Pago subscription with 7-day trial (auth required, body: { plan })
+- `POST /api/mercadopago/webhook` - Mercado Pago IPN webhook (subscription status changes)
+- `GET /api/mercadopago/return` - Post-payment redirect (redirects to dashboard with status)
+- `POST /api/tenants/me/cancel-subscription` - Cancel active Mercado Pago subscription (auth required)
+- `GET /api/tenants/me/subscription-status` - Get subscription status (auth required)
 - `GET /api/tenants/me/plan-prices` - Public plan pricing info
 
 ## Demo/Test Accounts (Development Only)
@@ -190,7 +194,7 @@ Created automatically on server startup (skipped in production):
 - **Image Storage**: Base64 data URIs stored directly in PostgreSQL (no external file storage).
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
-- **Flow.cl**: Chilean payment gateway for plan billing (via flowcl-node-api-client).
+- **Mercado Pago**: Chilean payment gateway for recurring subscriptions with free trial (via REST API).
 - **Twilio**: WhatsApp Business API integration for multi-channel chat support.
 - **TikTok Pixel**: Conversion tracking (Pixel ID: D6K986RC77U8SKV71PDG). Base code in index.html. Events: CompleteRegistration (on signup), CompletePayment (on successful plan purchase).
 - **Helmet**: Express security headers middleware.

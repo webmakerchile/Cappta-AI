@@ -174,6 +174,7 @@ export const tenants = pgTable("tenants", {
   plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
   isTrial: integer("is_trial").notNull().default(0),
   flowCustomerId: text("flow_customer_id"),
+  mpSubscriptionId: text("mp_subscription_id"),
   referralCode: text("referral_code").unique(),
   referredBy: integer("referred_by"),
   rewardMonths: integer("reward_months").notNull().default(0),

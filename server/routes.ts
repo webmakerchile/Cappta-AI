@@ -12,7 +12,7 @@ import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuil
 
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import archiver from "archiver";
-import { getFlowApi, PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE } from "./flow";
+import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createSubscription, cancelSubscription, getSubscriptionStatus } from "./flow";
 import { handleIncomingWhatsApp, sendWhatsAppMessage, isWhatsAppConfigured } from "./whatsapp";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -1757,163 +1757,188 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
       const tenant = await storage.getTenantById(auth.id);
       if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
 
-      if (tenant.plan === plan) {
+      const basePlan = plan.replace("_whatsapp", "");
+      if (tenant.plan === basePlan && !plan.includes("whatsapp")) {
         return res.status(400).json({ message: "Ya tienes este plan activo" });
       }
 
-      const protocol = req.headers["x-forwarded-proto"] || "https";
-      const host = req.headers.host || "localhost:5000";
-      const baseURL = `${protocol}://${host}`;
+      const result = await createSubscription(plan, tenant.email, auth.id);
 
-      const flowApi = getFlowApi(baseURL);
-      const planInfo = PLAN_PRICES[plan];
+      await storage.updateTenant(auth.id, { mpSubscriptionId: result.subscriptionId } as any);
+
       const commerceOrder = `foxbot_${auth.id}_${plan}_${Date.now()}`;
-
-      const paymentOrder = await storage.createPaymentOrder({
+      await storage.createPaymentOrder({
         tenantId: auth.id,
         commerceOrder,
-        targetPlan: plan,
-        amount: planInfo.amount,
+        targetPlan: basePlan,
+        amount: PLAN_PRICES[plan].amount,
       });
+      await storage.updatePaymentOrderStatus(commerceOrder, "pending");
 
-      const params = {
-        commerceOrder,
-        subject: planInfo.subject,
-        currency: "CLP",
-        amount: planInfo.amount,
-        email: tenant.email,
-        paymentMethod: 9,
-        urlConfirmation: `${baseURL}/api/flow/confirm`,
-        urlReturn: `${baseURL}/api/flow/return`,
-      };
-
-      const response = await flowApi.send("payment/create", params, "POST");
-
-      if (response.flowOrder) {
-        await storage.updatePaymentOrderStatus(commerceOrder, "pending");
-      }
-
-      const paymentUrl = `${response.url}?token=${response.token}`;
-      log(`Pago Flow creado: order=${commerceOrder} flowOrder=${response.flowOrder} tenant=${auth.id} plan=${plan}`, "api");
-      res.json({ paymentUrl, flowOrder: response.flowOrder });
+      log(`Suscripción MP creada: subscriptionId=${result.subscriptionId} tenant=${auth.id} plan=${plan}`, "api");
+      res.json({ paymentUrl: result.initPoint, subscriptionId: result.subscriptionId });
     } catch (error: any) {
-      log(`Error al crear pago Flow: ${error.message}`, "api");
-      res.status(500).json({ message: "Error al crear pago" });
+      log(`Error al crear suscripción MP: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al crear suscripcion" });
     }
   });
 
-  app.post("/api/flow/confirm", async (req, res) => {
+  app.post("/api/mercadopago/webhook", async (req, res) => {
     try {
-      const { token } = req.body;
-      if (!token) {
-        log("Flow confirm: token no recibido", "api");
-        return res.status(400).json({ message: "Token requerido" });
-      }
+      const { type, data, action } = req.body;
+      log(`MP webhook: type=${type} action=${action} data=${JSON.stringify(data)}`, "api");
 
-      const protocol = req.headers["x-forwarded-proto"] || "https";
-      const host = req.headers.host || "localhost:5000";
-      const baseURL = `${protocol}://${host}`;
-      const flowApi = getFlowApi(baseURL);
-
-      const flowStatus = await flowApi.send("payment/getStatus", { token }, "GET");
-      log(`Flow confirm: commerceOrder=${flowStatus.commerceOrder} status=${flowStatus.status} amount=${flowStatus.amount}`, "api");
-
-      if (!flowStatus.commerceOrder) {
-        log("Flow confirm: commerceOrder no encontrada en respuesta", "api");
-        return res.json({ status: "ok" });
-      }
-
-      const order = await storage.getPaymentOrderByCommerceOrder(flowStatus.commerceOrder);
-      if (!order) {
-        log(`Flow confirm: orden no encontrada en DB: ${flowStatus.commerceOrder}`, "api");
-        return res.json({ status: "ok" });
-      }
-
-      if (order.status === "paid") {
-        log(`Flow confirm: orden ${flowStatus.commerceOrder} ya fue procesada (idempotente)`, "api");
-        return res.json({ status: "ok" });
-      }
-
-      if (flowStatus.status === 2) {
-        if (flowStatus.amount !== order.amount) {
-          log(`Flow confirm: monto no coincide. Esperado=${order.amount} Recibido=${flowStatus.amount} orden=${flowStatus.commerceOrder}`, "api");
-          return res.json({ status: "ok" });
+      if (type === "subscription_preapproval" && data?.id) {
+        const subscription = await getSubscriptionStatus(data.id);
+        if (!subscription || !subscription.external_reference) {
+          log(`MP webhook: no external_reference for subscription ${data.id}`, "api");
+          return res.status(200).json({ status: "ok" });
         }
 
-        await storage.updatePaymentOrderStatus(flowStatus.commerceOrder, "paid", new Date());
-        await storage.updateTenant(order.tenantId, { plan: order.targetPlan } as any);
-        log(`Tenant ${order.tenantId} actualizado a plan ${order.targetPlan} - Pago Flow #${flowStatus.flowOrder} orden=${flowStatus.commerceOrder}`, "api");
+        const parts = subscription.external_reference.split("_");
+        const tenantId = parseInt(parts[1]);
+        const planKey = parts.slice(2).join("_");
+        const basePlan = planKey.replace("_whatsapp", "");
+        const hasWhatsApp = planKey.includes("whatsapp");
 
-        try {
-          const referral = await storage.getReferralByReferredId(order.tenantId);
-          const isPaidPlan = order.targetPlan === "basic" || order.targetPlan === "pro";
-          if (referral && referral.confirmed === 0 && isPaidPlan) {
-            await storage.confirmReferral(referral.referrerId, order.tenantId);
-            const paidCount = await storage.getPaidReferralCount(referral.referrerId);
-            const AMBASSADOR_THRESHOLD = 15;
-            const isAmbassador = paidCount >= AMBASSADOR_THRESHOLD;
-            const CASH_PER_REFERRAL = isAmbassador ? 5000 : 3000;
-            await storage.addReferralCash(referral.referrerId, CASH_PER_REFERRAL);
-            log(`Referral cash: referrer ${referral.referrerId} earned $${CASH_PER_REFERRAL} CLP ${isAmbassador ? "(EMBAJADOR)" : ""} (referido ${order.tenantId})`, "referral");
-            const confirmedCount = await storage.getConfirmedReferralCount(referral.referrerId);
-            const milestones: { count: number; plan: string; months: number }[] = [
-              { count: 1, plan: "basic", months: 1 },
-              { count: 3, plan: "basic", months: 2 },
-              { count: 5, plan: "pro", months: 3 },
-              { count: 10, plan: "pro", months: 6 },
-              { count: 15, plan: "pro", months: 12 },
-            ];
-            const bestMilestone = milestones.filter(m => confirmedCount >= m.count).pop();
-            if (bestMilestone) {
-              await storage.applyReferralReward(referral.referrerId, bestMilestone.plan, bestMilestone.months);
-              const planName = bestMilestone.plan === "pro" ? "Fox Enterprise" : "Fox Pro";
-              log(`Referral milestone: referrer ${referral.referrerId} earned ${bestMilestone.months} months ${planName} (${confirmedCount} referidos, referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
-            } else {
-              log(`Referral confirmed: referrer ${referral.referrerId} now has ${confirmedCount} confirmed + $${CASH_PER_REFERRAL} CLP (referido ${order.tenantId} compró ${order.targetPlan})`, "referral");
-            }
-            if (isAmbassador && paidCount === AMBASSADOR_THRESHOLD) {
-              log(`EMBAJADOR NUEVO: tenant ${referral.referrerId} alcanzó ${AMBASSADOR_THRESHOLD} referidos pagados activos`, "referral");
-            }
+        if (!tenantId || isNaN(tenantId)) {
+          log(`MP webhook: invalid tenantId from external_reference: ${subscription.external_reference}`, "api");
+          return res.status(200).json({ status: "ok" });
+        }
+
+        const tenant = await storage.getTenantById(tenantId);
+        if (!tenant) {
+          log(`MP webhook: tenant ${tenantId} not found`, "api");
+          return res.status(200).json({ status: "ok" });
+        }
+
+        if (tenant.mpSubscriptionId && tenant.mpSubscriptionId !== data.id) {
+          log(`MP webhook: subscription ID mismatch. Tenant ${tenantId} has ${tenant.mpSubscriptionId}, webhook sent ${data.id}`, "api");
+          return res.status(200).json({ status: "ok" });
+        }
+
+        if (subscription.status === "authorized") {
+          const updateFields: any = { plan: basePlan, mpSubscriptionId: data.id };
+          if (hasWhatsApp) {
+            updateFields.whatsappEnabled = 1;
           }
-        } catch (refErr: any) {
-          log(`Error procesando referido en pago: ${refErr.message}`, "referral");
+          await storage.updateTenant(tenantId, updateFields);
+          log(`Tenant ${tenantId} actualizado a plan ${basePlan}${hasWhatsApp ? " + WhatsApp" : ""} via MP subscription ${data.id}`, "api");
+
+          const allOrders = await storage.getPaymentOrdersByTenantId(tenantId);
+          const pendingOrder = allOrders?.find((o: any) => o.status === "pending" && o.targetPlan === basePlan);
+          if (pendingOrder) {
+            await storage.updatePaymentOrderStatus(pendingOrder.commerceOrder, "paid", new Date());
+          }
+
+          try {
+            const referral = await storage.getReferralByReferredId(tenantId);
+            const isPaidPlan = basePlan === "basic" || basePlan === "pro";
+            if (referral && referral.confirmed === 0 && isPaidPlan) {
+              await storage.confirmReferral(referral.referrerId, tenantId);
+              const paidCount = await storage.getPaidReferralCount(referral.referrerId);
+              const AMBASSADOR_THRESHOLD = 15;
+              const isAmbassador = paidCount >= AMBASSADOR_THRESHOLD;
+              const CASH_PER_REFERRAL = isAmbassador ? 5000 : 3000;
+              await storage.addReferralCash(referral.referrerId, CASH_PER_REFERRAL);
+              log(`Referral cash: referrer ${referral.referrerId} earned $${CASH_PER_REFERRAL} CLP ${isAmbassador ? "(EMBAJADOR)" : ""} (referido ${tenantId})`, "referral");
+              const confirmedCount = await storage.getConfirmedReferralCount(referral.referrerId);
+              const milestones: { count: number; plan: string; months: number }[] = [
+                { count: 1, plan: "basic", months: 1 },
+                { count: 3, plan: "basic", months: 2 },
+                { count: 5, plan: "pro", months: 3 },
+                { count: 10, plan: "pro", months: 6 },
+                { count: 15, plan: "pro", months: 12 },
+              ];
+              const bestMilestone = milestones.filter(m => confirmedCount >= m.count).pop();
+              if (bestMilestone) {
+                await storage.applyReferralReward(referral.referrerId, bestMilestone.plan, bestMilestone.months);
+                log(`Referral milestone: referrer ${referral.referrerId} earned ${bestMilestone.months} months (${confirmedCount} referidos)`, "referral");
+              }
+              if (isAmbassador && paidCount === AMBASSADOR_THRESHOLD) {
+                log(`EMBAJADOR NUEVO: tenant ${referral.referrerId} alcanzó ${AMBASSADOR_THRESHOLD} referidos pagados activos`, "referral");
+              }
+            }
+          } catch (refErr: any) {
+            log(`Error procesando referido en pago MP: ${refErr.message}`, "referral");
+          }
+        } else if (subscription.status === "cancelled" || subscription.status === "paused") {
+          await storage.updateTenant(tenantId, { plan: "free", mpSubscriptionId: null, whatsappEnabled: 0 } as any);
+          log(`Tenant ${tenantId} degradado a free - suscripción MP ${subscription.status}: ${data.id}`, "api");
+
+          const allOrders = await storage.getPaymentOrdersByTenantId(tenantId);
+          const pendingOrder = allOrders?.find((o: any) => o.status === "pending");
+          if (pendingOrder) {
+            await storage.updatePaymentOrderStatus(pendingOrder.commerceOrder, "rejected");
+          }
         }
-      } else if (flowStatus.status === 3 || flowStatus.status === 4) {
-        await storage.updatePaymentOrderStatus(flowStatus.commerceOrder, "rejected");
-        log(`Pago rechazado/cancelado: orden=${flowStatus.commerceOrder} tenant=${order.tenantId}`, "api");
       }
 
-      res.json({ status: "ok" });
+      res.status(200).json({ status: "ok" });
     } catch (error: any) {
-      log(`Error en confirmación Flow: ${error.message}`, "api");
-      res.status(500).json({ message: "Error procesando confirmacion" });
+      log(`Error en webhook MP: ${error.message}`, "api");
+      res.status(200).json({ status: "ok" });
     }
   });
 
-  app.get("/api/flow/return", async (req, res) => {
+  app.get("/api/mercadopago/return", async (req, res) => {
     try {
-      const { token } = req.query;
-      if (!token || typeof token !== "string") {
-        return res.redirect("/dashboard?payment=error");
-      }
+      const { preapproval_id, status } = req.query;
 
-      const protocol = req.headers["x-forwarded-proto"] || "https";
-      const host = req.headers.host || "localhost:5000";
-      const baseURL = `${protocol}://${host}`;
-      const flowApi = getFlowApi(baseURL);
-
-      const flowStatus = await flowApi.send("payment/getStatus", { token }, "GET");
-
-      if (flowStatus.status === 2) {
+      if (status === "authorized" || preapproval_id) {
         return res.redirect("/dashboard?payment=success");
-      } else if (flowStatus.status === 3) {
-        return res.redirect("/dashboard?payment=rejected");
       } else {
         return res.redirect("/dashboard?payment=pending");
       }
     } catch (error: any) {
-      log(`Error en retorno Flow: ${error.message}`, "api");
+      log(`Error en retorno MP: ${error.message}`, "api");
       return res.redirect("/dashboard?payment=error");
+    }
+  });
+
+  app.post("/api/tenants/me/cancel-subscription", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+
+      if (!tenant.mpSubscriptionId) {
+        return res.status(400).json({ message: "No tienes una suscripción activa" });
+      }
+
+      const cancelled = await cancelSubscription(tenant.mpSubscriptionId);
+      if (cancelled) {
+        await storage.updateTenant(auth.id, { plan: "free", mpSubscriptionId: null } as any);
+        log(`Tenant ${auth.id} canceló suscripción MP ${tenant.mpSubscriptionId}`, "api");
+        res.json({ message: "Suscripción cancelada", plan: "free" });
+      } else {
+        res.status(500).json({ message: "Error al cancelar suscripción" });
+      }
+    } catch (error: any) {
+      log(`Error cancelando suscripción: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al cancelar suscripcion" });
+    }
+  });
+
+  app.get("/api/tenants/me/subscription-status", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant || !tenant.mpSubscriptionId) {
+        return res.json({ active: false, status: null });
+      }
+      const sub = await getSubscriptionStatus(tenant.mpSubscriptionId);
+      if (!sub) return res.json({ active: false, status: null });
+      res.json({
+        active: sub.status === "authorized",
+        status: sub.status,
+        nextPaymentDate: sub.next_payment_date,
+        subscriptionId: sub.id,
+      });
+    } catch (error: any) {
+      res.json({ active: false, status: null });
     }
   });
 
