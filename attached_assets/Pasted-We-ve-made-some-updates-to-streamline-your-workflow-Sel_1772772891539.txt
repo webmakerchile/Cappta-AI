@@ -1,0 +1,67 @@
+We've made some updates to streamline your workflow:
+Selecting an identity now comes after you've chosen your creative.
+Identity is no longer required when using a creator's TikTok post for Spark Ads.
+All authorized TikTok posts now appear under a new tab in the creative drawer.
+
+Use Smart Creative to create ads
+Smart Creative ensures your ad groups are continuously optimized by auto-generating videos that are diversified across ad creative, asset selection, and more. Learn more
+Ad name
+Anuncio 1 - ¿$200.000 CLP?
+Ad details
+TikTok post
+The text and the identity of the TikTok post can't be edited.
+
+
+webmakerchile
+#chatbot
+01:05  | 1080x1920
+
+Music sharing
+Allow the music or sounds in your ad to be used in other TikTok content.
+
+Stitch and Duet
+Call to action
+Maximize performance by automatically showing different call to action text to different users.
+Contact us
+Add product and service information
+Optional
+This information will be used in different ad variations to create personalized ad delivery with the goal of improving ad performance.
+See example
+View ad variations
+Product name
+Enter title
+Product image
+Selling points
+Press enter to add each entry
+0/25
+Confirm
+Advanced settings
+Destination
+Website
+URL
+TikTok Instant Page
+Custom page
+Destination URL 
+You agree that TikTok can regularly access, use, and modify all information at the URL (images, videos, etc.) and related pages to help you develop and improve your ads, optimize campaigns, and provide recommendations. All such information is considered 'Your Content' and is subject to the TikTok for Business Commercial Terms of Service .
+https://foxbot.cl?utm_source=tiktok&utm_medium=paid&utm_id=__CAMPAIGN_ID__&utm_campaign=__CAMPAIGN_NAME__
+4 URL parameters
+Auto-attached
+
+Disclaimer
+Tracking
+ 
+(optional)
+TikTok events tracking
+App events:
+-
+CRM ID:
+-
+Offline events:
+-
+Third-party tracking settings
+Impression tracking URL
+Enter impression tracking URL
+Click tracking URL 
+Enter click tracking URL
+By clicking "Publish", you agree to TikTok's Online Data Terms
+Draft saved
