@@ -14,6 +14,7 @@ import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import archiver from "archiver";
 import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createSubscription, cancelSubscription, getSubscriptionStatus } from "./flow";
 import { handleIncomingWhatsApp, sendWhatsAppMessage, isWhatsAppConfigured } from "./whatsapp";
+import { trackTikTokEvent } from "./tiktok";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
@@ -1238,6 +1239,16 @@ ${DEMO_BASE_RULES}`,
         }
       }
       const token = generateTenantToken({ id: tenant.id, email: tenant.email, companyName: tenant.companyName });
+
+      trackTikTokEvent({
+        event: "CompleteRegistration",
+        email: tenant.email,
+        ip: req.ip || req.headers["x-forwarded-for"] as string,
+        userAgent: req.headers["user-agent"],
+        url: "https://foxbot.cl/register",
+        contentName: "FoxBot",
+      }).catch(() => {});
+
       res.status(201).json({
         token,
         tenant: { id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, welcomeMessage: tenant.welcomeMessage, logoUrl: tenant.logoUrl, domain: tenant.domain },
@@ -1279,6 +1290,15 @@ ${DEMO_BASE_RULES}`,
           companyName: name,
           avatarUrl: picture,
         });
+
+        trackTikTokEvent({
+          event: "CompleteRegistration",
+          email: tenant.email,
+          ip: req.ip || req.headers["x-forwarded-for"] as string,
+          userAgent: req.headers["user-agent"],
+          url: "https://foxbot.cl/register",
+          contentName: "FoxBot",
+        }).catch(() => {});
       } else if (picture && tenant.avatarUrl !== picture) {
         tenant = (await storage.updateTenant(tenant.id, { avatarUrl: picture } as any)) || tenant;
       }
@@ -1848,6 +1868,19 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
           }
           await storage.updateTenant(tenantId, updateFields);
           log(`Tenant ${tenantId} actualizado a plan ${basePlan}${hasWhatsApp ? " + WhatsApp" : ""} via MP subscription ${data.id}`, "api");
+
+          const planInfo = PLAN_PRICES[planKey];
+          if (planInfo && tenant.email) {
+            trackTikTokEvent({
+              event: "Purchase",
+              email: tenant.email,
+              url: "https://foxbot.cl/dashboard",
+              value: planInfo.amount,
+              currency: "CLP",
+              contentName: planInfo.label,
+              contentType: "product",
+            }).catch(() => {});
+          }
 
           const allOrders = await storage.getPaymentOrdersByTenantId(tenantId);
           const pendingOrder = allOrders?.find((o: any) => o.status === "pending" && o.targetPlan === basePlan);
