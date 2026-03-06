@@ -12,7 +12,7 @@ import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuil
 
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import archiver from "archiver";
-import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createSubscription, cancelSubscription, getSubscriptionStatus } from "./flow";
+import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createCheckoutPreference, getPaymentInfo, cancelSubscription, getSubscriptionStatus } from "./flow";
 import { handleIncomingWhatsApp, sendWhatsAppMessage, isWhatsAppConfigured } from "./whatsapp";
 import { trackTikTokEvent } from "./tiktok";
 import bcrypt from "bcryptjs";
@@ -1782,9 +1782,7 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
         return res.status(400).json({ message: "Ya tienes este plan activo" });
       }
 
-      const result = await createSubscription(plan, tenant.email, auth.id);
-
-      await storage.updateTenant(auth.id, { mpSubscriptionId: result.subscriptionId } as any);
+      const result = await createCheckoutPreference(plan, tenant.email, auth.id);
 
       const commerceOrder = `foxbot_${auth.id}_${plan}_${Date.now()}`;
       await storage.createPaymentOrder({
@@ -1795,10 +1793,10 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
       });
       await storage.updatePaymentOrderStatus(commerceOrder, "pending");
 
-      log(`Suscripción MP creada: subscriptionId=${result.subscriptionId} tenant=${auth.id} plan=${plan}`, "api");
-      res.json({ paymentUrl: result.initPoint, subscriptionId: result.subscriptionId });
+      log(`Checkout Pro MP creado: preferenceId=${result.preferenceId} tenant=${auth.id} plan=${plan}`, "api");
+      res.json({ paymentUrl: result.initPoint, preferenceId: result.preferenceId });
     } catch (error: any) {
-      log(`Error al crear suscripción MP: ${error.message}`, "api");
+      log(`Error al crear checkout MP: ${error.message}`, "api");
       res.status(500).json({ message: "Error al crear suscripcion" });
     }
   });
@@ -1832,39 +1830,30 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
       const { type, data, action } = req.body;
       log(`MP webhook: type=${type} action=${action} data=${JSON.stringify(data)}`, "api");
 
-      if (type === "subscription_preapproval" && data?.id) {
-        const subscription = await getSubscriptionStatus(data.id);
-        if (!subscription) {
-          log(`MP webhook: could not fetch subscription ${data.id}`, "api");
+      if (type === "payment" && data?.id) {
+        const payment = await getPaymentInfo(String(data.id));
+        if (!payment) {
+          log(`MP webhook: could not fetch payment ${data.id}`, "api");
           return res.status(200).json({ status: "ok" });
         }
 
-        let tenantId: number | null = null;
-        let planKey = "";
+        log(`MP webhook: payment ${data.id} status=${payment.status} external_reference=${payment.external_reference}`, "api");
 
-        if (subscription.external_reference) {
-          const parts = subscription.external_reference.split("_");
-          tenantId = parseInt(parts[1]);
-          planKey = parts.slice(2).join("_");
+        if (!payment.external_reference) {
+          log(`MP webhook: no external_reference for payment ${data.id}`, "api");
+          return res.status(200).json({ status: "ok" });
         }
+
+        const parts = payment.external_reference.split("_");
+        const tenantId = parseInt(parts[1]);
+        const planKey = parts.slice(2).join("_");
+        const basePlan = planKey.replace("_whatsapp", "");
+        const hasWhatsApp = planKey.includes("whatsapp");
 
         if (!tenantId || isNaN(tenantId)) {
-          const allTenants = await storage.getTenantByMpSubscriptionId(data.id);
-          if (allTenants) {
-            tenantId = allTenants.id;
-            if (!planKey) {
-              planKey = allTenants.plan === "free" ? "basic" : allTenants.plan;
-            }
-          }
-        }
-
-        if (!tenantId) {
-          log(`MP webhook: no tenant found for subscription ${data.id}`, "api");
+          log(`MP webhook: invalid tenantId from external_reference: ${payment.external_reference}`, "api");
           return res.status(200).json({ status: "ok" });
         }
-
-        const basePlan = planKey.replace("_whatsapp", "") || "basic";
-        const hasWhatsApp = planKey.includes("whatsapp");
 
         const tenant = await storage.getTenantById(tenantId);
         if (!tenant) {
@@ -1872,13 +1861,13 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
           return res.status(200).json({ status: "ok" });
         }
 
-        if (subscription.status === "authorized") {
-          const updateFields: any = { plan: basePlan, mpSubscriptionId: data.id };
+        if (payment.status === "approved") {
+          const updateFields: any = { plan: basePlan, mpSubscriptionId: String(data.id) };
           if (hasWhatsApp) {
             updateFields.whatsappEnabled = 1;
           }
           await storage.updateTenant(tenantId, updateFields);
-          log(`Tenant ${tenantId} actualizado a plan ${basePlan}${hasWhatsApp ? " + WhatsApp" : ""} via MP subscription ${data.id}`, "api");
+          log(`Tenant ${tenantId} actualizado a plan ${basePlan}${hasWhatsApp ? " + WhatsApp" : ""} via MP payment ${data.id}`, "api");
 
           const planInfo = PLAN_PRICES[planKey];
           if (planInfo && tenant.email) {
@@ -1930,14 +1919,30 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
           } catch (refErr: any) {
             log(`Error procesando referido en pago MP: ${refErr.message}`, "referral");
           }
-        } else if (subscription.status === "cancelled" || subscription.status === "paused") {
-          await storage.updateTenant(tenantId, { plan: "free", mpSubscriptionId: null, whatsappEnabled: 0 } as any);
-          log(`Tenant ${tenantId} degradado a free - suscripción MP ${subscription.status}: ${data.id}`, "api");
+        } else if (payment.status === "rejected" || payment.status === "cancelled") {
+          log(`MP webhook: payment ${data.id} status=${payment.status} for tenant ${tenantId}`, "api");
 
           const allOrders = await storage.getPaymentOrdersByTenantId(tenantId);
           const pendingOrder = allOrders?.find((o: any) => o.status === "pending");
           if (pendingOrder) {
             await storage.updatePaymentOrderStatus(pendingOrder.commerceOrder, "rejected");
+          }
+        }
+      }
+
+      if (type === "subscription_preapproval" && data?.id) {
+        const subscription = await getSubscriptionStatus(data.id);
+        if (subscription) {
+          log(`MP webhook: subscription ${data.id} status=${subscription.status}`, "api");
+          if (subscription.external_reference) {
+            const parts = subscription.external_reference.split("_");
+            const tenantId = parseInt(parts[1]);
+            if (tenantId && !isNaN(tenantId)) {
+              if (subscription.status === "cancelled" || subscription.status === "paused") {
+                await storage.updateTenant(tenantId, { plan: "free", mpSubscriptionId: null, whatsappEnabled: 0 } as any);
+                log(`Tenant ${tenantId} degradado a free - suscripción ${subscription.status}`, "api");
+              }
+            }
           }
         }
       }
@@ -1951,22 +1956,32 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
 
   app.get("/api/mercadopago/return", async (req, res) => {
     try {
-      const { preapproval_id, status, tenant_id, plan } = req.query;
+      const { status, payment_id, tenant_id, plan } = req.query;
 
-      if (preapproval_id && tenant_id) {
+      log(`MP return: status=${status} payment_id=${payment_id} tenant_id=${tenant_id} plan=${plan}`, "api");
+
+      if (status === "approved" && tenant_id && plan) {
         const tenantId = parseInt(tenant_id as string);
         const planKey = (plan as string) || "";
+        const basePlan = planKey.replace("_whatsapp", "");
+        const hasWhatsApp = planKey.includes("whatsapp");
+
         if (tenantId && !isNaN(tenantId)) {
           const tenant = await storage.getTenantById(tenantId);
-          if (tenant && !tenant.mpSubscriptionId) {
-            await storage.updateTenant(tenantId, { mpSubscriptionId: preapproval_id as string } as any);
-            log(`MP return: linked subscription ${preapproval_id} to tenant ${tenantId} (plan: ${planKey})`, "api");
+          if (tenant && tenant.plan !== basePlan) {
+            const updateFields: any = { plan: basePlan };
+            if (payment_id) updateFields.mpSubscriptionId = String(payment_id);
+            if (hasWhatsApp) updateFields.whatsappEnabled = 1;
+            await storage.updateTenant(tenantId, updateFields);
+            log(`MP return: tenant ${tenantId} upgraded to ${basePlan} via return URL`, "api");
           }
         }
       }
 
-      if (status === "authorized" || preapproval_id) {
+      if (status === "approved") {
         return res.redirect("/dashboard?payment=success");
+      } else if (status === "rejected") {
+        return res.redirect("/dashboard?payment=error");
       } else {
         return res.redirect("/dashboard?payment=pending");
       }
