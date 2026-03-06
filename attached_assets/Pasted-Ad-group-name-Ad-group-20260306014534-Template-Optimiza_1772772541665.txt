@@ -1,0 +1,146 @@
+Ad group name
+Ad group 20260306014534
+
+Template
+Optimization
+Select your lead goal, add events, and choose where you’d like to drive more leads. Learn more
+Location
+Collect leads through your website
+Collect leads through an instant form
+Collect and connect with leads through TikTok direct messages
+Start conversations on WhatsApp, Messenger, Zalo, LINE, and other messaging apps.
+Collect and connect with leads through phone calls
+Goal
+Conversion
+Billing is based on impression (oCPM).
+Event
+Data connection
+FoxBot
+Optimization event
+Complete registration
+Deep funnel optimization
+Select a deep funnel event as the second conversion. Deep funnel optimization may improve lead quality and control CPL. Learn more
+
+Turn on Deep Funnel Optimization for higher quality conversions
+Optimize your lead campaign to target your ads to people who are more likely to perform the deep funnel event of your choice (for example, adds to cart or purchases).
+
+Attribution settings
+Attribution window: 7-day click or 1-day view
+Event count: Every
+Placements
+Automatic placement is recommended because it can improve ad performance across TikTok, Pangle and Global App Bundle. Learn more
+Manually choose your targeting placement. Learn more
+Selecting automatic placement is recommended to improve ad performance. 
+
+TikTok
+Show your ads across TikTok
+
+Global App Bundle
+Powered by Pangle
+CapCut/Fizzo
+
+Pangle
+Pangle, the ad network for TikTok for Business, enables advertisers to reach people across non-TikTok apps and sites. Learn more
+Advanced settings
+Targeting
+
+Use saved audience
+Account level targeting settings will automatically apply to this ad group. To make changes, go to 
+Audience controls.
+Broad targeting is the best solution for most advertisers
+View more
+
+Demographics
+Location
+Chile
+Chile
+Bulk upload
+Age
+13-17
+18-24
+25-34
+35-44
+45-54
+55+
+Gender
+All
+Male
+Female
+Languages
+All
+Spending power
+All
+High spending power
+Audience
+Include audience
+Search or select audiences
+Exclude audience
+Search or select audiences
+Interests & behaviors
+Interests & behaviors
+Target an audience based on their long-term interests and interactions with content on TikTok. Learn more
+Search or select interests & behaviors
+Recommended categories:
+Based on your industry
+
+Home Improvement
+
+Interior Design & Decorating Services
+
+Furniture
+
+Construction Materials & Lighting
+
+Hardware & Electrical
+
+Home Decor
+Show all
+Device
+Operating system
+All
+Android
+iOS
+OS versions
+All
+Device model
+All
+Connection type
+All
+WIFI
+2G
+3G
+4G
+5G
+Carriers
+All
+Internet service provider
+All
+Device price
+
+Any price
+
+Specific range
+Save new audience
+Budget and schedule
+Budget
+Daily
+30,000
+CLP
+You'll spend up to 37,500 CLP on some days, and less on others. You'll spend an average of 30,000 CLP per day and no more than 210,000 CLP per calendar week. Learn more
+Schedule
+Planned start time
+2026-03-06 01:45
+Time zone
+(UTC-04:00) Amazon Time (Brazil)
+Dayparting
+All day Select specific time 
+Bidding
+Target CPA
+(optional)
+Enter a target CPA to keep your average cost per action consistent around the value you set.
+
+Enter a value
+CLP/Conversion
+
+Accelerated delivery
+Suitable for advertisers who want to maximize spending in a short timeframe and are open to potential CPA fluctuations. Accelerated Cost Cap may initially cause a higher budget spend, but the budget will still be spent evenly within 24 hours. Long-term CPA will still be stabilized around the bid. Learn more
