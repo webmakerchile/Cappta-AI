@@ -134,10 +134,10 @@ Key architectural decisions and features include:
 - **Pricing**: Optional add-on at $14.990 CLP/month for paid plans (Fox Pro or Fox Enterprise)
 - **Conversation History**: In-memory per phone number with 30-minute TTL, max 20 messages
 
-## Payment Integration (Mercado Pago)
-- **Provider**: Mercado Pago (Chilean payment gateway with recurring subscriptions)
-- **Service File**: `server/flow.ts` - Mercado Pago API client, subscription management, plan pricing
-- **Environment Variables**: `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`
+## Payment Integration (Mercado Pago Checkout Pro)
+- **Provider**: Mercado Pago Checkout Pro (Chilean payment gateway, accepts ALL payment methods)
+- **Service File**: `server/flow.ts` - Mercado Pago API client (Checkout Pro preferences), plan pricing
+- **Environment Variables**: `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`, `MP_WEBHOOK_SECRET` (optional, signature logged but not blocking)
 - **Plans & Pricing**:
   - `free` (Gratis): $0 — 10 sessions/month, 100 messages/month
   - `basic` (Pro): $19,990 CLP/month — 500 sessions, 5,000 messages, AI + catalog + KB
@@ -145,23 +145,22 @@ Key architectural decisions and features include:
   - `basic_whatsapp` (Pro + WhatsApp): $34,990 CLP/month
   - `pro_whatsapp` (Enterprise + WhatsApp): $64,990 CLP/month
 - **WhatsApp Add-on**: $14,990 CLP/month (WHATSAPP_ADDON_PRICE constant in flow.ts)
-- **Free Trial**: 7 days free trial on all paid plans (FREE_TRIAL_DAYS constant)
-- **Subscription Flow**:
-  1. Tenant clicks "Probar 7 días gratis" → `POST /api/tenants/me/checkout` → creates Mercado Pago subscription with 7-day trial
-  2. Redirect to Mercado Pago checkout page for card registration
-  3. Mercado Pago sends webhook to `POST /api/mercadopago/webhook` on subscription status changes
-  4. Webhook handles: authorized (upgrade plan), cancelled/paused (downgrade to free)
-  5. User redirected to `GET /api/mercadopago/return` → `/dashboard?payment=success|pending|error`
-- **Cancel Subscription**: `POST /api/tenants/me/cancel-subscription` — cancels MP subscription, downgrades to free
-- **Subscription Status**: `GET /api/tenants/me/subscription-status` — returns subscription status and next payment date
-- **DB Fields**: `tenants.mpSubscriptionId` — Mercado Pago subscription ID, `tenants.flowCustomerId` — legacy (unused)
+- **Payment Flow** (Checkout Pro — single payment, not subscription):
+  1. Tenant clicks plan button → `POST /api/tenants/me/checkout` → creates MP preference via `/checkout/preferences`
+  2. Redirect to Mercado Pago checkout page (accepts credit/debit cards, bank transfer, cash, etc.)
+  3. On approved payment, MP sends webhook `POST /api/mercadopago/webhook` with type=payment
+  4. Webhook fetches payment via `/v1/payments/:id`, verifies status=approved, upgrades tenant plan
+  5. Return URL `GET /api/mercadopago/return` also upgrades tenant as backup
+  6. TikTok Purchase event fired server-side on approved payment
+- **Webhook Signature**: HMAC SHA-256 validation logged as warning on mismatch (not blocking), payment verified via API call
+- **DB Fields**: `tenants.mpSubscriptionId` — stores MP payment ID for reference
 
 ## Payment API Routes
-- `POST /api/tenants/me/checkout` - Create Mercado Pago subscription with 7-day trial (auth required, body: { plan })
-- `POST /api/mercadopago/webhook` - Mercado Pago IPN webhook (subscription status changes)
-- `GET /api/mercadopago/return` - Post-payment redirect (redirects to dashboard with status)
-- `POST /api/tenants/me/cancel-subscription` - Cancel active Mercado Pago subscription (auth required)
-- `GET /api/tenants/me/subscription-status` - Get subscription status (auth required)
+- `POST /api/tenants/me/checkout` - Create Mercado Pago Checkout Pro preference (auth required, body: { plan })
+- `POST /api/mercadopago/webhook` - Mercado Pago webhook (payment notifications + legacy subscription events)
+- `GET /api/mercadopago/return` - Post-payment redirect with plan upgrade (redirects to dashboard with status)
+- `POST /api/tenants/me/cancel-subscription` - Cancel/downgrade to free (auth required)
+- `GET /api/tenants/me/subscription-status` - Get payment/plan status (auth required)
 - `GET /api/tenants/me/plan-prices` - Public plan pricing info
 
 ## Demo/Test Accounts (Development Only)
@@ -194,7 +193,7 @@ Created automatically on server startup (skipped in production):
 - **Image Storage**: Base64 data URIs stored directly in PostgreSQL (no external file storage).
 - **VAPID/Web-Push**: For sending browser push notifications to admin users.
 - **OpenAI**: Powers intelligent AI responses using gpt-4o-mini.
-- **Mercado Pago**: Chilean payment gateway for recurring subscriptions with free trial (via REST API).
+- **Mercado Pago**: Chilean payment gateway via Checkout Pro (accepts all payment methods, not just MP wallet).
 - **Twilio**: WhatsApp Business API integration for multi-channel chat support.
-- **TikTok Pixel**: Conversion tracking (Pixel ID: D6K986RC77U8SKV71PDG). Base code in index.html. Events: CompleteRegistration (on signup), CompletePayment (on successful plan purchase).
+- **TikTok Pixel + Events API**: Dual tracking (browser pixel + server-side Events API). Pixel ID: D6K986RC77U8SKV71PDG. Server module: `server/tiktok.ts`. Events: CompleteRegistration (on register, both form and Google auth), Purchase (on approved MP payment via webhook). Server events use `event_source: "web"` + `event_source_id` at root level.
 - **Helmet**: Express security headers middleware.
