@@ -64,7 +64,6 @@ export async function createSubscription(
   const subscription = await mpFetch("/preapproval", "POST", {
     reason: planInfo.reason,
     external_reference: `foxbot_${tenantId}_${planKey}`,
-    payer_email: email,
     auto_recurring: {
       frequency: 1,
       frequency_type: "months",
