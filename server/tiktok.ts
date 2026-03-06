@@ -30,21 +30,24 @@ export async function trackTikTokEvent(params: TikTokEventParams): Promise<boole
     if (params.userAgent) user.user_agent = params.userAgent;
 
     const properties: any = {};
-    if (params.value !== undefined) properties.value = params.value;
+    if (params.value !== undefined) properties.value = String(params.value);
     if (params.currency) properties.currency = params.currency;
     if (params.contentName) properties.content_name = params.contentName;
     if (params.contentType) properties.content_type = params.contentType;
 
-    const payload = {
-      pixel_code: TIKTOK_PIXEL_ID,
+    const eventData = {
       event: params.event,
       event_id: `${params.event}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      timestamp: new Date().toISOString(),
-      context: {
-        user,
-        page: { url: params.url || "https://foxbot.cl" },
-      },
+      event_time: Math.floor(Date.now() / 1000),
+      user,
+      page: { url: params.url || "https://foxbot.cl" },
       properties,
+    };
+
+    const body = {
+      event_source: "web",
+      event_source_id: TIKTOK_PIXEL_ID,
+      data: [eventData],
     };
 
     const res = await fetch(TIKTOK_API_URL, {
@@ -53,7 +56,7 @@ export async function trackTikTokEvent(params: TikTokEventParams): Promise<boole
         "Content-Type": "application/json",
         "Access-Token": TIKTOK_ACCESS_TOKEN,
       },
-      body: JSON.stringify({ data: [payload] }),
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
