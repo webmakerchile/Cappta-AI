@@ -78,6 +78,7 @@ export interface IStorage {
   getTenantByMpSubscriptionId(mpSubscriptionId: string): Promise<Tenant | null>;
   createTenant(data: InsertTenant): Promise<Tenant>;
   updateTenant(id: number, data: Partial<InsertTenant>): Promise<Tenant | null>;
+  deleteTenant(id: number): Promise<boolean>;
   getTenantStats(tenantId: number): Promise<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }>;
   createPaymentOrder(data: { tenantId: number; commerceOrder: string; flowOrder?: number; targetPlan: string; amount: number }): Promise<typeof paymentOrders.$inferSelect>;
   getPaymentOrderByCommerceOrder(commerceOrder: string): Promise<typeof paymentOrders.$inferSelect | null>;
@@ -1089,6 +1090,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tenants.id, id))
       .returning();
     return tenant || null;
+  }
+
+  async deleteTenant(id: number): Promise<boolean> {
+    await db.delete(messages).where(eq(messages.tenantId, id));
+    await db.delete(sessions).where(eq(sessions.tenantId, id));
+    await db.delete(ratings).where(eq(ratings.tenantId, id));
+    await db.delete(contactRequests).where(eq(contactRequests.tenantId, id));
+    await db.delete(products).where(eq(products.tenantId, id));
+    await db.delete(knowledgeBase).where(eq(knowledgeBase.tenantId, id));
+    await db.delete(knowledgePages).where(eq(knowledgePages.tenantId, id));
+    await db.delete(cannedResponses).where(eq(cannedResponses.tenantId, id));
+    await db.delete(customTags).where(eq(customTags.tenantId, id));
+    await db.delete(tenantFiles).where(eq(tenantFiles.tenantId, id));
+    await db.delete(tenantAgents).where(eq(tenantAgents.tenantId, id));
+    await db.delete(tenantPushSubscriptions).where(eq(tenantPushSubscriptions.tenantId, id));
+    await db.delete(paymentOrders).where(eq(paymentOrders.tenantId, id));
+    await db.delete(referrals).where(eq(referrals.referrerId, id));
+    await db.delete(referrals).where(eq(referrals.referredId, id));
+    const result = await db.delete(tenants).where(eq(tenants.id, id)).returning();
+    return result.length > 0;
   }
 
   async getTenantStats(tenantId: number): Promise<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }> {
