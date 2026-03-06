@@ -4177,6 +4177,32 @@ function TenantsPanel() {
     },
   });
 
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const deleteTenantMutation = useMutation({
+    mutationFn: async (tenantId: number) => {
+      const token = getAuthToken();
+      const res = await fetch(`/api/admin/tenants/${tenantId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Error al eliminar tenant");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+      toast({ title: "Tenant eliminado", description: "El tenant y todos sus datos han sido eliminados." });
+      setDeletingId(null);
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message || "No se pudo eliminar el tenant.", variant: "destructive" });
+      setDeletingId(null);
+    },
+  });
+
   const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
@@ -4251,7 +4277,8 @@ function TenantsPanel() {
                   <th className="pb-2.5 pr-4">Sesiones</th>
                   <th className="pb-2.5 pr-4">Mensajes</th>
                   <th className="pb-2.5 pr-4">Registrado</th>
-                  <th className="pb-2.5">Cambiar Plan</th>
+                  <th className="pb-2.5 pr-4">Cambiar Plan</th>
+                  <th className="pb-2.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -4335,6 +4362,36 @@ function TenantsPanel() {
                           <SelectItem value="pro">Fox Enterprise</SelectItem>
                         </SelectContent>
                       </Select>
+                    </td>
+                    <td className="py-3">
+                      {deletingId === t.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            data-testid={`button-confirm-delete-${t.id}`}
+                            onClick={() => deleteTenantMutation.mutate(t.id)}
+                            disabled={deleteTenantMutation.isPending}
+                            className="px-2 py-1 text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                          >
+                            {deleteTenantMutation.isPending ? "..." : "Sí"}
+                          </button>
+                          <button
+                            data-testid={`button-cancel-delete-${t.id}`}
+                            onClick={() => setDeletingId(null)}
+                            className="px-2 py-1 text-[10px] bg-white/5 text-white/40 border border-white/10 rounded hover:bg-white/10 transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          data-testid={`button-delete-${t.id}`}
+                          onClick={() => setDeletingId(t.id)}
+                          className="p-1.5 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                          title="Eliminar tenant"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

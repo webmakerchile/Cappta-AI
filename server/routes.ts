@@ -4627,6 +4627,37 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     }
   });
 
+  app.delete("/api/admin/tenants/:id", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "superadmin") {
+      return res.status(403).json({ message: "Solo superadmin puede eliminar tenants" });
+    }
+    try {
+      const tenantId = parseInt(req.params.id, 10);
+      if (!tenantId || isNaN(tenantId)) {
+        return res.status(400).json({ message: "ID invalido" });
+      }
+      const tenant = await storage.getTenantById(tenantId);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant no encontrado" });
+      }
+      if (tenant.email === "webmakerchile@gmail.com") {
+        return res.status(403).json({ message: "No puedes eliminar la cuenta superadmin" });
+      }
+      const deleted = await storage.deleteTenant(tenantId);
+      if (deleted) {
+        log(`Superadmin ${user.email} eliminó tenant ${tenantId} (${tenant.email} / ${tenant.companyName})`, "api");
+        res.json({ message: "Tenant eliminado", id: tenantId });
+      } else {
+        res.status(500).json({ message: "Error al eliminar tenant" });
+      }
+    } catch (error: any) {
+      log(`Error al eliminar tenant: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al eliminar tenant" });
+    }
+  });
+
   app.get("/api/admin/payments", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
