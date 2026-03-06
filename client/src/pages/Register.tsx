@@ -67,7 +67,9 @@ export default function Register() {
         title: "Cuenta creada",
         description: "Tu cuenta ha sido creada exitosamente.",
       });
-      window.location.href = "/dashboard";
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1500);
     },
     onError: (error: Error) => {
       toast({
