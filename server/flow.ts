@@ -51,6 +51,20 @@ async function mpFetch(path: string, method: string = "GET", body?: any): Promis
   return data;
 }
 
+async function mpFetchRaw(path: string, method: string = "GET", body?: any): Promise<{ ok: boolean; status: number; data: any }> {
+  const opts: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${BASE_URL}${path}`, opts);
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
+}
+
 export async function createSubscription(
   planKey: string,
   email: string,
@@ -61,7 +75,7 @@ export async function createSubscription(
   const planInfo = PLAN_PRICES[planKey];
   if (!planInfo) throw new Error(`Plan not found: ${planKey}`);
 
-  const subscription = await mpFetch("/preapproval", "POST", {
+  const basePayload = {
     reason: planInfo.reason,
     external_reference: `foxbot_${tenantId}_${planKey}`,
     auto_recurring: {
@@ -74,14 +88,50 @@ export async function createSubscription(
         frequency_type: "days",
       },
     },
-    back_url: "https://foxbot.cl/api/mercadopago/return",
+    back_url: `https://foxbot.cl/api/mercadopago/return?tenant_id=${tenantId}&plan=${planKey}`,
     status: "pending",
+  };
+
+  const result = await mpFetchRaw("/preapproval", "POST", {
+    ...basePayload,
+    payer_email: email,
   });
 
-  return {
-    subscriptionId: subscription.id,
-    initPoint: subscription.init_point,
-  };
+  if (result.ok) {
+    return {
+      subscriptionId: result.data.id,
+      initPoint: result.data.init_point,
+    };
+  }
+
+  const errMsg = result.data?.message || "";
+  if (errMsg.includes("Cannot operate between different countries")) {
+    console.log(`[mp] Email ${email} rejected (different country), creating plan-based subscription`);
+
+    const plan = await mpFetch("/preapproval_plan", "POST", {
+      reason: planInfo.reason,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        billing_day: 10,
+        billing_day_proportional: true,
+        transaction_amount: planInfo.amount,
+        currency_id: "CLP",
+        free_trial: {
+          frequency: FREE_TRIAL_DAYS,
+          frequency_type: "days",
+        },
+      },
+      back_url: `https://foxbot.cl/api/mercadopago/return?tenant_id=${tenantId}&plan=${planKey}`,
+    });
+
+    return {
+      subscriptionId: plan.id,
+      initPoint: plan.init_point,
+    };
+  }
+
+  throw new Error(`MercadoPago API error: ${result.status} ${JSON.stringify(result.data)}`);
 }
 
 export async function cancelSubscription(subscriptionId: string): Promise<boolean> {

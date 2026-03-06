@@ -1834,30 +1834,41 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
 
       if (type === "subscription_preapproval" && data?.id) {
         const subscription = await getSubscriptionStatus(data.id);
-        if (!subscription || !subscription.external_reference) {
-          log(`MP webhook: no external_reference for subscription ${data.id}`, "api");
+        if (!subscription) {
+          log(`MP webhook: could not fetch subscription ${data.id}`, "api");
           return res.status(200).json({ status: "ok" });
         }
 
-        const parts = subscription.external_reference.split("_");
-        const tenantId = parseInt(parts[1]);
-        const planKey = parts.slice(2).join("_");
-        const basePlan = planKey.replace("_whatsapp", "");
-        const hasWhatsApp = planKey.includes("whatsapp");
+        let tenantId: number | null = null;
+        let planKey = "";
+
+        if (subscription.external_reference) {
+          const parts = subscription.external_reference.split("_");
+          tenantId = parseInt(parts[1]);
+          planKey = parts.slice(2).join("_");
+        }
 
         if (!tenantId || isNaN(tenantId)) {
-          log(`MP webhook: invalid tenantId from external_reference: ${subscription.external_reference}`, "api");
+          const allTenants = await storage.getTenantByMpSubscriptionId(data.id);
+          if (allTenants) {
+            tenantId = allTenants.id;
+            if (!planKey) {
+              planKey = allTenants.plan === "free" ? "basic" : allTenants.plan;
+            }
+          }
+        }
+
+        if (!tenantId) {
+          log(`MP webhook: no tenant found for subscription ${data.id}`, "api");
           return res.status(200).json({ status: "ok" });
         }
+
+        const basePlan = planKey.replace("_whatsapp", "") || "basic";
+        const hasWhatsApp = planKey.includes("whatsapp");
 
         const tenant = await storage.getTenantById(tenantId);
         if (!tenant) {
           log(`MP webhook: tenant ${tenantId} not found`, "api");
-          return res.status(200).json({ status: "ok" });
-        }
-
-        if (tenant.mpSubscriptionId && tenant.mpSubscriptionId !== data.id) {
-          log(`MP webhook: subscription ID mismatch. Tenant ${tenantId} has ${tenant.mpSubscriptionId}, webhook sent ${data.id}`, "api");
           return res.status(200).json({ status: "ok" });
         }
 
@@ -1940,7 +1951,19 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
 
   app.get("/api/mercadopago/return", async (req, res) => {
     try {
-      const { preapproval_id, status } = req.query;
+      const { preapproval_id, status, tenant_id, plan } = req.query;
+
+      if (preapproval_id && tenant_id) {
+        const tenantId = parseInt(tenant_id as string);
+        const planKey = (plan as string) || "";
+        if (tenantId && !isNaN(tenantId)) {
+          const tenant = await storage.getTenantById(tenantId);
+          if (tenant && !tenant.mpSubscriptionId) {
+            await storage.updateTenant(tenantId, { mpSubscriptionId: preapproval_id as string } as any);
+            log(`MP return: linked subscription ${preapproval_id} to tenant ${tenantId} (plan: ${planKey})`, "api");
+          }
+        }
+      }
 
       if (status === "authorized" || preapproval_id) {
         return res.redirect("/dashboard?payment=success");

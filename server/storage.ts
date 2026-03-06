@@ -75,6 +75,7 @@ export interface IStorage {
   incrementKnowledgeUsage(id: number): Promise<void>;
   getTenantByEmail(email: string): Promise<Tenant | null>;
   getTenantById(id: number): Promise<Tenant | null>;
+  getTenantByMpSubscriptionId(mpSubscriptionId: string): Promise<Tenant | null>;
   createTenant(data: InsertTenant): Promise<Tenant>;
   updateTenant(id: number, data: Partial<InsertTenant>): Promise<Tenant | null>;
   getTenantStats(tenantId: number): Promise<{ totalSessions: number; totalMessages: number; avgRating: number | null; activeSessionsCount: number }>;
@@ -1063,6 +1064,15 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(tenants)
       .where(eq(tenants.id, id))
+      .limit(1);
+    return tenant || null;
+  }
+
+  async getTenantByMpSubscriptionId(mpSubscriptionId: string): Promise<Tenant | null> {
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.mpSubscriptionId, mpSubscriptionId))
       .limit(1);
     return tenant || null;
   }
