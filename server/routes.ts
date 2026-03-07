@@ -1397,6 +1397,123 @@ ${DEMO_BASE_RULES}`,
     }
   });
 
+  // ========== VERIFICAR INSTALACIÓN DEL WIDGET ==========
+  app.post("/api/tenants/me/verify-installation", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== "string") {
+        return res.status(400).json({ message: "URL requerida" });
+      }
+
+      let normalizedUrl = url.trim();
+      if (!/^https?:\/\//i.test(normalizedUrl)) {
+        normalizedUrl = "https://" + normalizedUrl;
+      }
+
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(normalizedUrl);
+      } catch {
+        return res.json({ installed: false, status: "invalid_url", message: "La URL ingresada no es válida." });
+      }
+
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        return res.json({ installed: false, status: "invalid_url", message: "Solo se permiten URLs http o https." });
+      }
+
+      const hostname = parsedUrl.hostname.toLowerCase();
+      const blockedPatterns = [
+        /^localhost$/i,
+        /^127\.\d+\.\d+\.\d+$/,
+        /^10\.\d+\.\d+\.\d+$/,
+        /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/,
+        /^192\.168\.\d+\.\d+$/,
+        /^0\.0\.0\.0$/,
+        /^169\.254\.\d+\.\d+$/,
+        /^\[::1?\]$/,
+        /^metadata\.google/,
+        /\.internal$/,
+        /\.local$/,
+      ];
+      if (blockedPatterns.some(p => p.test(hostname))) {
+        return res.json({ installed: false, status: "invalid_url", message: "No se puede verificar esta dirección." });
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const response = await fetch(normalizedUrl, {
+          signal: controller.signal,
+          headers: {
+            "User-Agent": "FoxBot-Verifier/1.0",
+          },
+          redirect: "follow",
+        });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          return res.json({
+            installed: false,
+            status: "site_error",
+            message: `El sitio respondió con error ${response.status}. Verifica que la URL sea correcta y el sitio esté activo.`,
+          });
+        }
+
+        const contentLength = response.headers.get("content-length");
+        if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
+          return res.json({ installed: false, status: "too_large", message: "La página es demasiado grande para verificar. Intenta con la URL principal de tu sitio." });
+        }
+
+        const html = (await response.text()).slice(0, 500000);
+        const tenantId = auth.id;
+
+        const hasFoxbotWidget = html.includes("foxbot-widget") || html.includes(`tenantId=${tenantId}`);
+        const hasFoxbotScript = html.includes("foxbot") && (html.includes("iframe") || html.includes("widget"));
+        const hasFoxbotIframe = html.includes(`/widget?tenantId=${tenantId}`);
+
+        if (hasFoxbotIframe || hasFoxbotWidget) {
+          return res.json({
+            installed: true,
+            status: "found",
+            message: "FoxBot está correctamente instalado en tu sitio web.",
+          });
+        } else if (hasFoxbotScript) {
+          return res.json({
+            installed: true,
+            status: "partial",
+            message: "Se detectó código de FoxBot, pero podría pertenecer a otra cuenta. Verifica que el tenantId sea correcto.",
+          });
+        } else {
+          return res.json({
+            installed: false,
+            status: "not_found",
+            message: "No se detectó el widget de FoxBot en esta página. Asegúrate de haber pegado el código correctamente.",
+          });
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeout);
+        if (fetchError.name === "AbortError") {
+          return res.json({
+            installed: false,
+            status: "timeout",
+            message: "El sitio tardó demasiado en responder. Verifica que la URL sea correcta y el sitio esté activo.",
+          });
+        }
+        return res.json({
+          installed: false,
+          status: "unreachable",
+          message: "No se pudo acceder al sitio. Verifica que la URL sea correcta y el sitio esté activo.",
+        });
+      }
+    } catch (error: any) {
+      log(`Error verificando instalación: ${error.message}`, "api");
+      res.status(500).json({ message: "Error al verificar la instalación" });
+    }
+  });
+
   // ========== WORDPRESS PLUGIN DOWNLOAD ==========
   app.get("/api/tenants/me/wordpress-plugin", async (req, res) => {
     const auth = requireTenantAuth(req, res);

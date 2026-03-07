@@ -61,7 +61,6 @@ import {
   Shield,
   Package,
   ShoppingBag,
-  Trash2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -1736,6 +1735,117 @@ interface PlatformGuide {
   steps: { title: string; description: string; code?: string; note?: string }[];
 }
 
+function VerifyInstallation({ tenantId }: { tenantId: number }) {
+  const [verifyUrl, setVerifyUrl] = useState("");
+  const [result, setResult] = useState<{ installed: boolean; status: string; message: string } | null>(null);
+  const { toast } = useToast();
+
+  const verifyMutation = useMutation({
+    mutationFn: async (url: string) => {
+      const token = localStorage.getItem("tenant_token");
+      const res = await fetch("/api/tenants/me/verify-installation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) throw new Error("Error al verificar");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setResult(data);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo verificar la instalación", variant: "destructive" });
+    },
+  });
+
+  const handleVerify = () => {
+    if (!verifyUrl.trim()) return;
+    setResult(null);
+    verifyMutation.mutate(verifyUrl.trim());
+  };
+
+  return (
+    <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-4 animate-dash-fade-up relative overflow-hidden">
+      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full animate-orb-drift opacity-20" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.08), transparent 60%)" }} />
+      <div className="relative flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+          <Shield className="w-4.5 h-4.5 text-primary" />
+        </div>
+        <div>
+          <h4 className="text-sm font-bold text-white/80">Verificar instalación</h4>
+          <p className="text-[11px] text-white/40">Comprueba que el widget esté funcionando en tu sitio</p>
+        </div>
+      </div>
+
+      <div className="relative flex gap-2">
+        <div className="relative flex-1">
+          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25 pointer-events-none" />
+          <Input
+            value={verifyUrl}
+            onChange={(e) => { setVerifyUrl(e.target.value); setResult(null); }}
+            placeholder="www.tu-sitio.com"
+            className="h-10 text-sm bg-white/[0.04] border-white/[0.08] pl-9 pr-3"
+            onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+            data-testid="input-verify-url"
+          />
+        </div>
+        <Button
+          onClick={handleVerify}
+          disabled={!verifyUrl.trim() || verifyMutation.isPending}
+          className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-medium gap-2"
+          data-testid="button-verify-installation"
+        >
+          {verifyMutation.isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Verificando...
+            </>
+          ) : (
+            <>
+              <Search className="w-4 h-4" />
+              Verificar
+            </>
+          )}
+        </Button>
+      </div>
+
+      {result && (
+        <div className={`rounded-xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
+          result.installed && result.status === "found"
+            ? "bg-green-500/10 border border-green-500/20"
+            : result.installed && result.status === "partial"
+            ? "bg-amber-500/10 border border-amber-500/20"
+            : "bg-red-500/10 border border-red-500/20"
+        }`}>
+          {result.installed && result.status === "found" ? (
+            <CircleCheck className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+          ) : result.installed && result.status === "partial" ? (
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          ) : (
+            <X className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+          )}
+          <div>
+            <p className={`text-sm font-medium ${
+              result.installed && result.status === "found" ? "text-green-400"
+              : result.installed && result.status === "partial" ? "text-amber-400"
+              : "text-red-400"
+            }`}>
+              {result.installed && result.status === "found" ? "Instalado correctamente" 
+              : result.installed && result.status === "partial" ? "Detectado parcialmente"
+              : "No detectado"}
+            </p>
+            <p className="text-xs text-white/50 mt-0.5">{result.message}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
@@ -2084,6 +2194,8 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
           </div>
         )}
       </div>
+
+      <VerifyInstallation tenantId={tenant.id} />
 
       <div className="rounded-2xl glass-card p-4 sm:p-6 space-y-4 animate-dash-fade-up">
         <div className="flex items-center justify-between">
