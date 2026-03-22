@@ -5287,6 +5287,17 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     }
   });
 
+  app.post("/api/demo-request", async (req, res) => {
+    try {
+      const { name, email, howHeard, company, website, message } = req.body;
+      log(`Demo request from ${name} <${email}> — company: ${company}, website: ${website}, howHeard: ${howHeard}, message: ${message}`, "api");
+      res.json({ ok: true });
+    } catch (error: any) {
+      log(`Error processing demo request: ${error.message}`, "api");
+      res.status(500).json({ message: "Error processing demo request" });
+    }
+  });
+
   io.on("connection", (socket) => {
     const { email, name, sessionId, role, tenantId: socketTenantId } = socket.handshake.auth as { email: string; name: string; sessionId: string; role?: string; tenantId?: number };
 

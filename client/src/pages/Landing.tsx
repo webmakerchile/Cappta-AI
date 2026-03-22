@@ -53,7 +53,6 @@ import {
   Handshake,
   CircleCheck,
   Gift,
-  UserPlus,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
 import { NexiaLogo, NexiaIcon } from "@/components/NexiaLogo";
@@ -179,14 +178,14 @@ const pricingPlans = [
     period: " CLP/mes",
     description: "Para negocios que necesitan escalar",
     highlights: [
-      { text: "500 conversaciones / mes", bold: true },
+      { text: "1.000 conversaciones / mes", bold: true },
       { text: "Hasta 3 ejecutivos con roles", bold: true },
       { text: "Soporte prioritario", bold: true },
     ],
     extras: [
       "Todas las funcionalidades incluidas",
       "Analíticas avanzadas",
-      "WhatsApp integrado disponible (+$14.990/mes)",
+      "WhatsApp disponible (+$14.990/mes)",
     ],
     supportLine: "Un ejecutivo dedicado te acompaña en todo",
     cta: "Agendar Demo",
@@ -213,8 +212,7 @@ const pricingPlans = [
       "Analíticas avanzadas y calificaciones",
       "Onboarding personalizado 1 a 1",
       "Ejecutivo dedicado que te acompaña siempre",
-      "Soporte prioritario 24/7",
-      "WhatsApp integrado disponible (+$14.990/mes)",
+      "WhatsApp integrado incluido",
     ],
     supportLine: "Tu ejecutivo dedicado se encarga de todo",
     cta: "Agendar Demo",
@@ -1166,15 +1164,25 @@ function CountUp({ target }: { target: string }) {
 
 function DemoScheduleForm() {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ name: "", email: "", company: "", phone: "", employees: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", howHeard: "", company: "", website: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSending(true);
+    try {
+      await fetch("/api/demo-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+    } catch {}
+    setSending(false);
     setSubmitted(true);
   };
 
@@ -1189,6 +1197,8 @@ function DemoScheduleForm() {
       </div>
     );
   }
+
+  const inputCls = "w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors";
 
   return (
     <div className="w-full max-w-md mx-auto" data-testid="demo-schedule-form">
@@ -1208,17 +1218,23 @@ function DemoScheduleForm() {
             <div className="space-y-4" data-testid="demo-form-step-1">
               <div>
                 <label className="text-xs font-semibold text-white/50 mb-1.5 block">Nombre completo</label>
-                <input name="name" value={formData.name} onChange={handleChange} required placeholder="Tu nombre" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-name" />
+                <input name="name" value={formData.name} onChange={handleChange} required placeholder="Tu nombre" className={inputCls} data-testid="input-demo-name" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-white/50 mb-1.5 block">Email corporativo</label>
-                <input name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="tu@empresa.com" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-email" />
+                <input name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="tu@empresa.com" className={inputCls} data-testid="input-demo-email" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Empresa</label>
-                <input name="company" value={formData.company} onChange={handleChange} required placeholder="Nombre de tu empresa" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-company" />
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">¿Cómo nos encontraste?</label>
+                <select name="howHeard" value={formData.howHeard} onChange={handleChange} className={`${inputCls} appearance-none`} data-testid="select-demo-howheard">
+                  <option value="" className="bg-[#1a1a1a]">Selecciona...</option>
+                  <option value="google" className="bg-[#1a1a1a]">Google</option>
+                  <option value="social" className="bg-[#1a1a1a]">Redes sociales</option>
+                  <option value="referral" className="bg-[#1a1a1a]">Referido</option>
+                  <option value="other" className="bg-[#1a1a1a]">Otro</option>
+                </select>
               </div>
-              <Button type="button" onClick={() => setStep(2)} className="w-full py-5 rounded-2xl text-sm font-bold mt-2" disabled={!formData.name || !formData.email || !formData.company} data-testid="button-demo-next">
+              <Button type="button" onClick={() => setStep(2)} className="w-full py-5 rounded-2xl text-sm font-bold mt-2" disabled={!formData.name || !formData.email} data-testid="button-demo-next">
                 Siguiente <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -1227,26 +1243,22 @@ function DemoScheduleForm() {
           {step === 2 && (
             <div className="space-y-4" data-testid="demo-form-step-2">
               <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Teléfono</label>
-                <input name="phone" value={formData.phone} onChange={handleChange} placeholder="+56 9 1234 5678" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-phone" />
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Empresa</label>
+                <input name="company" value={formData.company} onChange={handleChange} required placeholder="Nombre de tu empresa" className={inputCls} data-testid="input-demo-company" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Tamaño del equipo</label>
-                <select name="employees" value={formData.employees} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-violet-500/40 transition-colors appearance-none" data-testid="select-demo-employees">
-                  <option value="" className="bg-[#1a1a1a]">Selecciona...</option>
-                  <option value="1-5" className="bg-[#1a1a1a]">1-5 empleados</option>
-                  <option value="6-20" className="bg-[#1a1a1a]">6-20 empleados</option>
-                  <option value="21-50" className="bg-[#1a1a1a]">21-50 empleados</option>
-                  <option value="50+" className="bg-[#1a1a1a]">50+ empleados</option>
-                </select>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Sitio web</label>
+                <input name="website" value={formData.website} onChange={handleChange} placeholder="https://tu-empresa.com" className={inputCls} data-testid="input-demo-website" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-white/50 mb-1.5 block">¿Cómo podemos ayudarte?</label>
-                <textarea name="message" value={formData.message} onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))} rows={3} placeholder="Cuéntanos sobre tu negocio..." className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors resize-none" data-testid="input-demo-message" />
+                <textarea name="message" value={formData.message} onChange={handleChange} rows={3} placeholder="Cuéntanos sobre tu negocio..." className={`${inputCls} resize-none`} data-testid="input-demo-message" />
               </div>
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl text-sm font-bold border-violet-500/30" data-testid="button-demo-back">Atrás</Button>
-                <Button type="submit" className="flex-1 py-5 rounded-2xl text-sm font-bold shadow-xl shadow-primary/15" data-testid="button-demo-submit">Agendar Demo</Button>
+                <Button type="submit" disabled={sending || !formData.company} className="flex-1 py-5 rounded-2xl text-sm font-bold shadow-xl shadow-primary/15" data-testid="button-demo-submit">
+                  {sending ? "Enviando..." : "Agendar Demo"}
+                </Button>
               </div>
             </div>
           )}
@@ -1262,7 +1274,6 @@ export default function Landing() {
   const handoffSection = useInView(0.15);
   const stepsSection = useInView(0.1);
   const pricingSection = useInView(0.1);
-  const referralSection = useInView(0.15);
   const casesSection = useInView(0.1);
 
   useEffect(() => {
@@ -1861,15 +1872,12 @@ export default function Landing() {
                       <span className="text-5xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.price}</span>
                       <span className="text-white/35 text-sm">{plan.period}</span>
                     </div>
-                    {plan.tier !== "free" && (
-                      <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
-                        <div className="flex items-center gap-1.5">
-                          <Gift className="w-3 h-3" />
-                          Agenda tu demo
-                        </div>
-                        <span className="text-[10px] text-white/40 font-normal">WhatsApp disponible como add-on</span>
+                    <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
+                      <div className="flex items-center gap-1.5">
+                        <Gift className="w-3 h-3" />
+                        Agenda tu demo
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   <div className="px-7 pb-4 flex-1">
@@ -1911,13 +1919,14 @@ export default function Landing() {
 
                   <div className="px-7 pb-7 pt-4">
                     <a href="#demo" className="block">
-                      {plan.tier === "free" && (
+                      {plan.tier === "starter" && (
                         <Button
                           className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
                           variant="outline"
                           data-testid={`button-plan-cta-${index}`}
                         >
                           {plan.cta}
+                          <ArrowRight className="w-4 h-4 ml-1.5" />
                         </Button>
                       )}
                       {plan.tier === "pro" && (
@@ -1939,9 +1948,7 @@ export default function Landing() {
                           <ArrowRight className="w-4 h-4 ml-1.5" />
                         </Button>
                       )}
-                      {plan.tier !== "free" && (
-                        <p className="text-[9px] text-white/25 text-center mt-2">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
-                      )}
+                      <p className="text-[9px] text-white/25 text-center mt-2">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
                     </a>
                   </div>
                 </div>
@@ -1955,135 +1962,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Referral section removed — demo-first model */}
-      <section id="referidos-removed" className="hidden" ref={referralSection.ref as any} data-testid="section-referral">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.2) 50%, transparent 100%)" }} />
-          <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(118,105,233,0.04) 0%, transparent 50%)", animationDelay: "-5s" }} />
-          <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(118,105,233,0.04) 0%, transparent 50%)", animationDelay: "-15s" }} />
-        </div>
-        <div className="relative max-w-5xl mx-auto">
-          <div className={`text-center mb-16 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Gift className="w-3.5 h-3.5 text-violet-400" />
-              <span className="text-xs font-semibold text-violet-400 tracking-wide">PROGRAMA EXCLUSIVO DE REFERIDOS</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-referral-title">
-              Invita negocios,
-              <br />
-              <span className="text-gradient-brand">gana dinero real</span>
-            </h2>
-            <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Recomienda Nexia AI a otros negocios. Por cada referido que <span className="text-white/60 font-semibold">compra un plan de pago</span>,
-              <span className="text-violet-400 font-semibold"> tú ganas $3.000 CLP</span> + meses de plan premium gratis. Sin trámites, sin esperas, sin límite.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
-            <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "100ms" }} data-testid="referral-step-1">
-              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.15), rgba(118,105,233,0.05))" }}>
-                <UserPlus className="w-6 h-6 text-violet-400" />
-              </div>
-              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-violet-400/10 flex items-center justify-center">
-                <span className="text-sm font-black text-violet-400">1</span>
-              </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Comparte tu enlace</h3>
-              <p className="text-sm text-white/40 leading-relaxed">
-                Desde tu dashboard, copia tu enlace único de referido y compártelo con cualquier negocio que necesite un chatbot inteligente.
-              </p>
-            </div>
-
-            <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "250ms" }} data-testid="referral-step-2">
-              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.15), rgba(118,105,233,0.05))" }}>
-                <CircleCheck className="w-6 h-6 text-primary" />
-              </div>
-              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-black text-primary">2</span>
-              </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Tu referido compra un plan</h3>
-              <p className="text-sm text-white/40 leading-relaxed">
-                Cuando el negocio se registra con tu enlace y luego compra Pro o Enterprise, el referido se confirma automáticamente.
-              </p>
-            </div>
-
-            <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "400ms" }} data-testid="referral-step-3">
-              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.15), rgba(118,105,233,0.05))" }}>
-                <Crown className="w-6 h-6 text-violet-400" />
-              </div>
-              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-violet-400/10 flex items-center justify-center">
-                <span className="text-sm font-black text-violet-400">3</span>
-              </div>
-              <h3 className="text-lg font-bold text-white/90 mb-2">Tú ganas automáticamente</h3>
-              <p className="text-sm text-white/40 leading-relaxed">
-                Al confirmarse la compra, recibes <span className="text-violet-400 font-semibold">$3.000 CLP en saldo</span> + meses de plan premium gratis al instante. Sin solicitudes ni trámites.
-              </p>
-            </div>
-          </div>
-
-          <div className={`mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "550ms" }}>
-            <h3 className="text-center text-base sm:text-lg font-bold text-white/70 mb-6 sm:mb-8">Escalera de recompensas</h3>
-            <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
-              {[
-                { refs: 1, reward: "$3.000 CLP + 1 mes Pro", detail: "Tu primer referido: dinero real + plan premium", color: "118,105,233", icon: <Gift className="w-5 h-5" />, tier: "$3.000" },
-                { refs: 3, reward: "$9.000 CLP + 2 meses Pro", detail: "$3.000 por cada referido, se acumula sin límite", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "$9.000" },
-                { refs: 5, reward: "$15.000 CLP + 3 meses Enterprise", detail: "Sesiones y mensajes ilimitados + dinero en tu cuenta", color: "150,120,230", icon: <Trophy className="w-5 h-5" />, tier: "$15.000" },
-                { refs: 10, reward: "$30.000 CLP + 6 meses Enterprise", detail: "Nivel experto: el mejor plan + $30.000 acumulados", color: "168,85,247", icon: <Crown className="w-5 h-5" />, tier: "$30.000" },
-                { refs: 15, reward: "$45.000 CLP + 12 meses Enterprise", detail: "Embajador Nexia AI: 1 año gratis + $45.000 en saldo", color: "236,72,153", icon: <Sparkles className="w-5 h-5" />, tier: "Embajador" },
-              ].map((tier, i) => (
-                <div
-                  key={tier.refs}
-                  className={`group relative flex items-center gap-3 sm:gap-5 rounded-2xl p-3 sm:p-5 transition-all duration-500 hover:scale-[1.02] ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
-                  style={{
-                    animationDelay: `${600 + i * 120}ms`,
-                    background: `linear-gradient(135deg, rgba(${tier.color},0.08), rgba(${tier.color},0.02))`,
-                    border: `1px solid rgba(${tier.color},0.15)`,
-                  }}
-                  data-testid={`referral-tier-${tier.refs}`}
-                >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, rgba(${tier.color},0.25), rgba(${tier.color},0.08))` }}>
-                    <span style={{ color: `rgb(${tier.color})` }}>{tier.icon}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
-                      <span className="text-base sm:text-lg font-black" style={{ color: `rgb(${tier.color})` }}>{tier.refs} {tier.refs === 1 ? "referido" : "referidos"}</span>
-                      <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wider" style={{ background: `rgba(${tier.color},0.15)`, color: `rgb(${tier.color})` }}>{tier.tier}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm font-semibold text-white/70">{tier.reward}</p>
-                    <p className="text-[11px] sm:text-xs text-white/30 mt-0.5">{tier.detail}</p>
-                  </div>
-                  <ArrowRight className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: `rgba(${tier.color},0.4)` }} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 mb-10 sm:mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1000ms", background: "linear-gradient(135deg, rgba(118,105,233,0.06), rgba(118,105,233,0.02))", border: "1px solid rgba(118,105,233,0.1)" }} data-testid="referral-both-win">
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.2), rgba(118,105,233,0.05))" }}>
-                <Handshake className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm sm:text-base font-bold text-white/80 mb-2">¿Cómo funciona exactamente?</h4>
-                <p className="text-xs sm:text-sm text-white/40 leading-relaxed">
-                  Tu referido se registra con tu enlace y prueba Nexia AI. Cuando decide comprar <span className="text-primary font-semibold">Pro o Enterprise</span>, tú recibes <span className="text-violet-400 font-semibold">$3.000 CLP en saldo</span> automáticamente al instante. Además, al alcanzar hitos (1, 3, 5, 10, 15 referidos) desbloqueas meses de plan premium gratis. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className={`text-center transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1100ms" }}>
-            <a href="#demo">
-              <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-referral-register">
-                Crear mi cuenta y empezar a referir
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </a>
-            <p className="text-sm text-white/25 mt-4">
-              Tu enlace de referido se activa automáticamente al crear tu cuenta. Sin límite de invitaciones.
-            </p>
-          </div>
-        </div>
-      </section>
 
       <section className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
