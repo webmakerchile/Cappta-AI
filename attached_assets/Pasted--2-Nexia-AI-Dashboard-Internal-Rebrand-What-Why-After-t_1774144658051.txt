@@ -1,0 +1,43 @@
+#2 - Nexia AI — Dashboard & Internal Rebrand
+What & Why
+After the landing page and public pages are rebranded to "Nexia AI", the internal dashboard, admin panel, widget, and backend references still say "FoxBot". This task completes the rebrand by updating all internal-facing pages and the chatbot widget to reflect the new "Nexia AI" identity with the new premium color scheme.
+
+Done looks like
+Dashboard (Dashboard.tsx) shows "Nexia AI" branding with the new color scheme and logo
+Admin panel (Admin.tsx) shows "Nexia AI" branding
+Onboarding wizard (OnboardingWizard.tsx) references "Nexia AI" instead of "FoxBot"
+Dashboard tour (DashboardTour.tsx) uses "Nexia AI"
+Guides panel (Guides.tsx) references "Nexia AI"
+Tenant panel (TenantPanel.tsx) uses "Nexia AI"
+Chat widget (ChatWindow.tsx) references "Nexia AI" instead of "FoxBot"
+WordPress plugin generator in routes.ts outputs "Nexia AI" branding
+Email templates and TikTok tracking references updated
+Backend log messages and server references updated from "FoxBot" to "Nexia AI"
+The embed code section and installation guides reference "Nexia AI"
+All internal toast messages, labels, and copy reflect the new brand
+Out of scope
+Landing page redesign (done in previous task)
+Pricing changes (done in previous task)
+CSS theme changes (done in previous task)
+Domain name change
+New features or functionality changes
+Tasks
+Rebrand Dashboard.tsx — Replace all "FoxBot" references with "Nexia AI", update logo imports, apply new color scheme to dashboard components.
+Rebrand Admin.tsx — Update all brand references and styling in the admin panel.
+Rebrand supporting pages — Update OnboardingWizard.tsx, DashboardTour.tsx, Guides.tsx, TenantPanel.tsx with new brand name.
+Rebrand chat widget — Update ChatWindow.tsx and any widget-facing brand references.
+Rebrand backend references — Update server/routes.ts (WordPress plugin, embed code, log messages), server/email.ts, server/tiktok.ts, server/flow.ts with "Nexia AI" branding.
+Relevant files
+client/src/pages/Dashboard.tsx
+client/src/pages/Admin.tsx
+client/src/pages/OnboardingWizard.tsx
+client/src/pages/DashboardTour.tsx
+client/src/pages/Guides.tsx
+client/src/pages/TenantPanel.tsx
+client/src/components/ChatWindow.tsx
+server/routes.ts
+server/email.ts
+server/tiktok.ts
+server/flow.ts
+Dependencies
+

@@ -1,0 +1,42 @@
+#1 - Nexia AI — Landing Page & Theme Rebrand
+What & Why
+Complete rebrand from "FoxBot" to "Nexia AI". The current landing page has a friendly/childish look that needs to become premium, serious, and exclusive — inspired by versu.ai/cl. This includes a full landing page redesign, new color scheme, new pricing structure ($49.990/$99.990/$199.990 CLP/mes), and switching from a self-serve "Comenzar Gratis" model to a demo/consultation "Agendar Demo" model.
+
+Done looks like
+Landing page has a premium, dark, clean design inspired by versu.ai — professional typography, elegant spacing, impact metrics, testimonials section, integration logos
+Brand name reads "Nexia AI" everywhere on the landing page and public pages (Register, Login, Demo, Privacy, Terms)
+Hero section says something like "IA que vende y atiende por ti" with "Agendar Demo" as the primary CTA (links to a demo scheduling section/form) and "Probar Agente" as secondary
+Pricing section shows 3 plans: Starter ($49.990/mes), Pro ($99.990/mes), Enterprise ($199.990/mes) — no free plan visible
+Color scheme shifts from green/orange to a premium dark palette with a refined accent color (deep blue or teal accent on dark background)
+CSS variables in index.css updated for the new scheme
+New logo generated (clean, minimal, no cartoon mascot) and applied as favicon + header
+OG meta tags and page titles updated to "Nexia AI"
+A "Agendar Demo" section at the bottom with a contact/scheduling form (name, email, company, website, message) that sends to the existing help request system or email
+Impact metrics section similar to Versu (e.g., "70% más conversión", "86% menos carga operacional", etc.)
+Registration page still works but is de-emphasized (not the main CTA)
+Out of scope
+Dashboard internal rebrand (separate task)
+Admin panel rebrand (separate task)
+Widget/chatbot rebrand (separate task)
+Backend API changes
+Actual calendar/scheduling integration (form submission is enough)
+Changing the domain name
+Tasks
+Update theme and color scheme — Change CSS variables in index.css to a premium dark palette with refined accent colors. Update tailwind.config.ts if needed.
+Generate new logo — Create a clean, minimal "Nexia AI" logo (no cartoon mascot). Apply as site logo, favicon, and OG image.
+Redesign the landing page — Rebuild Landing.tsx with a premium layout: hero with "Agendar Demo" CTA, impact metrics section, features/benefits section, integrations showcase, testimonials placeholder, and demo scheduling form at the bottom.
+Update pricing section — New plans: Starter $49.990, Pro $99.990, Enterprise $199.990 CLP/mes. Position as premium with "Agendar Demo" on each plan instead of "Comenzar Gratis".
+Rename all public-facing pages — Update brand name from "FoxBot" to "Nexia AI" in Register.tsx, Login.tsx, Demo.tsx, Privacy.tsx, Terms.tsx, and App.tsx meta tags.
+Relevant files
+client/src/pages/Landing.tsx
+client/src/index.css
+tailwind.config.ts
+client/src/pages/Register.tsx
+client/src/pages/Login.tsx
+client/src/pages/Demo.tsx
+client/src/pages/Privacy.tsx
+client/src/pages/Terms.tsx
+client/src/App.tsx
+client/index.html
+client/public/favicon-fox.png
+client/public/og-foxbot.png
