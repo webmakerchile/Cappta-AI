@@ -160,7 +160,7 @@ const pricingPlans = [
       "Base de conocimiento y catálogo",
     ],
     supportLine: "Nuestro equipo te ayuda a instalarlo",
-    cta: "Agendar Demo",
+    cta: "Agendar Reunión",
     highlighted: false,
     tier: "starter" as const,
     borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 50%, hsl(250, 65%, 55%) 100%)",
@@ -185,7 +185,7 @@ const pricingPlans = [
       "WhatsApp disponible (+$14.990/mes)",
     ],
     supportLine: "Un ejecutivo dedicado te acompaña en todo",
-    cta: "Agendar Demo",
+    cta: "Agendar Reunión",
     highlighted: true,
     tier: "pro" as const,
     borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 25%, hsl(220, 70%, 55%) 50%, hsl(250, 65%, 55%) 75%, hsl(280, 55%, 50%) 100%)",
@@ -212,7 +212,7 @@ const pricingPlans = [
       "WhatsApp integrado incluido",
     ],
     supportLine: "Tu ejecutivo dedicado se encarga de todo",
-    cta: "Agendar Demo",
+    cta: "Agendar Reunión",
     highlighted: false,
     tier: "enterprise" as const,
     borderGradient: "linear-gradient(135deg, hsl(250, 65%, 60%) 0%, hsl(220, 70%, 55%) 25%, hsl(280, 55%, 55%) 50%, hsl(250, 65%, 60%) 75%, hsl(220, 70%, 55%) 100%)",
@@ -903,7 +903,7 @@ function MobileNav() {
           <a href="/login" className="text-sm text-white/60 hover:text-white transition-colors" data-testid="link-login">Iniciar Sesión</a>
           <a href="#demo">
             <Button size="sm" className="rounded-xl px-5 py-2 text-sm font-semibold" data-testid="link-register">
-              Agenda Demo
+              Agenda Reunión
             </Button>
           </a>
         </div>
@@ -922,7 +922,7 @@ function MobileNav() {
             <Button variant="outline" size="sm" className="w-full rounded-xl border-white/10 text-white/70 hover:bg-white/5" data-testid="link-login-mobile">Iniciar Sesión</Button>
           </a>
           <a href="#demo" onClick={() => setOpen(false)} className="block mt-2">
-            <Button size="sm" className="w-full rounded-xl font-semibold">Agenda Demo</Button>
+            <Button size="sm" className="w-full rounded-xl font-semibold">Agenda Reunión</Button>
           </a>
         </div>
       )}
@@ -1239,7 +1239,7 @@ const faqItems = [
   },
   {
     q: "¿Puedo probar Nexia AI antes de comprar?",
-    a: "Sí. Puedes agendar una demo personalizada donde te mostramos cómo funciona con tu negocio específico. También puedes probar la demo en vivo directamente en nuestro sitio.",
+    a: "Sí. Puedes agendar una reunión personalizada donde te mostramos cómo funciona Nexia AI con tu negocio específico. Nuestro equipo te guía paso a paso.",
   },
   {
     q: "¿Qué plataformas soporta Nexia AI?",
@@ -1327,8 +1327,8 @@ function DemoScheduleForm() {
         <div className="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-4">
           <Check className="w-8 h-8 text-violet-400" />
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">¡Demo agendada!</h3>
-        <p className="text-white/50 text-sm">Te contactaremos pronto para confirmar tu demo personalizada.</p>
+        <h3 className="text-xl font-bold text-white mb-2">¡Reunión agendada!</h3>
+        <p className="text-white/50 text-sm">Te contactaremos pronto para confirmar tu reunión personalizada.</p>
       </div>
     );
   }
@@ -1339,7 +1339,7 @@ function DemoScheduleForm() {
     <div className="w-full max-w-md mx-auto" data-testid="demo-schedule-form">
       <div className="glass-card rounded-3xl p-8 border border-violet-500/10">
         <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-white mb-2">Agenda tu Demo</h3>
+          <h3 className="text-xl font-bold text-white mb-2">Agenda tu Reunión</h3>
           <p className="text-white/40 text-sm">Descubre cómo Nexia AI puede transformar tu negocio</p>
           <div className="flex items-center justify-center gap-3 mt-4">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 1 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>1</div>
@@ -1393,7 +1393,7 @@ function DemoScheduleForm() {
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl text-sm font-bold border-violet-500/30" data-testid="button-demo-back">Atrás</Button>
                 <Button type="submit" disabled={sending || !formData.company} className="flex-1 py-5 rounded-2xl text-sm font-bold shadow-xl shadow-primary/15" data-testid="button-demo-submit">
-                  {sending ? "Enviando..." : "Agendar Demo"}
+                  {sending ? "Enviando..." : "Agendar Reunión"}
                 </Button>
               </div>
             </div>
@@ -1461,7 +1461,7 @@ export default function Landing() {
         </div>
 
         <div className="relative max-w-5xl mx-auto text-center">
-          <h1 className="text-5xl sm:text-7xl lg:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
+          <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
             <span className="block">TU EQUIPO</span>
             <span className="block">COMERCIAL</span>
             <span className="block text-gradient-brand">CON IA</span>
@@ -1486,7 +1486,7 @@ export default function Landing() {
             <a href="#demo">
               <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-hero-demo">
                 <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                Agenda una demo
+                Agenda una reunión
               </Button>
             </a>
           </div>
@@ -1578,7 +1578,7 @@ export default function Landing() {
               <BarChart3 className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide">RESULTADOS COMPROBADOS</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-4">
               Los números hablan
               <br />
               <span className="text-gradient-brand">por sí mismos</span>
@@ -1623,7 +1623,7 @@ export default function Landing() {
               <Sparkles className="w-3.5 h-3.5 text-accent" />
               <span className="text-xs font-semibold text-accent tracking-wide">PLATAFORMA DE IA COMERCIAL</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-features-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-features-title">
               Todo lo que necesitas
               <br />
               para hacer crecer tu negocio
@@ -1648,7 +1648,7 @@ export default function Landing() {
               <Headphones className="w-3.5 h-3.5 text-[#6366f1]" />
               <span className="text-xs font-semibold text-[#6366f1] tracking-wide">IA + EJECUTIVOS HUMANOS</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-handoff-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-handoff-title">
               La IA atiende, el ejecutivo
               <br />
               <span className="text-gradient-brand">cierra la venta</span>
@@ -1747,7 +1747,7 @@ export default function Landing() {
               <MousePointerClick className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide">LISTO EN MINUTOS</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-how-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-how-title">
               <span className="text-gradient-brand">3 pasos</span> y listo
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
@@ -1801,10 +1801,10 @@ export default function Landing() {
           </div>
 
           <div className="text-center mt-12">
-            <a href="/demo">
+            <a href="#demo">
               <Button variant="outline" size="lg" className="rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-steps-demo">
-                <Play className="w-4 h-4 mr-2 text-primary" />
-                Prueba la demo en vivo
+                <ArrowRight className="w-4 h-4 mr-2 text-primary" />
+                Agenda una reunión
               </Button>
             </a>
           </div>
@@ -1822,7 +1822,7 @@ export default function Landing() {
               <Trophy className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span className="text-xs font-semibold text-[#a78bfa] tracking-wide">CASOS DE ÉXITO</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
               Historias reales <span className="text-gradient-brand">de éxito</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
@@ -1909,7 +1909,7 @@ export default function Landing() {
               <Star className="w-3.5 h-3.5 text-accent" />
               <span className="text-xs font-semibold text-accent tracking-wide">PRECIOS TRANSPARENTES</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-pricing-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-pricing-title">
               Empieza a crecer, sin aumentar
               <br />
               tu <span className="text-gradient-brand">gestión ni tu inversión</span>
@@ -2000,7 +2000,7 @@ export default function Landing() {
                     <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
                       <div className="flex items-center gap-1.5">
                         <Gift className="w-3 h-3" />
-                        Agenda tu demo
+                        Agenda tu reunión
                       </div>
                     </div>
                   </div>
@@ -2043,8 +2043,8 @@ export default function Landing() {
                   </div>
 
                   <div className="px-7 pb-7 pt-4">
-                    <a href="#demo" className="block">
-                      {plan.tier === "starter" && (
+                    {plan.tier === "starter" && (
+                      <a href="#demo" className="block">
                         <Button
                           className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
                           variant="outline"
@@ -2053,8 +2053,10 @@ export default function Landing() {
                           {plan.cta}
                           <ArrowRight className="w-4 h-4 ml-1.5" />
                         </Button>
-                      )}
-                      {plan.tier === "pro" && (
+                      </a>
+                    )}
+                    {plan.tier === "pro" && (
+                      <a href="#demo" className="block">
                         <Button
                           className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-primary/15"
                           data-testid={`button-plan-cta-${index}`}
@@ -2062,8 +2064,10 @@ export default function Landing() {
                           {plan.cta}
                           <ArrowRight className="w-4 h-4 ml-1.5" />
                         </Button>
-                      )}
-                      {plan.tier === "enterprise" && (
+                      </a>
+                    )}
+                    {plan.tier === "enterprise" && (
+                      <a href="#demo" className="block">
                         <Button
                           className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-violet-500/15 border-0 text-white"
                           style={{ background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 40%) 100%)" }}
@@ -2072,9 +2076,9 @@ export default function Landing() {
                           {plan.cta}
                           <ArrowRight className="w-4 h-4 ml-1.5" />
                         </Button>
-                      )}
-                      <p className="text-[9px] text-white/25 text-center mt-2">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
-                    </a>
+                      </a>
+                    )}
+                    <p className="text-[9px] text-white/25 text-center mt-2">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
                   </div>
                 </div>
               </div>
@@ -2098,7 +2102,7 @@ export default function Landing() {
               <MessageSquare className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide">PREGUNTAS FRECUENTES</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-faq-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-faq-title">
               ¿Tienes dudas?
               <br />
               <span className="text-gradient-brand">Te las resolvemos</span>
@@ -2117,7 +2121,7 @@ export default function Landing() {
         <div className="relative max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-6 leading-tight" data-testid="text-cta-title">
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-6 leading-tight" data-testid="text-cta-title">
                 Empieza a crecer, sin aumentar tu
                 <br />
                 <span className="text-gradient-brand">gestión ni tu inversión</span>
@@ -2173,7 +2177,7 @@ export default function Landing() {
               <ul className="space-y-2.5 text-sm text-white/30">
                 <li><a href="#features" className="hover:text-white/70 transition-colors" data-testid="link-footer-features">Características</a></li>
                 <li><a href="#pricing" className="hover:text-white/70 transition-colors" data-testid="link-footer-pricing">Precios</a></li>
-                <li><a href="/demo" className="hover:text-white/70 transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
+                <li><a href="#demo" className="hover:text-white/70 transition-colors" data-testid="link-footer-demo">Agendar reunión</a></li>
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-guides">Guías</a></li>
               </ul>
             </div>
