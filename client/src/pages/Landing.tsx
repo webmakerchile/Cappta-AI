@@ -149,23 +149,24 @@ const sharedFeatures = [
 
 const pricingPlans = [
   {
-    name: "Fox Free",
-    price: "$0",
-    period: "",
-    description: "Ideal para probar FoxBot en tu negocio",
+    name: "Starter",
+    price: "$49.990",
+    period: " CLP/mes",
+    description: "Para negocios que están comenzando con IA",
     highlights: [
-      { text: "10 sesiones / mes", bold: true },
-      { text: "100 mensajes / mes", bold: true },
+      { text: "100 sesiones / mes", bold: true },
+      { text: "1.000 mensajes / mes", bold: true },
       { text: "1 ejecutivo incluido", bold: true },
     ],
     extras: [
       "Todas las funcionalidades incluidas",
+      "Configuración asistida por nuestro equipo",
       "Soporte por email",
     ],
-    supportLine: "Nuestro equipo te ayuda a instalarlo gratis",
-    cta: "Comenzar Gratis",
+    supportLine: "Nuestro equipo te ayuda a instalarlo",
+    cta: "Agendar Demo",
     highlighted: false,
-    tier: "free" as const,
+    tier: "starter" as const,
     borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 45%) 50%, hsl(142, 72%, 40%) 100%)",
     bgTint: "rgba(16, 185, 129, 0.03)",
     accentColor: "#10b981",
@@ -173,10 +174,10 @@ const pricingPlans = [
     checkColor: "text-emerald-400",
   },
   {
-    name: "Fox Pro",
-    price: "$19.990",
+    name: "Pro",
+    price: "$99.990",
     period: " CLP/mes",
-    description: "Para negocios que necesitan más volumen",
+    description: "Para negocios que necesitan escalar",
     highlights: [
       { text: "500 sesiones / mes", bold: true },
       { text: "5.000 mensajes / mes", bold: true },
@@ -187,8 +188,8 @@ const pricingPlans = [
       "Soporte prioritario",
       "WhatsApp integrado disponible (+$14.990/mes)",
     ],
-    supportLine: "Un ejecutivo de FoxBot te ayuda a configurarlo",
-    cta: "Probar 7 días gratis",
+    supportLine: "Un ejecutivo dedicado te acompaña en todo",
+    cta: "Agendar Demo",
     highlighted: true,
     tier: "pro" as const,
     borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 35%) 25%, hsl(30, 90%, 52%) 50%, hsl(142, 72%, 40%) 75%, hsl(160, 60%, 35%) 100%)",
@@ -198,8 +199,8 @@ const pricingPlans = [
     checkColor: "text-primary",
   },
   {
-    name: "Fox Enterprise",
-    price: "$49.990",
+    name: "Enterprise",
+    price: "$199.990",
     period: " CLP/mes",
     description: "Para empresas con alto volumen de atención",
     highlights: [
@@ -216,7 +217,7 @@ const pricingPlans = [
       "WhatsApp integrado disponible (+$14.990/mes)",
     ],
     supportLine: "Tu ejecutivo dedicado se encarga de todo",
-    cta: "Probar 7 días gratis",
+    cta: "Agendar Demo",
     highlighted: false,
     tier: "enterprise" as const,
     borderGradient: "linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(45, 93%, 58%) 25%, hsl(28, 80%, 52%) 50%, hsl(38, 92%, 50%) 75%, hsl(45, 93%, 58%) 100%)",
@@ -1732,11 +1733,11 @@ export default function Landing() {
                 <div className="absolute -inset-[1px] rounded-3xl z-0 opacity-30 blur-xl animate-subtle-breathe" style={{ background: plan.borderGradient }} />
 
                 <div className="relative z-10 rounded-3xl h-full flex flex-col glass-card" style={{ background: plan.bgTint, border: "none" }}>
-                  {plan.tier === "free" && (
+                  {plan.tier === "starter" && (
                     <div className="flex justify-center pt-5">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
                         <Zap className="w-3 h-3" />
-                        PLAN INICIAL
+                        STARTER
                       </div>
                     </div>
                   )}
@@ -1745,7 +1746,7 @@ export default function Landing() {
                     <div className="flex justify-center pt-5">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
                         <Star className="w-3 h-3" />
-                        MAS POPULAR
+                        MÁS POPULAR
                       </div>
                     </div>
                   )}
@@ -1754,16 +1755,16 @@ export default function Landing() {
                     <div className="flex justify-center pt-5">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(38, 92%, 42%) 0%, hsl(28, 80%, 45%) 100%)", color: "white" }}>
                         <Crown className="w-3 h-3" />
-                        PREMIUM
+                        ENTERPRISE
                       </div>
                     </div>
                   )}
 
                   <div className="text-center px-7 pt-7 pb-2">
                     <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>
-                      {plan.tier === "free" && <><span className="text-gradient-green">Fox</span> Free</>}
-                      {plan.tier === "pro" && <><span className="text-gradient-green">Fox</span> <span className="text-gradient-orange">Pro</span></>}
-                      {plan.tier === "enterprise" && <><span style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Fox</span> <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span></>}
+                      {plan.tier === "starter" && <span className="text-gradient-green">Starter</span>}
+                      {plan.tier === "pro" && <><span className="text-gradient-green">Pro</span></>}
+                      {plan.tier === "enterprise" && <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span>}
                     </h3>
                     <p className="text-sm text-white/35 mb-6">{plan.description}</p>
                     <div className="mb-4">
