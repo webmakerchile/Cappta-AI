@@ -56,7 +56,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
-import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
+import { NexiaLogo, NexiaIcon } from "@/components/NexiaLogo";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
@@ -73,15 +73,15 @@ const features = [
     icon: Brain,
     title: "IA Conversaciónal Avanzada",
     description: "Respuestas inteligentes potenciadas por GPT que entienden contexto, historial y la personalidad de tu marca.",
-    iconColor: "#10b981",
-    glow: "rgba(16, 185, 129, 0.15)",
+    iconColor: "#7669E9",
+    glow: "rgba(118, 105, 233, 0.15)",
   },
   {
     icon: Globe,
     title: "Configuración Automática",
-    description: "Pega la URL de tu sitio web y FoxBot extrae productos, servicios, contacto y horarios automáticamente. Cero configuración manual.",
-    iconColor: "#f59e0b",
-    glow: "rgba(245, 158, 11, 0.15)",
+    description: "Pega la URL de tu sitio web y Nexia AI extrae productos, servicios, contacto y horarios automáticamente. Cero configuración manual.",
+    iconColor: "#9678E6",
+    glow: "rgba(150, 120, 230, 0.15)",
   },
   {
     icon: Users,
@@ -128,7 +128,7 @@ const features = [
   {
     icon: Smartphone,
     title: "App Descargable (PWA)",
-    description: "Instala FoxBot en tu celular o PC como una app nativa. Funciona offline, recibe notificaciones y responde desde donde estés.",
+    description: "Instala Nexia AI en tu celular o PC como una app nativa. Funciona offline, recibe notificaciones y responde desde donde estés.",
     iconColor: "#14b8a6",
     glow: "rgba(20, 184, 166, 0.15)",
   },
@@ -150,7 +150,7 @@ const sharedFeatures = [
 const pricingPlans = [
   {
     name: "Starter",
-    price: "$49.990",
+    price: "$79.990",
     period: " CLP/mes",
     description: "Para negocios que están comenzando con IA",
     highlights: [
@@ -167,15 +167,15 @@ const pricingPlans = [
     cta: "Agendar Demo",
     highlighted: false,
     tier: "starter" as const,
-    borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 45%) 50%, hsl(142, 72%, 40%) 100%)",
-    bgTint: "rgba(16, 185, 129, 0.03)",
-    accentColor: "#10b981",
-    checkBg: "bg-emerald-500/10",
-    checkColor: "text-emerald-400",
+    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 50%, hsl(250, 65%, 55%) 100%)",
+    bgTint: "rgba(118, 105, 233, 0.03)",
+    accentColor: "#7669E9",
+    checkBg: "bg-violet-500/10",
+    checkColor: "text-violet-400",
   },
   {
     name: "Pro",
-    price: "$99.990",
+    price: "$149.990",
     period: " CLP/mes",
     description: "Para negocios que necesitan escalar",
     highlights: [
@@ -192,15 +192,15 @@ const pricingPlans = [
     cta: "Agendar Demo",
     highlighted: true,
     tier: "pro" as const,
-    borderGradient: "linear-gradient(135deg, hsl(142, 72%, 40%) 0%, hsl(160, 60%, 35%) 25%, hsl(30, 90%, 52%) 50%, hsl(142, 72%, 40%) 75%, hsl(160, 60%, 35%) 100%)",
-    bgTint: "rgba(16, 185, 129, 0.04)",
-    accentColor: "#f59e0b",
+    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 25%, hsl(220, 70%, 55%) 50%, hsl(250, 65%, 55%) 75%, hsl(280, 55%, 50%) 100%)",
+    bgTint: "rgba(118, 105, 233, 0.04)",
+    accentColor: "#9678E6",
     checkBg: "bg-primary/10",
     checkColor: "text-primary",
   },
   {
     name: "Enterprise",
-    price: "$199.990",
+    price: "$349.990",
     period: " CLP/mes",
     description: "Para empresas con alto volumen de atención",
     highlights: [
@@ -220,11 +220,11 @@ const pricingPlans = [
     cta: "Agendar Demo",
     highlighted: false,
     tier: "enterprise" as const,
-    borderGradient: "linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(45, 93%, 58%) 25%, hsl(28, 80%, 52%) 50%, hsl(38, 92%, 50%) 75%, hsl(45, 93%, 58%) 100%)",
-    bgTint: "rgba(245, 158, 11, 0.03)",
-    accentColor: "#f59e0b",
-    checkBg: "bg-amber-500/10",
-    checkColor: "text-amber-400",
+    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 60%) 0%, hsl(220, 70%, 55%) 25%, hsl(280, 55%, 55%) 50%, hsl(250, 65%, 60%) 75%, hsl(220, 70%, 55%) 100%)",
+    bgTint: "rgba(118, 105, 233, 0.03)",
+    accentColor: "#9678E6",
+    checkBg: "bg-violet-500/10",
+    checkColor: "text-violet-400",
   },
 ];
 
@@ -251,16 +251,16 @@ const brandThemes: {
 }[] = [
   {
     name: "TechStore",
-    headerBg: "linear-gradient(135deg, hsl(142, 72%, 29%) 0%, hsl(150, 60%, 22%) 100%)",
-    userBubble: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(142, 72%, 26%) 100%)",
-    accent: "#10b981",
-    accentGlow: "rgba(16, 185, 129, 0.08)",
-    statusColor: "#4ade80",
-    statusBorder: "#166534",
-    subtitleColor: "rgba(187, 247, 208, 0.8)",
-    sendBg: "rgba(16, 185, 129, 0.2)",
-    sendIcon: "#10b981",
-    label: "Verde",
+    headerBg: "linear-gradient(135deg, hsl(250, 65%, 38%) 0%, hsl(280, 55%, 30%) 100%)",
+    userBubble: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(250, 65%, 34%) 100%)",
+    accent: "#7669E9",
+    accentGlow: "rgba(118, 105, 233, 0.08)",
+    statusColor: "#a78bfa",
+    statusBorder: "#4c1d95",
+    subtitleColor: "rgba(196, 181, 253, 0.8)",
+    sendBg: "rgba(118, 105, 233, 0.2)",
+    sendIcon: "#7669E9",
+    label: "Violeta",
     messages: [
       { sender: "user", text: "Hola, tienen el iPhone 15 Pro disponible?" },
       { sender: "bot", text: "¡Hola! Si, tenemos el iPhone 15 Pro en stock. Disponible en Titanio Natural, Azul y Negro.", product: { name: "iPhone 15 Pro", price: "$999.990", tag: "En stock" }, quickReplies: ["Ver colores", "Envío gratis?", "Comparar modelos"] },
@@ -336,13 +336,13 @@ function ChatbotPreview() {
             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
               <Headphones className="w-4 h-4 text-white" />
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-[#4a00b0]" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-violet-400 border-2 border-[#4a00b0]" />
           </div>
           <div className="flex-1">
             <p className="text-[13px] font-bold text-white" data-testid="text-preview-brand">Equipo de Soporte</p>
             <div className="flex items-center gap-1">
-              <Wifi className="w-2.5 h-2.5 text-green-300" />
-              <span className="text-[10px] text-green-200/80" data-testid="status-preview-online">En línea</span>
+              <Wifi className="w-2.5 h-2.5 text-violet-300" />
+              <span className="text-[10px] text-violet-200/80" data-testid="status-preview-online">En línea</span>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -385,10 +385,10 @@ function ChatbotPreview() {
             </div>
           </div>
           <div className="flex justify-start">
-            <div className="max-w-[80%] bg-white/[0.06] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3 py-2 border-l-2 border-l-emerald-500">
+            <div className="max-w-[80%] bg-white/[0.06] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3 py-2 border-l-2 border-l-violet-500">
               <div className="flex items-center gap-1 mb-1">
-                <div className="w-3 h-3 rounded-full bg-emerald-500/30 flex items-center justify-center"><UserRound className="w-2 h-2 text-emerald-400" /></div>
-                <span className="text-[9px] font-semibold text-emerald-400">Carlos M. — Ejecutivo</span>
+                <div className="w-3 h-3 rounded-full bg-violet-500/30 flex items-center justify-center"><UserRound className="w-2 h-2 text-violet-400" /></div>
+                <span className="text-[9px] font-semibold text-violet-400">Carlos M. — Ejecutivo</span>
               </div>
               <p className="text-[12px] text-white/80 leading-relaxed">¡Hola! Soy Carlos, vi que te interesa la PS5 Slim. Te puedo ofrecer un descuento especial hoy!</p>
             </div>
@@ -401,9 +401,9 @@ function ChatbotPreview() {
               <UserRound className="w-3 h-3 text-[#6200EA]" />
               <span className="text-[10px] font-semibold text-[#a78bfa]">Contactar Ejecutivo</span>
             </button>
-            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-default" data-testid="button-preview-rate">
-              <Star className="w-3 h-3 text-amber-400" />
-              <span className="text-[10px] font-semibold text-amber-300/80">Calificar</span>
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20 cursor-default" data-testid="button-preview-rate">
+              <Star className="w-3 h-3 text-violet-400" />
+              <span className="text-[10px] font-semibold text-violet-300/80">Calificar</span>
             </button>
           </div>
         </div>
@@ -420,7 +420,7 @@ function ChatbotPreview() {
         </div>
 
         <div className="px-3 pb-2 text-center">
-          <span className="text-[9px] text-white/15">Potenciado por foxbot.cl</span>
+          <span className="text-[9px] text-white/15">Potenciado por Nexia AI</span>
         </div>
       </div>
     </div>
@@ -439,7 +439,7 @@ function DashboardPreview() {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/10">
-              <Star className="w-3 h-3 text-amber-300" />
+              <Star className="w-3 h-3 text-violet-300" />
               <span className="text-xs text-white/80 font-medium">4.8</span>
             </div>
             <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/10">
@@ -465,7 +465,7 @@ function DashboardPreview() {
               <div className="flex items-center gap-1.5 mb-3">
                 <span className="text-[10px] px-2 py-1 rounded-lg bg-[#6200EA]/20 text-[#a78bfa] font-semibold">Activos</span>
                 <span className="text-[10px] px-2 py-1 rounded-lg text-white/25">Cerrados</span>
-                <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 font-semibold flex items-center gap-1">
+                <span className="text-[10px] px-2 py-1 rounded-lg bg-violet-500/15 text-violet-300 font-semibold flex items-center gap-1">
                   <CircleDot className="w-2.5 h-2.5" />2
                 </span>
               </div>
@@ -490,8 +490,8 @@ function DashboardPreview() {
                     <p className="text-[10px] text-white/30 truncate mt-0.5">{chat.msg}</p>
                   </div>
                   <div className="shrink-0">
-                    {chat.status === "request" && <span className="w-2.5 h-2.5 rounded-full bg-amber-400 block animate-pulse" />}
-                    {chat.status === "agent" && <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block" />}
+                    {chat.status === "request" && <span className="w-2.5 h-2.5 rounded-full bg-violet-400 block animate-pulse" />}
+                    {chat.status === "agent" && <span className="w-2.5 h-2.5 rounded-full bg-violet-400 block" />}
                     {chat.status === "bot" && <span className="w-2.5 h-2.5 rounded-full bg-[#6200EA] block" />}
                   </div>
                 </div>
@@ -511,21 +511,21 @@ function DashboardPreview() {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 cursor-default" data-testid="button-preview-enter">
-                  <UserRound className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs font-semibold text-emerald-300">Entrar</span>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 cursor-default" data-testid="button-preview-enter">
+                  <UserRound className="w-3.5 h-3.5 text-violet-400" />
+                  <span className="text-xs font-semibold text-violet-300">Entrar</span>
                 </button>
-                <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/25 cursor-default" data-testid="button-preview-transfer">
-                  <Users className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-xs font-semibold text-amber-300">Transferir</span>
+                <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 cursor-default" data-testid="button-preview-transfer">
+                  <Users className="w-3.5 h-3.5 text-violet-400" />
+                  <span className="text-xs font-semibold text-violet-300">Transferir</span>
                 </button>
               </div>
             </div>
 
             <div className="px-4 py-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/15">
-                <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-xs text-emerald-300/80" data-testid="status-preview-intervention">Chat asignado a ti — El bot está pausado</span>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/15">
+                <Eye className="w-3.5 h-3.5 text-violet-400" />
+                <span className="text-xs text-violet-300/80" data-testid="status-preview-intervention">Chat asignado a ti — El bot está pausado</span>
               </div>
             </div>
 
@@ -545,15 +545,15 @@ function DashboardPreview() {
                 </div>
               </div>
               <div className="flex items-center gap-2 py-1">
-                <div className="flex-1 h-px bg-amber-500/20" />
-                <span className="text-[10px] text-amber-400/60 font-medium px-2 flex items-center gap-1"><Bell className="w-2.5 h-2.5" />Solicitud de ejecutivo</span>
-                <div className="flex-1 h-px bg-amber-500/20" />
+                <div className="flex-1 h-px bg-violet-500/20" />
+                <span className="text-[10px] text-violet-400/60 font-medium px-2 flex items-center gap-1"><Bell className="w-2.5 h-2.5" />Solicitud de ejecutivo</span>
+                <div className="flex-1 h-px bg-violet-500/20" />
               </div>
               <div className="flex justify-start">
-                <div className="max-w-[80%] bg-white/[0.05] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3.5 py-2.5 border-l-2 border-l-emerald-500">
+                <div className="max-w-[80%] bg-white/[0.05] border border-white/[0.06] rounded-2xl rounded-bl-sm px-3.5 py-2.5 border-l-2 border-l-violet-500">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/40 flex items-center justify-center"><UserRound className="w-2 h-2 text-emerald-300" /></div>
-                    <span className="text-[10px] font-semibold text-emerald-400">Carlos M.</span>
+                    <div className="w-3.5 h-3.5 rounded-full bg-violet-500/40 flex items-center justify-center"><UserRound className="w-2 h-2 text-violet-300" /></div>
+                    <span className="text-[10px] font-semibold text-violet-400">Carlos M.</span>
                   </div>
                   <p className="text-[13px] text-white/70 leading-relaxed">Hola Maria! Soy Carlos, como te puedo ayudar?</p>
                 </div>
@@ -642,7 +642,7 @@ function WelcomeFormPreview() {
 function ExecutiveRequestPreview() {
   return (
     <div className="w-full max-w-4xl mx-auto" data-testid="executive-request-preview">
-      <div className="rounded-2xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(18,18,18,0.98) 0%, rgba(8,8,8,0.99) 100%)", boxShadow: "0 0 60px rgba(245,158,11,0.04), 0 20px 40px rgba(0,0,0,0.4)" }}>
+      <div className="rounded-2xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(18,18,18,0.98) 0%, rgba(8,8,8,0.99) 100%)", boxShadow: "0 0 60px rgba(118,105,233,0.04), 0 20px 40px rgba(0,0,0,0.4)" }}>
         <div className="px-4 py-3 flex items-center gap-3" style={{ background: "linear-gradient(135deg, #6200EA 0%, #4a00b0 100%)" }}>
           <div className="flex items-center gap-2">
             <Headphones className="w-5 h-5 text-white" />
@@ -650,9 +650,9 @@ function ExecutiveRequestPreview() {
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 animate-pulse">
-              <Bell className="w-3 h-3 text-amber-300" />
-              <span className="text-xs text-amber-200 font-bold">2 solicitudes</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-violet-500/20 border border-violet-500/30 animate-pulse">
+              <Bell className="w-3 h-3 text-violet-300" />
+              <span className="text-xs text-violet-200 font-bold">2 solicitudes</span>
             </div>
           </div>
         </div>
@@ -662,24 +662,24 @@ function ExecutiveRequestPreview() {
             <div className="p-3">
               <div className="flex items-center gap-1.5 mb-3">
                 <span className="text-[10px] px-2 py-1 rounded-lg text-white/25">Todos</span>
-                <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 font-bold flex items-center gap-1 animate-pulse">
+                <span className="text-[10px] px-2 py-1 rounded-lg bg-violet-500/15 text-violet-300 font-bold flex items-center gap-1 animate-pulse">
                   <CircleDot className="w-2.5 h-2.5" />Solicita Ejecutivo
                 </span>
               </div>
             </div>
 
             <div className="space-y-1 px-2">
-              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-amber-500/[0.06] border border-amber-500/15" data-testid="card-exec-session-0">
-                <div className="relative w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-amber-300">C</span>
-                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-[#121212] animate-pulse" />
+              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-violet-500/[0.06] border border-violet-500/15" data-testid="card-exec-session-0">
+                <div className="relative w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-violet-300">C</span>
+                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-violet-400 border-2 border-[#121212] animate-pulse" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-semibold text-white/80 truncate">Carlos M.</span>
                     <span className="w-4 h-4 rounded-full bg-red-500 text-[9px] text-white font-bold flex items-center justify-center shrink-0 animate-bounce">1</span>
                   </div>
-                  <p className="text-[10px] text-amber-400/60 truncate font-medium mt-0.5">Solicita ejecutivo</p>
+                  <p className="text-[10px] text-violet-400/60 truncate font-medium mt-0.5">Solicita ejecutivo</p>
                   <div className="flex items-center gap-1 mt-1">
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-300">Compra</span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#6200EA]/15 text-[#a78bfa] flex items-center gap-0.5"><Gamepad2 className="w-2.5 h-2.5" />PS5</span>
@@ -701,9 +701,9 @@ function ExecutiveRequestPreview() {
           </div>
 
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.06] bg-amber-500/[0.02]">
-              <div className="relative w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                <span className="text-sm font-bold text-amber-300">C</span>
+            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.06] bg-violet-500/[0.02]">
+              <div className="relative w-9 h-9 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0">
+                <span className="text-sm font-bold text-violet-300">C</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -712,18 +712,18 @@ function ExecutiveRequestPreview() {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 cursor-default animate-pulse" data-testid="button-preview-claim">
-                  <UserRound className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs font-bold text-emerald-300">Entrar al Chat</span>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 cursor-default animate-pulse" data-testid="button-preview-claim">
+                  <UserRound className="w-3.5 h-3.5 text-violet-400" />
+                  <span className="text-xs font-bold text-violet-300">Entrar al Chat</span>
                 </button>
               </div>
             </div>
 
             <div className="px-4 py-3">
-              <div className="rounded-xl bg-amber-500/[0.06] border border-amber-500/15 p-4" data-testid="card-exec-prechat">
+              <div className="rounded-xl bg-violet-500/[0.06] border border-violet-500/15 p-4" data-testid="card-exec-prechat">
                 <div className="flex items-center gap-2 mb-3">
-                  <FileText className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-bold text-amber-300">Formulario pre-chat</span>
+                  <FileText className="w-4 h-4 text-violet-400" />
+                  <span className="text-xs font-bold text-violet-300">Formulario pre-chat</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -762,16 +762,16 @@ function ExecutiveRequestPreview() {
                 </div>
               </div>
               <div className="flex items-center gap-2 py-1">
-                <div className="flex-1 h-px bg-amber-500/20" />
-                <span className="text-[10px] text-amber-400/60 font-medium px-2 flex items-center gap-1"><Bell className="w-2.5 h-2.5" />Cliente solicita ejecutivo</span>
-                <div className="flex-1 h-px bg-amber-500/20" />
+                <div className="flex-1 h-px bg-violet-500/20" />
+                <span className="text-[10px] text-violet-400/60 font-medium px-2 flex items-center gap-1"><Bell className="w-2.5 h-2.5" />Cliente solicita ejecutivo</span>
+                <div className="flex-1 h-px bg-violet-500/20" />
               </div>
             </div>
 
             <div className="px-4 pb-3 pt-2">
-              <div className="flex items-center gap-2 bg-amber-500/[0.04] border border-amber-500/10 rounded-xl px-4 py-3 text-center justify-center">
-                <UserRound className="w-4 h-4 text-amber-400" />
-                <span className="text-xs text-amber-300/70 font-medium">Haz clic en "Entrar al Chat" para responder como ejecutivo</span>
+              <div className="flex items-center gap-2 bg-violet-500/[0.04] border border-violet-500/10 rounded-xl px-4 py-3 text-center justify-center">
+                <UserRound className="w-4 h-4 text-violet-400" />
+                <span className="text-xs text-violet-300/70 font-medium">Haz clic en "Entrar al Chat" para responder como ejecutivo</span>
               </div>
             </div>
           </div>
@@ -885,9 +885,9 @@ function MobileNav() {
     <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-xl" data-testid="nav-bar">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3">
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
-          <img src={logoSinFondo} alt="FoxBot" className="w-[4.5rem] h-[4.5rem] object-contain transition-transform duration-300 group-hover:scale-110" data-testid="img-nav-logo" />
+          <NexiaIcon size={60} className="transition-transform duration-300 group-hover:scale-110" />
           <span className="text-xl font-extrabold tracking-tight">
-            <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
+            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
           </span>
         </a>
         <div className="hidden md:flex items-center gap-1.5">
@@ -1007,7 +1007,7 @@ function AnimatedChat() {
           <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ background: `linear-gradient(135deg, ${theme.accent}0d 0%, transparent 40%, ${theme.accent}08 100%)`, transition: "background 0.6s ease" }} />
           <div className="relative px-4 py-3.5 flex items-center gap-3" style={{ background: theme.headerBg, transition: "background 0.6s ease" }}>
             <div className="relative">
-              <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 rounded-full bg-white/15 p-0.5" />
+              <NexiaIcon size={36} className="rounded-full" />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2" style={{ backgroundColor: theme.statusColor, borderColor: theme.statusBorder, transition: "background-color 0.6s, border-color 0.6s" }} />
             </div>
             <div>
@@ -1176,10 +1176,10 @@ export default function Landing() {
   const casesSection = useInView(0.1);
 
   useEffect(() => {
-    if (document.getElementById("foxbot-widget")) return;
+    if (document.getElementById("nexia-widget")) return;
     const iframe = document.createElement("iframe");
-    iframe.id = "foxbot-widget";
-    iframe.src = "https://www.foxbot.cl/widget?tenantId=1";
+    iframe.id = "nexia-widget";
+    iframe.src = "https://www.foxbot.cl/widget?tenantId=6";
     iframe.allow = "microphone";
     let pos = "right";
     function setPos(p: string, state: string, w?: number, h?: number) {
@@ -1201,7 +1201,7 @@ export default function Landing() {
     const handler = (e: MessageEvent) => {
       if (!e.data || !e.data.type) return;
       if (e.data.position) pos = e.data.position;
-      if (e.data.type === "foxbot_position") { pos = e.data.position; setPos(pos, "closed"); }
+      if (e.data.type === "nexia_position") { pos = e.data.position; setPos(pos, "closed"); }
       if (e.data.type === "open_chat") setPos(pos, "open");
       if (e.data.type === "close_chat") setPos(pos, "closed", e.data.width, e.data.height);
     };
@@ -1218,8 +1218,8 @@ export default function Landing() {
 
       <section className="relative py-24 sm:py-32 px-6 overflow-hidden" data-testid="section-hero">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%, 0.08) 0%, transparent 60%)" }} />
-          <div className="absolute bottom-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(30, 90%, 52%, 0.06) 0%, transparent 60%)", animationDelay: "-10s" }} />
+          <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.08) 0%, transparent 60%)" }} />
+          <div className="absolute bottom-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(220, 70%, 52%, 0.06) 0%, transparent 60%)", animationDelay: "-10s" }} />
           <div className="absolute top-1/3 left-10 w-2 h-2 rounded-full bg-primary/30 animate-float" style={{ animationDelay: "-2s" }} />
           <div className="absolute top-1/4 right-20 w-1.5 h-1.5 rounded-full bg-accent/30 animate-float" style={{ animationDelay: "-4s" }} />
           <div className="absolute bottom-1/3 left-1/4 w-1 h-1 rounded-full bg-primary/20 animate-float" style={{ animationDelay: "-1s" }} />
@@ -1235,13 +1235,13 @@ export default function Landing() {
             <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.08] mb-5 sm:mb-7" data-testid="text-hero-title">
               El chatbot que
               <br />
-              <span className="text-gradient-green">vende por ti</span>
+              <span className="text-gradient-brand">vende por ti</span>
               <br />
               <span className="text-white/60">las 24 horas</span>
             </h1>
 
             <p className="text-base sm:text-lg text-white/50 max-w-lg mb-8 sm:mb-10 leading-relaxed" data-testid="text-hero-description">
-              <span className="text-white/80 font-medium">FoxBot</span> es un asistente con inteligencia artificial que atiende, recomienda y cierra ventas.
+              <span className="text-white/80 font-medium">Nexia AI</span> es un agente inteligente que vende y atiende por ti, a escala.
               Y cuando el cliente necesita atención humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
               Se adapta a <span className="text-white/80 font-medium">cualquier plataforma</span>: WordPress, Shopify, WooCommerce, Wix y más.
             </p>
@@ -1249,7 +1249,7 @@ export default function Landing() {
             <div className="flex items-center gap-4 flex-wrap mb-10">
               <a href="/register">
                 <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-hero-register">
-                  Comenzar Gratis
+                  Agendar Demo
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </a>
@@ -1343,13 +1343,13 @@ export default function Landing() {
 
       <section className="py-24 px-6 relative overflow-hidden" ref={statsSection.ref as any} data-testid="section-stats">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.15) 50%, transparent 100%)" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
         </div>
         <div className="relative max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {[
-              { value: "24/7", label: "Disponibilidad", icon: Clock, desc: "Tu bot nunca descansa", color: "#10b981" },
-              { value: "<2s", label: "Respuesta", icon: Zap, desc: "Velocidad de IA", color: "#f59e0b" },
+              { value: "24/7", label: "Disponibilidad", icon: Clock, desc: "Tu bot nunca descansa", color: "#7669E9" },
+              { value: "<2s", label: "Respuesta", icon: Zap, desc: "Velocidad de IA", color: "#a78bfa" },
               { value: "5min", label: "Configuración", icon: TrendingUp, desc: "Sin conocimiento técnico", color: "#3b82f6" },
               { value: "+90%", label: "Consultas resueltas", icon: Users, desc: "Sin intervención humana", color: "#a855f7" },
             ].map(({ value, label, icon: Icon, desc, color }, i) => (
@@ -1372,8 +1372,8 @@ export default function Landing() {
 
       <section id="features" className="py-28 px-6 relative overflow-hidden" ref={featuresSection.ref as any} data-testid="section-features">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 right-[-200px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%, 0.05) 0%, transparent 60%)", animationDelay: "-5s" }} />
-          <div className="absolute bottom-0 left-[-200px] w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(30, 90%, 52%, 0.04) 0%, transparent 60%)", animationDelay: "-15s" }} />
+          <div className="absolute top-0 right-[-200px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.05) 0%, transparent 60%)", animationDelay: "-5s" }} />
+          <div className="absolute bottom-0 left-[-200px] w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(220, 70%, 52%, 0.04) 0%, transparent 60%)", animationDelay: "-15s" }} />
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -1384,7 +1384,7 @@ export default function Landing() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-features-title">
               Todo lo que necesitas para
               <br />
-              <span className="text-gradient-green">automatizar tus ventas</span>
+              <span className="text-gradient-brand">automatizar tus ventas</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
               Herramientas poderosas de IA para que tu negocio atienda, venda y crezca sin pausas.
@@ -1427,10 +1427,10 @@ export default function Landing() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-handoff-title">
               La IA atiende, el ejecutivo
               <br />
-              <span className="text-gradient-green">cierra la venta</span>
+              <span className="text-gradient-brand">cierra la venta</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              FoxBot resuelve el 90% de las consultas automáticamente. Pero cuando tu cliente necesita atención humana,
+              Nexia AI resuelve el 90% de las consultas automáticamente. Pero cuando tu cliente necesita atención humana,
               un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente se de cuenta del cambio.
             </p>
           </div>
@@ -1440,18 +1440,18 @@ export default function Landing() {
               {
                 step: "1",
                 title: "El bot atiende",
-                desc: "FoxBot responde al instante con IA: resuelve dudas, muestra productos y guia al cliente las 24 horas.",
+                desc: "Nexia AI responde al instante con IA: resuelve dudas, muestra productos y guia al cliente las 24 horas.",
                 icon: Bot,
-                color: "#10b981",
-                gradient: "linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%)",
+                color: "#7669E9",
+                gradient: "linear-gradient(135deg, rgba(118,105,233,0.08) 0%, rgba(118,105,233,0.02) 100%)",
               },
               {
                 step: "2",
                 title: "El cliente pide ayuda",
                 desc: "Si necesita algo más complejo, el cliente solicita hablar con un ejecutivo con un solo clic.",
                 icon: MessageSquare,
-                color: "#f59e0b",
-                gradient: "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.02) 100%)",
+                color: "#a78bfa",
+                gradient: "linear-gradient(135deg, rgba(118,105,233,0.08) 0%, rgba(118,105,233,0.02) 100%)",
               },
               {
                 step: "3",
@@ -1495,9 +1495,9 @@ export default function Landing() {
           <div className="rounded-2xl glass-card p-8 max-w-3xl mx-auto mb-16">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
-                { value: "90%", label: "Consultas resueltas por IA", desc: "Sin intervención humana", color: "#10b981" },
+                { value: "90%", label: "Consultas resueltas por IA", desc: "Sin intervención humana", color: "#7669E9" },
                 { value: "0s", label: "Tiempo de traspaso", desc: "El ejecutivo entra al instante", color: "#6366f1" },
-                { value: "100%", label: "Historial visible", desc: "El agente ve toda la conversación", color: "#f59e0b" },
+                { value: "100%", label: "Historial visible", desc: "El agente ve toda la conversación", color: "#a78bfa" },
               ].map(({ value, label, desc, color }) => (
                 <div key={label}>
                   <p className="text-3xl font-black mb-1" style={{ color }}>{value}</p>
@@ -1514,8 +1514,8 @@ export default function Landing() {
 
       <section className="py-28 px-6 relative overflow-hidden" ref={stepsSection.ref as any} data-testid="section-how-it-works">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.15) 50%, transparent 100%)" }} />
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.1) 50%, transparent 100%)" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.1) 50%, transparent 100%)" }} />
         </div>
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16">
@@ -1524,7 +1524,7 @@ export default function Landing() {
               <span className="text-xs font-semibold text-primary tracking-wide">LISTO EN MINUTOS</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-how-title">
-              <span className="text-gradient-orange">3 pasos</span> y listo
+              <span className="text-gradient-brand">3 pasos</span> y listo
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
               No necesitas ser técnico. De cero al chat en vivo en minutos.
@@ -1532,16 +1532,16 @@ export default function Landing() {
           </div>
 
           <div className="relative">
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 z-0" style={{ background: "linear-gradient(90deg, transparent 5%, rgba(16,185,129,0.12) 20%, rgba(16,185,129,0.12) 80%, transparent 95%)" }} />
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 z-0" style={{ background: "linear-gradient(90deg, transparent 5%, rgba(118,105,233,0.12) 20%, rgba(118,105,233,0.12) 80%, transparent 95%)" }} />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
               {[
                 {
                   step: "01",
                   title: "Crea tu cuenta",
-                  desc: "Registrate gratis, configura el nombre de tu empresa, colores y mensaje de bienvenida.",
+                  desc: "Crea tu cuenta, configura el nombre de tu empresa, colores y mensaje de bienvenida.",
                   icon: Headphones,
-                  color: "#10b981",
+                  color: "#7669E9",
                 },
                 {
                   step: "02",
@@ -1553,7 +1553,7 @@ export default function Landing() {
                 {
                   step: "03",
                   title: "Copia y pega",
-                  desc: "Agrega una línea de código a tu sitio web y FoxBot atiende clientes al instante.",
+                  desc: "Agrega una línea de código a tu sitio web y Nexia AI atiende clientes al instante.",
                   icon: Code,
                   color: "#a855f7",
                 },
@@ -1589,17 +1589,17 @@ export default function Landing() {
 
       <section id="casos" className="py-28 px-6 relative overflow-hidden" ref={casesSection.ref as any} data-testid="section-cases">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.15) 50%, transparent 100%)" }} />
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.1) 50%, transparent 100%)" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.1) 50%, transparent 100%)" }} />
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Trophy className="w-3.5 h-3.5 text-[#f59e0b]" />
-              <span className="text-xs font-semibold text-[#f59e0b] tracking-wide">CASOS DE ÉXITO</span>
+              <Trophy className="w-3.5 h-3.5 text-[#a78bfa]" />
+              <span className="text-xs font-semibold text-[#a78bfa] tracking-wide">CASOS DE ÉXITO</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
-              Empresas que <span className="text-gradient-orange">ya confían en FoxBot</span>
+              Empresas que <span className="text-gradient-brand">ya confían en Nexia AI</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
               Negocios reales que automatizaron su atención y ganaron más tiempo para lo que importa.
@@ -1649,7 +1649,7 @@ export default function Landing() {
                   <div className="relative overflow-hidden" style={{ height: "340px" }}>
                     <img
                       src={caseItem.image}
-                      alt={`${caseItem.name} - FoxBot en acción`}
+                      alt={`${caseItem.name} - Nexia AI en acción`}
                       className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
@@ -1677,7 +1677,7 @@ export default function Landing() {
 
       <section id="pricing" className="py-28 px-6 relative overflow-hidden" ref={pricingSection.ref as any} data-testid="section-pricing">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%, 0.05) 0%, transparent 50%)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.05) 0%, transparent 50%)" }} />
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -1686,7 +1686,7 @@ export default function Landing() {
               <span className="text-xs font-semibold text-accent tracking-wide">PRECIOS TRANSPARENTES</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-pricing-title">
-              Un plan para <span className="text-gradient-green">cada negocio</span>
+              Un plan para <span className="text-gradient-brand">cada negocio</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
               Comienza gratis. Escala cuando quieras. Sin contratos.
@@ -1695,11 +1695,11 @@ export default function Landing() {
 
           <div className={`mb-14 transition-all duration-700 ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"}`} data-testid="shared-features-block">
             <div className="relative rounded-2xl overflow-hidden">
-              <div className="absolute -inset-[1px] rounded-2xl" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 40%, 0.2) 0%, hsl(160, 60%, 35%, 0.1) 50%, hsl(142, 72%, 40%, 0.2) 100%)" }} />
+              <div className="absolute -inset-[1px] rounded-2xl" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 40%, 0.2) 0%, hsl(160, 60%, 35%, 0.1) 50%, hsl(250, 65%, 40%, 0.2) 100%)" }} />
               <div className="relative glass-card rounded-2xl p-6 sm:p-8" style={{ border: "none" }}>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10">
-                    <CircleCheck className="w-4.5 h-4.5 text-emerald-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/10">
+                    <CircleCheck className="w-4.5 h-4.5 text-violet-400" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white/90">Todos los planes incluyen</h3>
@@ -1709,7 +1709,7 @@ export default function Landing() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                   {sharedFeatures.map((feat) => (
                     <div key={feat.text} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                      <feat.icon className="w-4 h-4 text-emerald-400/70 shrink-0" />
+                      <feat.icon className="w-4 h-4 text-violet-400/70 shrink-0" />
                       <span className="text-xs text-white/55 leading-tight">{feat.text}</span>
                     </div>
                   ))}
@@ -1735,7 +1735,7 @@ export default function Landing() {
                 <div className="relative z-10 rounded-3xl h-full flex flex-col glass-card" style={{ background: plan.bgTint, border: "none" }}>
                   {plan.tier === "starter" && (
                     <div className="flex justify-center pt-5">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 32%) 0%, hsl(280, 55%, 28%) 100%)", color: "white" }}>
                         <Zap className="w-3 h-3" />
                         STARTER
                       </div>
@@ -1744,7 +1744,7 @@ export default function Landing() {
 
                   {plan.highlighted && (
                     <div className="flex justify-center pt-5">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)", color: "white" }}>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 32%) 0%, hsl(280, 55%, 28%) 100%)", color: "white" }}>
                         <Star className="w-3 h-3" />
                         MÁS POPULAR
                       </div>
@@ -1753,7 +1753,7 @@ export default function Landing() {
 
                   {plan.tier === "enterprise" && (
                     <div className="flex justify-center pt-5">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(38, 92%, 42%) 0%, hsl(28, 80%, 45%) 100%)", color: "white" }}>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 45%) 100%)", color: "white" }}>
                         <Crown className="w-3 h-3" />
                         ENTERPRISE
                       </div>
@@ -1762,9 +1762,9 @@ export default function Landing() {
 
                   <div className="text-center px-7 pt-7 pb-2">
                     <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>
-                      {plan.tier === "starter" && <span className="text-gradient-green">Starter</span>}
-                      {plan.tier === "pro" && <><span className="text-gradient-green">Pro</span></>}
-                      {plan.tier === "enterprise" && <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span>}
+                      {plan.tier === "starter" && <span className="text-gradient-brand">Starter</span>}
+                      {plan.tier === "pro" && <><span className="text-gradient-brand">Pro</span></>}
+                      {plan.tier === "enterprise" && <span style={{ background: "linear-gradient(135deg, #a78bfa, #7669E9)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span>}
                     </h3>
                     <p className="text-sm text-white/35 mb-6">{plan.description}</p>
                     <div className="mb-4">
@@ -1772,7 +1772,7 @@ export default function Landing() {
                       <span className="text-white/35 text-sm">{plan.period}</span>
                     </div>
                     {plan.tier !== "free" && (
-                      <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                      <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
                         <div className="flex items-center gap-1.5">
                           <Gift className="w-3 h-3" />
                           7 días para probar
@@ -1823,7 +1823,7 @@ export default function Landing() {
                     <a href="/register" className="block">
                       {plan.tier === "free" && (
                         <Button
-                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
                           variant="outline"
                           data-testid={`button-plan-cta-${index}`}
                         >
@@ -1841,8 +1841,8 @@ export default function Landing() {
                       )}
                       {plan.tier === "enterprise" && (
                         <Button
-                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-amber-500/15 border-0 text-white"
-                          style={{ background: "linear-gradient(135deg, hsl(38, 92%, 42%) 0%, hsl(28, 80%, 40%) 100%)" }}
+                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-violet-500/15 border-0 text-white"
+                          style={{ background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 40%) 100%)" }}
                           data-testid={`button-plan-cta-${index}`}
                         >
                           {plan.cta}
@@ -1867,34 +1867,34 @@ export default function Landing() {
 
       <section id="referidos" className="py-16 sm:py-28 px-4 sm:px-6 relative overflow-hidden" ref={referralSection.ref as any} data-testid="section-referral">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.2) 50%, transparent 100%)" }} />
-          <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(245,158,11,0.04) 0%, transparent 50%)", animationDelay: "-5s" }} />
-          <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 50%)", animationDelay: "-15s" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.2) 50%, transparent 100%)" }} />
+          <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(118,105,233,0.04) 0%, transparent 50%)", animationDelay: "-5s" }} />
+          <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(118,105,233,0.04) 0%, transparent 50%)", animationDelay: "-15s" }} />
         </div>
         <div className="relative max-w-5xl mx-auto">
           <div className={`text-center mb-16 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Gift className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-semibold text-amber-400 tracking-wide">PROGRAMA EXCLUSIVO DE REFERIDOS</span>
+              <Gift className="w-3.5 h-3.5 text-violet-400" />
+              <span className="text-xs font-semibold text-violet-400 tracking-wide">PROGRAMA EXCLUSIVO DE REFERIDOS</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-referral-title">
               Invita negocios,
               <br />
-              <span className="text-gradient-green">gana dinero real</span>
+              <span className="text-gradient-brand">gana dinero real</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Recomienda FoxBot a otros negocios. Por cada referido que <span className="text-white/60 font-semibold">compra un plan de pago</span>,
-              <span className="text-amber-400 font-semibold"> tú ganas $3.000 CLP</span> + meses de plan premium gratis. Sin trámites, sin esperas, sin límite.
+              Recomienda Nexia AI a otros negocios. Por cada referido que <span className="text-white/60 font-semibold">compra un plan de pago</span>,
+              <span className="text-violet-400 font-semibold"> tú ganas $3.000 CLP</span> + meses de plan premium gratis. Sin trámites, sin esperas, sin límite.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
             <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "100ms" }} data-testid="referral-step-1">
-              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))" }}>
-                <UserPlus className="w-6 h-6 text-amber-400" />
+              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.15), rgba(118,105,233,0.05))" }}>
+                <UserPlus className="w-6 h-6 text-violet-400" />
               </div>
-              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
-                <span className="text-sm font-black text-amber-400">1</span>
+              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-violet-400/10 flex items-center justify-center">
+                <span className="text-sm font-black text-violet-400">1</span>
               </div>
               <h3 className="text-lg font-bold text-white/90 mb-2">Comparte tu enlace</h3>
               <p className="text-sm text-white/40 leading-relaxed">
@@ -1903,7 +1903,7 @@ export default function Landing() {
             </div>
 
             <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "250ms" }} data-testid="referral-step-2">
-              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))" }}>
+              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.15), rgba(118,105,233,0.05))" }}>
                 <CircleCheck className="w-6 h-6 text-primary" />
               </div>
               <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -1911,20 +1911,20 @@ export default function Landing() {
               </div>
               <h3 className="text-lg font-bold text-white/90 mb-2">Tu referido compra un plan</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Cuando el negocio se registra con tu enlace y luego compra Fox Pro o Fox Enterprise, el referido se confirma automáticamente.
+                Cuando el negocio se registra con tu enlace y luego compra Pro o Enterprise, el referido se confirma automáticamente.
               </p>
             </div>
 
             <div className={`relative rounded-2xl glass-card p-7 transition-all duration-500 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "400ms" }} data-testid="referral-step-3">
-              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))" }}>
-                <Crown className="w-6 h-6 text-amber-400" />
+              <div className="w-12 h-12 rounded-2xl mb-5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.15), rgba(118,105,233,0.05))" }}>
+                <Crown className="w-6 h-6 text-violet-400" />
               </div>
-              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
-                <span className="text-sm font-black text-amber-400">3</span>
+              <div className="absolute top-7 right-7 w-8 h-8 rounded-full bg-violet-400/10 flex items-center justify-center">
+                <span className="text-sm font-black text-violet-400">3</span>
               </div>
               <h3 className="text-lg font-bold text-white/90 mb-2">Tú ganas automáticamente</h3>
               <p className="text-sm text-white/40 leading-relaxed">
-                Al confirmarse la compra, recibes <span className="text-amber-400 font-semibold">$3.000 CLP en saldo</span> + meses de plan premium gratis al instante. Sin solicitudes ni trámites.
+                Al confirmarse la compra, recibes <span className="text-violet-400 font-semibold">$3.000 CLP en saldo</span> + meses de plan premium gratis al instante. Sin solicitudes ni trámites.
               </p>
             </div>
           </div>
@@ -1933,11 +1933,11 @@ export default function Landing() {
             <h3 className="text-center text-base sm:text-lg font-bold text-white/70 mb-6 sm:mb-8">Escalera de recompensas</h3>
             <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
               {[
-                { refs: 1, reward: "$3.000 CLP + 1 mes Fox Pro", detail: "Tu primer referido: dinero real + plan premium", color: "16,185,129", icon: <Gift className="w-5 h-5" />, tier: "$3.000" },
-                { refs: 3, reward: "$9.000 CLP + 2 meses Fox Pro", detail: "$3.000 por cada referido, se acumula sin límite", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "$9.000" },
-                { refs: 5, reward: "$15.000 CLP + 3 meses Fox Enterprise", detail: "Sesiones y mensajes ilimitados + dinero en tu cuenta", color: "245,158,11", icon: <Trophy className="w-5 h-5" />, tier: "$15.000" },
-                { refs: 10, reward: "$30.000 CLP + 6 meses Fox Enterprise", detail: "Nivel experto: el mejor plan + $30.000 acumulados", color: "168,85,247", icon: <Crown className="w-5 h-5" />, tier: "$30.000" },
-                { refs: 15, reward: "$45.000 CLP + 12 meses Fox Enterprise", detail: "Embajador FoxBot: 1 año gratis + $45.000 en saldo", color: "236,72,153", icon: <Sparkles className="w-5 h-5" />, tier: "Embajador" },
+                { refs: 1, reward: "$3.000 CLP + 1 mes Pro", detail: "Tu primer referido: dinero real + plan premium", color: "118,105,233", icon: <Gift className="w-5 h-5" />, tier: "$3.000" },
+                { refs: 3, reward: "$9.000 CLP + 2 meses Pro", detail: "$3.000 por cada referido, se acumula sin límite", color: "59,130,246", icon: <Star className="w-5 h-5" />, tier: "$9.000" },
+                { refs: 5, reward: "$15.000 CLP + 3 meses Enterprise", detail: "Sesiones y mensajes ilimitados + dinero en tu cuenta", color: "150,120,230", icon: <Trophy className="w-5 h-5" />, tier: "$15.000" },
+                { refs: 10, reward: "$30.000 CLP + 6 meses Enterprise", detail: "Nivel experto: el mejor plan + $30.000 acumulados", color: "168,85,247", icon: <Crown className="w-5 h-5" />, tier: "$30.000" },
+                { refs: 15, reward: "$45.000 CLP + 12 meses Enterprise", detail: "Embajador Nexia AI: 1 año gratis + $45.000 en saldo", color: "236,72,153", icon: <Sparkles className="w-5 h-5" />, tier: "Embajador" },
               ].map((tier, i) => (
                 <div
                   key={tier.refs}
@@ -1966,15 +1966,15 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className={`max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 mb-10 sm:mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1000ms", background: "linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.1)" }} data-testid="referral-both-win">
+          <div className={`max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 mb-10 sm:mb-14 transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1000ms", background: "linear-gradient(135deg, rgba(118,105,233,0.06), rgba(118,105,233,0.02))", border: "1px solid rgba(118,105,233,0.1)" }} data-testid="referral-both-win">
             <div className="flex items-start gap-3 sm:gap-4">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))" }}>
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.2), rgba(118,105,233,0.05))" }}>
                 <Handshake className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
               <div className="min-w-0">
                 <h4 className="text-sm sm:text-base font-bold text-white/80 mb-2">¿Cómo funciona exactamente?</h4>
                 <p className="text-xs sm:text-sm text-white/40 leading-relaxed">
-                  Tu referido se registra gratis con tu enlace y prueba FoxBot sin compromiso. Cuando decide comprar <span className="text-primary font-semibold">Fox Pro o Fox Enterprise</span>, tú recibes <span className="text-amber-400 font-semibold">$3.000 CLP en saldo</span> automáticamente al instante. Además, al alcanzar hitos (1, 3, 5, 10, 15 referidos) desbloqueas meses de plan premium gratis. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.
+                  Tu referido se registra con tu enlace y prueba Nexia AI. Cuando decide comprar <span className="text-primary font-semibold">Pro o Enterprise</span>, tú recibes <span className="text-violet-400 font-semibold">$3.000 CLP en saldo</span> automáticamente al instante. Además, al alcanzar hitos (1, 3, 5, 10, 15 referidos) desbloqueas meses de plan premium gratis. El saldo se aplica como descuento en tu próxima factura. Sin límite de referidos.
                 </p>
               </div>
             </div>
@@ -1996,15 +1996,15 @@ export default function Landing() {
 
       <section className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.2) 50%, transparent 100%)" }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%, 0.06) 0%, transparent 50%)" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.2) 50%, transparent 100%)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.06) 0%, transparent 50%)" }} />
         </div>
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="relative inline-block mb-10">
-            <div className="w-28 h-28 rounded-3xl glass-card flex items-center justify-center mx-auto animate-float" style={{ boxShadow: "0 0 60px rgba(16, 185, 129, 0.1)" }}>
-              <img src={logoSinFondo} alt="FoxBot" className="w-20 h-20 object-contain" />
+            <div className="w-28 h-28 rounded-3xl glass-card flex items-center justify-center mx-auto animate-float" style={{ boxShadow: "0 0 60px rgba(118, 105, 233, 0.1)" }}>
+              <NexiaIcon size={80} />
             </div>
-            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)" }}>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 32%) 0%, hsl(280, 55%, 28%) 100%)" }}>
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
           </div>
@@ -2012,16 +2012,16 @@ export default function Landing() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-6 leading-tight" data-testid="text-cta-title">
             Dale a tu negocio el
             <br />
-            <span className="text-gradient-green">soporte que merece</span>
+            <span className="text-gradient-brand">soporte que merece</span>
           </h2>
           <p className="text-white/40 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
-            Negocios de todos los tamaños ya usan FoxBot para vender más y atender mejor.
-            Empieza gratis hoy.
+            Negocios de todos los tamaños ya usan Nexia AI para vender más y atender mejor.
+            Agenda tu demo hoy.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <a href="/register">
               <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-cta-register">
-                Crear Mi Cuenta Gratis
+                Agendar Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </a>
@@ -2043,9 +2043,9 @@ export default function Landing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
             <div>
               <div className="flex items-center gap-2.5 mb-5">
-                <img src={logoSinFondo} alt="FoxBot" className="w-10 h-10 object-contain" />
+                <NexiaIcon size={40} />
                 <span className="text-xl font-extrabold">
-                  <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
+                  <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
                 </span>
               </div>
               <p className="text-sm text-white/30 leading-relaxed mb-4">
@@ -2082,7 +2082,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="border-t border-white/[0.04] mt-12 pt-8 text-center text-sm text-white/20" data-testid="text-copyright">
-            &copy; {new Date().getFullYear()} FoxBot by Web Maker Chile. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile. Todos los derechos reservados.
           </div>
         </div>
       </footer>

@@ -1,4 +1,4 @@
-import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
+import { NexiaLogo } from "@/components/NexiaLogo";
 
 export default function TermsPage() {
   return (
@@ -6,10 +6,7 @@ export default function TermsPage() {
       <header className="border-b border-white/[0.04] py-4 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <a href="/" className="flex items-center gap-2.5" data-testid="link-logo-home">
-            <img src={logoSinFondo} alt="FoxBot" className="w-8 h-8 object-contain" />
-            <span className="text-lg font-extrabold">
-              <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
-            </span>
+            <NexiaLogo size={28} textClassName="text-lg" />
           </a>
           <a href="/" className="text-sm text-white/40 hover:text-primary transition-colors" data-testid="link-back-home">← Volver al inicio</a>
         </div>
@@ -24,14 +21,14 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">1. Aceptación de los términos</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            Al acceder y utilizar FoxBot (foxbot.cl), operado por Web Maker Chile, aceptas estos términos de uso en su totalidad. Si no estás de acuerdo con alguna parte de estos términos, no debes utilizar el servicio.
+            Al acceder y utilizar Nexia AI, operado por Web Maker Chile, aceptas estos términos de uso en su totalidad. Si no estás de acuerdo con alguna parte de estos términos, no debes utilizar el servicio.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">2. Descripción del servicio</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            FoxBot es una plataforma SaaS que permite a las empresas crear e integrar chatbots con inteligencia artificial en sus sitios web. El servicio incluye:
+            Nexia AI es una plataforma SaaS que permite a las empresas crear e integrar chatbots con inteligencia artificial en sus sitios web. El servicio incluye:
           </p>
           <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
             <li>Creación y configuración de chatbots personalizados.</li>
@@ -55,7 +52,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">4. Planes, pagos y suscripciones</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            FoxBot ofrece diferentes planes de servicio (Fox Free, Fox Pro, Fox Enterprise). Los detalles de precios y características de cada plan están disponibles en nuestra página de precios. Nos reservamos el derecho de modificar los precios con previo aviso de 30 días.
+            Nexia AI ofrece diferentes planes de servicio (Starter, Pro, Enterprise). Los detalles de precios y características de cada plan están disponibles en nuestra página de precios. Nos reservamos el derecho de modificar los precios con previo aviso de 30 días.
           </p>
           <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
             <li><strong className="text-white/70">Período de prueba:</strong> Los planes pagados incluyen un período de prueba gratuito de 7 días. Durante este período puedes cancelar sin costo alguno. El período de prueba no incluye el servicio de chatbot WhatsApp.</li>
@@ -68,7 +65,7 @@ export default function TermsPage() {
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">5. Uso aceptable</h2>
-          <p className="text-sm text-white/50 leading-relaxed">Al utilizar FoxBot, te comprometes a no:</p>
+          <p className="text-sm text-white/50 leading-relaxed">Al utilizar Nexia AI, te comprometes a no:</p>
           <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
             <li>Usar el servicio para actividades ilegales o fraudulentas.</li>
             <li>Enviar contenido ofensivo, difamatorio o que infrinja derechos de terceros.</li>
@@ -82,14 +79,14 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">6. Propiedad intelectual</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            FoxBot, su código, diseño, marca y contenido son propiedad de Web Maker Chile. El contenido que subas o configures (logos, textos, datos) sigue siendo de tu propiedad. Al usar el servicio, nos otorgas una licencia limitada para mostrar tu contenido según la funcionalidad del servicio.
+            Nexia AI, su código, diseño, marca y contenido son propiedad de Web Maker Chile. El contenido que subas o configures (logos, textos, datos) sigue siendo de tu propiedad. Al usar el servicio, nos otorgas una licencia limitada para mostrar tu contenido según la funcionalidad del servicio.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">7. Inteligencia artificial</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            Las respuestas generadas por el chatbot son producidas por modelos de inteligencia artificial y pueden no ser siempre precisas. FoxBot no garantiza la exactitud de las respuestas generadas por IA. Eres responsable de revisar y configurar el contexto del bot para asegurar respuestas apropiadas para tu negocio.
+            Las respuestas generadas por el chatbot son producidas por modelos de inteligencia artificial y pueden no ser siempre precisas. Nexia AI no garantiza la exactitud de las respuestas generadas por IA. Eres responsable de revisar y configurar el contexto del bot para asegurar respuestas apropiadas para tu negocio.
           </p>
         </section>
 
@@ -103,7 +100,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">9. Limitación de responsabilidad</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            FoxBot se proporciona "tal como está". En la máxima medida permitida por la ley, Web Maker Chile no será responsable por daños indirectos, incidentales o consecuentes derivados del uso del servicio, incluyendo pérdida de datos, ingresos o oportunidades de negocio.
+            Nexia AI se proporciona "tal como está". En la máxima medida permitida por la ley, Web Maker Chile no será responsable por daños indirectos, incidentales o consecuentes derivados del uso del servicio, incluyendo pérdida de datos, ingresos o oportunidades de negocio.
           </p>
         </section>
 
@@ -143,7 +140,7 @@ export default function TermsPage() {
       </main>
 
       <footer className="border-t border-white/[0.04] py-8 px-6 text-center text-sm text-white/20">
-        &copy; {new Date().getFullYear()} FoxBot by Web Maker Chile. Todos los derechos reservados.
+        &copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile. Todos los derechos reservados.
       </footer>
     </div>
   );

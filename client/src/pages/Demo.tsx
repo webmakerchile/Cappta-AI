@@ -55,7 +55,7 @@ import {
   Eye,
   LogOut,
 } from "lucide-react";
-import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
+import { NexiaIcon } from "@/components/NexiaLogo";
 
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -594,9 +594,9 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
             <a href="/" className="flex items-center gap-2 text-white/30 hover:text-primary transition-colors" data-testid="link-back-home">
               <ArrowLeft className="w-4 h-4" />
             </a>
-            <img src={logoSinFondo} alt="FoxBot" className="w-8 h-8 object-contain" />
+            <NexiaIcon size={32} />
             <span className="text-lg font-extrabold">
-              <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
+              <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-bold tracking-wider">DEMO</span>
           </div>
@@ -618,7 +618,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
           <div className="text-center mb-8">
             <div className="relative inline-block mb-5 animate-dash-fade-up">
               <div className="w-16 h-16 rounded-2xl glass-card flex items-center justify-center animate-float">
-                <img src={logoSinFondo} alt="FoxBot" className="w-11 h-11 object-contain" />
+                <NexiaIcon size={44} />
               </div>
               <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-lg flex items-center justify-center animate-icon-pop dash-stagger-2" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%), hsl(150, 60%, 28%))" }}>
                 <Sparkles className="w-3.5 h-3.5 text-white" />
@@ -628,7 +628,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
               Elige un tipo de negocio para probar
             </h1>
             <p className="text-white/40 text-sm sm:text-base max-w-lg mx-auto leading-relaxed animate-dash-fade-up dash-stagger-2">
-              FoxBot se adapta a cualquier negocio. Prueba el modo <strong className="text-white/60">Cliente</strong> y el modo <strong className="text-white/60">Ejecutivo</strong>.
+              Nexia AI se adapta a cualquier negocio. Prueba el modo <strong className="text-white/60">Cliente</strong> y el modo <strong className="text-white/60">Ejecutivo</strong>.
             </p>
             <div className="flex items-center justify-center gap-4 mt-3 animate-dash-fade-up dash-stagger-3">
               <span className="flex items-center gap-1.5 text-xs text-white/35"><MessageSquare className="w-3.5 h-3.5 text-accent" /> Chat en vivo con IA</span>
@@ -720,7 +720,7 @@ function ContextSelector({ onSelect }: { onSelect: (ctx: DemoContext) => void })
           )}
 
           <p className="text-center text-xs text-white/20 mt-10 animate-dash-fade-in max-w-lg mx-auto">
-            Esto es solo una muestra. Con FoxBot puedes crear el chatbot perfecto para tu negocio, con tu propia base de conocimiento y catálogo real.
+            Esto es solo una muestra. Con Nexia AI puedes crear el agente perfecto para tu negocio, con tu propia base de conocimiento y catálogo real.
           </p>
         </div>
       </div>
@@ -799,7 +799,7 @@ function DemoProductBrowser({ products, color, onSelect, onClose }: { products: 
 }
 
 function getDemoCountKey(ctxId: string) {
-  return `foxbot_demo_count_${ctxId}`;
+  return `nexia_demo_count_${ctxId}`;
 }
 
 function getStoredDemoCount(ctxId: string): number {
@@ -839,7 +839,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
   async function sendMessage(content: string) {
     if (!content.trim() || isLoading) return;
     if (messageCount >= MAX_DEMO_MESSAGES) {
-      setError("Has usado tus 30 mensajes de prueba. Registrate gratis para seguir usando FoxBot sin limites.");
+      setError("Has usado tus 30 mensajes de prueba. Agenda una demo para conocer todo el potencial de Nexia AI.");
       return;
     }
 
@@ -926,7 +926,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
       return;
     }
     if (messageCount >= MAX_DEMO_MESSAGES) {
-      setError("Has usado tus 30 mensajes de prueba. Registrate gratis para seguir usando FoxBot sin limites.");
+      setError("Has usado tus 30 mensajes de prueba. Agenda una demo para conocer todo el potencial de Nexia AI.");
       return;
     }
     const blobUrl = URL.createObjectURL(file);
@@ -1164,7 +1164,7 @@ function DemoChat({ ctx, onBack }: { ctx: DemoContext; onBack: () => void }) {
               </form>
               <div className="flex items-center justify-between mt-1.5 px-1">
                 <span className="text-[9px] text-white/15">{remaining}/{MAX_DEMO_MESSAGES} restantes</span>
-                <span className="text-[9px] text-white/10">Potenciado por FoxBot</span>
+                <span className="text-[9px] text-white/10">Potenciado por Nexia AI</span>
               </div>
             </>
           )}
@@ -1592,7 +1592,7 @@ export default function Demo() {
   const [mode, setMode] = useState<"client" | "executive">("client");
 
   useEffect(() => {
-    document.title = "Demo - FoxBot by Web Maker Chile";
+    document.title = "Demo - Nexia AI by Web Maker Chile";
   }, []);
 
   if (!selectedContext) {
@@ -1675,7 +1675,7 @@ export default function Demo() {
       </div>
 
       <div className="shrink-0 text-center py-2 border-t border-white/[0.04]">
-        <p className="text-[10px] text-white/15">Demo interactiva de FoxBot — <a href="/register" className="text-primary/50 hover:text-primary/70">Registrate gratis</a> para crear tu propio chatbot</p>
+        <p className="text-[10px] text-white/15">Demo interactiva de Nexia AI — <a href="#demo" className="text-primary/50 hover:text-primary/70">Agenda una demo</a> para conocer más</p>
       </div>
     </div>
   );

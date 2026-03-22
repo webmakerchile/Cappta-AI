@@ -15,9 +15,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
-import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, Zap, UserCog, Building2 } from "lucide-react";
+import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, UserCog, Building2 } from "lucide-react";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
-import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
+import { NexiaLogo, NexiaIcon } from "@/components/NexiaLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un correo válido"),
@@ -109,32 +109,32 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(142, 72%, 40%, 0.07) 0%, transparent 60%)" }} />
-        <div className="absolute bottom-[-200px] left-[-100px] w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(30, 90%, 52%, 0.05) 0%, transparent 60%)", animationDelay: "-10s" }} />
+        <div className="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(250, 65%, 55%, 0.07) 0%, transparent 60%)" }} />
+        <div className="absolute bottom-[-200px] left-[-100px] w-[500px] h-[500px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(280, 55%, 55%, 0.05) 0%, transparent 60%)", animationDelay: "-10s" }} />
         <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 rounded-full bg-primary/20 animate-float" />
         <div className="absolute top-1/3 right-1/3 w-1 h-1 rounded-full bg-accent/20 animate-float" style={{ animationDelay: "-3s" }} />
         <div className="absolute bottom-1/3 right-1/4 w-1 h-1 rounded-full bg-primary/15 animate-float" style={{ animationDelay: "-5s" }} />
       </div>
 
       <div className="hidden lg:flex w-[45%] relative items-center justify-center p-12">
-        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(245, 158, 11, 0.02) 100%)" }} />
-        <div className="absolute top-0 right-0 w-px h-full" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(16,185,129,0.1) 30%, rgba(16,185,129,0.1) 70%, transparent 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(118, 105, 233, 0.03) 0%, transparent 50%, rgba(150, 120, 230, 0.02) 100%)" }} />
+        <div className="absolute top-0 right-0 w-px h-full" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(118,105,233,0.1) 30%, rgba(118,105,233,0.1) 70%, transparent 100%)" }} />
 
         <div className="relative max-w-sm text-center">
           <div className="relative mb-10 mx-auto w-fit animate-dash-fade-up">
-            <div className="w-32 h-32 rounded-3xl glass-card flex items-center justify-center animate-float" style={{ boxShadow: "0 0 80px rgba(16, 185, 129, 0.08)" }}>
-              <img src={logoSinFondo} alt="FoxBot" className="w-24 h-24 object-contain" />
+            <div className="w-32 h-32 rounded-3xl glass-card flex items-center justify-center animate-float" style={{ boxShadow: "0 0 80px rgba(118, 105, 233, 0.08)" }}>
+              <NexiaIcon size={96} />
             </div>
-            <div className="absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg animate-icon-pop dash-stagger-3" style={{ background: "linear-gradient(135deg, hsl(142, 72%, 32%) 0%, hsl(150, 60%, 28%) 100%)" }}>
+            <div className="absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg animate-icon-pop dash-stagger-3" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 50%) 0%, hsl(280, 55%, 45%) 100%)" }}>
               <Bot className="w-6 h-6 text-white" />
             </div>
           </div>
 
           <h2 className="text-3xl font-black mb-4 animate-dash-fade-up dash-stagger-1">
-            <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
+            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
           </h2>
           <p className="text-white/40 text-sm leading-relaxed mb-8 animate-dash-fade-up dash-stagger-2">
-            Tu asistente de ventas con IA que nunca duerme. Atiende, recomienda y cierra ventas automáticamente.
+            Tu agente inteligente que vende y atiende por ti, a escala. Automatiza tu negocio 24/7.
           </p>
 
           <div className="space-y-4">
@@ -143,7 +143,7 @@ export default function Login() {
               { text: "Seguridad empresarial", icon: Shield },
               { text: "Conecta cualquier plataforma", icon: Bot },
             ].map(({ text, icon: Icon }, i) => (
-              <div key={text} className={`flex items-center gap-3 glass-card glass-card-glow-green rounded-xl px-4 py-3 animate-dash-slide-right dash-stagger-${i + 2} group cursor-default`}>
+              <div key={text} className={`flex items-center gap-3 glass-card glass-card-glow-violet rounded-xl px-4 py-3 animate-dash-slide-right dash-stagger-${i + 2} group cursor-default`}>
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                   <Icon className="w-4 h-4 text-primary" />
                 </div>
@@ -162,10 +162,7 @@ export default function Login() {
           </a>
 
           <div className="lg:hidden flex items-center gap-3 mb-8 animate-dash-fade-up">
-            <img src={logoSinFondo} alt="FoxBot" className="w-12 h-12 object-contain animate-float" style={{ animationDuration: "8s" }} />
-            <span className="text-2xl font-extrabold">
-              <span className="text-gradient-green">Fox</span><span className="text-gradient-orange">Bot</span>
-            </span>
+            <NexiaLogo size={40} textClassName="text-2xl" />
           </div>
 
           <div className="mb-8 animate-dash-fade-up dash-stagger-1">
@@ -173,12 +170,12 @@ export default function Login() {
               Bienvenido de vuelta
             </h1>
             <p className="text-white/40" data-testid="text-login-subtitle">
-              Inicia sesión para acceder a tu panel de FoxBot
+              Inicia sesión para acceder a tu panel de Nexia AI
             </p>
           </div>
 
           <div className="rounded-2xl glass-card p-7 animate-dash-scale-in dash-stagger-2 relative overflow-hidden">
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.06), transparent 60%)" }} />
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full animate-subtle-breathe" style={{ background: "radial-gradient(circle, rgba(118,105,233,0.06), transparent 60%)" }} />
 
             <div className="flex gap-1 mb-5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]" data-testid="login-mode-toggle">
               <button
@@ -228,7 +225,7 @@ export default function Login() {
                             <Input
                               type="email"
                               placeholder="tu@empresa.com"
-                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(118,105,233,0.08)]"
                               data-testid="input-login-email"
                               {...field}
                             />
@@ -248,7 +245,7 @@ export default function Login() {
                             <Input
                               type="password"
                               placeholder="Tu contraseña"
-                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+                              className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-white placeholder:text-white/20 transition-all duration-300 focus:shadow-[0_0_20px_rgba(118,105,233,0.08)]"
                               data-testid="input-login-password"
                               {...field}
                             />
