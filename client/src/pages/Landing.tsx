@@ -1413,42 +1413,6 @@ export default function Landing() {
   const faqSection = useInView(0.1);
   const casesSection = useInView(0.1);
 
-  useEffect(() => {
-    if (document.getElementById("nexia-widget")) return;
-    const iframe = document.createElement("iframe");
-    iframe.id = "nexia-widget";
-    iframe.src = "https://www.foxbot.cl/widget?tenantId=6";
-    iframe.allow = "microphone";
-    let pos = "right";
-    function setPos(p: string, state: string, w?: number, h?: number) {
-      const s = p === "left" ? "left" : "right";
-      const o = p === "left" ? "right" : "left";
-      const mobile = window.innerWidth <= 480;
-      if (state === "open") {
-        iframe.style.cssText = mobile
-          ? "position:fixed;bottom:0;left:0;width:100%;height:100%;border:none;z-index:9999;"
-          : `position:fixed;bottom:16px;${s}:16px;${o}:auto;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);`;
-      } else {
-        const cw = (w || 70) + "px";
-        const ch = (h || 70) + "px";
-        iframe.style.cssText = `position:fixed;bottom:12px;${s}:12px;${o}:auto;width:${cw};height:${ch};border:none;z-index:9999;`;
-      }
-    }
-    setPos(pos, "closed");
-    document.body.appendChild(iframe);
-    const handler = (e: MessageEvent) => {
-      if (!e.data || !e.data.type) return;
-      if (e.data.position) pos = e.data.position;
-      if (e.data.type === "nexia_position" || e.data.type === "foxbot_position") { pos = e.data.position; setPos(pos, "closed"); }
-      if (e.data.type === "open_chat") setPos(pos, "open");
-      if (e.data.type === "close_chat") setPos(pos, "closed", e.data.width, e.data.height);
-    };
-    window.addEventListener("message", handler);
-    return () => {
-      window.removeEventListener("message", handler);
-      iframe.remove();
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
