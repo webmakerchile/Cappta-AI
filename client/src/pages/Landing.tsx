@@ -67,7 +67,7 @@ import {
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiShopify, SiWoo, SiMagento, SiSquarespace, SiWebflow } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
-import heroBg from "@assets/hero_bg_v2.png";
+import heroBg from "@assets/hero_bg_v3.png";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
