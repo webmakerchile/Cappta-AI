@@ -853,16 +853,68 @@ function ExecutiveRequestPreview() {
   );
 }
 
+function WhatsAppPreview() {
+  const msgs = [
+    { from: "user", text: "Hola, vi que tienen el Serum Facial disponible. ¿Cuánto cuesta?" },
+    { from: "bot", text: "¡Hola! 👋 El Serum Facial Vitamina C tiene un precio de $24.990. ¿Te gustaría que te envíe el link de compra directa?" },
+    { from: "user", text: "Sí porfa, y ¿hacen envíos a regiones?" },
+    { from: "bot", text: "¡Claro! Enviamos a todo Chile 🇨🇱 con despacho en 24-48hrs. Aquí tienes el link: cappta.ai/shop/serum-vc ✅" },
+  ];
+  return (
+    <div className="max-w-sm mx-auto" data-testid="preview-whatsapp">
+      <div className="rounded-3xl overflow-hidden border border-white/[0.08]" style={{ background: "linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(10,10,10,0.98) 100%)" }}>
+        <div className="px-4 py-3 flex items-center gap-3" style={{ background: "linear-gradient(135deg, #075e54 0%, #128c7e 100%)" }}>
+          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <SiWhatsapp className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-white">Cappta AI</p>
+            <p className="text-[10px] text-white/70">en línea</p>
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            <Phone className="w-4 h-4 text-white/70" />
+          </div>
+        </div>
+        <div className="p-4 space-y-3 h-[280px] overflow-y-auto" style={{ background: "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Crect width=%2260%22 height=%2260%22 fill=%22%23080808%22/%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%221%22 fill=%22%23ffffff08%22/%3E%3C/svg%3E')" }}>
+          {msgs.map((msg, i) => (
+            <div key={i} className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`} style={{ animation: `count-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.3}s both` }}>
+              <div className={`max-w-[82%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.from === "user" ? "rounded-2xl rounded-br-sm bg-[#005c4b] text-white" : "rounded-2xl rounded-bl-sm bg-white/[0.08] text-white/90"}`}>
+                {msg.from === "bot" && (
+                  <div className="flex items-center gap-1 mb-1">
+                    <Bot className="w-3 h-3 text-[#25d366]" />
+                    <span className="text-[10px] font-semibold text-[#25d366]">IA</span>
+                  </div>
+                )}
+                {msg.text}
+                <span className="text-[9px] text-white/30 ml-2">
+                  {msg.from === "user" ? "14:3" + i : "14:3" + i} ✓✓
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-3 py-2 flex items-center gap-2 border-t border-white/[0.06]">
+          <div className="flex-1 rounded-full bg-white/[0.06] px-4 py-2 text-[13px] text-white/30">Escribe un mensaje...</div>
+          <div className="w-9 h-9 rounded-full bg-[#075e54] flex items-center justify-center">
+            <Send className="w-4 h-4 text-white" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PreviewTabs() {
-  const [activeTab, setActiveTab] = useState<"form" | "widget" | "executive" | "dashboard">("form");
+  const [activeTab, setActiveTab] = useState<"form" | "widget" | "whatsapp" | "executive" | "dashboard">("form");
   const [userInteracted, setUserInteracted] = useState(false);
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tabs = [
     { id: "form" as const, label: "Formulario Pre-Chat", icon: FileText, desc: "El cliente completa sus datos antes de iniciar el chat" },
-    { id: "widget" as const, label: "Chat Widget", icon: MessageSquare, desc: "Widget embebido en tu sitio web — Totalmente personalizable" },
+    { id: "widget" as const, label: "Chat Web", icon: MessageSquare, desc: "Widget embebido en tu sitio web — Totalmente personalizable" },
+    { id: "whatsapp" as const, label: "WhatsApp", icon: SiWhatsapp, desc: "La misma IA responde en WhatsApp — tus clientes chatean desde donde prefieran" },
     { id: "executive" as const, label: "Vista Ejecutivo", icon: Bell, desc: "El ejecutivo ve la solicitud, el formulario pre-chat y el historial completo" },
-    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones, desc: "Panel de administración donde los ejecutivos gestionan chats en tiempo real" },
+    { id: "dashboard" as const, label: "Panel Completo", icon: Headphones, desc: "Panel donde gestionas chats web y WhatsApp — interviene cuando la IA lo necesite" },
   ];
 
   const currentIndex = tabs.findIndex((t) => t.id === activeTab);
@@ -892,7 +944,7 @@ function PreviewTabs() {
     <div data-testid="preview-tabs">
       <div className="text-center mb-8">
         <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90" data-testid="text-preview-heading">Así se ve en la práctica</h3>
-        <p className="text-sm text-white/35 max-w-lg mx-auto">Explora cada pantalla del sistema: desde el formulario inicial hasta el panel de ejecutivos.</p>
+        <p className="text-sm text-white/35 max-w-lg mx-auto">Tu IA responde en la web y en WhatsApp. Tú gestionas todo desde un solo panel.</p>
       </div>
 
       <div className="hidden sm:flex items-center justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
@@ -938,6 +990,9 @@ function PreviewTabs() {
         </div>
         <div className={`transition-all duration-500 ${activeTab === "widget" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <ChatbotPreview />
+        </div>
+        <div className={`transition-all duration-500 ${activeTab === "whatsapp" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
+          <WhatsAppPreview />
         </div>
         <div className={`transition-all duration-500 ${activeTab === "executive" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"}`}>
           <ExecutiveRequestPreview />
