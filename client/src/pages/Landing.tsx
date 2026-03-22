@@ -950,6 +950,57 @@ function PreviewTabs() {
   );
 }
 
+const COUNTRIES = [
+  { code: "CL", flag: "🇨🇱", name: "Chile", lang: "Español" },
+  { code: "MX", flag: "🇲🇽", name: "México", lang: "Español" },
+  { code: "CO", flag: "🇨🇴", name: "Colombia", lang: "Español" },
+  { code: "AR", flag: "🇦🇷", name: "Argentina", lang: "Español" },
+];
+
+function CountrySelector() {
+  const [selected, setSelected] = useState(COUNTRIES[0]);
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative" data-testid="country-selector">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors text-sm"
+        data-testid="button-country-toggle"
+      >
+        <span className="text-lg leading-none">{selected.flag}</span>
+        <ChevronDown className={`w-3 h-3 text-white/40 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-2 w-48 rounded-xl border border-white/[0.08] bg-[#111]/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-dash-fade-up z-50">
+          {COUNTRIES.map((c) => (
+            <button
+              key={c.code}
+              onClick={() => { setSelected(c); setIsOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/[0.06] transition-colors ${selected.code === c.code ? "bg-white/[0.04]" : ""}`}
+              data-testid={`country-option-${c.code}`}
+            >
+              <span className="text-lg leading-none">{c.flag}</span>
+              <span className="text-white/80 font-medium">{c.name}</span>
+              {selected.code === c.code && <Check className="w-3.5 h-3.5 text-primary ml-auto" />}
+              <span className="text-white/30 text-xs ml-auto">{c.lang}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MobileNav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -977,7 +1028,8 @@ function MobileNav() {
           <a href="#extensiones" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-addons-nav">Extensiones</a>
           <a href="/guias" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-guides-nav">Recursos</a>
         </div>
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
+          <CountrySelector />
           <a href="/login" className="text-sm text-white/60 hover:text-white transition-colors" data-testid="link-login">Iniciar Sesión</a>
           <a href="#demo">
             <Button size="sm" className="rounded-xl px-5 py-2 text-sm font-semibold" data-testid="link-register">
@@ -1498,17 +1550,13 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
       <MobileNav />
 
-      <section className="relative pt-40 pb-20 sm:pt-48 sm:pb-28 px-6 overflow-hidden" data-testid="section-hero">
+      <section className="relative pt-36 pb-16 sm:pt-44 sm:pb-24 px-6 overflow-hidden" data-testid="section-hero">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 left-0 right-0 bottom-0" style={{ background: "radial-gradient(ellipse 80% 50% at 50% -10%, hsl(250, 65%, 25%, 0.3) 0%, transparent 60%)" }} />
           <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
         </div>
 
         <div className="relative max-w-5xl mx-auto text-center">
-          <div className="flex justify-center mb-10">
-            <CapptaStackedLogo height={100} className="opacity-90" />
-          </div>
-
           <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.03em] leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
             <span className="block text-white/95">TU EQUIPO</span>
             <span className="block text-white/95">COMERCIAL</span>
@@ -1524,7 +1572,7 @@ export default function Landing() {
             <span className="text-white/75 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
           </p>
 
-          <div className="flex items-center justify-center gap-4 flex-wrap mb-12">
+          <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             <a href="#demo">
               <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-hero-register">
                 <SiWhatsapp className="w-5 h-5 mr-2" />
@@ -1534,16 +1582,16 @@ export default function Landing() {
             <a href="#demo">
               <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-hero-demo">
                 <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                Agenda una reunión
+                Agenda una demo
               </Button>
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap mb-16">
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap mb-14">
             {[
-              { text: "Implementación personalizada", color: "#10b981" },
+              { text: "+1,500 Clientes en Latinoamérica", color: "#10b981" },
               { text: "Garantía total de 60 días", color: "#10b981" },
-              { text: "+50 Clientes activos", color: "#10b981" },
+              { text: "Implementación personalizada", color: "#10b981" },
             ].map(({ text, color }) => (
               <span key={text} className="flex items-center gap-2 text-sm text-white/50">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
@@ -1552,11 +1600,8 @@ export default function Landing() {
             ))}
           </div>
 
-          <div className="mb-14">
-            <p className="text-[11px] font-semibold text-white/20 tracking-[0.2em] uppercase text-center mb-6" data-testid="text-trusted-by">
-              Colaborando con los líderes de la industria
-            </p>
-            <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap" data-testid="logos-trusted-by">
+          <div className="mb-0 border-t border-white/[0.04] pt-10">
+            <div className="flex items-center justify-center gap-10 sm:gap-14 flex-wrap" data-testid="logos-trusted-by">
               {[
                 { Icon: SiWordpress, name: "WordPress" },
                 { Icon: SiShopify, name: "Shopify" },
@@ -1567,16 +1612,12 @@ export default function Landing() {
                 { Icon: SiMeta, name: "Meta" },
                 { Icon: SiWhatsapp, name: "WhatsApp" },
               ].map(({ Icon, name }) => (
-                <div key={name} className="flex flex-col items-center gap-1.5 group" data-testid={`logo-partner-${name.toLowerCase()}`}>
-                  <Icon className="w-6 h-6 text-white/20 group-hover:text-white/50 transition-colors duration-300" />
-                  <span className="text-[9px] text-white/15 group-hover:text-white/35 font-medium tracking-wider uppercase transition-colors duration-300">{name}</span>
+                <div key={name} className="flex items-center gap-2 group" data-testid={`logo-partner-${name.toLowerCase()}`}>
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white/30 group-hover:text-white/60 transition-colors duration-300" />
+                  <span className="text-xs sm:text-sm text-white/25 group-hover:text-white/50 font-medium tracking-wide transition-colors duration-300">{name}</span>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="flex justify-center mb-0">
-            <AnimatedChat />
           </div>
         </div>
       </section>
