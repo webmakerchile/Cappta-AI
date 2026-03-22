@@ -1703,13 +1703,13 @@ export default function Landing() {
               <span className="text-xs font-semibold text-[#6366f1] tracking-wide">IA + EJECUTIVOS HUMANOS</span>
             </div>
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-handoff-title">
-              La IA atiende, el ejecutivo
+              La IA vende, y cuando necesitas,
               <br />
-              <span className="text-gradient-brand">cierra la venta</span>
+              <span className="text-gradient-brand">tu ejecutivo cierra</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Cappta AI resuelve el 90% de las consultas automáticamente. Pero cuando tu cliente necesita atención humana,
-              un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente se de cuenta del cambio.
+              Cappta AI no solo atiende — <span className="text-white/60 font-medium">vende por ti</span>. Responde, califica leads y cierra ventas de forma autónoma. Y cuando el cliente necesita atención humana,
+              un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente note el cambio.
             </p>
           </div>
 
@@ -1717,8 +1717,8 @@ export default function Landing() {
             {[
               {
                 step: "1",
-                title: "El bot atiende",
-                desc: "Cappta AI responde al instante con IA: resuelve dudas, muestra productos y guia al cliente las 24 horas.",
+                title: "La IA atiende y vende",
+                desc: "Cappta AI responde al instante, resuelve dudas, muestra productos, califica leads y cierra ventas las 24 horas.",
                 icon: Bot,
                 color: "#7669E9",
                 gradient: "linear-gradient(135deg, rgba(118,105,233,0.08) 0%, rgba(118,105,233,0.02) 100%)",
