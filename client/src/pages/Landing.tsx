@@ -257,7 +257,17 @@ const addonIconMap: Record<string, any> = {
   Megaphone, Link, Phone, FileText, TrendingDown, BarChart3, Workflow, Calendar, Package,
 };
 
-const addonCatalog = [
+interface AddonCatalogItem {
+  slug: string;
+  name: string;
+  description: string;
+  price: number;
+  icon: string;
+  category: string;
+  popular?: boolean;
+}
+
+const addonCatalog: AddonCatalogItem[] = [
   { slug: "cappta-ads", name: "Cappta Ads", description: "Campañas inteligentes impulsadas por IA con segmentación avanzada y reportes en tiempo real.", price: 95000, icon: "Megaphone", category: "marketing" },
   { slug: "cappta-connect", name: "Cappta Connect", description: "Integración nativa con WhatsApp Business API. Gestiona todo desde un solo panel.", price: 63000, icon: "Link", category: "comunicacion" },
   { slug: "cappta-llamadas", name: "Cappta Llamadas", description: "500 minutos VoIP con grabación, transcripción automática y analíticas.", price: 50000, icon: "Phone", category: "comunicacion", popular: true },
@@ -2227,7 +2237,7 @@ export default function Landing() {
                         {addonCategoryLabels[addon.category]}
                       </span>
                     </div>
-                    {(addon as any).popular && (
+                    {addon.popular && (
                       <div className="mb-2">
                         <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30" data-testid="badge-popular-addon">
                           ⭐ Popular

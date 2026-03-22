@@ -12,7 +12,7 @@ import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuil
 
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import archiver from "archiver";
-import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createCheckoutPreference, createAddonCheckoutPreference, getPaymentInfo, cancelSubscription, getSubscriptionStatus } from "./flow";
+import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, ADDON_CATALOG, createCheckoutPreference, createAddonCheckoutPreference, getPaymentInfo, cancelSubscription, getSubscriptionStatus } from "./flow";
 import { handleIncomingWhatsApp, sendWhatsAppMessage, isWhatsAppConfigured } from "./whatsapp";
 import { trackTikTokEvent } from "./tiktok";
 import bcrypt from "bcryptjs";
@@ -2221,18 +2221,6 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
       res.json({ active: false, status: null });
     }
   });
-
-  const ADDON_CATALOG = [
-    { slug: "cappta-ads", name: "Cappta Ads", description: "Potencia tu alcance con campañas inteligentes impulsadas por IA. Segmentación avanzada, optimización automática y reportes en tiempo real.", price: 95000, icon: "Megaphone", category: "marketing" as const, sortOrder: 1 },
-    { slug: "cappta-connect", name: "Cappta Connect", description: "Integración nativa con WhatsApp Business API. Gestiona conversaciones desde un solo panel con plantillas y automatización.", price: 63000, icon: "Link", category: "comunicacion" as const, sortOrder: 2 },
-    { slug: "cappta-llamadas", name: "Cappta Llamadas", description: "500 minutos de llamadas VoIP integradas al dashboard. Grabación, transcripción automática y analíticas de cada llamada.", price: 50000, icon: "Phone", category: "comunicacion" as const, sortOrder: 3 },
-    { slug: "ig-comentarios", name: "IG Comentarios IA", description: "Respuestas inteligentes automáticas en comentarios de Instagram. Aumenta engagement y convierte seguidores en clientes.", price: 50000, icon: "Instagram", category: "marketing" as const, sortOrder: 4 },
-    { slug: "pdf-ia", name: "PDF IA", description: "Genera documentos PDF personalizados con IA. Cotizaciones, reportes y fichas técnicas al instante desde tus datos.", price: 50000, icon: "FileText", category: "productividad" as const, sortOrder: 5 },
-    { slug: "razones-perdida", name: "Razones de Pérdida", description: "Analiza por qué se pierden conversaciones y clientes. Dashboard con métricas de abandono y sugerencias de mejora.", price: 27000, icon: "TrendingDown", category: "analytics" as const, sortOrder: 6 },
-    { slug: "nps-ia", name: "NPS IA", description: "Encuestas NPS automatizadas con análisis de sentimiento por IA. Mide la satisfacción real de tus clientes.", price: 27000, icon: "BarChart", category: "analytics" as const, sortOrder: 7 },
-    { slug: "formulas", name: "Fórmulas", description: "Crea flujos de automatización personalizados con lógica condicional. Si/entonces para respuestas, asignaciones y escalamientos.", price: 27000, icon: "Workflow", category: "productividad" as const, sortOrder: 8 },
-    { slug: "meetings-bots", name: "Meetings Bots", description: "Bots que agendan reuniones automáticamente. Sincronización con Google Calendar, Zoom y Meet.", price: 19000, icon: "Calendar", category: "productividad" as const, sortOrder: 9 },
-  ];
 
   (async () => {
     try {
