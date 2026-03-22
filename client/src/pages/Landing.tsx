@@ -952,10 +952,10 @@ function PreviewTabs() {
 }
 
 const COUNTRIES = [
-  { code: "CL", flag: "🇨🇱", name: "Chile", lang: "Español" },
-  { code: "MX", flag: "🇲🇽", name: "México", lang: "Español" },
-  { code: "CO", flag: "🇨🇴", name: "Colombia", lang: "Español" },
-  { code: "AR", flag: "🇦🇷", name: "Argentina", lang: "Español" },
+  { code: "CL", name: "Chile", lang: "ESPAÑOL" },
+  { code: "MX", name: "México", lang: "ESPAÑOL" },
+  { code: "CO", name: "Colombia", lang: "ESPAÑOL" },
+  { code: "AR", name: "Argentina", lang: "ESPAÑOL" },
 ];
 
 function CountrySelector() {
@@ -975,24 +975,24 @@ function CountrySelector() {
     <div ref={ref} className="relative" data-testid="country-selector">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-colors"
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] transition-colors"
         data-testid="button-country-toggle"
       >
-        <span className="text-xl leading-none">{selected.flag}</span>
+        <span className="text-xs font-bold text-white/80 tracking-wide">{selected.code}</span>
       </button>
       {isOpen && (
-        <div className="absolute top-full right-0 mt-3 w-56 rounded-2xl border border-white/[0.1] bg-[#111]/95 backdrop-blur-xl shadow-2xl shadow-black/60 overflow-hidden animate-dash-fade-up z-50 py-2">
+        <div className="absolute top-full right-0 mt-3 w-64 rounded-2xl border border-white/[0.1] bg-[#0e0e14]/95 backdrop-blur-xl shadow-2xl shadow-black/60 overflow-hidden animate-dash-fade-up z-50 py-2">
           {COUNTRIES.map((c) => (
             <button
               key={c.code}
               onClick={() => { setSelected(c); setIsOpen(false); }}
-              className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-white/[0.06] transition-colors ${selected.code === c.code ? "bg-white/[0.04]" : ""}`}
+              className={`w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.06] transition-colors ${selected.code === c.code ? "bg-white/[0.04]" : ""}`}
               data-testid={`country-option-${c.code}`}
             >
-              <span className="text-2xl leading-none">{c.flag}</span>
-              <span className="text-white/90 font-medium text-sm">{c.name}</span>
-              {selected.code === c.code && <Check className="w-4 h-4 text-primary ml-1" />}
-              <span className="text-white/30 text-xs font-semibold tracking-wider uppercase ml-auto">{c.lang}</span>
+              <span className="text-sm font-bold text-white/60 w-7">{c.code}</span>
+              <span className="text-white/90 font-medium text-sm flex-1 text-left">{c.name}</span>
+              {selected.code === c.code && <Check className="w-4 h-4 text-primary" />}
+              <span className="text-white/30 text-xs font-semibold tracking-wider">{c.lang}</span>
             </button>
           ))}
         </div>
