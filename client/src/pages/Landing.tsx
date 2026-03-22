@@ -1007,10 +1007,10 @@ function PreviewTabs() {
 }
 
 const COUNTRIES = [
-  { code: "CL", name: "Chile", lang: "ESPAÑOL" },
-  { code: "MX", name: "México", lang: "ESPAÑOL" },
-  { code: "CO", name: "Colombia", lang: "ESPAÑOL" },
-  { code: "AR", name: "Argentina", lang: "ESPAÑOL" },
+  { code: "CL", name: "Chile", lang: "ESPAÑOL", flagUrl: "https://flagcdn.com/w40/cl.png" },
+  { code: "MX", name: "México", lang: "ESPAÑOL", flagUrl: "https://flagcdn.com/w40/mx.png" },
+  { code: "CO", name: "Colombia", lang: "ESPAÑOL", flagUrl: "https://flagcdn.com/w40/co.png" },
+  { code: "AR", name: "Argentina", lang: "ESPAÑOL", flagUrl: "https://flagcdn.com/w40/ar.png" },
 ];
 
 function CountrySelector() {
@@ -1030,10 +1030,10 @@ function CountrySelector() {
     <div ref={ref} className="relative" data-testid="country-selector">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] transition-colors"
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] transition-colors overflow-hidden"
         data-testid="button-country-toggle"
       >
-        <span className="text-xs font-bold text-white/80 tracking-wide">{selected.code}</span>
+        <img src={selected.flagUrl} alt={selected.name} className="w-6 h-6 rounded-full object-cover" />
       </button>
       {isOpen && (
         <div className="absolute top-full right-0 mt-3 w-64 rounded-2xl border border-white/[0.1] bg-[#0e0e14]/95 backdrop-blur-xl shadow-2xl shadow-black/60 overflow-hidden animate-dash-fade-up z-50 py-2">
@@ -1044,7 +1044,7 @@ function CountrySelector() {
               className={`w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.06] transition-colors ${selected.code === c.code ? "bg-white/[0.04]" : ""}`}
               data-testid={`country-option-${c.code}`}
             >
-              <span className="text-sm font-bold text-white/60 w-7">{c.code}</span>
+              <img src={c.flagUrl} alt={c.name} className="w-7 h-7 rounded-full object-cover border border-white/10" />
               <span className="text-white/90 font-medium text-sm flex-1 text-left">{c.name}</span>
               {selected.code === c.code && <Check className="w-4 h-4 text-primary" />}
               <span className="text-white/30 text-xs font-semibold tracking-wider">{c.lang}</span>
