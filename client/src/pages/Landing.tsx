@@ -53,6 +53,11 @@ import {
   Handshake,
   CircleCheck,
   Gift,
+  Settings,
+  LayoutDashboard,
+  Wrench,
+  Cpu,
+  MessageCircle,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
@@ -146,80 +151,99 @@ const sharedFeatures = [
 const pricingPlans = [
   {
     name: "Starter",
-    price: "$79.990",
-    period: " CLP/mes",
-    description: "Para negocios que están comenzando con IA",
-    highlights: [
-      { text: "150 conversaciones / mes", bold: true },
-      { text: "1 ejecutivo incluido", bold: true },
-      { text: "Soporte por email", bold: true },
-    ],
-    extras: [
-      "Todas las funcionalidades incluidas",
-      "Configuración asistida por nuestro equipo",
-      "Base de conocimiento y catálogo",
-    ],
-    supportLine: "Nuestro equipo te ayuda a instalarlo",
-    cta: "Agendar Reunión",
-    highlighted: false,
     tier: "starter" as const,
+    badge: "Cappta",
+    badgeIcon: Zap,
+    highlighted: false,
+    implementation: { price: "$149.990", label: "one-time" },
+    monthlyFree: true,
+    regularPrice: "$199.990",
+    conversations: "2.400 conversaciones",
+    cta: "Agenda una demo",
     borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 50%, hsl(250, 65%, 55%) 100%)",
     bgTint: "rgba(118, 105, 233, 0.03)",
     accentColor: "#7669E9",
-    checkBg: "bg-violet-500/10",
-    checkColor: "text-violet-400",
+    baseFunctions: [
+      { icon: Cpu, text: "Cappta AI Core System" },
+      { icon: Smartphone, text: "App Cappta (PWA + Push)" },
+      { icon: LayoutDashboard, text: "Dashboard personalizable" },
+      { icon: Plug, text: "Integraciones estándar" },
+    ],
+    team: { users: "4", implementation: "con ingeniero" },
+    ai: {
+      model: "GPT-4o Mini",
+      modelProvider: "OpenAI",
+      funnels: "1 Embudo",
+      channels: ["whatsapp", "instagram"],
+    },
+    extras: [
+      "$0.2 por chat adicional",
+      "$0.15 por minuto adicional",
+    ],
   },
   {
     name: "Pro",
-    price: "$149.990",
-    period: " CLP/mes",
-    description: "Para negocios que necesitan escalar",
-    highlights: [
-      { text: "1.000 conversaciones / mes", bold: true },
-      { text: "Hasta 3 ejecutivos con roles", bold: true },
-      { text: "Soporte prioritario", bold: true },
-    ],
-    extras: [
-      "Todas las funcionalidades incluidas",
-      "Analíticas avanzadas",
-      "WhatsApp disponible (+$14.990/mes)",
-    ],
-    supportLine: "Un ejecutivo dedicado te acompaña en todo",
-    cta: "Agendar Reunión",
-    highlighted: true,
     tier: "pro" as const,
+    badge: "Ads",
+    badgeIcon: Star,
+    highlighted: true,
+    implementation: { price: "$199.990", label: "one-time" },
+    monthlyFree: true,
+    regularPrice: "$279.990",
+    conversations: "3.000 conversaciones",
+    cta: "Agenda una demo",
     borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 25%, hsl(220, 70%, 55%) 50%, hsl(250, 65%, 55%) 75%, hsl(280, 55%, 50%) 100%)",
     bgTint: "rgba(118, 105, 233, 0.04)",
     accentColor: "#9678E6",
-    checkBg: "bg-primary/10",
-    checkColor: "text-primary",
+    baseFunctions: [
+      { icon: CircleCheck, text: "Todo del Starter" },
+      { icon: BarChart3, text: "AI Insights de conversaciones" },
+      { icon: MessageCircle, text: "Comentarios IA para Instagram" },
+      { icon: Headphones, text: "Llamadas a través de Cappta" },
+    ],
+    team: { users: "12", implementation: "con ingeniero" },
+    ai: {
+      model: "Todos los modelos",
+      modelProvider: "GPT, Claude, Gemini y más",
+      funnels: "3 Embudos",
+      channels: ["whatsapp", "instagram", "messenger", "tiktok"],
+    },
+    extras: [
+      "$0.2 por chat adicional",
+      "$0.15 por minuto adicional",
+    ],
   },
   {
     name: "Enterprise",
-    price: "$349.990",
-    period: " CLP/mes",
-    description: "Para empresas con alto volumen de atención",
-    highlights: [
-      { text: "Conversaciones ilimitadas", bold: true },
-      { text: "Hasta 10 ejecutivos con roles", bold: true },
-      { text: "Soporte prioritario 24/7", bold: true },
-    ],
-    extras: [
-      "Todas las funcionalidades incluidas",
-      "Analíticas avanzadas y calificaciones",
-      "Onboarding personalizado 1 a 1",
-      "Ejecutivo dedicado que te acompaña siempre",
-      "WhatsApp integrado incluido",
-    ],
-    supportLine: "Tu ejecutivo dedicado se encarga de todo",
-    cta: "Agendar Reunión",
-    highlighted: false,
     tier: "enterprise" as const,
+    badge: null,
+    badgeIcon: Crown,
+    highlighted: false,
+    implementation: null,
+    monthlyFree: false,
+    regularPrice: "$999.990",
+    conversations: "Conversaciones ilimitadas",
+    cta: "Agenda una demo",
     borderGradient: "linear-gradient(135deg, hsl(250, 65%, 60%) 0%, hsl(220, 70%, 55%) 25%, hsl(280, 55%, 55%) 50%, hsl(250, 65%, 60%) 75%, hsl(220, 70%, 55%) 100%)",
     bgTint: "rgba(118, 105, 233, 0.03)",
     accentColor: "#9678E6",
-    checkBg: "bg-violet-500/10",
-    checkColor: "text-violet-400",
+    baseFunctions: [
+      { icon: Settings, text: "Integraciones personalizadas" },
+      { icon: Wrench, text: "Horas de desarrollo incluidas" },
+      { icon: Star, text: "Soporte Gold prioritario" },
+      { icon: Crown, text: "Licencia Infinity de Cappta" },
+    ],
+    team: { users: "∞", implementation: "Consultoría todos los meses" },
+    ai: {
+      model: "Todos los modelos",
+      modelProvider: "GPT, Claude, Gemini y más",
+      funnels: "Customizado",
+      channels: ["whatsapp", "instagram", "messenger", "tiktok"],
+    },
+    extras: [
+      "Chat adicional basado en uso",
+      "Minuto adicional basado en uso",
+    ],
   },
 ];
 
@@ -1913,141 +1937,197 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
             {pricingPlans.map((plan, index) => (
               <div
                 key={plan.name}
-                className={`relative rounded-3xl transition-all duration-500 ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"} ${plan.highlighted ? "md:scale-105 md:z-10" : ""}`}
+                className={`relative rounded-2xl transition-all duration-500 ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
                 style={{ animationDelay: `${index * 120}ms` }}
                 data-testid={`card-pricing-${index}`}
               >
-                <div className="absolute -inset-[1px] rounded-3xl animate-gradient-shift z-0" style={{ background: plan.borderGradient, padding: "1px" }}>
-                  <div className="w-full h-full rounded-3xl bg-background" />
+                <div className="absolute -inset-[1px] rounded-2xl z-0" style={{ background: plan.borderGradient, padding: "1px" }}>
+                  <div className="w-full h-full rounded-2xl bg-[#0c0c0f]" />
                 </div>
 
-                <div className="absolute -inset-[1px] rounded-3xl z-0 opacity-30 blur-xl animate-subtle-breathe" style={{ background: plan.borderGradient }} />
+                <div className="relative z-10 rounded-2xl" style={{ background: plan.bgTint }}>
 
-                <div className="relative z-10 rounded-3xl h-full flex flex-col glass-card" style={{ background: plan.bgTint, border: "none" }}>
-                  {plan.tier === "starter" && (
-                    <div className="flex justify-center pt-5">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 32%) 0%, hsl(280, 55%, 28%) 100%)", color: "white" }}>
-                        <Zap className="w-3 h-3" />
-                        STARTER
-                      </div>
+                  <div className="px-6 pt-6 pb-5">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-2xl font-heading font-bold text-white/95" data-testid={`text-plan-name-${index}`}>
+                        {plan.name}
+                      </h3>
+                      {plan.badge && (
+                        <div className="flex items-center gap-2">
+                          {plan.tier === "pro" && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border border-violet-500/30 text-violet-400">
+                                <CircleDot className="w-2.5 h-2.5" /> Cappta
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border border-amber-500/30 text-amber-400">
+                                <CircleDot className="w-2.5 h-2.5" /> Ads
+                              </span>
+                            </>
+                          )}
+                          {plan.tier === "starter" && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border border-violet-500/30 text-violet-400">
+                              <CircleDot className="w-2.5 h-2.5" /> Cappta
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {plan.tier === "enterprise" && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-violet-500/60" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-violet-400/40" />
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {plan.highlighted && (
-                    <div className="flex justify-center pt-5">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 32%) 0%, hsl(280, 55%, 28%) 100%)", color: "white" }}>
-                        <Star className="w-3 h-3" />
-                        MÁS POPULAR
-                      </div>
-                    </div>
-                  )}
+                    {plan.tier !== "enterprise" ? (
+                      <div className="space-y-0">
+                        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 mb-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] font-bold text-white/50 tracking-wider uppercase">MES 1</p>
+                              <p className="text-xs font-bold text-white/40 uppercase">IMPLEMENTACIÓN</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-2xl font-extrabold text-white/90">{plan.implementation?.price}</span>
+                              <span className="text-[10px] text-white/30 block">{plan.implementation?.label}</span>
+                            </div>
+                          </div>
+                        </div>
 
-                  {plan.tier === "enterprise" && (
-                    <div className="flex justify-center pt-5">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 45%) 100%)", color: "white" }}>
-                        <Crown className="w-3 h-3" />
-                        ENTERPRISE
-                      </div>
-                    </div>
-                  )}
+                        <div className="flex items-center justify-between px-4 py-2.5">
+                          <span className="text-xs font-bold text-white/40 uppercase">MES 2</span>
+                          <span className="text-xl font-extrabold text-white/90">$0</span>
+                        </div>
 
-                  <div className="text-center px-7 pt-7 pb-2">
-                    <h3 className="text-xl font-bold mb-1" data-testid={`text-plan-name-${index}`}>
-                      {plan.tier === "starter" && <span className="text-gradient-brand">Starter</span>}
-                      {plan.tier === "pro" && <><span className="text-gradient-brand">Pro</span></>}
-                      {plan.tier === "enterprise" && <span style={{ background: "linear-gradient(135deg, #a78bfa, #7669E9)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Enterprise</span>}
-                    </h3>
-                    <p className="text-sm text-white/35 mb-6">{plan.description}</p>
-                    <div className="mb-4">
-                      <span className="text-5xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.price}</span>
-                      <span className="text-white/35 text-sm">{plan.period}</span>
-                    </div>
-                    <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
-                      <div className="flex items-center gap-1.5">
-                        <Gift className="w-3 h-3" />
-                        Agenda tu reunión
+                        <div className="rounded-xl border border-violet-500/15 bg-violet-500/[0.04] p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] font-bold text-violet-400/70 tracking-wider uppercase">MES 3</p>
+                              <p className="text-xs font-bold text-violet-400/60 uppercase">EN ADELANTE</p>
+                              <p className="text-[10px] text-white/25 mt-1">Precio regular</p>
+                              <p className="text-[10px] text-white/25">{plan.conversations}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-4xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.regularPrice}</span>
+                              <span className="text-sm text-white/30">/mes</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <div className="flex justify-center mb-3">
+                          <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                            <LayoutDashboard className="w-6 h-6 text-violet-400" />
+                          </div>
+                        </div>
+                        <p className="text-xs font-bold text-white/50 uppercase tracking-wider">UN PLAN</p>
+                        <p className="text-[10px] text-white/30 uppercase tracking-wider mb-4">DISEÑADO A LA MEDIDA</p>
+                        <div className="flex items-center justify-center gap-1">
+                          <div>
+                            <p className="text-[10px] text-white/30 uppercase tracking-wider">MENSUAL</p>
+                            <p className="text-[10px] text-white/25">DESDE</p>
+                          </div>
+                          <span className="text-4xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.regularPrice}</span>
+                          <span className="text-sm text-white/30">/mes</span>
+                        </div>
+                        <p className="text-[10px] text-white/25 mt-1">{plan.conversations}</p>
+                      </div>
+                    )}
+
+                    <a href="#demo" className="block mt-5">
+                      <Button
+                        className={`w-full py-5 rounded-xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] ${
+                          plan.tier === "enterprise"
+                            ? "shadow-xl shadow-violet-500/15 border-0 text-white"
+                            : plan.tier === "pro"
+                            ? "shadow-xl shadow-primary/15"
+                            : "border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
+                        }`}
+                        variant={plan.tier === "starter" ? "outline" : "default"}
+                        style={plan.tier === "enterprise" ? { background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 40%) 100%)" } : undefined}
+                        data-testid={`button-plan-cta-${index}`}
+                      >
+                        {plan.cta}
+                      </Button>
+                    </a>
                   </div>
 
-                  <div className="px-7 pb-4 flex-1">
-                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${hexToRgba(plan.accentColor, 0.2)}, transparent)` }} />
+                  <div className="px-6 pb-5">
+                    <div className="h-px mb-5 bg-white/[0.06]" />
 
-                    <div className="space-y-3 mb-5">
-                      {plan.highlights.map((h) => (
-                        <div key={h.text} className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-lg" style={{ backgroundColor: hexToRgba(plan.accentColor, 0.1) }}>
-                            {h.text.includes("ilimitad") ? (
-                              <Infinity className="w-3.5 h-3.5" style={{ color: plan.accentColor }} />
-                            ) : (
-                              <TrendingUp className="w-3.5 h-3.5" style={{ color: plan.accentColor }} />
-                            )}
-                          </div>
-                          <span className="text-sm font-semibold text-white/80">{h.text}</span>
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">FUNCIONES BASE</p>
+                    <div className="space-y-2.5 mb-6">
+                      {plan.baseFunctions.map((func) => (
+                        <div key={func.text} className="flex items-center gap-2.5">
+                          <func.icon className="w-3.5 h-3.5 text-violet-400/60 shrink-0" />
+                          <span className="text-sm text-white/60">{func.text}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="h-px mb-5" style={{ background: `linear-gradient(90deg, transparent, ${hexToRgba(plan.accentColor, 0.08)}, transparent)` }} />
-
-                    <ul className="space-y-3">
-                      {plan.extras.map((extra) => (
-                        <li key={extra} className="flex items-start gap-3 text-sm">
-                          <div className={`flex items-center justify-center w-5 h-5 rounded-full ${plan.checkBg} shrink-0 mt-0.5`}>
-                            <Check className={`w-3 h-3 ${plan.checkColor}`} />
-                          </div>
-                          <span className="text-white/55">{extra}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-5 flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-dashed" style={{ borderColor: hexToRgba(plan.accentColor, 0.15), backgroundColor: hexToRgba(plan.accentColor, 0.025) }}>
-                      <Handshake className="w-4 h-4 shrink-0" style={{ color: plan.accentColor }} />
-                      <span className="text-xs font-medium" style={{ color: hexToRgba(plan.accentColor, 0.8) }}>{plan.supportLine}</span>
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">EQUIPO Y SOPORTE</p>
+                    <div className="grid grid-cols-2 gap-2 mb-6">
+                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
+                        <p className="text-2xl font-extrabold text-white/90 mb-0.5">{plan.team.users}</p>
+                        <p className="text-[10px] text-white/35">Usuarios</p>
+                      </div>
+                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
+                        <p className="text-sm font-bold text-white/80 mb-0.5">{plan.tier === "enterprise" ? "Consultoría" : "Implementación"}</p>
+                        <p className="text-[10px] text-white/35">{plan.team.implementation}</p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="px-7 pb-7 pt-4">
-                    {plan.tier === "starter" && (
-                      <a href="#demo" className="block">
-                        <Button
-                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
-                          variant="outline"
-                          data-testid={`button-plan-cta-${index}`}
-                        >
-                          {plan.cta}
-                          <ArrowRight className="w-4 h-4 ml-1.5" />
-                        </Button>
-                      </a>
-                    )}
-                    {plan.tier === "pro" && (
-                      <a href="#demo" className="block">
-                        <Button
-                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-primary/15"
-                          data-testid={`button-plan-cta-${index}`}
-                        >
-                          {plan.cta}
-                          <ArrowRight className="w-4 h-4 ml-1.5" />
-                        </Button>
-                      </a>
-                    )}
-                    {plan.tier === "enterprise" && (
-                      <a href="#demo" className="block">
-                        <Button
-                          className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-xl shadow-violet-500/15 border-0 text-white"
-                          style={{ background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 40%) 100%)" }}
-                          data-testid={`button-plan-cta-${index}`}
-                        >
-                          {plan.cta}
-                          <ArrowRight className="w-4 h-4 ml-1.5" />
-                        </Button>
-                      </a>
-                    )}
-                    <p className="text-[9px] text-white/25 text-center mt-2">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/40">Ver términos</a></p>
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">IA Y AUTOMATIZACIÓN</p>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                        {plan.tier === "starter" ? (
+                          <>
+                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider mb-1">MODELO ÚNICO</p>
+                            <p className="text-sm font-bold text-white/90">{plan.ai.model}</p>
+                            <p className="text-[10px] text-white/30">{plan.ai.modelProvider}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-bold text-white/90">{plan.ai.model}</p>
+                            <p className="text-[10px] text-white/30 mt-0.5">{plan.ai.modelProvider}</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 flex items-center justify-center">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-violet-500" />
+                          <span className="text-sm font-semibold text-white/70">{plan.ai.funnels}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 mb-6">
+                      {plan.ai.channels.map((ch) => (
+                        <span key={ch} className="w-7 h-7 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+                          {ch === "whatsapp" && <SiWhatsapp className="w-3.5 h-3.5 text-white/50" />}
+                          {ch === "instagram" && <span className="text-white/50 text-[10px] font-bold">IG</span>}
+                          {ch === "messenger" && <span className="text-white/50 text-[10px] font-bold">M</span>}
+                          {ch === "tiktok" && <span className="text-white/50 text-[10px] font-bold">TT</span>}
+                        </span>
+                      ))}
+                    </div>
+
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">PRECIOS</p>
+                    <div className="space-y-2">
+                      {plan.extras.map((extra) => (
+                        <div key={extra} className="flex items-center gap-2.5">
+                          <MessageSquare className="w-3.5 h-3.5 text-violet-400/40 shrink-0" />
+                          <span className="text-sm text-white/45">{extra}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-[8px] text-white/20 text-center mt-4">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/30">Ver términos</a></p>
                   </div>
                 </div>
               </div>
