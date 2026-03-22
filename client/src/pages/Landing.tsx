@@ -967,7 +967,7 @@ function MobileNav() {
           <CapptaIcon size={34} className="transition-transform duration-300 group-hover:scale-105" />
           <span className="text-lg font-heading font-semibold tracking-[-0.02em]">
             <span className="text-white/90">Cappta</span>
-            <span className="text-white/35 font-light ml-1">AI</span>
+            <span className="text-white font-light ml-1">AI</span>
           </span>
         </a>
         <div className="hidden md:flex items-center gap-1">
@@ -2318,7 +2318,7 @@ export default function Landing() {
                 <CapptaIcon size={34} />
                 <span className="text-lg font-heading font-semibold tracking-[-0.02em]">
                   <span className="text-white/90">Cappta</span>
-                  <span className="text-white/35 font-light ml-1">AI</span>
+                  <span className="text-white font-light ml-1">AI</span>
                 </span>
               </div>
               <p className="text-sm text-white/30 leading-relaxed mb-5">
