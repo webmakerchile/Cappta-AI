@@ -1,6 +1,6 @@
-import logoHorizontal from "@assets/Logo_Cappta_1774155500263.png";
-import logoIcon from "@assets/Logo_Cappta_Solo_1774155500262.png";
-import logoStacked from "@assets/Logoo_Cappta_2_1774155500263.png";
+import logoHorizontal from "@assets/Logo_Cappta_1774155801341.png";
+import logoIcon from "@assets/Logo_Cappta_Solo_1774155801340.png";
+import logoStacked from "@assets/Logoo_Cappta_2_1774155801342.png";
 
 interface CapptaLogoProps {
   className?: string;
