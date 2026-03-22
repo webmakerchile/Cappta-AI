@@ -1554,7 +1554,7 @@ export default function Landing() {
 
           <div className="mb-14">
             <p className="text-[11px] font-semibold text-white/20 tracking-[0.2em] uppercase text-center mb-6" data-testid="text-trusted-by">
-              Integrado oficialmente con
+              Colaborando con los líderes de la industria
             </p>
             <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap" data-testid="logos-trusted-by">
               {[
@@ -1581,62 +1581,6 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="relative py-16 px-6 overflow-hidden" data-testid="section-platforms">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col items-center gap-2 mb-10">
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-white/10" />
-              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Ecosistema</p>
-              <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
-            </div>
-            <h3 className="text-lg sm:text-xl font-bold text-white/80 text-center">Trabajando con los líderes de la industria</h3>
-            <p className="text-sm text-white/25 text-center max-w-md">Integrado con las plataformas que impulsan tu negocio</p>
-          </div>
-          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]" data-testid="platform-logos">
-            <div className="flex gap-10 animate-marquee">
-              {[
-                { Icon: SiGoogle, name: "Google" },
-                { Icon: SiApple, name: "Apple" },
-                { Icon: SiAmazonwebservices, name: "AWS" },
-                { Icon: SiMeta, name: "Meta" },
-                { Icon: SiOpenai, name: "OpenAI" },
-                { Icon: SiStripe, name: "Stripe" },
-                { Icon: SiSlack, name: "Slack" },
-                { Icon: SiSalesforce, name: "Salesforce" },
-                { Icon: SiHubspot, name: "HubSpot" },
-                { Icon: SiTwilio, name: "Twilio" },
-                { Icon: SiNotion, name: "Notion" },
-                { Icon: SiGithub, name: "GitHub" },
-                { Icon: SiZoom, name: "Zoom" },
-                { Icon: SiWhatsapp, name: "WhatsApp" },
-                { Icon: SiTelegram, name: "Telegram" },
-                { Icon: SiGoogle, name: "Google" },
-                { Icon: SiApple, name: "Apple" },
-                { Icon: SiAmazonwebservices, name: "AWS" },
-                { Icon: SiMeta, name: "Meta" },
-                { Icon: SiOpenai, name: "OpenAI" },
-                { Icon: SiStripe, name: "Stripe" },
-                { Icon: SiSlack, name: "Slack" },
-                { Icon: SiSalesforce, name: "Salesforce" },
-                { Icon: SiHubspot, name: "HubSpot" },
-                { Icon: SiTwilio, name: "Twilio" },
-                { Icon: SiNotion, name: "Notion" },
-                { Icon: SiGithub, name: "GitHub" },
-                { Icon: SiZoom, name: "Zoom" },
-                { Icon: SiWhatsapp, name: "WhatsApp" },
-                { Icon: SiTelegram, name: "Telegram" },
-              ].map(({ Icon, name }, index) => (
-                <div key={`${name}-${index}`} className="flex flex-col items-center gap-2.5 group cursor-default flex-shrink-0">
-                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl glass-card glass-card-hover transition-all duration-500">
-                    <Icon className="w-7 h-7 text-white/30 group-hover:text-primary transition-colors duration-500" />
-                  </div>
-                  <span className="text-[11px] text-white/25 font-medium group-hover:text-white/50 transition-colors duration-500">{name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
 
       <section className="py-28 px-6 relative overflow-hidden" ref={statsSection.ref as any} data-testid="section-stats">
