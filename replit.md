@@ -172,6 +172,7 @@ Key architectural decisions and features include:
 - `GET /api/addons` - List all available addons (public)
 - `GET /api/tenants/me/addons` - List tenant's active addons (auth required)
 - `POST /api/tenants/me/addons` - Activate addon (body: { addonSlug }; returns payment link if price > 0, else activates directly)
+- `POST /api/tenants/me/addons/:slug/checkout` - Checkout addon by slug (same logic, slug from URL param)
 - `POST /api/tenants/me/addons/:slug/cancel` - Cancel addon subscription (auth required)
 - `GET /api/mercadopago/addon-return` - Post-addon-payment redirect (activates addon on success)
 

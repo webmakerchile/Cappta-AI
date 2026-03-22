@@ -260,7 +260,7 @@ const addonIconMap: Record<string, any> = {
 const addonCatalog = [
   { slug: "cappta-ads", name: "Cappta Ads", description: "Campañas inteligentes impulsadas por IA con segmentación avanzada y reportes en tiempo real.", price: 95000, icon: "Megaphone", category: "marketing" },
   { slug: "cappta-connect", name: "Cappta Connect", description: "Integración nativa con WhatsApp Business API. Gestiona todo desde un solo panel.", price: 63000, icon: "Link", category: "comunicacion" },
-  { slug: "cappta-llamadas", name: "Cappta Llamadas", description: "500 minutos VoIP con grabación, transcripción automática y analíticas.", price: 50000, icon: "Phone", category: "comunicacion" },
+  { slug: "cappta-llamadas", name: "Cappta Llamadas", description: "500 minutos VoIP con grabación, transcripción automática y analíticas.", price: 50000, icon: "Phone", category: "comunicacion", popular: true },
   { slug: "ig-comentarios", name: "IG Comentarios IA", description: "Respuestas inteligentes automáticas en Instagram. Aumenta engagement.", price: 50000, icon: "MessageCircle", category: "marketing" },
   { slug: "pdf-ia", name: "PDF IA", description: "Genera cotizaciones, reportes y fichas técnicas al instante con IA.", price: 50000, icon: "FileText", category: "productividad" },
   { slug: "razones-perdida", name: "Razones de Pérdida", description: "Analiza por qué se pierden conversaciones con métricas de abandono.", price: 27000, icon: "TrendingDown", category: "analytics" },
@@ -2227,6 +2227,13 @@ export default function Landing() {
                         {addonCategoryLabels[addon.category]}
                       </span>
                     </div>
+                    {(addon as any).popular && (
+                      <div className="mb-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30" data-testid="badge-popular-addon">
+                          ⭐ Popular
+                        </span>
+                      </div>
+                    )}
                     <h3 className="text-base font-bold text-white/90 mb-1.5 font-heading">{addon.name}</h3>
                     <p className="text-xs text-white/40 leading-relaxed mb-4 flex-1">{addon.description}</p>
                     <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">

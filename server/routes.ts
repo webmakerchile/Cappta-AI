@@ -1960,6 +1960,30 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
           return res.status(200).json({ status: "ok" });
         }
 
+        if (payment.external_reference.startsWith("cappta_addon_")) {
+          const addonParts = payment.external_reference.split("_");
+          const addonTenantId = parseInt(addonParts[2]);
+          const addonSlug = addonParts.slice(3).join("_");
+
+          if (addonTenantId && !isNaN(addonTenantId) && addonSlug) {
+            if (payment.status === "approved") {
+              const existing = await storage.getTenantAddonBySlug(addonTenantId, addonSlug);
+              if (!existing) {
+                await storage.createTenantAddon({
+                  tenantId: addonTenantId,
+                  addonSlug,
+                  status: "active",
+                  mpPaymentId: String(data.id),
+                });
+                log(`Addon ${addonSlug} activated for tenant ${addonTenantId} via MP webhook payment ${data.id}`, "addons");
+              }
+            } else if (payment.status === "rejected" || payment.status === "cancelled") {
+              log(`Addon payment ${data.id} ${payment.status} for tenant ${addonTenantId}, addon ${addonSlug}`, "addons");
+            }
+          }
+          return res.status(200).json({ status: "ok" });
+        }
+
         const parts = payment.external_reference.split("_");
         const tenantId = parseInt(parts[1]);
         const planKey = parts.slice(2).join("_");
@@ -2273,6 +2297,36 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
     } catch (error: any) {
       log(`Error activating addon: ${error.message}`, "addons");
       res.status(500).json({ message: "Error al activar extensión" });
+    }
+  });
+
+  app.post("/api/tenants/me/addons/:slug/checkout", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const addonSlug = req.params.slug;
+      const addon = await storage.getAddonBySlug(addonSlug);
+      if (!addon) return res.status(404).json({ message: "Extensión no encontrada" });
+
+      const existing = await storage.getTenantAddonBySlug(auth.id, addonSlug);
+      if (existing) return res.status(400).json({ message: "Ya tienes esta extensión activa" });
+
+      if (addon.price > 0) {
+        const preference = await createAddonCheckoutPreference(
+          addonSlug,
+          addon.name,
+          addon.price,
+          auth.email,
+          auth.id
+        );
+        return res.json({ requiresPayment: true, initPoint: preference.initPoint, preferenceId: preference.preferenceId });
+      }
+
+      const ta = await storage.createTenantAddon({ tenantId: auth.id, addonSlug, status: "active" });
+      res.json({ requiresPayment: false, addon: ta });
+    } catch (error: any) {
+      log(`Error addon checkout: ${error.message}`, "addons");
+      res.status(500).json({ message: "Error al procesar checkout de extensión" });
     }
   });
 
