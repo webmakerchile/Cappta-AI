@@ -1070,7 +1070,7 @@ function MobileNav() {
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4" data-testid="nav-bar">
       <div className={`max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3 rounded-2xl transition-all duration-500 backdrop-blur-2xl border shadow-2xl shadow-black/30 ${scrolled ? "bg-[#0a0a0a]/60 border-white/[0.04]" : "bg-[#0a0a0a]/80 border-white/[0.06]"}`}>
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
-          <CapptaIcon size={34} className="transition-transform duration-300 group-hover:scale-105" />
+          <CapptaIcon size={34} />
           <span className="text-lg font-heading font-semibold tracking-[-0.02em]">
             <span className="text-white/90">Cappta</span>
             <span className="text-white font-light ml-1">AI</span>
@@ -1632,7 +1632,7 @@ export default function Landing() {
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             <a href="#demo">
-              <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-hero-register">
+              <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300" data-testid="button-hero-register">
                 <SiWhatsapp className="w-5 h-5 mr-2" />
                 Comenzar ahora
               </Button>
@@ -1692,37 +1692,32 @@ export default function Landing() {
         </div>
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <BarChart3 className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide">RESULTADOS COMPROBADOS</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-4">
-              Los números hablan
-              <br />
-              <span className="text-gradient-brand">por sí mismos</span>
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">RESULTADOS COMPROBADOS</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-4 text-white">
+              Los números hablan por sí mismos
             </h2>
-            <p className="text-white/70 text-base max-w-lg mx-auto">Ve el impacto en métricas reales.</p>
+            <p className="text-white/60 text-base max-w-lg mx-auto">Ve el impacto en métricas reales.</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { value: "3x", label: "Más conversiones automáticas", icon: TrendingUp, desc: "Sin aumentar personal comercial ni gestiones manuales", color: "#7669E9" },
-              { value: "+90%", label: "Consultas resueltas por IA", icon: Users, desc: "Reducción en tareas manuales con flujos automatizados", color: "#a78bfa" },
-              { value: "+50", label: "Empresas confían en nosotros", icon: Shield, desc: "Desde startups hasta empresas consolidadas en Chile", color: "#3b82f6" },
-              { value: "99.9%", label: "Uptime garantizado", icon: Clock, desc: "Confiabilidad empresarial con automatización que nunca para", color: "#7669E9" },
-              { value: "<2s", label: "Tiempo de respuesta", icon: Zap, desc: "Velocidad de IA para no perder ningún lead", color: "#a855f7" },
-              { value: "5+", label: "Canales impulsados por IA", icon: MessageSquare, desc: "WhatsApp, Web, WordPress, Shopify y más", color: "#6366f1" },
-            ].map(({ value, label, icon: Icon, desc, color }, i) => (
+              { value: "3x", label: "Más conversiones automáticas", icon: TrendingUp, desc: "Sin aumentar personal comercial ni gestiones manuales" },
+              { value: "+90%", label: "Consultas resueltas por IA", icon: Users, desc: "Reducción en tareas manuales con flujos automatizados" },
+              { value: "+50", label: "Empresas confían en nosotros", icon: Shield, desc: "Desde startups hasta empresas consolidadas en Chile" },
+              { value: "99.9%", label: "Uptime garantizado", icon: Clock, desc: "Confiabilidad empresarial con automatización que nunca para" },
+              { value: "<2s", label: "Tiempo de respuesta", icon: Zap, desc: "Velocidad de IA para no perder ningún lead" },
+              { value: "5+", label: "Canales impulsados por IA", icon: MessageSquare, desc: "WhatsApp, Web, WordPress, Shopify y más" },
+            ].map(({ value, label, icon: Icon, desc }, i) => (
               <div key={label} className={`group ${statsSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: `${i * 80}ms` }} data-testid={`stat-${label}`}>
                 <div className="rounded-2xl glass-card p-6 h-full transition-all duration-300 hover:border-white/[0.12]">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl mb-5" style={{ backgroundColor: hexToRgba(color, 0.08) }}>
-                    <Icon className="w-5 h-5" style={{ color }} />
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl mb-5 bg-violet-500/[0.08]">
+                    <Icon className="w-5 h-5 text-violet-400" />
                   </div>
-                  <p className="text-4xl sm:text-5xl font-black mb-2" style={{ color }}>
+                  <p className="text-4xl sm:text-5xl font-black mb-2 text-white">
                     <CountUp target={value} />
                   </p>
-                  <p className="text-sm font-bold text-white/80 mb-1">{label}</p>
-                  <p className="text-xs text-white/70 leading-relaxed">{desc}</p>
+                  <p className="text-sm font-semibold text-white/80 mb-1">{label}</p>
+                  <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
@@ -1737,16 +1732,13 @@ export default function Landing() {
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Sparkles className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-semibold text-accent tracking-wide">PLATAFORMA DE IA COMERCIAL</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-features-title">
-              Todo lo que necesitas
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">PLATAFORMA DE IA COMERCIAL</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-features-title">
+              Todo lo que necesitas para
               <br />
-              para hacer crecer tu negocio
+              hacer crecer tu negocio
             </h2>
-            <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
+            <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
               Un producto y sus extensiones trabajando en conjunto para automatizar
               toda tu operación de ventas, atención y marketing.
             </p>
@@ -1762,14 +1754,11 @@ export default function Landing() {
         </div>
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Headphones className="w-3.5 h-3.5 text-[#6366f1]" />
-              <span className="text-xs font-semibold text-[#6366f1] tracking-wide">IA + EJECUTIVOS HUMANOS</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-handoff-title">
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">IA + EJECUTIVOS HUMANOS</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-handoff-title">
               La IA vende, y cuando necesitas,
               <br />
-              <span className="text-gradient-brand">tu ejecutivo cierra</span>
+              tu ejecutivo cierra
             </h2>
             <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed">
               Cappta AI no solo atiende — <span className="text-white font-semibold">vende por ti</span>. Responde, califica leads y cierra ventas de forma autónoma. Y cuando el cliente necesita atención humana,
@@ -1814,14 +1803,12 @@ export default function Landing() {
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: item.gradient }} />
                   <div className="relative">
                     <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundColor: hexToRgba(item.color, 0.08) }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: hexToRgba(item.color, 0.08) }}>
                         <item.icon className="w-5 h-5" style={{ color: item.color }} />
                       </div>
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ color: item.color, backgroundColor: hexToRgba(item.color, 0.06), border: `1px solid ${hexToRgba(item.color, 0.15)}` }}>
-                        {item.step}
-                      </div>
+                      <span className="text-xs font-bold text-white/30">{item.step}</span>
                     </div>
-                    <h3 className="text-base font-bold mb-2.5 text-white/90">{item.title}</h3>
+                    <h3 className="text-base font-bold mb-2.5 text-white">{item.title}</h3>
                     <p className="text-white/70 text-sm leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
@@ -1861,14 +1848,11 @@ export default function Landing() {
         </div>
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <MousePointerClick className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide">LISTO EN MINUTOS</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-how-title">
-              <span className="text-gradient-brand">3 pasos</span> y listo
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">LISTO EN MINUTOS</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-how-title">
+              3 pasos y listo
             </h2>
-            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="text-white/60 text-lg max-w-xl mx-auto leading-relaxed">
               No necesitas ser técnico. De cero al chat en vivo en minutos.
             </p>
           </div>
@@ -1902,16 +1886,12 @@ export default function Landing() {
               ].map((item, index) => (
                 <div key={item.step} className={`group ${stepsSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: `${index * 150}ms` }} data-testid={`step-${index}`}>
                   <div className="rounded-2xl glass-card glass-card-hover p-8 h-full text-center transition-all duration-500">
-                    <div className="relative mx-auto mb-6">
-                      <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center transition-all duration-500 group-hover:scale-110" style={{ backgroundColor: hexToRgba(item.color, 0.06), boxShadow: `0 0 40px ${hexToRgba(item.color, 0.03)}` }}>
-                        <item.icon className="w-9 h-9" style={{ color: item.color }} />
-                      </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-background flex items-center justify-center text-xs font-black" style={{ color: item.color, border: `1px solid ${hexToRgba(item.color, 0.19)}` }}>
-                        {item.step}
-                      </div>
+                    <p className="text-xs font-bold text-white/25 tracking-widest mb-4">{item.step}</p>
+                    <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-5" style={{ backgroundColor: hexToRgba(item.color, 0.06) }}>
+                      <item.icon className="w-7 h-7" style={{ color: item.color }} />
                     </div>
-                    <h3 className="text-lg font-bold mb-3">{item.title}</h3>
-                    <p className="text-white/70 text-sm leading-relaxed">{item.desc}</p>
+                    <h3 className="text-lg font-bold mb-3 text-white">{item.title}</h3>
+                    <p className="text-white/60 text-sm leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -1936,12 +1916,9 @@ export default function Landing() {
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Trophy className="w-3.5 h-3.5 text-[#a78bfa]" />
-              <span className="text-xs font-semibold text-[#a78bfa] tracking-wide">CASOS DE ÉXITO</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-cases-title">
-              Historias reales <span className="text-gradient-brand">de éxito</span>
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">CASOS DE ÉXITO</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-cases-title">
+              Historias reales de éxito
             </h2>
             <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
               Descubre cómo empresas como la tuya están transformando su atención al cliente con Cappta AI.
@@ -1987,12 +1964,12 @@ export default function Landing() {
                 style={{ animationDelay: `${index * 150}ms` }}
                 data-testid={`case-${index}`}
               >
-                <div className="rounded-2xl glass-card glass-card-hover overflow-hidden h-full transition-all duration-500 hover:scale-[1.02]">
+                <div className="rounded-2xl glass-card glass-card-hover overflow-hidden h-full transition-all duration-500">
                   <div className="relative overflow-hidden" style={{ height: "340px" }}>
                     <img
                       src={caseItem.image}
                       alt={`${caseItem.name} - Cappta AI en acción`}
-                      className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover object-top"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
                     <div className="absolute top-3 right-3">
@@ -2023,16 +2000,13 @@ export default function Landing() {
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Star className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-semibold text-accent tracking-wide">PRECIOS TRANSPARENTES</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-pricing-title">
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">PRECIOS TRANSPARENTES</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-pricing-title">
               Empieza a crecer, sin aumentar
               <br />
-              tu <span className="text-gradient-brand">gestión ni tu inversión</span>
+              tu gestión ni tu inversión
             </h2>
-            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
+            <p className="text-white/60 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
               Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
             </p>
           </div>
@@ -2167,7 +2141,7 @@ export default function Landing() {
 
                     <a href="#demo" className="block mt-5">
                       <Button
-                        className={`w-full py-5 rounded-xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] ${
+                        className={`w-full py-5 rounded-xl text-sm font-bold transition-all duration-300 ${
                           plan.tier === "enterprise"
                             ? "shadow-xl shadow-violet-500/15 border-0 text-white"
                             : plan.tier === "pro"
@@ -2272,16 +2246,13 @@ export default function Landing() {
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Package className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-semibold text-accent tracking-wide">EXTENSIONES Y ADDONS</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-addons-title">
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">EXTENSIONES Y ADDONS</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-addons-title">
               Potencia Cappta AI con
               <br />
-              <span className="text-gradient-brand">extensiones premium</span>
+              extensiones premium
             </h2>
-            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-addons-description">
+            <p className="text-white/60 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-addons-description">
               Añade superpoderes a tu plataforma. Cada extensión se activa al instante sin configuración técnica.
             </p>
           </div>
@@ -2302,7 +2273,7 @@ export default function Landing() {
                   </div>
                   <div className="relative z-10 glass-card rounded-2xl p-5 h-full flex flex-col" style={{ border: "none" }}>
                     <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: `${catColor}15` }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${catColor}15` }}>
                         <IconComp className="w-5 h-5" style={{ color: catColor }} />
                       </div>
                       <span className="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border" style={{ color: catColor, borderColor: `${catColor}40`, backgroundColor: `${catColor}08` }}>
@@ -2352,14 +2323,9 @@ export default function Landing() {
         </div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <MessageSquare className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide">PREGUNTAS FRECUENTES</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-faq-title">
-              ¿Tienes dudas?
-              <br />
-              <span className="text-gradient-brand">Te las resolvemos</span>
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">PREGUNTAS FRECUENTES</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-faq-title">
+              ¿Tienes dudas? Te las resolvemos
             </h2>
           </div>
 
@@ -2378,10 +2344,10 @@ export default function Landing() {
               <div className="mb-8">
                 <CapptaStackedLogo height={72} className="opacity-80" />
               </div>
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-6 leading-tight" data-testid="text-cta-title">
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-6 leading-tight text-white" data-testid="text-cta-title">
                 Empieza a crecer, sin aumentar tu
                 <br />
-                <span className="text-gradient-brand">gestión ni tu inversión</span>
+                gestión ni tu inversión
               </h2>
               <p className="text-white/70 text-lg mb-8 leading-relaxed">
                 Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
