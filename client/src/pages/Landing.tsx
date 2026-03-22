@@ -55,7 +55,7 @@ import {
   Gift,
   UserPlus,
 } from "lucide-react";
-import { SiShopify, SiWoocommerce, SiWordpress, SiMagento, SiSquarespace, SiWix, SiPrestashop, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiGoogletagmanager } from "react-icons/si";
+import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
 import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
@@ -1282,42 +1282,59 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="relative py-12 px-6 overflow-hidden" data-testid="section-platforms">
+      <section className="relative py-16 px-6 overflow-hidden" data-testid="section-platforms">
         <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="flex flex-col items-center gap-2 mb-10">
             <div className="flex items-center justify-center gap-2">
               <div className="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-white/10" />
-              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Integraciones</p>
+              <p className="text-xs font-semibold text-white/30 tracking-[0.2em] uppercase px-4">Ecosistema</p>
               <div className="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-white/10" />
             </div>
-            <p className="text-sm text-white/25 text-center max-w-md">100% adaptable a cualquier sitio web o plataforma. Solo pega un código y listo.</p>
+            <h3 className="text-lg sm:text-xl font-bold text-white/80 text-center">Trabajando con los líderes de la industria</h3>
+            <p className="text-sm text-white/25 text-center max-w-md">Integrado con las plataformas que impulsan tu negocio</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 sm:gap-8" data-testid="platform-logos">
-            {[
-              { Icon: SiWoocommerce, name: "WooCommerce" },
-              { Icon: SiShopify, name: "Shopify" },
-              { Icon: SiWordpress, name: "WordPress" },
-              { Icon: SiMagento, name: "Magento" },
-              { Icon: SiPrestashop, name: "PrestaShop" },
-              { Icon: SiSquarespace, name: "Squarespace" },
-              { Icon: SiWix, name: "Wix" },
-              { Icon: SiWebflow, name: "Webflow" },
-              { Icon: SiReact, name: "React" },
-              { Icon: SiNextdotjs, name: "Next.js" },
-              { Icon: SiVuedotjs, name: "Vue / Nuxt" },
-              { Icon: SiAngular, name: "Angular" },
-              { Icon: Globe, name: "HTML" },
-              { Icon: SiGoogletagmanager, name: "Tag Manager" },
-              { Icon: Code, name: "iFrame" },
-              { Icon: Plug, name: "Tu API" },
-            ].map(({ Icon, name }) => (
-              <div key={name} className="flex flex-col items-center gap-2.5 group cursor-default">
-                <div className="flex items-center justify-center w-14 h-14 rounded-2xl glass-card glass-card-hover transition-all duration-500">
-                  <Icon className="w-7 h-7 text-white/30 group-hover:text-primary transition-colors duration-500" />
+          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]" data-testid="platform-logos">
+            <div className="flex gap-10 animate-marquee">
+              {[
+                { Icon: SiGoogle, name: "Google" },
+                { Icon: SiApple, name: "Apple" },
+                { Icon: SiAmazonwebservices, name: "AWS" },
+                { Icon: SiMeta, name: "Meta" },
+                { Icon: SiOpenai, name: "OpenAI" },
+                { Icon: SiStripe, name: "Stripe" },
+                { Icon: SiSlack, name: "Slack" },
+                { Icon: SiSalesforce, name: "Salesforce" },
+                { Icon: SiHubspot, name: "HubSpot" },
+                { Icon: SiTwilio, name: "Twilio" },
+                { Icon: SiNotion, name: "Notion" },
+                { Icon: SiGithub, name: "GitHub" },
+                { Icon: SiZoom, name: "Zoom" },
+                { Icon: SiWhatsapp, name: "WhatsApp" },
+                { Icon: SiTelegram, name: "Telegram" },
+                { Icon: SiGoogle, name: "Google" },
+                { Icon: SiApple, name: "Apple" },
+                { Icon: SiAmazonwebservices, name: "AWS" },
+                { Icon: SiMeta, name: "Meta" },
+                { Icon: SiOpenai, name: "OpenAI" },
+                { Icon: SiStripe, name: "Stripe" },
+                { Icon: SiSlack, name: "Slack" },
+                { Icon: SiSalesforce, name: "Salesforce" },
+                { Icon: SiHubspot, name: "HubSpot" },
+                { Icon: SiTwilio, name: "Twilio" },
+                { Icon: SiNotion, name: "Notion" },
+                { Icon: SiGithub, name: "GitHub" },
+                { Icon: SiZoom, name: "Zoom" },
+                { Icon: SiWhatsapp, name: "WhatsApp" },
+                { Icon: SiTelegram, name: "Telegram" },
+              ].map(({ Icon, name }, index) => (
+                <div key={`${name}-${index}`} className="flex flex-col items-center gap-2.5 group cursor-default flex-shrink-0">
+                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl glass-card glass-card-hover transition-all duration-500">
+                    <Icon className="w-7 h-7 text-white/30 group-hover:text-primary transition-colors duration-500" />
+                  </div>
+                  <span className="text-[11px] text-white/25 font-medium group-hover:text-white/50 transition-colors duration-500">{name}</span>
                 </div>
-                <span className="text-[11px] text-white/25 font-medium group-hover:text-white/50 transition-colors duration-500">{name}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
