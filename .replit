@@ -55,3 +55,7 @@ TIKTOK_PIXEL_ID = "D6K986RC77U8SKV71PDG"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-3510e5c1-b2e5-456d-9500-dd432c78c57c"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
