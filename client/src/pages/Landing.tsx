@@ -154,14 +154,14 @@ const pricingPlans = [
     period: " CLP/mes",
     description: "Para negocios que están comenzando con IA",
     highlights: [
-      { text: "100 sesiones / mes", bold: true },
-      { text: "1.000 mensajes / mes", bold: true },
+      { text: "150 conversaciones / mes", bold: true },
       { text: "1 ejecutivo incluido", bold: true },
+      { text: "Soporte por email", bold: true },
     ],
     extras: [
       "Todas las funcionalidades incluidas",
       "Configuración asistida por nuestro equipo",
-      "Soporte por email",
+      "Base de conocimiento y catálogo",
     ],
     supportLine: "Nuestro equipo te ayuda a instalarlo",
     cta: "Agendar Demo",
@@ -179,13 +179,13 @@ const pricingPlans = [
     period: " CLP/mes",
     description: "Para negocios que necesitan escalar",
     highlights: [
-      { text: "500 sesiones / mes", bold: true },
-      { text: "5.000 mensajes / mes", bold: true },
+      { text: "500 conversaciones / mes", bold: true },
       { text: "Hasta 3 ejecutivos con roles", bold: true },
+      { text: "Soporte prioritario", bold: true },
     ],
     extras: [
       "Todas las funcionalidades incluidas",
-      "Soporte prioritario",
+      "Analíticas avanzadas",
       "WhatsApp integrado disponible (+$14.990/mes)",
     ],
     supportLine: "Un ejecutivo dedicado te acompaña en todo",
@@ -204,9 +204,9 @@ const pricingPlans = [
     period: " CLP/mes",
     description: "Para empresas con alto volumen de atención",
     highlights: [
-      { text: "Sesiones ilimitadas", bold: true },
-      { text: "Mensajes ilimitados", bold: true },
+      { text: "Conversaciones ilimitadas", bold: true },
       { text: "Hasta 10 ejecutivos con roles", bold: true },
+      { text: "Soporte prioritario 24/7", bold: true },
     ],
     extras: [
       "Todas las funcionalidades incluidas",
@@ -893,12 +893,11 @@ function MobileNav() {
         <div className="hidden md:flex items-center gap-1.5">
           <a href="#features"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button></a>
           <a href="#pricing"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button></a>
-          <a href="#referidos"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-referidos-nav">Referidos</Button></a>
-          <a href="/demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-nav">Demo</Button></a>
+          <a href="#demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-schedule-nav">Demo</Button></a>
           <a href="/guias"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guías</Button></a>
           <div className="w-px h-5 bg-white/10 mx-1" />
           <a href="/login"><Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesión</Button></a>
-          <a href="/register"><Button size="sm" className="rounded-xl px-4" data-testid="link-register">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></a>
+          <a href="#demo"><Button size="sm" className="rounded-xl px-4" data-testid="link-register">Agendar Demo <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></a>
         </div>
         <button onClick={() => setOpen(!open)} className="md:hidden p-2 text-white/60 hover:text-white transition-colors" data-testid="button-mobile-menu">
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -908,15 +907,14 @@ function MobileNav() {
         <div className="md:hidden border-t border-white/[0.06] bg-background/95 backdrop-blur-xl px-6 py-4 space-y-1 animate-dash-fade-up">
           <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Funciones</a>
           <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
-          <a href="#referidos" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Referidos</a>
-          <a href="/demo" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Demo</a>
+          <a href="#demo" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Agendar Demo</a>
           <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guías</a>
           <div className="h-px bg-white/[0.06] my-2" />
           <a href="/login" className="block">
             <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10" data-testid="link-login-mobile">Iniciar Sesión</Button>
           </a>
-          <a href="/register" className="block mt-2">
-            <Button size="sm" className="w-full rounded-xl">Prueba Gratis <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
+          <a href="#demo" className="block mt-2">
+            <Button size="sm" className="w-full rounded-xl">Agendar Demo <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
           </a>
         </div>
       )}
@@ -1166,6 +1164,98 @@ function CountUp({ target }: { target: string }) {
 }
 
 
+function DemoScheduleForm() {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({ name: "", email: "", company: "", phone: "", employees: "", message: "" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <div className="w-full max-w-md mx-auto glass-card rounded-3xl p-8 text-center" data-testid="demo-form-success">
+        <div className="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-4">
+          <Check className="w-8 h-8 text-violet-400" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">¡Demo agendada!</h3>
+        <p className="text-white/50 text-sm">Te contactaremos pronto para confirmar tu demo personalizada.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto" data-testid="demo-schedule-form">
+      <div className="glass-card rounded-3xl p-8 border border-violet-500/10">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-bold text-white mb-2">Agenda tu Demo</h3>
+          <p className="text-white/40 text-sm">Descubre cómo Nexia AI puede transformar tu negocio</p>
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 1 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>1</div>
+            <div className="w-12 h-px bg-white/10" />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 2 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>2</div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {step === 1 && (
+            <div className="space-y-4" data-testid="demo-form-step-1">
+              <div>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Nombre completo</label>
+                <input name="name" value={formData.name} onChange={handleChange} required placeholder="Tu nombre" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-name" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Email corporativo</label>
+                <input name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="tu@empresa.com" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-email" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Empresa</label>
+                <input name="company" value={formData.company} onChange={handleChange} required placeholder="Nombre de tu empresa" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-company" />
+              </div>
+              <Button type="button" onClick={() => setStep(2)} className="w-full py-5 rounded-2xl text-sm font-bold mt-2" disabled={!formData.name || !formData.email || !formData.company} data-testid="button-demo-next">
+                Siguiente <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4" data-testid="demo-form-step-2">
+              <div>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Teléfono</label>
+                <input name="phone" value={formData.phone} onChange={handleChange} placeholder="+56 9 1234 5678" className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors" data-testid="input-demo-phone" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Tamaño del equipo</label>
+                <select name="employees" value={formData.employees} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-violet-500/40 transition-colors appearance-none" data-testid="select-demo-employees">
+                  <option value="" className="bg-[#1a1a1a]">Selecciona...</option>
+                  <option value="1-5" className="bg-[#1a1a1a]">1-5 empleados</option>
+                  <option value="6-20" className="bg-[#1a1a1a]">6-20 empleados</option>
+                  <option value="21-50" className="bg-[#1a1a1a]">21-50 empleados</option>
+                  <option value="50+" className="bg-[#1a1a1a]">50+ empleados</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-white/50 mb-1.5 block">¿Cómo podemos ayudarte?</label>
+                <textarea name="message" value={formData.message} onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))} rows={3} placeholder="Cuéntanos sobre tu negocio..." className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors resize-none" data-testid="input-demo-message" />
+              </div>
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl text-sm font-bold border-violet-500/30" data-testid="button-demo-back">Atrás</Button>
+                <Button type="submit" className="flex-1 py-5 rounded-2xl text-sm font-bold shadow-xl shadow-primary/15" data-testid="button-demo-submit">Agendar Demo</Button>
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const statsSection = useInView(0.2);
   const featuresSection = useInView(0.1);
@@ -1247,7 +1337,7 @@ export default function Landing() {
             </p>
 
             <div className="flex items-center gap-4 flex-wrap mb-10">
-              <a href="/register">
+              <a href="#demo">
                 <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-hero-register">
                   Agendar Demo
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -1263,7 +1353,7 @@ export default function Landing() {
 
             <div className="flex items-center gap-6 flex-wrap">
               {[
-                { icon: Check, text: "Sin tarjeta de credito" },
+                { icon: Check, text: "Demo personalizada" },
                 { icon: Clock, text: "Listo en 5 minutos" },
                 { icon: Globe, text: "Cualquier plataforma" },
               ].map(({ icon: Icon, text }) => (
@@ -1278,7 +1368,7 @@ export default function Landing() {
           </div>
 
           <div className="flex justify-center lg:block" id="demo">
-            <AnimatedChat />
+            <DemoScheduleForm />
           </div>
         </div>
       </section>
@@ -1689,7 +1779,7 @@ export default function Landing() {
               Un plan para <span className="text-gradient-brand">cada negocio</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
-              Comienza gratis. Escala cuando quieras. Sin contratos.
+              Planes flexibles que se adaptan a tu negocio. Sin contratos de permanencia.
             </p>
           </div>
 
@@ -1775,9 +1865,9 @@ export default function Landing() {
                       <div className="mb-4 inline-flex flex-col items-center px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
                         <div className="flex items-center gap-1.5">
                           <Gift className="w-3 h-3" />
-                          7 días para probar
+                          Agenda tu demo
                         </div>
-                        <span className="text-[10px] text-white/40 font-normal">No incluye chatbot WhatsApp</span>
+                        <span className="text-[10px] text-white/40 font-normal">WhatsApp disponible como add-on</span>
                       </div>
                     )}
                   </div>
@@ -1820,7 +1910,7 @@ export default function Landing() {
                   </div>
 
                   <div className="px-7 pb-7 pt-4">
-                    <a href="/register" className="block">
+                    <a href="#demo" className="block">
                       {plan.tier === "free" && (
                         <Button
                           className="w-full py-5 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-[1.02] border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
@@ -1860,12 +1950,13 @@ export default function Landing() {
           </div>
 
           <p className="text-center text-sm text-white/25 mt-12">
-            Todas las funcionalidades incluidas en cada plan. Solo cambia la cantidad. Sin contratos de permanencia.
+            Todas las funcionalidades incluidas en cada plan. Solo cambia la escala. Sin contratos de permanencia.
           </p>
         </div>
       </section>
 
-      <section id="referidos" className="py-16 sm:py-28 px-4 sm:px-6 relative overflow-hidden" ref={referralSection.ref as any} data-testid="section-referral">
+      {/* Referral section removed — demo-first model */}
+      <section id="referidos-removed" className="hidden" ref={referralSection.ref as any} data-testid="section-referral">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.2) 50%, transparent 100%)" }} />
           <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, rgba(118,105,233,0.04) 0%, transparent 50%)", animationDelay: "-5s" }} />
@@ -1981,7 +2072,7 @@ export default function Landing() {
           </div>
 
           <div className={`text-center transition-all duration-700 ${referralSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "1100ms" }}>
-            <a href="/register">
+            <a href="#demo">
               <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-referral-register">
                 Crear mi cuenta y empezar a referir
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -2019,7 +2110,7 @@ export default function Landing() {
             Agenda tu demo hoy.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <a href="/register">
+            <a href="#demo">
               <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-cta-register">
                 Agendar Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -2033,7 +2124,7 @@ export default function Landing() {
             </a>
           </div>
           <p className="text-sm text-white/20 mt-6">
-            Sin tarjeta de credito. Sin compromisos. Cancela cuando quieras.
+            Agenda una demo personalizada y descubre cómo Nexia AI puede transformar tu negocio.
           </p>
         </div>
       </section>
