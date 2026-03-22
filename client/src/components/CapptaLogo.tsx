@@ -1,5 +1,6 @@
 import logoHorizontal from "@assets/unnamed_(2)-Photoroom_1774157184512.png";
 import logoStacked from "@assets/unnamed_(1)-Photoroom_1774157184512.png";
+import logoSolo from "@assets/Logo_Cappta_Solo_1774185893557.png";
 
 interface CapptaLogoProps {
   className?: string;
@@ -38,7 +39,7 @@ export function CapptaLogo({ className = "", size = 32, showText = true, textCla
 export function CapptaIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
   return (
     <img
-      src={logoStacked}
+      src={logoSolo}
       alt="Cappta AI"
       style={{ width: size, height: size }}
       className={`object-contain ${className}`}
