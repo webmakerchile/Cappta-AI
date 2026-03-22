@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://nexia-ai.cl/</loc>
+    <loc>https://foxbot.cl/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://nexia-ai.cl/register</loc>
+    <loc>https://foxbot.cl/register</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nexia-ai.cl/login</loc>
+    <loc>https://foxbot.cl/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://nexia-ai.cl/demo</loc>
+    <loc>https://foxbot.cl/demo</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://nexia-ai.cl/guides</loc>
+    <loc>https://foxbot.cl/guides</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>

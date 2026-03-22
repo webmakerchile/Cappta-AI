@@ -2253,7 +2253,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               </a>
 
               <a
-                href="https://www.nexia-ai.cl"
+                href="https://www.foxbot.cl"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-orange-500/5 hover:border-orange-500/20 transition-all group"
@@ -2264,7 +2264,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-white/70">Nexia AI</p>
-                  <p className="text-[10px] text-white/40">nexia-ai.cl</p>
+                  <p className="text-[10px] text-white/40">foxbot.cl</p>
                 </div>
               </a>
             </div>
@@ -3018,7 +3018,7 @@ function DownloadAppSection() {
     }
   };
 
-  const currentUrl = "https://www.nexia-ai.cl/panel";
+  const currentUrl = "https://www.foxbot.cl/panel";
 
   return (
     <div className="space-y-6">
@@ -3030,7 +3030,7 @@ function DownloadAppSection() {
             <Download className="w-5 h-5 text-primary" />
             Descarga Nexia AI en tus dispositivos
           </h3>
-          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Instala Nexia AI como app en tu celular o computador desde <span className="text-primary font-medium">nexia-ai.cl/panel</span>. Tu panel es personal — solo tu puedes ver y gestionar tu negocio. Una vez que inicies sesión, no tendras que volver a hacerlo.</p>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Instala Nexia AI como app en tu celular o computador desde <span className="text-primary font-medium">foxbot.cl/panel</span>. Tu panel es personal — solo tu puedes ver y gestionar tu negocio. Una vez que inicies sesión, no tendras que volver a hacerlo.</p>
         </div>
 
         {isInstalled && (
@@ -3111,7 +3111,7 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">Android (Chrome)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Chrome y visita nexia-ai.cl/panel" },
+              { step: "1", text: "Abre Chrome y visita foxbot.cl/panel" },
               { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
               { step: "3", text: 'Toca el menú (3 puntos arriba a la derecha)' },
               { step: "4", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicación"' },
@@ -3132,7 +3132,7 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">iPhone / iPad (Safari)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Safari y visita nexia-ai.cl/panel" },
+              { step: "1", text: "Abre Safari y visita foxbot.cl/panel" },
               { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
               { step: "3", text: 'Toca el botón de compartir (cuadrado con flecha hacia arriba)' },
               { step: "4", text: 'Selecciona "Agregar a pantalla de inicio" y confirma' },
@@ -3158,7 +3158,7 @@ function DownloadAppSection() {
 
         <div className="space-y-4">
           {[
-            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita nexia-ai.cl/panel" },
+            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita foxbot.cl/panel" },
             { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
             { step: "3", text: 'Busca el icono de instalar en la barra de direcciones o ve al menú del navegador' },
             { step: "4", text: 'Haz clic en "Instalar Nexia AI" o "Instalar aplicación"' },
@@ -3204,7 +3204,7 @@ function DownloadAppSection() {
             <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
             <span className="font-medium">Tu panel es privado y personal</span>
           </p>
-          <p className="text-[11px] text-white/35 leading-relaxed pl-5">Cada persona que acceda a nexia-ai.cl/panel vera unicamente su propio negocio. Si no tiene cuenta, podra registrarse e iniciar sesión. Una vez dentro, la sesión se mantiene activa — no tendra que iniciar sesión cada vez.</p>
+          <p className="text-[11px] text-white/35 leading-relaxed pl-5">Cada persona que acceda a foxbot.cl/panel vera unicamente su propio negocio. Si no tiene cuenta, podra registrarse e iniciar sesión. Una vez dentro, la sesión se mantiene activa — no tendra que iniciar sesión cada vez.</p>
         </div>
       </div>
     </div>

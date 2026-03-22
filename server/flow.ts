@@ -11,23 +11,23 @@ export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: num
 export const PLAN_PRICES: Record<string, { amount: number; label: string; reason: string }> = {
   basic: {
     amount: 19990,
-    label: "Fox Pro",
-    reason: "Fox Pro - Suscripcion Mensual",
+    label: "Nexia Pro",
+    reason: "Nexia Pro - Suscripcion Mensual",
   },
   pro: {
     amount: 49990,
-    label: "Fox Enterprise",
-    reason: "Fox Enterprise - Suscripcion Mensual",
+    label: "Nexia Enterprise",
+    reason: "Nexia Enterprise - Suscripcion Mensual",
   },
   basic_whatsapp: {
     amount: 34990,
-    label: "Fox Pro + WhatsApp",
-    reason: "Fox Pro + WhatsApp - Suscripcion Mensual",
+    label: "Nexia Pro + WhatsApp",
+    reason: "Nexia Pro + WhatsApp - Suscripcion Mensual",
   },
   pro_whatsapp: {
     amount: 64990,
-    label: "Fox Enterprise + WhatsApp",
-    reason: "Fox Enterprise + WhatsApp - Suscripcion Mensual",
+    label: "Nexia Enterprise + WhatsApp",
+    reason: "Nexia Enterprise + WhatsApp - Suscripcion Mensual",
   },
 };
 
@@ -74,7 +74,7 @@ export async function createCheckoutPreference(
     payer: {
       email: email,
     },
-    external_reference: `foxbot_${tenantId}_${planKey}`,
+    external_reference: `nexia_${tenantId}_${planKey}`,
     back_urls: {
       success: `https://foxbot.cl/api/mercadopago/return?tenant_id=${tenantId}&plan=${planKey}&status=approved`,
       failure: `https://foxbot.cl/api/mercadopago/return?tenant_id=${tenantId}&plan=${planKey}&status=rejected`,
@@ -82,7 +82,7 @@ export async function createCheckoutPreference(
     },
     auto_return: "approved",
     notification_url: "https://foxbot.cl/api/mercadopago/webhook",
-    statement_descriptor: "FOXBOT",
+    statement_descriptor: "NEXIA AI",
     payment_methods: {
       excluded_payment_types: [],
       installments: 1,

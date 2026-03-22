@@ -11,8 +11,9 @@ This project is a SaaS platform for AI-powered customer support chat widgets. Or
 - **Plan Names**: Nexia Starter ($79.990), Nexia Pro ($149.990), Nexia Enterprise ($349.990) CLP/mes
 - **Widget IDs**: `nexia-widget` (iframe ID), `nexia_position` (postMessage event)
 - **WordPress Plugin**: `nexia-chat` slug
-- **Domain**: foxbot.cl (CORS origins, email addresses @foxbot.cl unchanged — domain stays)
+- **Domain**: foxbot.cl (all operational URLs, CORS origins, payment callbacks, email addresses @foxbot.cl remain foxbot.cl — domain migration is a separate task)
 - **Demo-first model**: All CTAs → "Agendar Demo" linking to #demo section
+- **Legacy brand**: "FoxBot" — all user-visible text rebranded to Nexia AI, but operational domain/URLs stay foxbot.cl
 - **Product Isolation**: `/api/products/browse?tenantId=X` filters products by tenant. Each tenant only sees their own products in the widget.
 - **Beautify Text**: `/api/tenant-panel/beautify-text` endpoint uses GPT-4o-mini to improve bot training text (copywriting, grammar, tone) while preserving structure and factual data.
 

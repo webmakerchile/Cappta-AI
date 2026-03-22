@@ -1245,7 +1245,7 @@ ${DEMO_BASE_RULES}`,
         email: tenant.email,
         ip: req.ip || req.headers["x-forwarded-for"] as string,
         userAgent: req.headers["user-agent"],
-        url: "https://nexia-ai.cl/register",
+        url: "https://foxbot.cl/register",
         contentName: "Nexia AI",
       }).catch(() => {});
 
@@ -1296,7 +1296,7 @@ ${DEMO_BASE_RULES}`,
           email: tenant.email,
           ip: req.ip || req.headers["x-forwarded-for"] as string,
           userAgent: req.headers["user-agent"],
-          url: "https://nexia-ai.cl/register",
+          url: "https://foxbot.cl/register",
           contentName: "Nexia AI",
         }).catch(() => {});
       } else if (picture && tenant.avatarUrl !== picture) {
@@ -1532,11 +1532,11 @@ ${DEMO_BASE_RULES}`,
       const pluginPhp = `<?php
 /**
  * Plugin Name: Nexia AI Chat - ${companyName}
- * Plugin URI: https://nexia-ai.cl
+ * Plugin URI: https://foxbot.cl
  * Description: Chatbot inteligente de Nexia AI para ${companyName}. Se instala automaticamente en todas las paginas de tu sitio WordPress.
  * Version: 1.0.0
  * Author: Web Maker Chile
- * Author URI: https://nexia-ai.cl
+ * Author URI: https://foxbot.cl
  * License: GPL v2 or later
  * Text Domain: nexia-chat
  */
@@ -1589,7 +1589,7 @@ function nexia_render_widget() {
 add_action('wp_footer', 'nexia_render_widget');
 
 function nexia_settings_link($links) {
-    $settings_link = '<a href="https://nexia-ai.cl/dashboard" target="_blank">Configurar en Nexia AI</a>';
+    $settings_link = '<a href="https://foxbot.cl/dashboard" target="_blank">Configurar en Nexia AI</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
@@ -1597,7 +1597,7 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'nexia_settings_l
 
 function nexia_admin_notice() {
     if (!current_user_can('manage_options')) return;
-    echo '<div class="notice notice-success is-dismissible"><p><strong>Nexia AI Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://nexia-ai.cl/dashboard" target="_blank">Ir al panel de Nexia AI</a></p></div>';
+    echo '<div class="notice notice-success is-dismissible"><p><strong>Nexia AI Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://foxbot.cl/dashboard" target="_blank">Ir al panel de Nexia AI</a></p></div>';
 }
 register_activation_hook(__FILE__, function() {
     set_transient('nexia_activation_notice', true, 5);
@@ -1628,7 +1628,7 @@ Nexia AI es un chatbot impulsado por inteligencia artificial que se integra auto
 Caracteristicas:
 * Respuestas inteligentes con IA
 * Soporte en tiempo real
-* Totalmente personalizable desde nexia-ai.cl/dashboard
+* Totalmente personalizable desde foxbot.cl/dashboard
 * Compatible con todos los temas de WordPress
 * Responsive - funciona en escritorio y movil
 
@@ -1638,7 +1638,7 @@ Caracteristicas:
 2. Activa el plugin
 3. Listo! El chatbot aparecera automaticamente en tu sitio
 
-Para personalizar tu chatbot, visita https://nexia-ai.cl/dashboard
+Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
 
 == Changelog ==
 
@@ -1990,7 +1990,7 @@ Para personalizar tu chatbot, visita https://nexia-ai.cl/dashboard
             trackTikTokEvent({
               event: "Purchase",
               email: tenant.email,
-              url: "https://nexia-ai.cl/dashboard",
+              url: "https://foxbot.cl/dashboard",
               value: planInfo.amount,
               currency: "CLP",
               contentName: planInfo.label,
