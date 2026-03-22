@@ -1675,7 +1675,7 @@ export default function Demo() {
       </div>
 
       <div className="shrink-0 text-center py-2 border-t border-white/[0.04]">
-        <p className="text-[10px] text-white/15">Demo interactiva de Nexia AI — <a href="#demo" className="text-primary/50 hover:text-primary/70">Agenda una demo</a> para conocer más</p>
+        <p className="text-[10px] text-white/15">Demo interactiva de Nexia AI — <a href="/#demo" className="text-primary/50 hover:text-primary/70">Agenda una demo</a> para conocer más</p>
       </div>
     </div>
   );
