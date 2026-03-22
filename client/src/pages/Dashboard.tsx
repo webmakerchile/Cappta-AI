@@ -3278,10 +3278,9 @@ function ExtensionesSection({ token }: { token: string }) {
 
   const activateMutation = useMutation({
     mutationFn: async (addonSlug: string) => {
-      const res = await fetch("/api/tenants/me/addons", {
+      const res = await fetch(`/api/tenants/me/addons/${addonSlug}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ addonSlug }),
       });
       if (!res.ok) {
         const data = await res.json();
