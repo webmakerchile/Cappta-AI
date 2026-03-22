@@ -67,6 +67,7 @@ import {
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiShopify, SiWoo, SiMagento, SiSquarespace, SiWebflow } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
+import heroBg from "@assets/hero_bg.png";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
@@ -1550,13 +1551,13 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
       <MobileNav />
 
-      <section className="relative pt-36 pb-16 sm:pt-44 sm:pb-24 px-6 overflow-hidden" data-testid="section-hero">
+      <section className="relative pt-36 pb-0 sm:pt-44 sm:pb-0 overflow-hidden" data-testid="section-hero">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 bottom-0" style={{ background: "radial-gradient(ellipse 80% 50% at 50% -10%, hsl(250, 65%, 25%, 0.3) 0%, transparent 60%)" }} />
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
+          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,10,0.7) 0%, rgba(5,5,10,0.4) 40%, rgba(5,5,10,0.8) 80%, rgba(5,5,10,1) 100%)" }} />
         </div>
 
-        <div className="relative max-w-5xl mx-auto text-center">
+        <div className="relative max-w-5xl mx-auto text-center px-6">
           <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.03em] leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
             <span className="block text-white/95">TU EQUIPO</span>
             <span className="block text-white/95">COMERCIAL</span>
@@ -1567,9 +1568,9 @@ export default function Landing() {
             Una extensión de tu equipo que impulsa tu negocio
           </p>
 
-          <p className="text-base sm:text-lg text-white/45 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
+          <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
             Automatiza y deja que la IA responda, califique y haga seguimiento.
-            <span className="text-white/75 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
+            <span className="text-white/80 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
@@ -1587,7 +1588,7 @@ export default function Landing() {
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap mb-14">
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap mb-16">
             {[
               { text: "+1,500 Clientes en Latinoamérica", color: "#10b981" },
               { text: "Garantía total de 60 días", color: "#10b981" },
@@ -1599,25 +1600,23 @@ export default function Landing() {
               </span>
             ))}
           </div>
+        </div>
 
-          <div className="mb-0 border-t border-white/[0.04] pt-10">
-            <div className="flex items-center justify-center gap-10 sm:gap-14 flex-wrap" data-testid="logos-trusted-by">
-              {[
-                { Icon: SiWordpress, name: "WordPress" },
-                { Icon: SiShopify, name: "Shopify" },
-                { Icon: SiWoo, name: "WooCommerce" },
-                { Icon: SiMagento, name: "Magento" },
-                { Icon: SiSquarespace, name: "Squarespace" },
-                { Icon: SiWebflow, name: "Webflow" },
-                { Icon: SiMeta, name: "Meta" },
-                { Icon: SiWhatsapp, name: "WhatsApp" },
-              ].map(({ Icon, name }) => (
-                <div key={name} className="flex items-center gap-2 group" data-testid={`logo-partner-${name.toLowerCase()}`}>
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white/30 group-hover:text-white/60 transition-colors duration-300" />
-                  <span className="text-xs sm:text-sm text-white/25 group-hover:text-white/50 font-medium tracking-wide transition-colors duration-300">{name}</span>
-                </div>
-              ))}
-            </div>
+        <div className="relative bg-[#080818]/90 border-t border-white/[0.04] py-8 px-6">
+          <div className="max-w-5xl mx-auto flex items-center justify-center gap-10 sm:gap-16 flex-wrap" data-testid="logos-trusted-by">
+            {[
+              { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
+              { Icon: SiShopify, name: "Shopify", size: "w-5 h-5" },
+              { Icon: SiWoo, name: "WooCommerce", size: "w-6 h-6" },
+              { Icon: SiSquarespace, name: "Squarespace", size: "w-5 h-5" },
+              { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
+              { Icon: SiWhatsapp, name: "WhatsApp", size: "w-5 h-5" },
+            ].map(({ Icon, name, size }) => (
+              <div key={name} className="flex items-center gap-2.5 group opacity-40 hover:opacity-70 transition-opacity duration-300" data-testid={`logo-partner-${name.toLowerCase()}`}>
+                <Icon className={`${size} text-white`} />
+                <span className="text-sm sm:text-base text-white font-semibold tracking-wide">{name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
