@@ -50,7 +50,6 @@ import {
   Download,
   Crown,
   Infinity,
-  Handshake,
   CircleCheck,
   Gift,
   Settings,
@@ -142,18 +141,6 @@ const capabilities = [
   },
 ];
 
-const sharedFeatures = [
-  { text: "Chat en vivo con IA + intervención humana", icon: Bot },
-  { text: "Widget 100% personalizable en tu sitio", icon: Palette },
-  { text: "Configuración automática desde tu URL", icon: Globe },
-  { text: "App descargable (PWA) + notificaciones push", icon: Smartphone },
-  { text: "Base de conocimiento y entrenamiento con docs", icon: Brain },
-  { text: "Catálogo de productos en el chat", icon: ShoppingBag },
-  { text: "Atajos, etiquetas y horario comercial", icon: Tag },
-  { text: "Multi-agente con asignación y colores", icon: Users },
-  { text: "Compatible con cualquier plataforma o API", icon: Plug },
-  { text: "Nuestro equipo te ayuda a instalarlo", icon: Handshake },
-];
 
 const pricingPlans = [
   {
@@ -1086,7 +1073,7 @@ function MobileNav() {
         <div className="hidden md:flex items-center gap-2">
           <CountrySelector />
           <a href="/login" className="text-sm text-white/80 hover:text-white transition-colors" data-testid="link-login">Iniciar Sesión</a>
-          <a href="#demo">
+          <a href="/demo">
             <Button size="sm" className="rounded-xl px-5 py-2 text-sm font-semibold" data-testid="link-register">
               Agenda Reunión
             </Button>
@@ -1110,7 +1097,7 @@ function MobileNav() {
           <a href="/login" className="block">
             <Button variant="outline" size="sm" className="w-full rounded-xl border-white/10 text-white/70 hover:bg-white/5" data-testid="link-login-mobile">Iniciar Sesión</Button>
           </a>
-          <a href="#demo" onClick={() => setOpen(false)} className="block mt-2">
+          <a href="/demo" onClick={() => setOpen(false)} className="block mt-2">
             <Button size="sm" className="w-full rounded-xl font-semibold">Agenda Reunión</Button>
           </a>
         </div>
@@ -1480,118 +1467,6 @@ function FAQSection({ isVisible }: { isVisible: boolean }) {
   );
 }
 
-function DemoScheduleForm() {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ name: "", email: "", howHeard: "", company: "", website: "", message: "" });
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSending(true);
-    setError("");
-    try {
-      const res = await fetch("/api/demo-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error("Error al enviar");
-      setSubmitted(true);
-    } catch {
-      setError("No pudimos enviar tu solicitud. Intenta de nuevo.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  if (submitted) {
-    return (
-      <div className="w-full max-w-md mx-auto glass-card rounded-3xl p-8 text-center" data-testid="demo-form-success">
-        <div className="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-4">
-          <Check className="w-8 h-8 text-violet-400" />
-        </div>
-        <h3 className="text-xl font-bold text-white mb-2">¡Reunión agendada!</h3>
-        <p className="text-white/50 text-sm">Te contactaremos pronto para confirmar tu reunión personalizada.</p>
-      </div>
-    );
-  }
-
-  const inputCls = "w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-violet-500/40 transition-colors";
-
-  return (
-    <div className="w-full max-w-md mx-auto" data-testid="demo-schedule-form">
-      <div className="glass-card rounded-3xl p-8 border border-violet-500/10">
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-white mb-2">Agenda tu Reunión</h3>
-          <p className="text-white/70 text-sm">Descubre cómo Cappta AI puede transformar tu negocio</p>
-          <div className="flex items-center justify-center gap-3 mt-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 1 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>1</div>
-            <div className="w-12 h-px bg-white/10" />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 2 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>2</div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {step === 1 && (
-            <div className="space-y-4" data-testid="demo-form-step-1">
-              <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Nombre completo</label>
-                <input name="name" value={formData.name} onChange={handleChange} required placeholder="Tu nombre" className={inputCls} data-testid="input-demo-name" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Email corporativo</label>
-                <input name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="tu@empresa.com" className={inputCls} data-testid="input-demo-email" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">¿Cómo nos encontraste?</label>
-                <select name="howHeard" value={formData.howHeard} onChange={handleChange} className={`${inputCls} appearance-none`} data-testid="select-demo-howheard">
-                  <option value="" className="bg-[#1a1a1a]">Selecciona...</option>
-                  <option value="google" className="bg-[#1a1a1a]">Google</option>
-                  <option value="social" className="bg-[#1a1a1a]">Redes sociales</option>
-                  <option value="referral" className="bg-[#1a1a1a]">Referido</option>
-                  <option value="other" className="bg-[#1a1a1a]">Otro</option>
-                </select>
-              </div>
-              <Button type="button" onClick={() => setStep(2)} className="w-full py-5 rounded-2xl text-sm font-bold mt-2" disabled={!formData.name || !formData.email} data-testid="button-demo-next">
-                Siguiente <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-4" data-testid="demo-form-step-2">
-              <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Empresa</label>
-                <input name="company" value={formData.company} onChange={handleChange} required placeholder="Nombre de tu empresa" className={inputCls} data-testid="input-demo-company" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">Sitio web</label>
-                <input name="website" value={formData.website} onChange={handleChange} placeholder="https://tu-empresa.com" className={inputCls} data-testid="input-demo-website" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-white/50 mb-1.5 block">¿Cómo podemos ayudarte?</label>
-                <textarea name="message" value={formData.message} onChange={handleChange} rows={3} placeholder="Cuéntanos sobre tu negocio..." className={`${inputCls} resize-none`} data-testid="input-demo-message" />
-              </div>
-              {error && <p className="text-red-400 text-xs text-center" data-testid="text-demo-error">{error}</p>}
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl text-sm font-bold border-violet-500/30" data-testid="button-demo-back">Atrás</Button>
-                <Button type="submit" disabled={sending || !formData.company} className="flex-1 py-5 rounded-2xl text-sm font-bold shadow-xl shadow-primary/15" data-testid="button-demo-submit">
-                  {sending ? "Enviando..." : "Agendar Reunión"}
-                </Button>
-              </div>
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
-  );
-}
 
 export default function Landing() {
   const statsSection = useInView(0.2);
@@ -1631,13 +1506,13 @@ export default function Landing() {
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
-            <a href="#demo">
+            <a href="/demo">
               <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300" data-testid="button-hero-register">
                 <SiWhatsapp className="w-5 h-5 mr-2" />
                 Comenzar ahora
               </Button>
             </a>
-            <a href="#demo">
+            <a href="/demo">
               <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-hero-demo">
                 <Sparkles className="w-4 h-4 mr-2 text-primary" />
                 Agenda una demo
@@ -1899,7 +1774,7 @@ export default function Landing() {
           </div>
 
           <div className="text-center mt-12">
-            <a href="#demo">
+            <a href="/demo">
               <Button variant="outline" size="lg" className="rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-steps-demo">
                 <ArrowRight className="w-4 h-4 mr-2 text-primary" />
                 Agenda una reunión
@@ -2011,31 +1886,6 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className={`mb-14 transition-all duration-700 ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"}`} data-testid="shared-features-block">
-            <div className="relative rounded-2xl overflow-hidden">
-              <div className="absolute -inset-[1px] rounded-2xl" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 40%, 0.2) 0%, hsl(160, 60%, 35%, 0.1) 50%, hsl(250, 65%, 40%, 0.2) 100%)" }} />
-              <div className="relative glass-card rounded-2xl p-6 sm:p-8" style={{ border: "none" }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/10">
-                    <CircleCheck className="w-4.5 h-4.5 text-violet-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white/90">Todos los planes incluyen</h3>
-                    <p className="text-xs text-white/60">Sin importar el plan que elijas, tienes acceso a todo</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                  {sharedFeatures.map((feat) => (
-                    <div key={feat.text} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                      <feat.icon className="w-4 h-4 text-violet-400/70 shrink-0" />
-                      <span className="text-xs text-white/55 leading-tight">{feat.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
             {pricingPlans.map((plan, index) => (
               <div
@@ -2139,7 +1989,7 @@ export default function Landing() {
                       </div>
                     )}
 
-                    <a href="#demo" className="block mt-5">
+                    <a href="/demo" className="block mt-5">
                       <Button
                         className={`w-full py-5 rounded-xl text-sm font-bold transition-all duration-300 ${
                           plan.tier === "enterprise"
@@ -2294,7 +2144,7 @@ export default function Landing() {
                         <span className="text-xl font-black" style={{ color: catColor }}>{formatCLP(addon.price)}</span>
                         <span className="text-[10px] text-white/30 ml-1">/mes</span>
                       </div>
-                      <a href="#demo">
+                      <a href="/demo">
                         <Button
                           variant="outline"
                           size="sm"
@@ -2333,48 +2183,47 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="demo" className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
+      <section className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.2) 50%, transparent 100%)" }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 25%, 0.12) 0%, transparent 50%)" }} />
         </div>
         <div className="relative max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
+          <div className="max-w-2xl mx-auto text-center">
               <div className="mb-8">
-                <CapptaStackedLogo height={72} className="opacity-80" />
+                <CapptaStackedLogo height={72} className="opacity-80 mx-auto" />
               </div>
               <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-6 leading-tight text-white" data-testid="text-cta-title">
-                Empieza a crecer, sin aumentar tu
-                <br />
-                gestión ni tu inversión
+                Empieza a crecer, sin aumentar tu gestión ni tu inversión
               </h2>
-              <p className="text-white/70 text-lg mb-8 leading-relaxed">
-                Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
+              <p className="text-white/60 text-lg mb-10 leading-relaxed">
+                Agenda una reunión con nuestro equipo y descubre cómo Cappta AI puede transformar tu operación comercial.
               </p>
-              <div className="flex items-center gap-4 flex-wrap mb-8">
+              <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+                <a href="/demo">
+                  <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15" data-testid="button-cta-demo">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Agenda una Reunión
+                  </Button>
+                </a>
                 <a href="#pricing">
                   <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-cta-pricing">
                     Ver Planes
                   </Button>
                 </a>
               </div>
-              <div className="space-y-3">
+              <div className="flex items-center justify-center gap-8 flex-wrap">
                 {[
                   "Implementación personalizada incluida",
                   "Sin contratos de permanencia",
                   "Soporte técnico dedicado",
                 ].map((text) => (
-                  <div key={text} className="flex items-center gap-3 text-sm text-white/70">
-                    <CircleCheck className="w-4 h-4 text-primary shrink-0" />
+                  <div key={text} className="flex items-center gap-2 text-sm text-white/50">
+                    <CircleCheck className="w-3.5 h-3.5 text-primary shrink-0" />
                     {text}
                   </div>
                 ))}
               </div>
-            </div>
-            <div>
-              <DemoScheduleForm />
-            </div>
           </div>
         </div>
       </section>
@@ -2402,7 +2251,7 @@ export default function Landing() {
                 <li><a href="#features" className="hover:text-white/70 transition-colors" data-testid="link-footer-features">Características</a></li>
                 <li><a href="#pricing" className="hover:text-white/70 transition-colors" data-testid="link-footer-pricing">Precios</a></li>
                 <li><a href="#extensiones" className="hover:text-white/70 transition-colors" data-testid="link-footer-addons">Extensiones</a></li>
-                <li><a href="#demo" className="hover:text-white/70 transition-colors" data-testid="link-footer-demo">Agendar reunión</a></li>
+                <li><a href="/demo" className="hover:text-white/70 transition-colors" data-testid="link-footer-demo">Agendar reunión</a></li>
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-guides">Guías</a></li>
               </ul>
             </div>

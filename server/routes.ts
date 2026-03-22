@@ -5468,8 +5468,8 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
 
   app.post("/api/demo-request", async (req, res) => {
     try {
-      const { name, email, howHeard, company, website, message } = req.body;
-      log(`Demo request received from ${email}`, "api");
+      const { name, email, company, phone, teamSize, conversations, tools, message } = req.body;
+      log(`Demo request received from ${email} — ${company} — Team: ${teamSize} — Conversations: ${conversations} — Phone: ${phone} — Tools: ${Array.isArray(tools) ? tools.join(", ") : "none"} — Message: ${message || "none"}`, "api");
       res.json({ ok: true });
     } catch (error: any) {
       log(`Error processing demo request: ${error.message}`, "api");
