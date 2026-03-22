@@ -1550,26 +1550,26 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
       <MobileNav />
 
-      <section className="relative pt-36 pb-0 sm:pt-44 sm:pb-0 overflow-hidden" data-testid="section-hero">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,10,0.7) 0%, rgba(5,5,10,0.4) 40%, rgba(5,5,10,0.8) 80%, rgba(5,5,10,1) 100%)" }} />
+      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden" data-testid="section-hero">
+        <div className="absolute inset-0 pointer-events-none">
+          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(3,3,8,0.6) 0%, rgba(3,3,8,0.3) 30%, rgba(3,3,8,0.25) 50%, rgba(3,3,8,0.5) 75%, rgba(3,3,8,0.85) 100%)" }} />
         </div>
 
-        <div className="relative max-w-5xl mx-auto text-center px-6">
+        <div className="relative max-w-5xl mx-auto text-center px-6 pt-32 pb-12 flex-1 flex flex-col justify-center">
           <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.03em] leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
-            <span className="block text-white/95">TU EQUIPO</span>
-            <span className="block text-white/95">COMERCIAL</span>
+            <span className="block text-white">TU EQUIPO</span>
+            <span className="block text-white">COMERCIAL</span>
             <span className="block text-gradient-brand">CON IA</span>
           </h1>
 
-          <p className="text-sm sm:text-base uppercase tracking-[0.25em] text-white/30 font-medium mb-6 font-heading">
+          <p className="text-sm sm:text-base uppercase tracking-[0.25em] text-white/40 font-medium mb-6 font-heading">
             Una extensión de tu equipo que impulsa tu negocio
           </p>
 
-          <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
+          <p className="text-base sm:text-lg text-white/55 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
             Automatiza y deja que la IA responda, califique y haga seguimiento.
-            <span className="text-white/80 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
+            <span className="text-white/85 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
@@ -1587,7 +1587,7 @@ export default function Landing() {
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap mb-16">
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
             {[
               { text: "+1,500 Clientes en Latinoamérica", color: "#10b981" },
               { text: "Garantía total de 60 días", color: "#10b981" },
@@ -1601,7 +1601,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="relative bg-[#080818]/90 border-t border-white/[0.04] py-8 px-6">
+        <div className="relative pb-10 px-6">
           <div className="max-w-5xl mx-auto flex items-center justify-center gap-10 sm:gap-16 flex-wrap" data-testid="logos-trusted-by">
             {[
               { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
@@ -1611,7 +1611,7 @@ export default function Landing() {
               { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
               { Icon: SiWhatsapp, name: "WhatsApp", size: "w-5 h-5" },
             ].map(({ Icon, name, size }) => (
-              <div key={name} className="flex items-center gap-2.5 group opacity-40 hover:opacity-70 transition-opacity duration-300" data-testid={`logo-partner-${name.toLowerCase()}`}>
+              <div key={name} className="flex items-center gap-2.5 group opacity-35 hover:opacity-65 transition-opacity duration-300" data-testid={`logo-partner-${name.toLowerCase()}`}>
                 <Icon className={`${size} text-white`} />
                 <span className="text-sm sm:text-base text-white font-semibold tracking-wide">{name}</span>
               </div>
