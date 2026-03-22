@@ -975,25 +975,24 @@ function CountrySelector() {
     <div ref={ref} className="relative" data-testid="country-selector">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors text-sm"
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-colors"
         data-testid="button-country-toggle"
       >
-        <span className="text-lg leading-none">{selected.flag}</span>
-        <ChevronDown className={`w-3 h-3 text-white/40 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        <span className="text-xl leading-none">{selected.flag}</span>
       </button>
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-48 rounded-xl border border-white/[0.08] bg-[#111]/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-dash-fade-up z-50">
+        <div className="absolute top-full right-0 mt-3 w-56 rounded-2xl border border-white/[0.1] bg-[#111]/95 backdrop-blur-xl shadow-2xl shadow-black/60 overflow-hidden animate-dash-fade-up z-50 py-2">
           {COUNTRIES.map((c) => (
             <button
               key={c.code}
               onClick={() => { setSelected(c); setIsOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/[0.06] transition-colors ${selected.code === c.code ? "bg-white/[0.04]" : ""}`}
+              className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-white/[0.06] transition-colors ${selected.code === c.code ? "bg-white/[0.04]" : ""}`}
               data-testid={`country-option-${c.code}`}
             >
-              <span className="text-lg leading-none">{c.flag}</span>
-              <span className="text-white/80 font-medium">{c.name}</span>
-              {selected.code === c.code && <Check className="w-3.5 h-3.5 text-primary ml-auto" />}
-              <span className="text-white/30 text-xs ml-auto">{c.lang}</span>
+              <span className="text-2xl leading-none">{c.flag}</span>
+              <span className="text-white/90 font-medium text-sm">{c.name}</span>
+              {selected.code === c.code && <Check className="w-4 h-4 text-primary ml-1" />}
+              <span className="text-white/30 text-xs font-semibold tracking-wider uppercase ml-auto">{c.lang}</span>
             </button>
           ))}
         </div>
