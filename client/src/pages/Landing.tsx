@@ -876,40 +876,53 @@ function PreviewTabs() {
 
 function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-xl" data-testid="nav-bar">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3">
+    <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4" data-testid="nav-bar">
+      <div className={`max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3 rounded-2xl transition-all duration-500 ${scrolled ? "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/[0.06] shadow-2xl shadow-black/30" : "bg-transparent"}`}>
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
-          <NexiaIcon size={60} className="transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-xl font-extrabold tracking-tight">
-            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
+          <NexiaIcon size={36} className="transition-transform duration-300 group-hover:scale-110" />
+          <span className="text-lg font-extrabold tracking-tight">
+            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50 font-medium ml-0.5">AI</span>
           </span>
         </a>
-        <div className="hidden md:flex items-center gap-1.5">
-          <a href="#features"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-features">Funciones</Button></a>
-          <a href="#pricing"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-pricing">Precios</Button></a>
-          <a href="#demo"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-demo-schedule-nav">Demo</Button></a>
-          <a href="/guias"><Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="link-guides-nav">Guías</Button></a>
-          <div className="w-px h-5 bg-white/10 mx-1" />
-          <a href="/login"><Button variant="ghost" size="sm" data-testid="link-login">Iniciar Sesión</Button></a>
-          <a href="#demo"><Button size="sm" className="rounded-xl px-4" data-testid="link-register">Agendar Demo <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></a>
+        <div className="hidden md:flex items-center gap-1">
+          <a href="#features" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-features">Plataforma</a>
+          <a href="#casos" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-cases-nav">Clientes</a>
+          <a href="#pricing" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-pricing">Precios</a>
+          <a href="/guias" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-guides-nav">Recursos</a>
+        </div>
+        <div className="hidden md:flex items-center gap-3">
+          <a href="/login" className="text-sm text-white/60 hover:text-white transition-colors" data-testid="link-login">Iniciar Sesión</a>
+          <a href="#demo">
+            <Button size="sm" className="rounded-xl px-5 py-2 text-sm font-semibold" data-testid="link-register">
+              Agenda Demo
+            </Button>
+          </a>
         </div>
         <button onClick={() => setOpen(!open)} className="md:hidden p-2 text-white/60 hover:text-white transition-colors" data-testid="button-mobile-menu">
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
       {open && (
-        <div className="md:hidden border-t border-white/[0.06] bg-background/95 backdrop-blur-xl px-6 py-4 space-y-1 animate-dash-fade-up">
-          <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Funciones</a>
+        <div className="md:hidden mt-2 mx-auto max-w-6xl rounded-2xl border border-white/[0.06] bg-[#0a0a0a]/95 backdrop-blur-2xl px-6 py-5 space-y-1 animate-dash-fade-up">
+          <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Plataforma</a>
+          <a href="#casos" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Clientes</a>
           <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
-          <a href="#demo" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Agendar Demo</a>
-          <a href="/guias" className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Guías</a>
-          <div className="h-px bg-white/[0.06] my-2" />
+          <a href="/guias" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Recursos</a>
+          <div className="h-px bg-white/[0.06] my-3" />
           <a href="/login" className="block">
-            <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10" data-testid="link-login-mobile">Iniciar Sesión</Button>
+            <Button variant="outline" size="sm" className="w-full rounded-xl border-white/10 text-white/70 hover:bg-white/5" data-testid="link-login-mobile">Iniciar Sesión</Button>
           </a>
-          <a href="#demo" className="block mt-2">
-            <Button size="sm" className="w-full rounded-xl">Agendar Demo <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
+          <a href="#demo" onClick={() => setOpen(false)} className="block mt-2">
+            <Button size="sm" className="w-full rounded-xl font-semibold">Agenda Demo</Button>
           </a>
         </div>
       )}
@@ -1441,69 +1454,58 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
       <MobileNav />
 
-      <section className="relative py-24 sm:py-32 px-6 overflow-hidden" data-testid="section-hero">
+      <section className="relative pt-40 pb-20 sm:pt-48 sm:pb-28 px-6 overflow-hidden" data-testid="section-hero">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.08) 0%, transparent 60%)" }} />
-          <div className="absolute bottom-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(220, 70%, 52%, 0.06) 0%, transparent 60%)", animationDelay: "-10s" }} />
-          <div className="absolute top-1/3 left-10 w-2 h-2 rounded-full bg-primary/30 animate-float" style={{ animationDelay: "-2s" }} />
-          <div className="absolute top-1/4 right-20 w-1.5 h-1.5 rounded-full bg-accent/30 animate-float" style={{ animationDelay: "-4s" }} />
-          <div className="absolute bottom-1/3 left-1/4 w-1 h-1 rounded-full bg-primary/20 animate-float" style={{ animationDelay: "-1s" }} />
+          <div className="absolute top-0 left-0 right-0 bottom-0" style={{ background: "radial-gradient(ellipse 80% 50% at 50% -10%, hsl(250, 65%, 25%, 0.3) 0%, transparent 60%)" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
         </div>
 
-        <div className="relative max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-border-glow" data-testid="badge-hero">
-              <div className="w-2 h-2 rounded-full bg-primary animate-glow-pulse" />
-              <span className="text-xs font-semibold text-primary tracking-wide">POTENCIADO POR IA AVANZADA</span>
-            </div>
+        <div className="relative max-w-5xl mx-auto text-center">
+          <h1 className="text-5xl sm:text-7xl lg:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
+            <span className="block">TU EQUIPO</span>
+            <span className="block">COMERCIAL</span>
+            <span className="block text-gradient-brand">CON IA</span>
+          </h1>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.08] mb-5 sm:mb-7" data-testid="text-hero-title">
-              El chatbot que
-              <br />
-              <span className="text-gradient-brand">vende por ti</span>
-              <br />
-              <span className="text-white/60">las 24 horas</span>
-            </h1>
+          <p className="text-sm sm:text-base uppercase tracking-[0.2em] text-white/40 font-semibold mb-6">
+            Una extensión de tu equipo que impulsa tu negocio
+          </p>
 
-            <p className="text-base sm:text-lg text-white/50 max-w-lg mb-8 sm:mb-10 leading-relaxed" data-testid="text-hero-description">
-              <span className="text-white/80 font-medium">Nexia AI</span> es un agente inteligente que vende y atiende por ti, a escala.
-              Y cuando el cliente necesita atención humana, <span className="text-white/80 font-medium">un ejecutivo toma el control</span> sin interrupciones.
-              Se adapta a <span className="text-white/80 font-medium">cualquier plataforma</span>: WordPress, Shopify, WooCommerce, Wix y más.
-            </p>
+          <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
+            Automatiza y deja que la IA responda, califique y haga seguimiento.
+            <span className="text-white/80 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
+          </p>
 
-            <div className="flex items-center gap-4 flex-wrap mb-10">
-              <a href="#demo">
-                <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-hero-register">
-                  Agendar Demo
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </a>
-              <a href="/demo">
-                <Button variant="outline" size="lg" className="text-base px-6 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-hero-demo">
-                  <Play className="w-4 h-4 mr-2 text-primary" />
-                  Ver Demo en Vivo
-                </Button>
-              </a>
-            </div>
-
-            <div className="flex items-center gap-6 flex-wrap">
-              {[
-                { icon: Check, text: "Demo personalizada" },
-                { icon: Clock, text: "Listo en 5 minutos" },
-                { icon: Globe, text: "Cualquier plataforma" },
-              ].map(({ icon: Icon, text }) => (
-                <span key={text} className="flex items-center gap-2 text-sm text-white/40">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-3 h-3 text-primary" />
-                  </div>
-                  {text}
-                </span>
-              ))}
-            </div>
+          <div className="flex items-center justify-center gap-4 flex-wrap mb-12">
+            <a href="#demo">
+              <Button size="lg" className="text-base px-8 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-hero-register">
+                <SiWhatsapp className="w-5 h-5 mr-2" />
+                Comenzar ahora
+              </Button>
+            </a>
+            <a href="#demo">
+              <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-hero-demo">
+                <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                Agenda una demo
+              </Button>
+            </a>
           </div>
 
-          <div className="flex justify-center lg:block" id="demo">
-            <DemoScheduleForm />
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap mb-16">
+            {[
+              { text: "Implementación personalizada", color: "#10b981" },
+              { text: "Garantía total de 60 días", color: "#10b981" },
+              { text: "+50 Clientes activos", color: "#10b981" },
+            ].map(({ text, color }) => (
+              <span key={text} className="flex items-center gap-2 text-sm text-white/50">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                {text}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex justify-center mb-0">
+            <AnimatedChat />
           </div>
         </div>
       </section>
@@ -1566,28 +1568,43 @@ export default function Landing() {
       </section>
 
 
-      <section className="py-24 px-6 relative overflow-hidden" ref={statsSection.ref as any} data-testid="section-stats">
+      <section className="py-28 px-6 relative overflow-hidden" ref={statsSection.ref as any} data-testid="section-stats">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
         </div>
         <div className="relative max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+              <BarChart3 className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-semibold text-primary tracking-wide">RESULTADOS COMPROBADOS</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4">
+              Los números hablan
+              <br />
+              <span className="text-gradient-brand">por sí mismos</span>
+            </h2>
+            <p className="text-white/40 text-base max-w-lg mx-auto">Ve el impacto en métricas reales.</p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { value: "24/7", label: "Disponibilidad", icon: Clock, desc: "Tu bot nunca descansa", color: "#7669E9" },
-              { value: "<2s", label: "Respuesta", icon: Zap, desc: "Velocidad de IA", color: "#a78bfa" },
-              { value: "5min", label: "Configuración", icon: TrendingUp, desc: "Sin conocimiento técnico", color: "#3b82f6" },
-              { value: "+90%", label: "Consultas resueltas", icon: Users, desc: "Sin intervención humana", color: "#a855f7" },
+              { value: "3x", label: "Más conversiones automáticas", icon: TrendingUp, desc: "Sin aumentar personal comercial ni gestiones manuales", color: "#7669E9" },
+              { value: "+90%", label: "Consultas resueltas por IA", icon: Users, desc: "Reducción en tareas manuales con flujos automatizados", color: "#a78bfa" },
+              { value: "+50", label: "Empresas confían en nosotros", icon: Shield, desc: "Desde startups hasta empresas consolidadas en Chile", color: "#3b82f6" },
+              { value: "99.9%", label: "Uptime garantizado", icon: Clock, desc: "Confiabilidad empresarial con automatización que nunca para", color: "#7669E9" },
+              { value: "<2s", label: "Tiempo de respuesta", icon: Zap, desc: "Velocidad de IA para no perder ningún lead", color: "#a855f7" },
+              { value: "5+", label: "Canales impulsados por IA", icon: MessageSquare, desc: "WhatsApp, Web, WordPress, Shopify y más", color: "#6366f1" },
             ].map(({ value, label, icon: Icon, desc, color }, i) => (
-              <div key={label} className="group" data-testid={`stat-${label}`}>
-                <div className="rounded-2xl glass-card glass-card-hover p-6 text-center transition-all duration-500 h-full" style={{ transitionDelay: `${i * 80}ms` }}>
-                  <div className="flex items-center justify-center w-11 h-11 rounded-xl mx-auto mb-4" style={{ backgroundColor: hexToRgba(color, 0.08) }}>
+              <div key={label} className={`group ${statsSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: `${i * 80}ms` }} data-testid={`stat-${label}`}>
+                <div className="rounded-2xl glass-card p-6 h-full transition-all duration-300 hover:border-white/[0.12]">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl mb-5" style={{ backgroundColor: hexToRgba(color, 0.08) }}>
                     <Icon className="w-5 h-5" style={{ color }} />
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black mb-1" style={{ color }}>
+                  <p className="text-4xl sm:text-5xl font-black mb-2" style={{ color }}>
                     <CountUp target={value} />
                   </p>
-                  <p className="text-sm font-semibold text-white/80">{label}</p>
-                  <p className="text-xs text-white/30 mt-1">{desc}</p>
+                  <p className="text-sm font-bold text-white/80 mb-1">{label}</p>
+                  <p className="text-xs text-white/35 leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
@@ -1603,16 +1620,17 @@ export default function Landing() {
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-              <Zap className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-semibold text-accent tracking-wide">FUNCIONES PRINCIPALES</span>
+              <Sparkles className="w-3.5 h-3.5 text-accent" />
+              <span className="text-xs font-semibold text-accent tracking-wide">PLATAFORMA DE IA COMERCIAL</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-features-title">
-              Todo lo que necesitas para
+              Todo lo que necesitas
               <br />
-              <span className="text-gradient-brand">automatizar tus ventas</span>
+              para hacer crecer tu negocio
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
-              Herramientas poderosas de IA para que tu negocio atienda, venda y crezca sin pausas.
+              Un producto y sus extensiones trabajando en conjunto para automatizar
+              toda tu operación de ventas, atención y marketing.
             </p>
           </div>
 
@@ -1805,10 +1823,10 @@ export default function Landing() {
               <span className="text-xs font-semibold text-[#a78bfa] tracking-wide">CASOS DE ÉXITO</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
-              Empresas que <span className="text-gradient-brand">ya confían en Nexia AI</span>
+              Historias reales <span className="text-gradient-brand">de éxito</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
-              Negocios reales que automatizaron su atención y ganaron más tiempo para lo que importa.
+              Descubre cómo empresas como la tuya están transformando su atención al cliente con Nexia AI.
             </p>
           </div>
 
@@ -1892,10 +1910,12 @@ export default function Landing() {
               <span className="text-xs font-semibold text-accent tracking-wide">PRECIOS TRANSPARENTES</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-pricing-title">
-              Un plan para <span className="text-gradient-brand">cada negocio</span>
+              Empieza a crecer, sin aumentar
+              <br />
+              tu <span className="text-gradient-brand">gestión ni tu inversión</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
-              Planes flexibles que se adaptan a tu negocio. Sin contratos de permanencia.
+              Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
             </p>
           </div>
 
@@ -2089,95 +2109,99 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
+      <section id="demo" className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.2) 50%, transparent 100%)" }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full animate-orb-drift" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.06) 0%, transparent 50%)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 25%, 0.12) 0%, transparent 50%)" }} />
         </div>
-        <div className="relative max-w-3xl mx-auto text-center">
-          <div className="relative inline-block mb-10">
-            <div className="w-28 h-28 rounded-3xl glass-card flex items-center justify-center mx-auto animate-float" style={{ boxShadow: "0 0 60px rgba(118, 105, 233, 0.1)" }}>
-              <NexiaIcon size={80} />
+        <div className="relative max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-6 leading-tight" data-testid="text-cta-title">
+                Empieza a crecer, sin aumentar tu
+                <br />
+                <span className="text-gradient-brand">gestión ni tu inversión</span>
+              </h2>
+              <p className="text-white/40 text-lg mb-8 leading-relaxed">
+                Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
+              </p>
+              <div className="flex items-center gap-4 flex-wrap mb-8">
+                <a href="#pricing">
+                  <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-cta-pricing">
+                    Ver Planes
+                  </Button>
+                </a>
+              </div>
+              <div className="space-y-3">
+                {[
+                  "Implementación personalizada incluida",
+                  "Sin contratos de permanencia",
+                  "Soporte técnico dedicado",
+                ].map((text) => (
+                  <div key={text} className="flex items-center gap-3 text-sm text-white/50">
+                    <CircleCheck className="w-4 h-4 text-primary shrink-0" />
+                    {text}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 32%) 0%, hsl(280, 55%, 28%) 100%)" }}>
-              <MessageSquare className="w-5 h-5 text-white" />
+            <div>
+              <DemoScheduleForm />
             </div>
           </div>
-
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-6 leading-tight" data-testid="text-cta-title">
-            Dale a tu negocio el
-            <br />
-            <span className="text-gradient-brand">soporte que merece</span>
-          </h2>
-          <p className="text-white/40 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
-            Negocios de todos los tamaños ya usan Nexia AI para vender más y atender mejor.
-            Agenda tu demo hoy.
-          </p>
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <a href="#demo">
-              <Button size="lg" className="text-base px-10 py-6 rounded-2xl font-bold shadow-xl shadow-primary/15 hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]" data-testid="button-cta-register">
-                Agendar Demo
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </a>
-            <a href="/demo">
-              <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5" data-testid="button-cta-demo">
-                <Play className="w-4 h-4 mr-2 text-primary" />
-                Probar Demo
-              </Button>
-            </a>
-          </div>
-          <p className="text-sm text-white/20 mt-6">
-            Agenda una demo personalizada y descubre cómo Nexia AI puede transformar tu negocio.
-          </p>
         </div>
       </section>
 
       <footer className="border-t border-white/[0.04] py-16 px-6 relative" data-testid="footer">
-        <div className="relative max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
-            <div>
+        <div className="relative max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-14">
+            <div className="md:col-span-4">
               <div className="flex items-center gap-2.5 mb-5">
-                <NexiaIcon size={40} />
-                <span className="text-xl font-extrabold">
+                <NexiaIcon size={36} />
+                <span className="text-lg font-extrabold">
                   <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
                 </span>
               </div>
-              <p className="text-sm text-white/30 leading-relaxed mb-4">
-                Chatbot con IA para atención al cliente.
-                100% adaptable a cualquier plataforma.
+              <p className="text-sm text-white/30 leading-relaxed mb-5">
+                Automatiza tu operación comercial con inteligencia artificial.
+                Más ventas, menos gestión.
               </p>
               <p className="text-xs text-white/15">Un producto de Web Maker Chile</p>
             </div>
-            <div>
-              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Producto</h4>
-              <ul className="space-y-3 text-sm text-white/30">
-                <li><a href="#features" className="hover:text-primary transition-colors" data-testid="link-footer-features">Características</a></li>
-                <li><a href="#pricing" className="hover:text-primary transition-colors" data-testid="link-footer-pricing">Precios</a></li>
-                <li><a href="/demo" className="hover:text-primary transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
-                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-guides">Guías de instalación</a></li>
+            <div className="md:col-span-2 md:col-start-6">
+              <h4 className="font-bold mb-4 text-xs text-white/40 tracking-[0.15em] uppercase">Producto</h4>
+              <ul className="space-y-2.5 text-sm text-white/30">
+                <li><a href="#features" className="hover:text-white/70 transition-colors" data-testid="link-footer-features">Características</a></li>
+                <li><a href="#pricing" className="hover:text-white/70 transition-colors" data-testid="link-footer-pricing">Precios</a></li>
+                <li><a href="/demo" className="hover:text-white/70 transition-colors" data-testid="link-footer-demo">Demo en vivo</a></li>
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-guides">Guías</a></li>
               </ul>
             </div>
-            <div>
-              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Integraciones</h4>
-              <ul className="space-y-3 text-sm text-white/30">
-                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-woo">WooCommerce</a></li>
-                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-shopify">Shopify</a></li>
-                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-wordpress">WordPress</a></li>
-                <li><a href="/guias" className="hover:text-primary transition-colors" data-testid="link-footer-api">API Custom</a></li>
+            <div className="md:col-span-2">
+              <h4 className="font-bold mb-4 text-xs text-white/40 tracking-[0.15em] uppercase">Integraciones</h4>
+              <ul className="space-y-2.5 text-sm text-white/30">
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-woo">WooCommerce</a></li>
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-shopify">Shopify</a></li>
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-wordpress">WordPress</a></li>
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-api">API Custom</a></li>
               </ul>
             </div>
-            <div>
-              <h4 className="font-bold mb-5 text-sm text-white/60 tracking-wide">Legal</h4>
-              <ul className="space-y-3 text-sm text-white/30">
-                <li><a href="/privacidad" className="hover:text-primary transition-colors" data-testid="link-footer-privacy">Privacidad</a></li>
-                <li><a href="/terminos" className="hover:text-primary transition-colors" data-testid="link-footer-terms">Términos de Uso</a></li>
-                <li><a href="mailto:webmakerchile@gmail.com" className="hover:text-primary transition-colors" data-testid="link-footer-contact">Contacto</a></li>
+            <div className="md:col-span-2">
+              <h4 className="font-bold mb-4 text-xs text-white/40 tracking-[0.15em] uppercase">Legal</h4>
+              <ul className="space-y-2.5 text-sm text-white/30">
+                <li><a href="/privacidad" className="hover:text-white/70 transition-colors" data-testid="link-footer-privacy">Privacidad</a></li>
+                <li><a href="/terminos" className="hover:text-white/70 transition-colors" data-testid="link-footer-terms">Términos</a></li>
+                <li><a href="mailto:webmakerchile@gmail.com" className="hover:text-white/70 transition-colors" data-testid="link-footer-contact">Contacto</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/[0.04] mt-12 pt-8 text-center text-sm text-white/20" data-testid="text-copyright">
-            &copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile. Todos los derechos reservados.
+          <div className="border-t border-white/[0.04] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-white/20" data-testid="text-copyright">
+              &copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile
+            </p>
+            <p className="text-xs text-white/15">
+              Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </footer>
