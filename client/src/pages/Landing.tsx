@@ -1605,7 +1605,7 @@ export default function Landing() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-y-auto" data-testid="landing-page">
+    <div className="min-h-screen bg-[#030308] text-foreground overflow-y-auto" data-testid="landing-page">
       <MobileNav />
 
       <section className="relative min-h-screen flex flex-col justify-center overflow-hidden" data-testid="section-hero">
