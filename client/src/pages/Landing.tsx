@@ -67,7 +67,7 @@ import {
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiShopify, SiWoo, SiMagento, SiSquarespace, SiWebflow } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
-import heroBg from "@assets/hero_bg.png";
+import heroBg from "@assets/hero_bg_v2.png";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
@@ -1618,7 +1618,7 @@ export default function Landing() {
           <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.03em] leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
             <span className="block text-white">TU EQUIPO</span>
             <span className="block text-white">COMERCIAL</span>
-            <span className="block text-gradient-brand">CON IA</span>
+            <span className="block text-white">CON IA</span>
           </h1>
 
           <p className="text-sm sm:text-base uppercase tracking-[0.25em] text-white/60 font-medium mb-6 font-heading">
