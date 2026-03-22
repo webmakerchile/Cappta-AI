@@ -1037,9 +1037,12 @@ function MobileNav() {
             </Button>
           </a>
         </div>
-        <button onClick={() => setOpen(!open)} className="md:hidden p-2 text-white/60 hover:text-white transition-colors" data-testid="button-mobile-menu">
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <CountrySelector />
+          <button onClick={() => setOpen(!open)} className="p-2 text-white/60 hover:text-white transition-colors" data-testid="button-mobile-menu">
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="md:hidden mt-2 mx-auto max-w-6xl rounded-2xl border border-white/[0.06] bg-[#0a0a0a]/95 backdrop-blur-2xl px-6 py-5 space-y-1 animate-dash-fade-up">
