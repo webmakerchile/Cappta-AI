@@ -40,7 +40,7 @@ export async function trackTikTokEvent(params: TikTokEventParams): Promise<boole
       event_id: `${params.event}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       event_time: Math.floor(Date.now() / 1000),
       user,
-      page: { url: params.url || "https://foxbot.cl" },
+      page: { url: params.url || "https://www.cappta.ai" },
       properties,
     };
 

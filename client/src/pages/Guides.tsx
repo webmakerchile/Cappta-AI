@@ -112,7 +112,7 @@ const guides: Guide[] = [
       {
         title: "Reemplaza TU_TENANT_ID",
         description: "Cambia TU_TENANT_ID por el ID de tu cuenta. Lo encuentras en tu Dashboard > Integración.",
-        note: "Si no tienes cuenta aun, registrate gratis en foxbot.cl para obtener tu ID.",
+        note: "Si no tienes cuenta aun, registrate gratis en cappta.ai para obtener tu ID.",
       },
       {
         title: "Sube los cambios",

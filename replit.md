@@ -5,7 +5,7 @@ This project is a SaaS platform for AI-powered customer support chat widgets. Or
 
 ## Brand Identity
 - **Product Name**: Cappta AI (by Web Maker Chile)
-- **Domain**: cappta.ai (brand domain), foxbot.cl (operational domain — CORS, @foxbot.cl emails, payment callbacks, widget detection stay foxbot.cl)
+- **Domain**: www.cappta.ai (primary domain), foxbot.cl (legacy domain — kept in CORS for backward compat, @foxbot.cl emails still active)
 - **Primary Color**: Deep violet/indigo #7669E9 = hsl(250, 65%, 60%)
 - **Logo Component**: `client/src/components/CapptaLogo.tsx` (SVG arc "C" logo with CapptaLogo and CapptaIcon exports)
 - **Typography**: Sora (headings via `font-heading` class) + Inter (body text) + DM Sans (dashboard/admin)
@@ -14,7 +14,7 @@ This project is a SaaS platform for AI-powered customer support chat widgets. Or
 - **Widget IDs**: `nexia-widget` (iframe ID — kept for backward compatibility with existing customer sites), `nexia_position` (postMessage event)
 - **WordPress Plugin**: `nexia-chat` slug (kept for backward compatibility)
 - **CTA model**: All CTAs → "Agendar Reunión" linking to #demo section (DemoScheduleForm)
-- **Legacy brands**: "FoxBot" → "Nexia AI" → "Cappta AI". All user-visible text now says Cappta AI. Operational domain/URLs stay foxbot.cl. NexiaLogo.tsx kept as orphan file (unused).
+- **Legacy brands**: "FoxBot" → "Nexia AI" → "Cappta AI". All user-visible text now says Cappta AI. Primary domain is www.cappta.ai; foxbot.cl kept in CORS for backward compat. NexiaLogo.tsx kept as orphan file (unused).
 - **Product Isolation**: `/api/products/browse?tenantId=X` filters products by tenant. Each tenant only sees their own products in the widget.
 - **Beautify Text**: `/api/tenant-panel/beautify-text` endpoint uses GPT-4o-mini to improve bot training text (copywriting, grammar, tone) while preserving structure and factual data.
 

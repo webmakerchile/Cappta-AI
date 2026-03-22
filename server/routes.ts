@@ -110,6 +110,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   const allowedOrigins = [
+    "https://cappta.ai",
+    "https://www.cappta.ai",
     "https://foxbot.cl",
     "https://www.foxbot.cl",
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "",
@@ -1245,7 +1247,7 @@ ${DEMO_BASE_RULES}`,
         email: tenant.email,
         ip: req.ip || req.headers["x-forwarded-for"] as string,
         userAgent: req.headers["user-agent"],
-        url: "https://foxbot.cl/register",
+        url: "https://www.cappta.ai/register",
         contentName: "Cappta AI",
       }).catch(() => {});
 
@@ -1296,7 +1298,7 @@ ${DEMO_BASE_RULES}`,
           email: tenant.email,
           ip: req.ip || req.headers["x-forwarded-for"] as string,
           userAgent: req.headers["user-agent"],
-          url: "https://foxbot.cl/register",
+          url: "https://www.cappta.ai/register",
           contentName: "Cappta AI",
         }).catch(() => {});
       } else if (picture && tenant.avatarUrl !== picture) {
@@ -1522,7 +1524,7 @@ ${DEMO_BASE_RULES}`,
       const tenant = await storage.getTenantById(auth.id);
       if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
 
-      const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "foxbot.cl";
+      const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "www.cappta.ai";
       const proto = req.get("x-forwarded-proto") || req.protocol || "https";
       const baseUrl = `${proto}://${forwardedHost}`;
       const tenantId = tenant.id;
@@ -1532,11 +1534,11 @@ ${DEMO_BASE_RULES}`,
       const pluginPhp = `<?php
 /**
  * Plugin Name: Cappta AI Chat - ${companyName}
- * Plugin URI: https://foxbot.cl
+ * Plugin URI: https://www.cappta.ai
  * Description: Chatbot inteligente de Cappta AI para ${companyName}. Se instala automaticamente en todas las paginas de tu sitio WordPress.
  * Version: 1.0.0
  * Author: Web Maker Chile
- * Author URI: https://foxbot.cl
+ * Author URI: https://www.cappta.ai
  * License: GPL v2 or later
  * Text Domain: nexia-chat
  */
@@ -1589,7 +1591,7 @@ function nexia_render_widget() {
 add_action('wp_footer', 'nexia_render_widget');
 
 function nexia_settings_link($links) {
-    $settings_link = '<a href="https://foxbot.cl/dashboard" target="_blank">Configurar en Cappta AI</a>';
+    $settings_link = '<a href="https://www.cappta.ai/dashboard" target="_blank">Configurar en Cappta AI</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
@@ -1597,7 +1599,7 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'nexia_settings_l
 
 function nexia_admin_notice() {
     if (!current_user_can('manage_options')) return;
-    echo '<div class="notice notice-success is-dismissible"><p><strong>Cappta AI Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://foxbot.cl/dashboard" target="_blank">Ir al panel de Cappta AI</a></p></div>';
+    echo '<div class="notice notice-success is-dismissible"><p><strong>Cappta AI Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://www.cappta.ai/dashboard" target="_blank">Ir al panel de Cappta AI</a></p></div>';
 }
 register_activation_hook(__FILE__, function() {
     set_transient('nexia_activation_notice', true, 5);
@@ -1628,7 +1630,7 @@ Cappta AI es un chatbot impulsado por inteligencia artificial que se integra aut
 Caracteristicas:
 * Respuestas inteligentes con IA
 * Soporte en tiempo real
-* Totalmente personalizable desde foxbot.cl/dashboard
+* Totalmente personalizable desde www.cappta.ai/dashboard
 * Compatible con todos los temas de WordPress
 * Responsive - funciona en escritorio y movil
 
@@ -1638,7 +1640,7 @@ Caracteristicas:
 2. Activa el plugin
 3. Listo! El chatbot aparecera automaticamente en tu sitio
 
-Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
+Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
 
 == Changelog ==
 
@@ -2014,7 +2016,7 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
             trackTikTokEvent({
               event: "Purchase",
               email: tenant.email,
-              url: "https://foxbot.cl/dashboard",
+              url: "https://www.cappta.ai/dashboard",
               value: planInfo.amount,
               currency: "CLP",
               contentName: planInfo.label,
