@@ -1621,13 +1621,13 @@ export default function Landing() {
             <span className="block text-gradient-brand">CON IA</span>
           </h1>
 
-          <p className="text-sm sm:text-base uppercase tracking-[0.25em] text-white/40 font-medium mb-6 font-heading">
+          <p className="text-sm sm:text-base uppercase tracking-[0.25em] text-white/60 font-medium mb-6 font-heading">
             Una extensión de tu equipo que impulsa tu negocio
           </p>
 
-          <p className="text-base sm:text-lg text-white/55 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
+          <p className="text-base sm:text-lg text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
             Automatiza y deja que la IA responda, califique y haga seguimiento.
-            <span className="text-white/85 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
+            <span className="text-white font-bold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
@@ -1651,7 +1651,7 @@ export default function Landing() {
               { text: "Garantía total de 60 días", color: "#10b981" },
               { text: "Implementación personalizada", color: "#10b981" },
             ].map(({ text, color }) => (
-              <span key={text} className="flex items-center gap-2 text-sm text-white/50">
+              <span key={text} className="flex items-center gap-2 text-sm text-white/70">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
                 {text}
               </span>
@@ -1659,7 +1659,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="relative pb-10 px-6">
+        <div className="relative pb-12 px-6">
           <div className="max-w-5xl mx-auto flex items-center justify-center gap-10 sm:gap-16 flex-wrap" data-testid="logos-trusted-by">
             {[
               { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
