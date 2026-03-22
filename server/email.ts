@@ -30,7 +30,7 @@ export async function sendOfflineNotification(data: OfflineNotificationData): Pr
       subject: `Tienes un nuevo mensaje en el chat`,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #ffffff; border-radius: 8px; overflow: hidden;">
-          <div style="background: #6200EA; padding: 24px 32px;">
+          <div style="background: #7669E9; padding: 24px 32px;">
             <h1 style="margin: 0; font-size: 20px; color: #ffffff;">Nuevo Mensaje en el Chat</h1>
           </div>
           <div style="padding: 32px;">
@@ -39,7 +39,7 @@ export async function sendOfflineNotification(data: OfflineNotificationData): Pr
             <p style="color: #999; font-size: 13px;">Vuelve al chat para ver el mensaje completo y continuar la conversacion.</p>
           </div>
           <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-            Notificacion enviada desde Chat Widget
+            Notificacion enviada desde Nexia AI
           </div>
         </div>
       `,
@@ -133,7 +133,7 @@ export async function sendContactNotification(data: ContactEmailData): Promise<b
       subject: `Solicitud de contacto: ${data.userName}`,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #ffffff; border-radius: 8px; overflow: hidden;">
-          <div style="background: #6200EA; padding: 24px 32px;">
+          <div style="background: #7669E9; padding: 24px 32px;">
             <h1 style="margin: 0; font-size: 20px; color: #ffffff;">Nueva Solicitud de Contacto</h1>
           </div>
           <div style="padding: 32px;">
@@ -177,11 +177,11 @@ export async function sendContactNotification(data: ContactEmailData): Promise<b
             </div>` : ""}
 
             <div style="margin-top: 32px; text-align: center;">
-              <a href="mailto:${data.userEmail}" style="display: inline-block; background: #6200EA; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600;">Responder al Cliente</a>
+              <a href="mailto:${data.userEmail}" style="display: inline-block; background: #7669E9; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600;">Responder al Cliente</a>
             </div>
           </div>
           <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-            Notificaci\u00f3n enviada desde Chat Widget
+            Notificaci\u00f3n enviada desde Nexia AI
           </div>
         </div>
       `,
