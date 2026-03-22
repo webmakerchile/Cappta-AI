@@ -480,7 +480,10 @@ function ChatWidget() {
 
   const toggleChat = useCallback(() => {
     if (isInlineEmbed) {
-      try { window.parent.postMessage({ type: "nexia-close" }, window.location.origin); } catch {}
+      try {
+        window.parent.postMessage({ type: "nexia-close" }, window.location.origin);
+        window.parent.postMessage({ type: "foxbot-close" }, window.location.origin);
+      } catch {}
       return;
     }
     setIsOpen((prev) => {
@@ -517,6 +520,7 @@ function ChatWidget() {
     if (widgetPosition && !isInlineEmbed) {
       try {
         window.parent.postMessage({ type: "nexia_position", position: widgetPosition }, "*");
+        window.parent.postMessage({ type: "foxbot_position", position: widgetPosition }, "*");
         if (widgetBubbleText) {
           postMessageToParent("close_chat", true);
         }

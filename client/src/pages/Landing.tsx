@@ -67,67 +67,64 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-const features = [
+const capabilities = [
   {
     icon: Brain,
-    title: "IA Conversaciónal Avanzada",
-    description: "Respuestas inteligentes potenciadas por GPT que entienden contexto, historial y la personalidad de tu marca.",
+    title: "IA Conversacional Avanzada",
+    summary: "Respuestas inteligentes que entienden tu marca, productos y clientes.",
+    details: [
+      "Motor GPT que comprende contexto, historial y personalidad de marca",
+      "Pega la URL de tu sitio y Nexia AI extrae productos, servicios, contacto y horarios automáticamente",
+      "Sube PDFs, manuales o catálogos — la IA los usa como contexto para respuestas precisas",
+    ],
     iconColor: "#7669E9",
     glow: "rgba(118, 105, 233, 0.15)",
   },
   {
-    icon: Globe,
-    title: "Configuración Automática",
-    description: "Pega la URL de tu sitio web y Nexia AI extrae productos, servicios, contacto y horarios automáticamente. Cero configuración manual.",
+    icon: ShoppingCart,
+    title: "Ventas Automatizadas",
+    summary: "Catálogo en el chat, carrito y checkout sin salir de la conversación.",
+    details: [
+      "Tus clientes exploran productos, ven precios y disponibilidad sin salir del chat",
+      "Compatible con WooCommerce, Shopify, WordPress, Wix y cualquier plataforma",
+      "Recomendaciones inteligentes basadas en el contexto de la conversación",
+    ],
     iconColor: "#9678E6",
     glow: "rgba(150, 120, 230, 0.15)",
   },
   {
-    icon: Users,
-    title: "Equipo Multi-Agente",
-    description: "Crea tu equipo con roles: propietario, administrador y ejecutivo. Cada uno ve solo lo que necesita y atiende chats con su identidad.",
-    iconColor: "#3b82f6",
-    glow: "rgba(59, 130, 246, 0.15)",
-  },
-  {
-    icon: FileText,
-    title: "Entrena con tus Documentos",
-    description: "Sube PDFs, manuales, catálogos o archivos Excel. La IA los usa como contexto para dar respuestas precisas y actualizadas.",
-    iconColor: "#a855f7",
-    glow: "rgba(168, 85, 247, 0.15)",
-  },
-  {
-    icon: ShoppingCart,
-    title: "Catálogo en el Chat",
-    description: "Tus clientes exploran productos, ven precios y disponibilidad sin salir de la conversación. Compatible con WooCommerce, Shopify y cualquier plataforma.",
-    iconColor: "#ef4444",
-    glow: "rgba(239, 68, 68, 0.15)",
-  },
-  {
     icon: Headphones,
-    title: "Intervención de Ejecutivos",
-    description: "Cuando el cliente necesita atención humana, un ejecutivo toma el control del chat en tiempo real sin que el cliente note el cambio.",
+    title: "IA + Ejecutivos Humanos",
+    summary: "La IA resuelve el 90%. Cuando el cliente necesita más, un humano toma el control.",
+    details: [
+      "Transición invisible: el cliente nunca nota el cambio entre IA y ejecutivo",
+      "Equipo multi-agente con roles (propietario, admin, ejecutivo) y colores únicos",
+      "Notificaciones push instantáneas cuando un cliente solicita atención humana",
+    ],
     iconColor: "#6366f1",
     glow: "rgba(99, 102, 241, 0.15)",
   },
   {
-    icon: Bell,
-    title: "Notificaciones Push",
-    description: "Recibe alertas instantáneas cuando un cliente escribe o pide atención. Nunca pierdas una venta por no responder a tiempo.",
-    iconColor: "#ec4899",
-    glow: "rgba(236, 72, 153, 0.15)",
-  },
-  {
     icon: BarChart3,
     title: "Dashboard y Analíticas",
-    description: "Métricas de sesiones, satisfacción, rendimiento del bot y consumo mensual. Calificaciones con estrellas de tus clientes.",
+    summary: "Métricas en tiempo real de sesiones, satisfacción y rendimiento del bot.",
+    details: [
+      "Panel completo con métricas de sesiones, calificaciones y consumo mensual",
+      "Calificaciones con estrellas directas de tus clientes",
+      "Reportes de rendimiento del bot vs. ejecutivos humanos",
+    ],
     iconColor: "#06b6d4",
     glow: "rgba(6, 182, 212, 0.15)",
   },
   {
     icon: Smartphone,
-    title: "App Descargable (PWA)",
-    description: "Instala Nexia AI en tu celular o PC como una app nativa. Funciona offline, recibe notificaciones y responde desde donde estés.",
+    title: "Plataforma Multi-Dispositivo",
+    summary: "App descargable, notificaciones push y acceso desde cualquier dispositivo.",
+    details: [
+      "Instala Nexia AI como app nativa en celular o PC (PWA)",
+      "Notificaciones push para no perder ninguna venta",
+      "Widget personalizable para tu sitio web con colores de tu marca",
+    ],
     iconColor: "#14b8a6",
     glow: "rgba(20, 184, 166, 0.15)",
   },
@@ -1162,11 +1159,131 @@ function CountUp({ target }: { target: string }) {
 }
 
 
+function CapabilitiesAccordion({ isVisible }: { isVisible: boolean }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-3">
+      {capabilities.map((cap, index) => {
+        const isOpen = openIndex === index;
+        return (
+          <div
+            key={cap.title}
+            className={`rounded-2xl glass-card transition-all duration-500 overflow-hidden ${isVisible ? "animate-count-fade" : "opacity-0"}`}
+            style={{ animationDelay: `${index * 100}ms` }}
+            data-testid={`accordion-feature-${index}`}
+          >
+            <button
+              type="button"
+              onClick={() => setOpenIndex(isOpen ? null : index)}
+              className="w-full flex items-center gap-4 p-6 text-left transition-colors hover:bg-white/[0.02]"
+              data-testid={`button-feature-toggle-${index}`}
+            >
+              <div
+                className="flex items-center justify-center w-12 h-12 rounded-2xl shrink-0 transition-all duration-300"
+                style={{ backgroundColor: `${cap.iconColor}12` }}
+              >
+                <cap.icon className="w-6 h-6" style={{ color: cap.iconColor }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-white/90">{cap.title}</h3>
+                <p className="text-sm text-white/40 mt-0.5">{cap.summary}</p>
+              </div>
+              <ChevronDown
+                className={`w-5 h-5 text-white/30 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            <div
+              className="overflow-hidden transition-all duration-300"
+              style={{ maxHeight: isOpen ? "300px" : "0", opacity: isOpen ? 1 : 0 }}
+            >
+              <div className="px-6 pb-6 pt-0 pl-[88px]">
+                <ul className="space-y-2.5">
+                  {cap.details.map((detail, di) => (
+                    <li key={di} className="flex items-start gap-2.5 text-sm text-white/50 leading-relaxed">
+                      <Check className="w-4 h-4 shrink-0 mt-0.5" style={{ color: cap.iconColor }} />
+                      <span>{detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const faqItems = [
+  {
+    q: "¿Qué es Nexia AI y cómo funciona?",
+    a: "Nexia AI es un agente de inteligencia artificial que atiende y vende por ti las 24 horas. Se integra en tu sitio web como un widget de chat, responde preguntas de tus clientes usando IA avanzada, y cuando el cliente necesita atención humana, un ejecutivo toma el control sin interrupciones.",
+  },
+  {
+    q: "¿Necesito conocimientos técnicos para instalar Nexia AI?",
+    a: "No. Nuestro equipo te ayuda con la instalación completa. Solo necesitas pegar un código en tu sitio web (WordPress, Shopify, WooCommerce, Wix, etc.) y listo. También ofrecemos onboarding personalizado en los planes Pro y Enterprise.",
+  },
+  {
+    q: "¿Puedo probar Nexia AI antes de comprar?",
+    a: "Sí. Puedes agendar una demo personalizada donde te mostramos cómo funciona con tu negocio específico. También puedes probar la demo en vivo directamente en nuestro sitio.",
+  },
+  {
+    q: "¿Qué plataformas soporta Nexia AI?",
+    a: "Nexia AI es compatible con WordPress, WooCommerce, Shopify, Wix, y cualquier sitio web que permita insertar código HTML. También ofrecemos integración vía API para plataformas personalizadas.",
+  },
+  {
+    q: "¿Puedo cancelar mi suscripción en cualquier momento?",
+    a: "Sí. No hay contratos de permanencia. Puedes cancelar tu plan en cualquier momento desde tu dashboard. Ten en cuenta que no se admiten reembolsos según nuestros términos de servicio.",
+  },
+];
+
+function FAQSection({ isVisible }: { isVisible: boolean }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-3">
+      {faqItems.map((item, index) => {
+        const isOpen = openIndex === index;
+        return (
+          <div
+            key={index}
+            className={`rounded-2xl glass-card transition-all duration-500 overflow-hidden ${isVisible ? "animate-count-fade" : "opacity-0"}`}
+            style={{ animationDelay: `${index * 80}ms` }}
+            data-testid={`accordion-faq-${index}`}
+          >
+            <button
+              type="button"
+              onClick={() => setOpenIndex(isOpen ? null : index)}
+              className="w-full flex items-center gap-4 p-5 text-left transition-colors hover:bg-white/[0.02]"
+              data-testid={`button-faq-toggle-${index}`}
+            >
+              <span className="flex-1 text-sm font-semibold text-white/80">{item.q}</span>
+              <ChevronDown
+                className={`w-4 h-4 text-white/30 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            <div
+              className="overflow-hidden transition-all duration-300"
+              style={{ maxHeight: isOpen ? "300px" : "0", opacity: isOpen ? 1 : 0 }}
+            >
+              <div className="px-5 pb-5 pt-0">
+                <p className="text-sm text-white/45 leading-relaxed">{item.a}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function DemoScheduleForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({ name: "", email: "", howHeard: "", company: "", website: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -1175,15 +1292,20 @@ function DemoScheduleForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
+    setError("");
     try {
-      await fetch("/api/demo-request", {
+      const res = await fetch("/api/demo-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-    } catch {}
-    setSending(false);
-    setSubmitted(true);
+      if (!res.ok) throw new Error("Error al enviar");
+      setSubmitted(true);
+    } catch {
+      setError("No pudimos enviar tu solicitud. Intenta de nuevo.");
+    } finally {
+      setSending(false);
+    }
   };
 
   if (submitted) {
@@ -1254,6 +1376,7 @@ function DemoScheduleForm() {
                 <label className="text-xs font-semibold text-white/50 mb-1.5 block">¿Cómo podemos ayudarte?</label>
                 <textarea name="message" value={formData.message} onChange={handleChange} rows={3} placeholder="Cuéntanos sobre tu negocio..." className={`${inputCls} resize-none`} data-testid="input-demo-message" />
               </div>
+              {error && <p className="text-red-400 text-xs text-center" data-testid="text-demo-error">{error}</p>}
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl text-sm font-bold border-violet-500/30" data-testid="button-demo-back">Atrás</Button>
                 <Button type="submit" disabled={sending || !formData.company} className="flex-1 py-5 rounded-2xl text-sm font-bold shadow-xl shadow-primary/15" data-testid="button-demo-submit">
@@ -1274,6 +1397,7 @@ export default function Landing() {
   const handoffSection = useInView(0.15);
   const stepsSection = useInView(0.1);
   const pricingSection = useInView(0.1);
+  const faqSection = useInView(0.1);
   const casesSection = useInView(0.1);
 
   useEffect(() => {
@@ -1302,7 +1426,7 @@ export default function Landing() {
     const handler = (e: MessageEvent) => {
       if (!e.data || !e.data.type) return;
       if (e.data.position) pos = e.data.position;
-      if (e.data.type === "nexia_position") { pos = e.data.position; setPos(pos, "closed"); }
+      if (e.data.type === "nexia_position" || e.data.type === "foxbot_position") { pos = e.data.position; setPos(pos, "closed"); }
       if (e.data.type === "open_chat") setPos(pos, "open");
       if (e.data.type === "close_chat") setPos(pos, "closed", e.data.width, e.data.height);
     };
@@ -1492,26 +1616,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((feature, index) => (
-              <div
-                key={feature.title}
-                className={`group relative rounded-2xl glass-card glass-card-hover p-7 transition-all duration-500 ${featuresSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
-                style={{ animationDelay: `${index * 100}ms` }}
-                data-testid={`card-feature-${index}`}
-              >
-                <div className="absolute top-0 left-0 w-full h-px" style={{ background: `linear-gradient(90deg, transparent 0%, ${feature.glow} 50%, transparent 100%)` }} />
-                <div
-                  className="flex items-center justify-center w-14 h-14 rounded-2xl mb-5 transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg"
-                  style={{ backgroundColor: `${feature.iconColor}12`, boxShadow: `0 0 0 0 ${feature.glow}` }}
-                >
-                  <feature.icon className="w-7 h-7" style={{ color: feature.iconColor }} />
-                </div>
-                <h3 className="text-base font-bold mb-2.5 text-white/90">{feature.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
-          </div>
+          <CapabilitiesAccordion isVisible={featuresSection.isVisible} />
         </div>
       </section>
 
@@ -1962,6 +2067,27 @@ export default function Landing() {
         </div>
       </section>
 
+
+      <section id="faq" className="py-28 px-6 relative overflow-hidden" ref={faqSection.ref as any} data-testid="section-faq">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+              <MessageSquare className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-semibold text-primary tracking-wide">PREGUNTAS FRECUENTES</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-faq-title">
+              ¿Tienes dudas?
+              <br />
+              <span className="text-gradient-brand">Te las resolvemos</span>
+            </h2>
+          </div>
+
+          <FAQSection isVisible={faqSection.isVisible} />
+        </div>
+      </section>
 
       <section className="py-28 px-6 relative overflow-hidden" data-testid="section-cta">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
