@@ -253,8 +253,10 @@ const pricingPlans = [
   },
 ];
 
-const addonIconMap: Record<string, any> = {
-  Megaphone, Link, Phone, FileText, TrendingDown, BarChart3, Workflow, Calendar, Package,
+import type { LucideIcon } from "lucide-react";
+
+const addonIconMap: Record<string, LucideIcon> = {
+  Megaphone, Link, Phone, FileText, TrendingDown, BarChart3, Workflow, Calendar, Package, MessageCircle,
 };
 
 interface AddonCatalogItem {

@@ -1593,7 +1593,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(tenantAddons)
       .innerJoin(addons, eq(tenantAddons.addonSlug, addons.slug))
-      .where(eq(tenantAddons.tenantId, tenantId));
+      .where(and(eq(tenantAddons.tenantId, tenantId), eq(tenantAddons.status, "active")));
     return results.map(r => ({ ...r.tenant_addons, addon: r.addons }));
   }
 
