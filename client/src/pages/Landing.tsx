@@ -65,7 +65,7 @@ import {
   Workflow,
   Calendar,
 } from "lucide-react";
-import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
+import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiShopify, SiWoo, SiMagento, SiSquarespace, SiWebflow } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
@@ -1550,6 +1550,29 @@ export default function Landing() {
                 {text}
               </span>
             ))}
+          </div>
+
+          <div className="mb-14">
+            <p className="text-[11px] font-semibold text-white/20 tracking-[0.2em] uppercase text-center mb-6" data-testid="text-trusted-by">
+              Integrado oficialmente con
+            </p>
+            <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap" data-testid="logos-trusted-by">
+              {[
+                { Icon: SiWordpress, name: "WordPress" },
+                { Icon: SiShopify, name: "Shopify" },
+                { Icon: SiWoo, name: "WooCommerce" },
+                { Icon: SiMagento, name: "Magento" },
+                { Icon: SiSquarespace, name: "Squarespace" },
+                { Icon: SiWebflow, name: "Webflow" },
+                { Icon: SiMeta, name: "Meta" },
+                { Icon: SiWhatsapp, name: "WhatsApp" },
+              ].map(({ Icon, name }) => (
+                <div key={name} className="flex flex-col items-center gap-1.5 group" data-testid={`logo-partner-${name.toLowerCase()}`}>
+                  <Icon className="w-6 h-6 text-white/20 group-hover:text-white/50 transition-colors duration-300" />
+                  <span className="text-[9px] text-white/15 group-hover:text-white/35 font-medium tracking-wider uppercase transition-colors duration-300">{name}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-center mb-0">
