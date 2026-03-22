@@ -3,7 +3,7 @@ import { log } from "./index";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL || "soporte@foxbot.cl";
-const FROM_ADDRESS = process.env.FROM_EMAIL || "Nexia AI <noreply@foxbot.cl>";
+const FROM_ADDRESS = process.env.FROM_EMAIL || "Cappta AI <noreply@foxbot.cl>";
 
 interface ContactEmailData {
   userName: string;
@@ -39,7 +39,7 @@ export async function sendOfflineNotification(data: OfflineNotificationData): Pr
             <p style="color: #999; font-size: 13px;">Vuelve al chat para ver el mensaje completo y continuar la conversacion.</p>
           </div>
           <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-            Notificacion enviada desde Nexia AI
+            Notificacion enviada desde Cappta AI
           </div>
         </div>
       `,
@@ -92,7 +92,7 @@ export async function sendChatInviteEmail(data: ChatInviteData): Promise<{ succe
             <p style="color: #666; font-size: 12px; margin-top: 24px; word-break: break-all;">Si no puedes acceder al link, copia y pega esta URL en tu navegador: ${data.chatUrl}</p>
           </div>
           <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-            Notificacion enviada desde Nexia AI
+            Notificacion enviada desde Cappta AI
           </div>
         </div>
       `,
@@ -181,7 +181,7 @@ export async function sendContactNotification(data: ContactEmailData): Promise<b
             </div>
           </div>
           <div style="padding: 16px 32px; background: #111; text-align: center; color: #666; font-size: 12px;">
-            Notificaci\u00f3n enviada desde Nexia AI
+            Notificaci\u00f3n enviada desde Cappta AI
           </div>
         </div>
       `,

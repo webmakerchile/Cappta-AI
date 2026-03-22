@@ -207,7 +207,7 @@ function FullScreenChat() {
           <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
             <Headphones className="w-4 h-4 text-violet-500" />
           </div>
-          <span className="text-white font-semibold text-sm" data-testid="text-brand-name">Nexia AI Chat</span>
+          <span className="text-white font-semibold text-sm" data-testid="text-brand-name">Cappta AI Chat</span>
         </div>
         <a
           href="/"
@@ -311,7 +311,7 @@ function ContactChat() {
           <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
             <Headphones className="w-4 h-4 text-violet-500" />
           </div>
-          <span className="text-white font-semibold text-sm" data-testid="text-contact-brand">Nexia AI - Contacto</span>
+          <span className="text-white font-semibold text-sm" data-testid="text-contact-brand">Cappta AI - Contacto</span>
         </div>
         <a
           href="/"

@@ -1345,7 +1345,7 @@ export function ChatWindow({ messages, sessions, onSend, onContactExecutive, isC
           data-testid="link-copyright"
         >
           <span>Potenciado por</span>
-          <span className="font-medium">Nexia AI</span>
+          <span className="font-medium">Cappta AI</span>
         </a>
       </div>
 

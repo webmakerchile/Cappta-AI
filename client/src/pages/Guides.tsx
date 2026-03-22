@@ -18,7 +18,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiHtml5, SiGodaddy } from "react-icons/si";
-import { NexiaIcon } from "@/components/NexiaLogo";
+import { CapptaIcon } from "@/components/CapptaLogo";
 
 const WIDGET_BASE_URL = window.location.origin;
 
@@ -169,7 +169,7 @@ const guides: Guide[] = [
       },
       {
         title: "Conecta tu catálogo (opcional)",
-        description: "Para que el bot muestre productos de tu tienda, ve a tu Dashboard de Nexia AI > Integración y conecta tu API de WooCommerce con las credenciales de tu tienda.",
+        description: "Para que el bot muestre productos de tu tienda, ve a tu Dashboard de Cappta AI > Integración y conecta tu API de WooCommerce con las credenciales de tu tienda.",
         note: "Necesitas las claves de API de WooCommerce: ve a WooCommerce > Ajustes > Avanzado > API REST para generarlas.",
       },
     ],
@@ -318,15 +318,15 @@ const guides: Guide[] = [
     difficulty: "medio",
     steps: [
       {
-        title: "Crea el componente NexiaWidget",
+        title: "Crea el componente CapptaWidget",
         description: "Crea un nuevo archivo en tu proyecto React:",
-        code: "// src/components/NexiaWidget.jsx\nimport { useEffect } from 'react';\n\nexport default function NexiaWidget({ tenantId }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.allow = 'microphone';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    document.body.appendChild(iframe);\n    const handler = (e) => {\n      if (!e.data || !e.data.type) return;\n      const mobile = window.innerWidth <= 480;\n      if (e.data.type === 'open_chat') {\n        iframe.style.cssText = mobile\n          ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n          : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n      } else if (e.data.type === 'close_chat') {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n      }\n    };\n    window.addEventListener('message', handler);\n    return () => { window.removeEventListener('message', handler); iframe.remove(); };\n  }, [tenantId]);\n  return null;\n}",
+        code: "// src/components/CapptaWidget.jsx\nimport { useEffect } from 'react';\n\nexport default function CapptaWidget({ tenantId }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.allow = 'microphone';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    document.body.appendChild(iframe);\n    const handler = (e) => {\n      if (!e.data || !e.data.type) return;\n      const mobile = window.innerWidth <= 480;\n      if (e.data.type === 'open_chat') {\n        iframe.style.cssText = mobile\n          ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n          : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n      } else if (e.data.type === 'close_chat') {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n      }\n    };\n    window.addEventListener('message', handler);\n    return () => { window.removeEventListener('message', handler); iframe.remove(); };\n  }, [tenantId]);\n  return null;\n}",
         codeLanguage: "jsx",
       },
       {
         title: "Agrega el componente en tu App",
         description: "Importa y usa el componente en tu App.jsx o layout principal:",
-        code: `import NexiaWidget from './components/NexiaWidget';\n\nfunction App() {\n  return (\n    <div>\n      {/* Tu aplicación */}\n      <NexiaWidget tenantId="TU_TENANT_ID" />\n    </div>\n  );\n}`,
+        code: `import CapptaWidget from './components/CapptaWidget';\n\nfunction App() {\n  return (\n    <div>\n      {/* Tu aplicación */}\n      <CapptaWidget tenantId="TU_TENANT_ID" />\n    </div>\n  );\n}`,
         codeLanguage: "jsx",
       },
     ],
@@ -342,13 +342,13 @@ const guides: Guide[] = [
       {
         title: "Crea el componente con 'use client'",
         description: "Crea un archivo de componente client-side:",
-        code: "// components/NexiaWidget.tsx\n'use client';\nimport { useEffect } from 'react';\n\nexport default function NexiaWidget({ tenantId }: { tenantId: string }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.allow = 'microphone';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    document.body.appendChild(iframe);\n    const handler = (e: MessageEvent) => {\n      if (!e.data || !e.data.type) return;\n      const mobile = window.innerWidth <= 480;\n      if (e.data.type === 'open_chat') {\n        iframe.style.cssText = mobile\n          ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n          : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n      } else if (e.data.type === 'close_chat') {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n      }\n    };\n    window.addEventListener('message', handler);\n    return () => { window.removeEventListener('message', handler); iframe.remove(); };\n  }, [tenantId]);\n  return null;\n}",
+        code: "// components/CapptaWidget.tsx\n'use client';\nimport { useEffect } from 'react';\n\nexport default function CapptaWidget({ tenantId }: { tenantId: string }) {\n  useEffect(() => {\n    const iframe = document.createElement('iframe');\n    iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${tenantId}`;\n    iframe.allow = 'microphone';\n    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    document.body.appendChild(iframe);\n    const handler = (e: MessageEvent) => {\n      if (!e.data || !e.data.type) return;\n      const mobile = window.innerWidth <= 480;\n      if (e.data.type === 'open_chat') {\n        iframe.style.cssText = mobile\n          ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n          : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n      } else if (e.data.type === 'close_chat') {\n        iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n      }\n    };\n    window.addEventListener('message', handler);\n    return () => { window.removeEventListener('message', handler); iframe.remove(); };\n  }, [tenantId]);\n  return null;\n}",
         codeLanguage: "tsx",
       },
       {
         title: "Agregalo en tu layout.tsx",
         description: "Importa el widget en tu layout principal o en la página que quieras:",
-        code: `// app/layout.tsx\nimport NexiaWidget from '@/components/NexiaWidget';\n\nexport default function RootLayout({ children }) {\n  return (\n    <html>\n      <body>\n        {children}\n        <NexiaWidget tenantId="TU_TENANT_ID" />\n      </body>\n    </html>\n  );\n}`,
+        code: `// app/layout.tsx\nimport CapptaWidget from '@/components/CapptaWidget';\n\nexport default function RootLayout({ children }) {\n  return (\n    <html>\n      <body>\n        {children}\n        <CapptaWidget tenantId="TU_TENANT_ID" />\n      </body>\n    </html>\n  );\n}`,
         codeLanguage: "tsx",
       },
     ],
@@ -362,15 +362,15 @@ const guides: Guide[] = [
     difficulty: "medio",
     steps: [
       {
-        title: "Crea el componente NexiaWidget.vue",
+        title: "Crea el componente CapptaWidget.vue",
         description: "Crea un nuevo componente Vue:",
-        code: "<!-- components/NexiaWidget.vue -->\n<template>\n  <div></div>\n</template>\n\n<script setup>\nimport { onMounted, onUnmounted } from 'vue';\n\nconst props = defineProps({ tenantId: String });\nlet iframe;\nlet handler;\n\nonMounted(() => {\n  iframe = document.createElement('iframe');\n  iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${props.tenantId}`;\n  iframe.allow = 'microphone';\n  iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n  document.body.appendChild(iframe);\n  handler = (e) => {\n    if (!e.data || !e.data.type) return;\n    const mobile = window.innerWidth <= 480;\n    if (e.data.type === 'open_chat') {\n      iframe.style.cssText = mobile\n        ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n        : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n    } else if (e.data.type === 'close_chat') {\n      iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    }\n  };\n  window.addEventListener('message', handler);\n});\n\nonUnmounted(() => {\n  window.removeEventListener('message', handler);\n  if (iframe) iframe.remove();\n});\n</script>",
+        code: "<!-- components/CapptaWidget.vue -->\n<template>\n  <div></div>\n</template>\n\n<script setup>\nimport { onMounted, onUnmounted } from 'vue';\n\nconst props = defineProps({ tenantId: String });\nlet iframe;\nlet handler;\n\nonMounted(() => {\n  iframe = document.createElement('iframe');\n  iframe.src = `" + WIDGET_BASE_URL + "/widget?tenantId=${props.tenantId}`;\n  iframe.allow = 'microphone';\n  iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n  document.body.appendChild(iframe);\n  handler = (e) => {\n    if (!e.data || !e.data.type) return;\n    const mobile = window.innerWidth <= 480;\n    if (e.data.type === 'open_chat') {\n      iframe.style.cssText = mobile\n        ? 'position:fixed;bottom:0;right:0;width:100%;height:100%;border:none;z-index:9999;'\n        : 'position:fixed;bottom:20px;right:20px;width:400px;height:620px;border:none;z-index:9999;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';\n    } else if (e.data.type === 'close_chat') {\n      iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:80px;height:80px;border:none;z-index:9999;';\n    }\n  };\n  window.addEventListener('message', handler);\n});\n\nonUnmounted(() => {\n  window.removeEventListener('message', handler);\n  if (iframe) iframe.remove();\n});\n</script>",
         codeLanguage: "vue",
       },
       {
         title: "Usa el componente en tu App",
         description: "Agregalo en tu App.vue o layout principal:",
-        code: `<template>\n  <div>\n    <!-- Tu aplicación -->\n    <NexiaWidget tenantId="TU_TENANT_ID" />\n  </div>\n</template>\n\n<script setup>\nimport NexiaWidget from './components/NexiaWidget.vue';\n</script>`,
+        code: `<template>\n  <div>\n    <!-- Tu aplicación -->\n    <CapptaWidget tenantId="TU_TENANT_ID" />\n  </div>\n</template>\n\n<script setup>\nimport CapptaWidget from './components/CapptaWidget.vue';\n</script>`,
         codeLanguage: "vue",
       },
     ],
@@ -634,8 +634,8 @@ export default function Guides() {
             <a href="/" className="flex items-center gap-2 text-white/30 hover:text-primary transition-colors" data-testid="link-back-home">
               <ArrowLeft className="w-4 h-4" />
             </a>
-            <NexiaIcon className="w-8 h-8" />
-            <span className="text-lg font-extrabold text-white">Nexia AI</span>
+            <CapptaIcon className="w-8 h-8" />
+            <span className="text-lg font-extrabold text-white">Cappta AI</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold tracking-wider">GUIAS</span>
           </div>
           <div className="flex items-center gap-2">
@@ -656,7 +656,7 @@ export default function Guides() {
               <span className="text-xs font-semibold text-primary tracking-wide">GUIAS DE INSTALACION</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-guides-title">
-              Instala Nexia AI en
+              Instala Cappta AI en
               <br />
               <span className="text-gradient-green">cualquier plataforma</span>
             </h1>
@@ -774,7 +774,7 @@ export default function Guides() {
           <div className="mt-16 rounded-2xl glass-card p-8 text-center" data-testid="section-help">
             <h3 className="text-xl font-bold mb-3" data-testid="text-help-title">Tu plataforma no esta en la lista?</h3>
             <p className="text-white/40 text-sm mb-6 max-w-lg mx-auto leading-relaxed">
-              Nexia AI funciona con cualquier sitio web que permita agregar HTML o JavaScript.
+              Cappta AI funciona con cualquier sitio web que permita agregar HTML o JavaScript.
               El proceso es siempre el mismo: copia el script y pegalo antes de &lt;/body&gt;.
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -795,10 +795,10 @@ export default function Guides() {
 
       <footer className="border-t border-white/[0.04] py-8 px-4 text-center" data-testid="footer-guides">
         <div className="flex items-center justify-center gap-2.5 mb-3">
-          <NexiaIcon className="w-8 h-8" />
-          <span className="text-lg font-extrabold text-white">Nexia AI</span>
+          <CapptaIcon className="w-8 h-8" />
+          <span className="text-lg font-extrabold text-white">Cappta AI</span>
         </div>
-        <p className="text-xs text-white/20">&copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile. Todos los derechos reservados.</p>
+        <p className="text-xs text-white/20">&copy; {new Date().getFullYear()} Cappta AI by Web Maker Chile. Todos los derechos reservados.</p>
       </footer>
     </div>
   );

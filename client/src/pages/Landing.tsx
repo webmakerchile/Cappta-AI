@@ -55,7 +55,7 @@ import {
   Gift,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
-import { NexiaLogo, NexiaIcon } from "@/components/NexiaLogo";
+import { CapptaLogo, CapptaIcon } from "@/components/CapptaLogo";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
@@ -74,7 +74,7 @@ const capabilities = [
     summary: "Respuestas inteligentes que entienden tu marca, productos y clientes.",
     details: [
       "Motor GPT que comprende contexto, historial y personalidad de marca",
-      "Pega la URL de tu sitio y Nexia AI extrae productos, servicios, contacto y horarios automáticamente",
+      "Pega la URL de tu sitio y Cappta AI extrae productos, servicios, contacto y horarios automáticamente",
       "Sube PDFs, manuales o catálogos — la IA los usa como contexto para respuestas precisas",
     ],
     iconColor: "#7669E9",
@@ -121,7 +121,7 @@ const capabilities = [
     title: "Plataforma Multi-Dispositivo",
     summary: "App descargable, notificaciones push y acceso desde cualquier dispositivo.",
     details: [
-      "Instala Nexia AI como app nativa en celular o PC (PWA)",
+      "Instala Cappta AI como app nativa en celular o PC (PWA)",
       "Notificaciones push para no perder ninguna venta",
       "Widget personalizable para tu sitio web con colores de tu marca",
     ],
@@ -415,7 +415,7 @@ function ChatbotPreview() {
         </div>
 
         <div className="px-3 pb-2 text-center">
-          <span className="text-[9px] text-white/15">Potenciado por Nexia AI</span>
+          <span className="text-[9px] text-white/15">Potenciado por Cappta AI</span>
         </div>
       </div>
     </div>
@@ -888,9 +888,9 @@ function MobileNav() {
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4" data-testid="nav-bar">
       <div className={`max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3 rounded-2xl transition-all duration-500 ${scrolled ? "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/[0.06] shadow-2xl shadow-black/30" : "bg-transparent"}`}>
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
-          <NexiaIcon size={36} className="transition-transform duration-300 group-hover:scale-110" />
+          <CapptaIcon size={36} className="transition-transform duration-300 group-hover:scale-110" />
           <span className="text-lg font-extrabold tracking-tight">
-            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50 font-medium ml-0.5">AI</span>
+            <span className="text-gradient-brand">Cappta</span> <span className="text-white/50 font-medium ml-0.5">AI</span>
           </span>
         </a>
         <div className="hidden md:flex items-center gap-1">
@@ -1013,7 +1013,7 @@ function AnimatedChat() {
           <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ background: `linear-gradient(135deg, ${theme.accent}0d 0%, transparent 40%, ${theme.accent}08 100%)`, transition: "background 0.6s ease" }} />
           <div className="relative px-4 py-3.5 flex items-center gap-3" style={{ background: theme.headerBg, transition: "background 0.6s ease" }}>
             <div className="relative">
-              <NexiaIcon size={36} className="rounded-full" />
+              <CapptaIcon size={36} className="rounded-full" />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2" style={{ backgroundColor: theme.statusColor, borderColor: theme.statusBorder, transition: "background-color 0.6s, border-color 0.6s" }} />
             </div>
             <div>
@@ -1230,20 +1230,20 @@ function CapabilitiesAccordion({ isVisible }: { isVisible: boolean }) {
 
 const faqItems = [
   {
-    q: "¿Qué es Nexia AI y cómo funciona?",
-    a: "Nexia AI es un agente de inteligencia artificial que atiende y vende por ti las 24 horas. Se integra en tu sitio web como un widget de chat, responde preguntas de tus clientes usando IA avanzada, y cuando el cliente necesita atención humana, un ejecutivo toma el control sin interrupciones.",
+    q: "¿Qué es Cappta AI y cómo funciona?",
+    a: "Cappta AI es un agente de inteligencia artificial que atiende y vende por ti las 24 horas. Se integra en tu sitio web como un widget de chat, responde preguntas de tus clientes usando IA avanzada, y cuando el cliente necesita atención humana, un ejecutivo toma el control sin interrupciones.",
   },
   {
-    q: "¿Necesito conocimientos técnicos para instalar Nexia AI?",
+    q: "¿Necesito conocimientos técnicos para instalar Cappta AI?",
     a: "No. Nuestro equipo te ayuda con la instalación completa. Solo necesitas pegar un código en tu sitio web (WordPress, Shopify, WooCommerce, Wix, etc.) y listo. También ofrecemos onboarding personalizado en los planes Pro y Enterprise.",
   },
   {
-    q: "¿Puedo probar Nexia AI antes de comprar?",
-    a: "Sí. Puedes agendar una reunión personalizada donde te mostramos cómo funciona Nexia AI con tu negocio específico. Nuestro equipo te guía paso a paso.",
+    q: "¿Puedo probar Cappta AI antes de comprar?",
+    a: "Sí. Puedes agendar una reunión personalizada donde te mostramos cómo funciona Cappta AI con tu negocio específico. Nuestro equipo te guía paso a paso.",
   },
   {
-    q: "¿Qué plataformas soporta Nexia AI?",
-    a: "Nexia AI es compatible con WordPress, WooCommerce, Shopify, Wix, y cualquier sitio web que permita insertar código HTML. También ofrecemos integración vía API para plataformas personalizadas.",
+    q: "¿Qué plataformas soporta Cappta AI?",
+    a: "Cappta AI es compatible con WordPress, WooCommerce, Shopify, Wix, y cualquier sitio web que permita insertar código HTML. También ofrecemos integración vía API para plataformas personalizadas.",
   },
   {
     q: "¿Puedo cancelar mi suscripción en cualquier momento?",
@@ -1340,7 +1340,7 @@ function DemoScheduleForm() {
       <div className="glass-card rounded-3xl p-8 border border-violet-500/10">
         <div className="text-center mb-6">
           <h3 className="text-xl font-bold text-white mb-2">Agenda tu Reunión</h3>
-          <p className="text-white/40 text-sm">Descubre cómo Nexia AI puede transformar tu negocio</p>
+          <p className="text-white/40 text-sm">Descubre cómo Cappta AI puede transformar tu negocio</p>
           <div className="flex items-center justify-center gap-3 mt-4">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 1 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>1</div>
             <div className="w-12 h-px bg-white/10" />
@@ -1654,7 +1654,7 @@ export default function Landing() {
               <span className="text-gradient-brand">cierra la venta</span>
             </h2>
             <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Nexia AI resuelve el 90% de las consultas automáticamente. Pero cuando tu cliente necesita atención humana,
+              Cappta AI resuelve el 90% de las consultas automáticamente. Pero cuando tu cliente necesita atención humana,
               un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente se de cuenta del cambio.
             </p>
           </div>
@@ -1664,7 +1664,7 @@ export default function Landing() {
               {
                 step: "1",
                 title: "El bot atiende",
-                desc: "Nexia AI responde al instante con IA: resuelve dudas, muestra productos y guia al cliente las 24 horas.",
+                desc: "Cappta AI responde al instante con IA: resuelve dudas, muestra productos y guia al cliente las 24 horas.",
                 icon: Bot,
                 color: "#7669E9",
                 gradient: "linear-gradient(135deg, rgba(118,105,233,0.08) 0%, rgba(118,105,233,0.02) 100%)",
@@ -1777,7 +1777,7 @@ export default function Landing() {
                 {
                   step: "03",
                   title: "Copia y pega",
-                  desc: "Agrega una línea de código a tu sitio web y Nexia AI atiende clientes al instante.",
+                  desc: "Agrega una línea de código a tu sitio web y Cappta AI atiende clientes al instante.",
                   icon: Code,
                   color: "#a855f7",
                 },
@@ -1826,7 +1826,7 @@ export default function Landing() {
               Historias reales <span className="text-gradient-brand">de éxito</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
-              Descubre cómo empresas como la tuya están transformando su atención al cliente con Nexia AI.
+              Descubre cómo empresas como la tuya están transformando su atención al cliente con Cappta AI.
             </p>
           </div>
 
@@ -1873,7 +1873,7 @@ export default function Landing() {
                   <div className="relative overflow-hidden" style={{ height: "340px" }}>
                     <img
                       src={caseItem.image}
-                      alt={`${caseItem.name} - Nexia AI en acción`}
+                      alt={`${caseItem.name} - Cappta AI en acción`}
                       className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
@@ -2161,9 +2161,9 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-14">
             <div className="md:col-span-4">
               <div className="flex items-center gap-2.5 mb-5">
-                <NexiaIcon size={36} />
+                <CapptaIcon size={36} />
                 <span className="text-lg font-extrabold">
-                  <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
+                  <span className="text-gradient-brand">Cappta</span> <span className="text-white/50">AI</span>
                 </span>
               </div>
               <p className="text-sm text-white/30 leading-relaxed mb-5">
@@ -2201,7 +2201,7 @@ export default function Landing() {
           </div>
           <div className="border-t border-white/[0.04] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-white/20" data-testid="text-copyright">
-              &copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile
+              &copy; {new Date().getFullYear()} Cappta AI by Web Maker Chile
             </p>
             <p className="text-xs text-white/15">
               Todos los derechos reservados.

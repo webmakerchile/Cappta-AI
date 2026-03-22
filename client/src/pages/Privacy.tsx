@@ -1,4 +1,4 @@
-import { NexiaLogo } from "@/components/NexiaLogo";
+import { CapptaLogo } from "@/components/CapptaLogo";
 
 export default function PrivacyPage() {
   return (
@@ -6,7 +6,7 @@ export default function PrivacyPage() {
       <header className="border-b border-white/[0.04] py-4 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <a href="/" className="flex items-center gap-2.5" data-testid="link-logo-home">
-            <NexiaLogo size={28} textClassName="text-lg" />
+            <CapptaLogo size={28} textClassName="text-lg" />
           </a>
           <a href="/" className="text-sm text-white/40 hover:text-primary transition-colors" data-testid="link-back-home">← Volver al inicio</a>
         </div>
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">1. Información que recopilamos</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            Nexia AI, operado por Web Maker Chile, recopila la siguiente información cuando utilizas nuestra plataforma:
+            Cappta AI, operado por Web Maker Chile, recopila la siguiente información cuando utilizas nuestra plataforma:
           </p>
           <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
             <li><strong className="text-white/70">Datos de registro:</strong> nombre, correo electrónico y contraseña al crear una cuenta de negocio.</li>
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc list-inside text-sm text-white/50 leading-relaxed space-y-2 ml-4">
             <li><strong className="text-white/70">Proveedores de IA:</strong> utilizamos OpenAI para procesar las conversaciones del chatbot. Los mensajes se envían a sus servidores para generar respuestas.</li>
-            <li><strong className="text-white/70">Procesador de pagos:</strong> utilizamos Mercado Pago para procesar suscripciones y pagos. Al suscribirte, tus datos de pago son gestionados directamente por Mercado Pago según sus propias políticas de privacidad. Nexia AI no almacena datos de tarjetas de crédito ni información financiera sensible.</li>
+            <li><strong className="text-white/70">Procesador de pagos:</strong> utilizamos Mercado Pago para procesar suscripciones y pagos. Al suscribirte, tus datos de pago son gestionados directamente por Mercado Pago según sus propias políticas de privacidad. Cappta AI no almacena datos de tarjetas de crédito ni información financiera sensible.</li>
             <li><strong className="text-white/70">Infraestructura:</strong> utilizamos servicios de hosting y base de datos de terceros para operar la plataforma.</li>
             <li><strong className="text-white/70">Obligaciones legales:</strong> podemos divulgar información si la ley lo requiere.</li>
           </ul>
@@ -85,14 +85,14 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">7. Datos de pago</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            Los pagos y suscripciones se procesan a través de Mercado Pago. Nexia AI no almacena ni tiene acceso a los datos de tu tarjeta de crédito o débito. Toda la información financiera es gestionada de forma segura por Mercado Pago bajo sus estándares de seguridad PCI DSS. Solo almacenamos un identificador de suscripción para gestionar el estado de tu plan.
+            Los pagos y suscripciones se procesan a través de Mercado Pago. Cappta AI no almacena ni tiene acceso a los datos de tu tarjeta de crédito o débito. Toda la información financiera es gestionada de forma segura por Mercado Pago bajo sus estándares de seguridad PCI DSS. Solo almacenamos un identificador de suscripción para gestionar el estado de tu plan.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white/80">8. Cookies</h2>
           <p className="text-sm text-white/50 leading-relaxed">
-            Nexia AI utiliza cookies esenciales para el funcionamiento de la plataforma (autenticación y sesiones). No utilizamos cookies de seguimiento ni publicidad de terceros.
+            Cappta AI utiliza cookies esenciales para el funcionamiento de la plataforma (autenticación y sesiones). No utilizamos cookies de seguimiento ni publicidad de terceros.
           </p>
         </section>
 
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
       </main>
 
       <footer className="border-t border-white/[0.04] py-8 px-6 text-center text-sm text-white/20">
-        &copy; {new Date().getFullYear()} Nexia AI by Web Maker Chile. Todos los derechos reservados.
+        &copy; {new Date().getFullYear()} Cappta AI by Web Maker Chile. Todos los derechos reservados.
       </footer>
     </div>
   );

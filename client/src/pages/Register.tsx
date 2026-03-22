@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Loader2, UserPlus, ArrowLeft, Shield, Zap, Bot, Sparkles } from "lucide-react";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
-import { NexiaLogo, NexiaIcon } from "@/components/NexiaLogo";
+import { CapptaLogo, CapptaIcon } from "@/components/CapptaLogo";
 
 const registerSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -61,7 +61,7 @@ export default function Register() {
     onSuccess: (data: { token: string }) => {
       localStorage.setItem("tenant_token", data.token);
       if (typeof window !== "undefined" && (window as any).ttq) {
-        (window as any).ttq.track("CompleteRegistration", { content_name: "Nexia AI" });
+        (window as any).ttq.track("CompleteRegistration", { content_name: "Cappta AI" });
       }
       toast({
         title: "Cuenta creada",
@@ -101,7 +101,7 @@ export default function Register() {
         <div className="relative max-w-sm text-center">
           <div className="relative mb-10 mx-auto w-fit animate-dash-fade-up">
             <div className="w-32 h-32 rounded-3xl glass-card flex items-center justify-center animate-float" style={{ boxShadow: "0 0 80px rgba(118, 105, 233, 0.06)" }}>
-              <NexiaIcon size={96} />
+              <CapptaIcon size={96} />
             </div>
             <div className="absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg animate-icon-pop dash-stagger-3" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 50%) 0%, hsl(280, 55%, 45%) 100%)" }}>
               <Zap className="w-6 h-6 text-white" />
@@ -109,7 +109,7 @@ export default function Register() {
           </div>
 
           <h2 className="text-3xl font-black mb-4 animate-dash-fade-up dash-stagger-1">
-            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
+            <span className="text-gradient-brand">Cappta</span> <span className="text-white/50">AI</span>
           </h2>
           <p className="text-white/40 text-sm leading-relaxed mb-8 animate-dash-fade-up dash-stagger-2">
             Crea tu cuenta y en minutos tendrás tu agente inteligente de ventas funcionando en tu sitio web.
@@ -141,7 +141,7 @@ export default function Register() {
           </a>
 
           <div className="lg:hidden flex items-center gap-3 mb-8 animate-dash-fade-up">
-            <NexiaLogo size={40} textClassName="text-2xl" />
+            <CapptaLogo size={40} textClassName="text-2xl" />
           </div>
 
           <div className="mb-8 animate-dash-fade-up dash-stagger-1">
@@ -149,7 +149,7 @@ export default function Register() {
               Crea tu cuenta
             </h1>
             <p className="text-white/40" data-testid="text-register-subtitle">
-              Registra tu empresa y comienza a usar Nexia AI
+              Registra tu empresa y comienza a usar Cappta AI
             </p>
           </div>
 

@@ -17,7 +17,7 @@ import {
 import { useState } from "react";
 import { Loader2, LogIn, ArrowLeft, Sparkles, Bot, Shield, UserCog, Building2 } from "lucide-react";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
-import { NexiaLogo, NexiaIcon } from "@/components/NexiaLogo";
+import { CapptaLogo, CapptaIcon } from "@/components/CapptaLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un correo válido"),
@@ -123,7 +123,7 @@ export default function Login() {
         <div className="relative max-w-sm text-center">
           <div className="relative mb-10 mx-auto w-fit animate-dash-fade-up">
             <div className="w-32 h-32 rounded-3xl glass-card flex items-center justify-center animate-float" style={{ boxShadow: "0 0 80px rgba(118, 105, 233, 0.08)" }}>
-              <NexiaIcon size={96} />
+              <CapptaIcon size={96} />
             </div>
             <div className="absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg animate-icon-pop dash-stagger-3" style={{ background: "linear-gradient(135deg, hsl(250, 65%, 50%) 0%, hsl(280, 55%, 45%) 100%)" }}>
               <Bot className="w-6 h-6 text-white" />
@@ -131,7 +131,7 @@ export default function Login() {
           </div>
 
           <h2 className="text-3xl font-black mb-4 animate-dash-fade-up dash-stagger-1">
-            <span className="text-gradient-brand">Nexia</span> <span className="text-white/50">AI</span>
+            <span className="text-gradient-brand">Cappta</span> <span className="text-white/50">AI</span>
           </h2>
           <p className="text-white/40 text-sm leading-relaxed mb-8 animate-dash-fade-up dash-stagger-2">
             Tu agente inteligente que vende y atiende por ti, a escala. Automatiza tu negocio 24/7.
@@ -162,7 +162,7 @@ export default function Login() {
           </a>
 
           <div className="lg:hidden flex items-center gap-3 mb-8 animate-dash-fade-up">
-            <NexiaLogo size={40} textClassName="text-2xl" />
+            <CapptaLogo size={40} textClassName="text-2xl" />
           </div>
 
           <div className="mb-8 animate-dash-fade-up dash-stagger-1">
@@ -170,7 +170,7 @@ export default function Login() {
               Bienvenido de vuelta
             </h1>
             <p className="text-white/40" data-testid="text-login-subtitle">
-              Inicia sesión para acceder a tu panel de Nexia AI
+              Inicia sesión para acceder a tu panel de Cappta AI
             </p>
           </div>
 

@@ -1,19 +1,20 @@
-# Nexia AI SaaS Platform by Web Maker Chile
+# Cappta AI SaaS Platform by Web Maker Chile
 
 ## Overview
-This project is a SaaS platform for AI-powered customer support chat widgets. Originally built as "FoxBot", it has been rebranded to **Nexia AI** with premium/luxury positioning. The platform integrates a React + Vite frontend with an Express + Socket.io backend. Businesses can register, configure their own chat widget, and embed it in their websites via iframe. The core features include AI-powered responses, product catalog integration, real-time agent collaboration, and a knowledge base that learns from conversations.
+This project is a SaaS platform for AI-powered customer support chat widgets. Originally built as "FoxBot", rebranded through "Nexia AI", now **Cappta AI** (cappta.ai) with premium/luxury positioning inspired by Vambe.ai. The platform integrates a React + Vite frontend with an Express + Socket.io backend. Businesses can register, configure their own chat widget, and embed it in their websites via iframe. The core features include AI-powered responses, product catalog integration, real-time agent collaboration, and a knowledge base that learns from conversations.
 
 ## Brand Identity
-- **Product Name**: Nexia AI (by Web Maker Chile)
+- **Product Name**: Cappta AI (by Web Maker Chile)
+- **Domain**: cappta.ai (brand domain), foxbot.cl (operational domain — CORS, @foxbot.cl emails, payment callbacks, widget detection stay foxbot.cl)
 - **Primary Color**: Deep violet/indigo #7669E9 = hsl(250, 65%, 60%)
-- **Logo Component**: `client/src/components/NexiaLogo.tsx` (SVG component with NexiaLogo and NexiaIcon exports)
+- **Logo Component**: `client/src/components/CapptaLogo.tsx` (SVG arc "C" logo with CapptaLogo and CapptaIcon exports)
+- **Typography**: Sora (headings via `font-heading` class) + Inter (body text) + DM Sans (dashboard/admin)
 - **Default Widget Color**: Green (#10b981) used as fallback when no tenant brandColor is set (tenant-configurable)
-- **Plan Names**: Nexia Starter ($79.990), Nexia Pro ($149.990), Nexia Enterprise ($349.990) CLP/mes
-- **Widget IDs**: `nexia-widget` (iframe ID), `nexia_position` (postMessage event)
-- **WordPress Plugin**: `nexia-chat` slug
-- **Domain**: foxbot.cl (all operational URLs, CORS origins, payment callbacks, email addresses @foxbot.cl remain foxbot.cl — domain migration is a separate task)
-- **Demo-first model**: All CTAs → "Agendar Demo" linking to #demo section
-- **Legacy brand**: "FoxBot" — all user-visible text rebranded to Nexia AI, but operational domain/URLs stay foxbot.cl
+- **Plan Names**: Cappta Starter (Free), Cappta Pro ($19.990), Cappta Enterprise ($49.990) CLP/mes
+- **Widget IDs**: `nexia-widget` (iframe ID — kept for backward compatibility with existing customer sites), `nexia_position` (postMessage event)
+- **WordPress Plugin**: `nexia-chat` slug (kept for backward compatibility)
+- **CTA model**: All CTAs → "Agendar Reunión" linking to #demo section (DemoScheduleForm)
+- **Legacy brands**: "FoxBot" → "Nexia AI" → "Cappta AI". All user-visible text now says Cappta AI. Operational domain/URLs stay foxbot.cl. NexiaLogo.tsx kept as orphan file (unused).
 - **Product Isolation**: `/api/products/browse?tenantId=X` filters products by tenant. Each tenant only sees their own products in the widget.
 - **Beautify Text**: `/api/tenant-panel/beautify-text` endpoint uses GPT-4o-mini to improve bot training text (copywriting, grammar, tone) while preserving structure and factual data.
 
@@ -41,7 +42,7 @@ Key architectural decisions and features include:
 - **Integrated Product Catalog**: Each tenant manages their own product catalog via the tenant panel. The bot queries the tenant-scoped PostgreSQL-backed catalog with fuzzy matching via pg_trgm trigram similarity. WooCommerce direct integration has been removed — products are managed per-tenant through the panel UI.
 - **Comprehensive Admin Panel**: Located at `/admin`, this panel offers session management, a chat viewer, global search, status filters, tags, canned responses, product catalog management, session agent badges, and agent type filters.
 - **Conversation Learning System**: An AI-powered learning pipeline that extracts knowledge from closed customer conversations.
-- **Ambassador Referral System**: Referral program with dynamic "Embajador" (Ambassador) tier. Normal referrals earn $3,000 CLP per confirmed paid referral. At 15+ active paid referrals (plan != 'free'), the referrer becomes an Ambassador and earns $5,000 CLP per referral + free Fox Enterprise plan. Ambassador status is **dynamic** — if paid referrals drop below 15 (e.g., referral downgrades to free plan), they lose Ambassador benefits. `getPaidReferralCount()` counts only referrals whose tenant currently has a paid plan ('basic' or 'pro'). Frontend shows Ambassador banner, progress toward ambassador threshold, and distinguishes "Activo" vs "Plan cancelado" referral statuses.
+- **Ambassador Referral System**: Referral program with dynamic "Embajador" (Ambassador) tier. Normal referrals earn $3,000 CLP per confirmed paid referral. At 15+ active paid referrals (plan != 'free'), the referrer becomes an Ambassador and earns $5,000 CLP per referral + free Cappta Enterprise plan. Ambassador status is **dynamic** — if paid referrals drop below 15 (e.g., referral downgrades to free plan), they lose Ambassador benefits. `getPaidReferralCount()` counts only referrals whose tenant currently has a paid plan ('basic' or 'pro'). Frontend shows Ambassador banner, progress toward ambassador threshold, and distinguishes "Activo" vs "Plan cancelado" referral statuses.
 - **Image Uploads**: Upload route `POST /api/uploads/direct` (multipart) converts images to base64 data URIs and returns them directly. Data URIs are stored in PostgreSQL text columns (logoUrl, avatarUrl, launcherImageUrl, botIconUrl) and used directly as image `src` attributes. This approach avoids external storage dependencies (Replit Object Storage sidecar returns 401 in both dev and deployment). Upload limit: 5MB. Typical icons/logos are under 200KB.
 
 ## SaaS Pages & Routing
@@ -60,7 +61,7 @@ Key architectural decisions and features include:
 ## Database Tables
 - `tenants` - SaaS tenant/company accounts (id, name, email, passwordHash, companyName, domain, widgetColor, welcomeMessage, welcomeSubtitle, logoUrl, avatarUrl, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, aiEnabled, businessHoursConfig, plan, flowCustomerId, referralCode, referredBy, rewardMonths, rewardPlan, rewardExpiresAt, cashBalance, createdAt)
 - `referrals` - Referral tracking (id, referrerId, referredId, confirmed, rewardApplied, createdAt, confirmedAt)
-  - **Referral rewards**: $3.000 CLP per confirmed referral (accumulated in cashBalance) + milestone subscription bonuses: 1→1mo Fox Pro, 3→2mo Fox Pro, 5→3mo Enterprise, 10→6mo Enterprise, 15→12mo Enterprise
+  - **Referral rewards**: $3.000 CLP per confirmed referral (accumulated in cashBalance) + milestone subscription bonuses: 1→1mo Cappta Pro, 3→2mo Cappta Pro, 5→3mo Enterprise, 10→6mo Enterprise, 15→12mo Enterprise
 - `sessions` - Chat sessions (has tenantId for multi-tenant isolation)
 - `messages` - Chat messages (has tenantId)
 - `products` - Product catalog (has tenantId)
@@ -135,7 +136,7 @@ Key architectural decisions and features include:
 - **Tenant Fields**: `whatsappEnabled` (int, default 0), `whatsappNumber` (text), `whatsappGreeting` (text)
 - **Admin Management**: Superadmin can toggle WhatsApp and assign numbers per tenant from Admin panel
 - **Dashboard**: Tenants see WhatsApp tab — free plans see upgrade prompt, paid plans see activation request or config (if enabled by admin)
-- **Pricing**: Optional add-on at $14.990 CLP/month for paid plans (Fox Pro or Fox Enterprise)
+- **Pricing**: Optional add-on at $14.990 CLP/month for paid plans (Cappta Pro or Cappta Enterprise)
 - **Conversation History**: In-memory per phone number with 30-minute TTL, max 20 messages
 
 ## Payment Integration (Mercado Pago Checkout Pro)

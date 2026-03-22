@@ -31,7 +31,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import type { Tenant } from "@shared/schema";
-import { NexiaIcon } from "@/components/NexiaLogo";
+import { CapptaIcon } from "@/components/CapptaLogo";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 
@@ -394,10 +394,10 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
         <div className="text-center mb-8 animate-dash-fade-in">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center animate-float">
-              <NexiaIcon className="w-8 h-8" />
+              <CapptaIcon className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-black" data-testid="text-onboarding-title">
-              Configura tu <span className="text-primary font-bold">Nexia AI</span>
+              Configura tu <span className="text-primary font-bold">Cappta AI</span>
             </h1>
           </div>
           <p className="text-sm text-white/40">3 pasos rápidos y tu chatbot estará listo</p>
@@ -438,7 +438,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                   <Globe className="w-5 h-5 text-primary" />
                   Cuentanos sobre tu negocio
                 </h2>
-                <p className="text-sm text-white/40">Nexia AI aprendera de tu sitio web automáticamente</p>
+                <p className="text-sm text-white/40">Cappta AI aprendera de tu sitio web automáticamente</p>
               </div>
 
               <div className="space-y-2">
@@ -476,7 +476,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-white/30">Al analizar tu sitio, Nexia AI extraera automáticamente productos, servicios, contacto y horarios para entrenar el chatbot.</p>
+                <p className="text-xs text-white/30">Al analizar tu sitio, Cappta AI extraera automáticamente productos, servicios, contacto y horarios para entrenar el chatbot.</p>
               </div>
 
               {analyzedResult && (
@@ -492,7 +492,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
               {!analyzedResult && domain.trim() && !analyzingUrl && (
                 <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 flex items-center gap-2">
                   <Wand2 className="w-4 h-4 text-amber-400 shrink-0" />
-                  <p className="text-xs text-amber-300/80">Haz clic en "Analizar" para que Nexia AI aprenda sobre tu negocio automáticamente.</p>
+                  <p className="text-xs text-amber-300/80">Haz clic en "Analizar" para que Cappta AI aprenda sobre tu negocio automáticamente.</p>
                 </div>
               )}
 
@@ -1113,7 +1113,7 @@ function Step2Ready({
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20 animate-float">
           <Rocket className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-xl font-bold mb-1">¡Tu Nexia AI está listo!</h2>
+        <h2 className="text-xl font-bold mb-1">¡Tu Cappta AI está listo!</h2>
         <p className="text-sm text-white/40">Solo falta instalarlo en tu sitio web</p>
       </div>
 
@@ -1125,7 +1125,7 @@ function Step2Ready({
           <div className="flex-1">
             <h3 className="text-base font-bold text-white mb-1">Nosotros lo instalamos por ti</h3>
             <p className="text-sm text-white/50 leading-relaxed">
-              Un ejecutivo de Nexia AI se encargará de instalar el chatbot en tu sitio web.
+              Un ejecutivo de Cappta AI se encargará de instalar el chatbot en tu sitio web.
               Solo toma <span className="text-primary font-semibold">5 a 10 minutos</span> y es completamente gratis.
             </p>
           </div>
@@ -1147,7 +1147,7 @@ function Step2Ready({
         </div>
 
         <a
-          href="https://wa.me/56962511821?text=Hola%21%20Acabo%20de%20configurar%20mi%20Nexia%20AI%20y%20necesito%20ayuda%20para%20instalarlo%20en%20mi%20sitio%20web.%20%C2%BFMe%20pueden%20ayudar%3F"
+          href="https://wa.me/56962511821?text=Hola%21%20Acabo%20de%20configurar%20mi%20Cappta%20AI%20y%20necesito%20ayuda%20para%20instalarlo%20en%20mi%20sitio%20web.%20%C2%BFMe%20pueden%20ayudar%3F"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20"

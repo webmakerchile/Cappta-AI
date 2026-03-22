@@ -1,7 +1,7 @@
 {
-  "name": "Nexia AI - Panel de Soporte",
-  "short_name": "Nexia AI Panel",
-  "description": "Atiende a tus clientes desde tu teléfono con Nexia AI.",
+  "name": "Cappta AI - Panel de Soporte",
+  "short_name": "Cappta AI Panel",
+  "description": "Atiende a tus clientes desde tu teléfono con Cappta AI.",
   "start_url": "/panel",
   "scope": "/",
   "display": "standalone",

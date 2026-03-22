@@ -45,7 +45,7 @@ self.addEventListener('push', (event) => {
       data = { title: 'Nuevo mensaje', body: event.data.text() };
     }
 
-    const title = data.title || 'Nuevo mensaje - Nexia AI';
+    const title = data.title || 'Nuevo mensaje - Cappta AI';
     const options = {
       body: data.body || 'Tienes un nuevo mensaje de soporte',
       icon: '/favicon-fox.png',

@@ -11,23 +11,23 @@ export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: num
 export const PLAN_PRICES: Record<string, { amount: number; label: string; reason: string }> = {
   basic: {
     amount: 19990,
-    label: "Nexia Pro",
-    reason: "Nexia Pro - Suscripcion Mensual",
+    label: "Cappta Pro",
+    reason: "Cappta Pro - Suscripcion Mensual",
   },
   pro: {
     amount: 49990,
-    label: "Nexia Enterprise",
-    reason: "Nexia Enterprise - Suscripcion Mensual",
+    label: "Cappta Enterprise",
+    reason: "Cappta Enterprise - Suscripcion Mensual",
   },
   basic_whatsapp: {
     amount: 34990,
-    label: "Nexia Pro + WhatsApp",
-    reason: "Nexia Pro + WhatsApp - Suscripcion Mensual",
+    label: "Cappta Pro + WhatsApp",
+    reason: "Cappta Pro + WhatsApp - Suscripcion Mensual",
   },
   pro_whatsapp: {
     amount: 64990,
-    label: "Nexia Enterprise + WhatsApp",
-    reason: "Nexia Enterprise + WhatsApp - Suscripcion Mensual",
+    label: "Cappta Enterprise + WhatsApp",
+    reason: "Cappta Enterprise + WhatsApp - Suscripcion Mensual",
   },
 };
 

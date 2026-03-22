@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
-import { NexiaIcon } from "@/components/NexiaLogo";
+import { CapptaIcon } from "@/components/CapptaLogo";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Virtuoso } from "react-virtuoso";
@@ -237,8 +237,8 @@ function AdminLogin({ onLogin }: { onLogin: (user: { id: number; email: string; 
     <div className="h-screen flex items-center justify-center" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
       <div className="w-full max-w-sm mx-4">
         <div className="text-center mb-6">
-          <NexiaIcon className="w-20 h-20 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-white mb-1">Nexia AI Admin</h1>
+          <CapptaIcon className="w-20 h-20 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-white mb-1">Cappta AI Admin</h1>
           <p className="text-sm text-white/40">Inicia sesión para acceder al panel</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -3982,9 +3982,9 @@ function SaasDashboard() {
   ];
 
   const planData = [
-    { name: "Nexia Starter", value: metrics.planDistribution.free, fill: "#6b7280" },
-    { name: "Nexia Pro", value: metrics.planDistribution.basic, fill: "#10b981" },
-    { name: "Nexia Enterprise", value: metrics.planDistribution.pro, fill: "#f59e0b" },
+    { name: "Cappta Starter", value: metrics.planDistribution.free, fill: "#6b7280" },
+    { name: "Cappta Pro", value: metrics.planDistribution.basic, fill: "#10b981" },
+    { name: "Cappta Enterprise", value: metrics.planDistribution.pro, fill: "#f59e0b" },
   ].filter(d => d.value > 0);
 
   return (
@@ -4203,7 +4203,7 @@ function TenantsPanel() {
     },
   });
 
-  const planLabels: Record<string, string> = { free: "Nexia Starter", basic: "Nexia Pro", pro: "Nexia Enterprise" };
+  const planLabels: Record<string, string> = { free: "Cappta Starter", basic: "Cappta Pro", pro: "Cappta Enterprise" };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
     basic: "bg-[#34d399]/20 text-[#34d399]",
@@ -4357,9 +4357,9 @@ function TenantsPanel() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="free">Nexia Starter</SelectItem>
-                          <SelectItem value="basic">Nexia Pro</SelectItem>
-                          <SelectItem value="pro">Nexia Enterprise</SelectItem>
+                          <SelectItem value="free">Cappta Starter</SelectItem>
+                          <SelectItem value="basic">Cappta Pro</SelectItem>
+                          <SelectItem value="pro">Cappta Enterprise</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
@@ -4948,9 +4948,9 @@ export default function AdminPage() {
               <ArrowLeft className="w-4 h-4 text-white" />
             </button>
           )}
-          <NexiaIcon className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" />
+          <CapptaIcon className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" />
           <div className="min-w-0">
-            <h1 data-testid="text-admin-title" className="text-sm sm:text-base font-bold text-white leading-tight truncate">Nexia AI Admin</h1>
+            <h1 data-testid="text-admin-title" className="text-sm sm:text-base font-bold text-white leading-tight truncate">Cappta AI Admin</h1>
             {adminUser && (
               <p className="text-[10px] sm:text-[11px] text-white/60 truncate">{adminUser.displayName}</p>
             )}
