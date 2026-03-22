@@ -944,7 +944,7 @@ function PreviewTabs() {
     <div data-testid="preview-tabs">
       <div className="text-center mb-8">
         <h3 className="text-xl sm:text-2xl font-bold mb-3 text-white/90" data-testid="text-preview-heading">Así se ve en la práctica</h3>
-        <p className="text-sm text-white/35 max-w-lg mx-auto">Tu IA responde en la web y en WhatsApp. Tú gestionas todo desde un solo panel.</p>
+        <p className="text-sm text-white/70 max-w-lg mx-auto">Tu IA responde en la web y en WhatsApp. Tú gestionas todo desde un solo panel.</p>
       </div>
 
       <div className="hidden sm:flex items-center justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
@@ -952,7 +952,7 @@ function PreviewTabs() {
           <button
             key={tab.id}
             onClick={() => handleTabClick(tab.id)}
-            className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-[12px] sm:text-sm font-semibold transition-all duration-300 ${activeTab === tab.id ? "bg-[#6200EA]/20 text-[#a78bfa] border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/40"}`}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-[12px] sm:text-sm font-semibold transition-all duration-300 ${activeTab === tab.id ? "bg-[#6200EA]/20 text-white border border-[#6200EA]/30 shadow-lg shadow-[#6200EA]/10" : "glass-card text-white/60"}`}
             data-testid={`tab-${tab.id}-preview`}
           >
             <tab.icon className="w-3.5 h-3.5" />
@@ -962,7 +962,7 @@ function PreviewTabs() {
       </div>
 
       <div className="sm:hidden flex flex-col items-center mb-6">
-        <p className="text-xs font-semibold text-[#a78bfa] mb-3">{tabs[currentIndex].label}</p>
+        <p className="text-xs font-semibold text-white/80 mb-3">{tabs[currentIndex].label}</p>
         <div className="flex items-center gap-2">
           {tabs.map((tab, i) => (
             <button
@@ -1001,7 +1001,7 @@ function PreviewTabs() {
           <DashboardPreview />
         </div>
       </div>
-      <p className="text-center text-[11px] text-white/20 mt-4">{tabs[currentIndex].desc}</p>
+      <p className="text-center text-[11px] text-white/50 mt-4">{tabs[currentIndex].desc}</p>
     </div>
   );
 }
@@ -1077,15 +1077,15 @@ function MobileNav() {
           </span>
         </a>
         <div className="hidden md:flex items-center gap-1">
-          <a href="#features" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-features">Plataforma</a>
-          <a href="#casos" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-cases-nav">Clientes</a>
-          <a href="#pricing" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-pricing">Precios</a>
-          <a href="#extensiones" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-addons-nav">Extensiones</a>
-          <a href="/guias" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-guides-nav">Recursos</a>
+          <a href="#features" className="px-3 py-1.5 text-sm text-white/80 hover:text-white transition-colors" data-testid="link-features">Plataforma</a>
+          <a href="#casos" className="px-3 py-1.5 text-sm text-white/80 hover:text-white transition-colors" data-testid="link-cases-nav">Clientes</a>
+          <a href="#pricing" className="px-3 py-1.5 text-sm text-white/80 hover:text-white transition-colors" data-testid="link-pricing">Precios</a>
+          <a href="#extensiones" className="px-3 py-1.5 text-sm text-white/80 hover:text-white transition-colors" data-testid="link-addons-nav">Extensiones</a>
+          <a href="/guias" className="px-3 py-1.5 text-sm text-white/80 hover:text-white transition-colors" data-testid="link-guides-nav">Recursos</a>
         </div>
         <div className="hidden md:flex items-center gap-2">
           <CountrySelector />
-          <a href="/login" className="text-sm text-white/60 hover:text-white transition-colors" data-testid="link-login">Iniciar Sesión</a>
+          <a href="/login" className="text-sm text-white/80 hover:text-white transition-colors" data-testid="link-login">Iniciar Sesión</a>
           <a href="#demo">
             <Button size="sm" className="rounded-xl px-5 py-2 text-sm font-semibold" data-testid="link-register">
               Agenda Reunión
@@ -1389,7 +1389,7 @@ function CapabilitiesAccordion({ isVisible }: { isVisible: boolean }) {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold text-white/90">{cap.title}</h3>
-                <p className="text-sm text-white/40 mt-0.5">{cap.summary}</p>
+                <p className="text-sm text-white/60 mt-0.5">{cap.summary}</p>
               </div>
               <ChevronDown
                 className={`w-5 h-5 text-white/30 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
@@ -1402,7 +1402,7 @@ function CapabilitiesAccordion({ isVisible }: { isVisible: boolean }) {
               <div className="px-6 pb-6 pt-0 pl-[88px]">
                 <ul className="space-y-2.5">
                   {cap.details.map((detail, di) => (
-                    <li key={di} className="flex items-start gap-2.5 text-sm text-white/50 leading-relaxed">
+                    <li key={di} className="flex items-start gap-2.5 text-sm text-white/70 leading-relaxed">
                       <Check className="w-4 h-4 shrink-0 mt-0.5" style={{ color: cap.iconColor }} />
                       <span>{detail}</span>
                     </li>
@@ -1470,7 +1470,7 @@ function FAQSection({ isVisible }: { isVisible: boolean }) {
               style={{ maxHeight: isOpen ? "300px" : "0", opacity: isOpen ? 1 : 0 }}
             >
               <div className="px-5 pb-5 pt-0">
-                <p className="text-sm text-white/45 leading-relaxed">{item.a}</p>
+                <p className="text-sm text-white/70 leading-relaxed">{item.a}</p>
               </div>
             </div>
           </div>
@@ -1529,7 +1529,7 @@ function DemoScheduleForm() {
       <div className="glass-card rounded-3xl p-8 border border-violet-500/10">
         <div className="text-center mb-6">
           <h3 className="text-xl font-bold text-white mb-2">Agenda tu Reunión</h3>
-          <p className="text-white/40 text-sm">Descubre cómo Cappta AI puede transformar tu negocio</p>
+          <p className="text-white/70 text-sm">Descubre cómo Cappta AI puede transformar tu negocio</p>
           <div className="flex items-center justify-center gap-3 mt-4">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step === 1 ? "bg-primary text-white" : "bg-violet-500/20 text-violet-400"}`}>1</div>
             <div className="w-12 h-px bg-white/10" />
@@ -1695,7 +1695,7 @@ export default function Landing() {
               <br />
               <span className="text-gradient-brand">por sí mismos</span>
             </h2>
-            <p className="text-white/40 text-base max-w-lg mx-auto">Ve el impacto en métricas reales.</p>
+            <p className="text-white/70 text-base max-w-lg mx-auto">Ve el impacto en métricas reales.</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1716,7 +1716,7 @@ export default function Landing() {
                     <CountUp target={value} />
                   </p>
                   <p className="text-sm font-bold text-white/80 mb-1">{label}</p>
-                  <p className="text-xs text-white/35 leading-relaxed">{desc}</p>
+                  <p className="text-xs text-white/70 leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
@@ -1740,7 +1740,7 @@ export default function Landing() {
               <br />
               para hacer crecer tu negocio
             </h2>
-            <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
+            <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-features-description">
               Un producto y sus extensiones trabajando en conjunto para automatizar
               toda tu operación de ventas, atención y marketing.
             </p>
@@ -1765,9 +1765,9 @@ export default function Landing() {
               <br />
               <span className="text-gradient-brand">tu ejecutivo cierra</span>
             </h2>
-            <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
-              Cappta AI no solo atiende — <span className="text-white/60 font-medium">vende por ti</span>. Responde, califica leads y cierra ventas de forma autónoma. Y cuando el cliente necesita atención humana,
-              un ejecutivo toma el control del chat <span className="text-white/60 font-medium">en tiempo real</span>, sin que el cliente note el cambio.
+            <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed">
+              Cappta AI no solo atiende — <span className="text-white font-semibold">vende por ti</span>. Responde, califica leads y cierra ventas de forma autónoma. Y cuando el cliente necesita atención humana,
+              un ejecutivo toma el control del chat <span className="text-white font-semibold">en tiempo real</span>, sin que el cliente note el cambio.
             </p>
           </div>
 
@@ -1816,7 +1816,7 @@ export default function Landing() {
                       </div>
                     </div>
                     <h3 className="text-base font-bold mb-2.5 text-white/90">{item.title}</h3>
-                    <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                    <p className="text-white/70 text-sm leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
                 {index < 2 && (
@@ -1862,7 +1862,7 @@ export default function Landing() {
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-how-title">
               <span className="text-gradient-brand">3 pasos</span> y listo
             </h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
               No necesitas ser técnico. De cero al chat en vivo en minutos.
             </p>
           </div>
@@ -1905,7 +1905,7 @@ export default function Landing() {
                       </div>
                     </div>
                     <h3 className="text-lg font-bold mb-3">{item.title}</h3>
-                    <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                    <p className="text-white/70 text-sm leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -1937,7 +1937,7 @@ export default function Landing() {
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-cases-title">
               Historias reales <span className="text-gradient-brand">de éxito</span>
             </h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
               Descubre cómo empresas como la tuya están transformando su atención al cliente con Cappta AI.
             </p>
           </div>
@@ -1998,7 +1998,7 @@ export default function Landing() {
                   <div className="p-6 -mt-8 relative z-10">
                     <h3 className="text-lg font-bold mb-1 group-hover:text-white transition-colors">{caseItem.name}</h3>
                     <p className="text-xs font-medium mb-3" style={{ color: caseItem.color }}>{caseItem.url}</p>
-                    <p className="text-white/40 text-sm leading-relaxed">{caseItem.description}</p>
+                    <p className="text-white/70 text-sm leading-relaxed">{caseItem.description}</p>
                     <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <span>Visitar sitio</span>
                       <ArrowRight className="w-3 h-3" />
@@ -2026,7 +2026,7 @@ export default function Landing() {
               <br />
               tu <span className="text-gradient-brand">gestión ni tu inversión</span>
             </h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
+            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-pricing-description">
               Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
             </p>
           </div>
@@ -2041,7 +2041,7 @@ export default function Landing() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white/90">Todos los planes incluyen</h3>
-                    <p className="text-xs text-white/35">Sin importar el plan que elijas, tienes acceso a todo</p>
+                    <p className="text-xs text-white/60">Sin importar el plan que elijas, tienes acceso a todo</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -2180,7 +2180,7 @@ export default function Landing() {
                   <div className="px-6 pb-5">
                     <div className="h-px mb-5 bg-white/[0.06]" />
 
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">FUNCIONES BASE</p>
+                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">FUNCIONES BASE</p>
                     <div className="space-y-2.5 mb-6">
                       {plan.baseFunctions.map((func) => (
                         <div key={func.text} className="flex items-center gap-2.5">
@@ -2190,19 +2190,19 @@ export default function Landing() {
                       ))}
                     </div>
 
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">EQUIPO Y SOPORTE</p>
+                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">EQUIPO Y SOPORTE</p>
                     <div className="grid grid-cols-2 gap-2 mb-6">
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
                         <p className="text-2xl font-extrabold text-white/90 mb-0.5">{plan.team.users}</p>
-                        <p className="text-[10px] text-white/35">Usuarios</p>
+                        <p className="text-[10px] text-white/60">Usuarios</p>
                       </div>
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
                         <p className="text-sm font-bold text-white/80 mb-0.5">{plan.tier === "enterprise" ? "Consultoría" : "Implementación"}</p>
-                        <p className="text-[10px] text-white/35">{plan.team.implementation}</p>
+                        <p className="text-[10px] text-white/60">{plan.team.implementation}</p>
                       </div>
                     </div>
 
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">IA Y AUTOMATIZACIÓN</p>
+                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">IA Y AUTOMATIZACIÓN</p>
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
                         {plan.tier === "starter" ? (
@@ -2236,12 +2236,12 @@ export default function Landing() {
                       ))}
                     </div>
 
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-3">PRECIOS</p>
+                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">PRECIOS</p>
                     <div className="space-y-2">
                       {plan.extras.map((extra) => (
                         <div key={extra} className="flex items-center gap-2.5">
                           <MessageSquare className="w-3.5 h-3.5 text-violet-400/40 shrink-0" />
-                          <span className="text-sm text-white/45">{extra}</span>
+                          <span className="text-sm text-white/70">{extra}</span>
                         </div>
                       ))}
                     </div>
@@ -2275,7 +2275,7 @@ export default function Landing() {
               <br />
               <span className="text-gradient-brand">extensiones premium</span>
             </h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-addons-description">
+            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-addons-description">
               Añade superpoderes a tu plataforma. Cada extensión se activa al instante sin configuración técnica.
             </p>
           </div>
@@ -2311,7 +2311,7 @@ export default function Landing() {
                       </div>
                     )}
                     <h3 className="text-base font-bold text-white/90 mb-1.5 font-heading">{addon.name}</h3>
-                    <p className="text-xs text-white/40 leading-relaxed mb-4 flex-1">{addon.description}</p>
+                    <p className="text-xs text-white/70 leading-relaxed mb-4 flex-1">{addon.description}</p>
                     <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                       <div>
                         <span className="text-xl font-black" style={{ color: catColor }}>{formatCLP(addon.price)}</span>
@@ -2377,7 +2377,7 @@ export default function Landing() {
                 <br />
                 <span className="text-gradient-brand">gestión ni tu inversión</span>
               </h2>
-              <p className="text-white/40 text-lg mb-8 leading-relaxed">
+              <p className="text-white/70 text-lg mb-8 leading-relaxed">
                 Planes transparentes diseñados para escalar contigo. Sin costos ocultos ni sorpresas.
               </p>
               <div className="flex items-center gap-4 flex-wrap mb-8">
@@ -2393,7 +2393,7 @@ export default function Landing() {
                   "Sin contratos de permanencia",
                   "Soporte técnico dedicado",
                 ].map((text) => (
-                  <div key={text} className="flex items-center gap-3 text-sm text-white/50">
+                  <div key={text} className="flex items-center gap-3 text-sm text-white/70">
                     <CircleCheck className="w-4 h-4 text-primary shrink-0" />
                     {text}
                   </div>
@@ -2418,15 +2418,15 @@ export default function Landing() {
                   <span className="text-white font-light ml-1">AI</span>
                 </span>
               </div>
-              <p className="text-sm text-white/30 leading-relaxed mb-5">
+              <p className="text-sm text-white/60 leading-relaxed mb-5">
                 Automatiza tu operación comercial con inteligencia artificial.
                 Más ventas, menos gestión.
               </p>
               <p className="text-xs text-white/15">Un producto de Web Maker Chile</p>
             </div>
             <div className="md:col-span-2 md:col-start-6">
-              <h4 className="font-bold mb-4 text-xs text-white/40 tracking-[0.15em] uppercase">Producto</h4>
-              <ul className="space-y-2.5 text-sm text-white/30">
+              <h4 className="font-bold mb-4 text-xs text-white/60 tracking-[0.15em] uppercase">Producto</h4>
+              <ul className="space-y-2.5 text-sm text-white/60">
                 <li><a href="#features" className="hover:text-white/70 transition-colors" data-testid="link-footer-features">Características</a></li>
                 <li><a href="#pricing" className="hover:text-white/70 transition-colors" data-testid="link-footer-pricing">Precios</a></li>
                 <li><a href="#extensiones" className="hover:text-white/70 transition-colors" data-testid="link-footer-addons">Extensiones</a></li>
@@ -2435,8 +2435,8 @@ export default function Landing() {
               </ul>
             </div>
             <div className="md:col-span-2">
-              <h4 className="font-bold mb-4 text-xs text-white/40 tracking-[0.15em] uppercase">Integraciones</h4>
-              <ul className="space-y-2.5 text-sm text-white/30">
+              <h4 className="font-bold mb-4 text-xs text-white/60 tracking-[0.15em] uppercase">Integraciones</h4>
+              <ul className="space-y-2.5 text-sm text-white/60">
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-woo">WooCommerce</a></li>
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-shopify">Shopify</a></li>
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-wordpress">WordPress</a></li>
@@ -2444,8 +2444,8 @@ export default function Landing() {
               </ul>
             </div>
             <div className="md:col-span-2">
-              <h4 className="font-bold mb-4 text-xs text-white/40 tracking-[0.15em] uppercase">Legal</h4>
-              <ul className="space-y-2.5 text-sm text-white/30">
+              <h4 className="font-bold mb-4 text-xs text-white/60 tracking-[0.15em] uppercase">Legal</h4>
+              <ul className="space-y-2.5 text-sm text-white/60">
                 <li><a href="/privacidad" className="hover:text-white/70 transition-colors" data-testid="link-footer-privacy">Privacidad</a></li>
                 <li><a href="/terminos" className="hover:text-white/70 transition-colors" data-testid="link-footer-terms">Términos</a></li>
                 <li><a href="mailto:webmakerchile@gmail.com" className="hover:text-white/70 transition-colors" data-testid="link-footer-contact">Contacto</a></li>
