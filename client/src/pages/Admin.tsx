@@ -2586,7 +2586,7 @@ function showForegroundNotification(title: string, body: string, sessionId: stri
     if (!document.hidden && isViewingThis) return;
     const n = new Notification(title, {
       body,
-      icon: "/favicon-fox.png",
+      icon: "/favicon-cappta.png",
       tag: "nexia-msg-" + sessionId,
     } as NotificationOptions);
     n.onclick = () => {

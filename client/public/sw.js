@@ -48,8 +48,8 @@ self.addEventListener('push', (event) => {
     const title = data.title || 'Nuevo mensaje - Cappta AI';
     const options = {
       body: data.body || 'Tienes un nuevo mensaje de soporte',
-      icon: '/favicon-fox.png',
-      badge: '/favicon-fox.png',
+      icon: '/favicon-cappta.png',
+      badge: '/favicon-cappta.png',
       vibrate: [300, 100, 300, 100, 300],
       tag: 'nexia-' + (data.sessionId || 'general'),
       renotify: true,
