@@ -74,6 +74,8 @@ Key architectural decisions and features include:
 - `push_subscriptions` - Web push notification subscriptions (admin)
 - `tenant_push_subscriptions` - Tenant push notification subscriptions
 - `app_settings` - Key-value app configuration
+- `addons` - Addon/extension catalog (slug, name, description, price CLP, icon, category, active, sortOrder)
+- `tenant_addons` - Tenant addon subscriptions (tenantId, addonSlug, status, activatedAt, cancelledAt, mpPaymentId)
 
 ## Tenant API Routes
 - `POST /api/tenants/register` - Register new tenant (accepts optional `referralCode`)
@@ -167,6 +169,11 @@ Key architectural decisions and features include:
 - `POST /api/tenants/me/cancel-subscription` - Cancel/downgrade to free (auth required)
 - `GET /api/tenants/me/subscription-status` - Get payment/plan status (auth required)
 - `GET /api/tenants/me/plan-prices` - Public plan pricing info
+- `GET /api/addons` - List all available addons (public)
+- `GET /api/tenants/me/addons` - List tenant's active addons (auth required)
+- `POST /api/tenants/me/addons` - Activate addon (body: { addonSlug }; returns payment link if price > 0, else activates directly)
+- `POST /api/tenants/me/addons/:slug/cancel` - Cancel addon subscription (auth required)
+- `GET /api/mercadopago/addon-return` - Post-addon-payment redirect (activates addon on success)
 
 ## Demo/Test Accounts (Development Only)
 Created automatically on server startup (skipped in production):

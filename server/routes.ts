@@ -12,7 +12,7 @@ import { containsProfanity, getProfanityWarningMessage, BLOCK_THRESHOLD, getBuil
 
 import { extractKnowledgeFromSessions } from "./knowledgeBase";
 import archiver from "archiver";
-import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createCheckoutPreference, getPaymentInfo, cancelSubscription, getSubscriptionStatus } from "./flow";
+import { PLAN_PRICES, PLAN_LIMITS, WHATSAPP_ADDON_PRICE, createCheckoutPreference, createAddonCheckoutPreference, getPaymentInfo, cancelSubscription, getSubscriptionStatus } from "./flow";
 import { handleIncomingWhatsApp, sendWhatsAppMessage, isWhatsAppConfigured } from "./whatsapp";
 import { trackTikTokEvent } from "./tiktok";
 import bcrypt from "bcryptjs";
@@ -2107,6 +2107,51 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
     }
   });
 
+  app.get("/api/mercadopago/addon-return", async (req, res) => {
+    try {
+      const { status, tenant_id, addon, payment_id } = req.query;
+      log(`MP addon return: status=${status} tenant_id=${tenant_id} addon=${addon} payment_id=${payment_id}`, "api");
+
+      if (status === "approved" && tenant_id && addon && payment_id) {
+        const tenantId = parseInt(tenant_id as string);
+        const addonSlug = addon as string;
+        const paymentIdStr = String(payment_id);
+
+        if (tenantId && !isNaN(tenantId) && addonSlug && paymentIdStr) {
+          const paymentInfo = await getPaymentInfo(paymentIdStr);
+          const isVerified = paymentInfo && paymentInfo.status === "approved"
+            && paymentInfo.external_reference === `cappta_addon_${tenantId}_${addonSlug}`;
+
+          if (isVerified) {
+            const existing = await storage.getTenantAddonBySlug(tenantId, addonSlug);
+            if (!existing) {
+              await storage.createTenantAddon({
+                tenantId,
+                addonSlug,
+                status: "active",
+                mpPaymentId: paymentIdStr,
+              });
+              log(`Addon ${addonSlug} activated for tenant ${tenantId} via verified MP payment ${paymentIdStr}`, "addons");
+            }
+          } else {
+            log(`Addon payment verification failed for tenant ${tenantId}, addon ${addonSlug}, payment ${paymentIdStr}`, "addons");
+          }
+        }
+      }
+
+      if (status === "approved") {
+        return res.redirect("/dashboard?addon_payment=success");
+      } else if (status === "rejected") {
+        return res.redirect("/dashboard?addon_payment=error");
+      } else {
+        return res.redirect("/dashboard?addon_payment=pending");
+      }
+    } catch (error: any) {
+      log(`Error en retorno addon MP: ${error.message}`, "api");
+      return res.redirect("/dashboard?addon_payment=error");
+    }
+  });
+
   app.post("/api/tenants/me/cancel-subscription", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
@@ -2150,6 +2195,96 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
       });
     } catch (error: any) {
       res.json({ active: false, status: null });
+    }
+  });
+
+  const ADDON_CATALOG = [
+    { slug: "cappta-ads", name: "Cappta Ads", description: "Potencia tu alcance con campañas inteligentes impulsadas por IA. Segmentación avanzada, optimización automática y reportes en tiempo real.", price: 95000, icon: "Megaphone", category: "marketing" as const, sortOrder: 1 },
+    { slug: "cappta-connect", name: "Cappta Connect", description: "Integración nativa con WhatsApp Business API. Gestiona conversaciones desde un solo panel con plantillas y automatización.", price: 63000, icon: "Link", category: "comunicacion" as const, sortOrder: 2 },
+    { slug: "cappta-llamadas", name: "Cappta Llamadas", description: "500 minutos de llamadas VoIP integradas al dashboard. Grabación, transcripción automática y analíticas de cada llamada.", price: 50000, icon: "Phone", category: "comunicacion" as const, sortOrder: 3 },
+    { slug: "ig-comentarios", name: "IG Comentarios IA", description: "Respuestas inteligentes automáticas en comentarios de Instagram. Aumenta engagement y convierte seguidores en clientes.", price: 50000, icon: "Instagram", category: "marketing" as const, sortOrder: 4 },
+    { slug: "pdf-ia", name: "PDF IA", description: "Genera documentos PDF personalizados con IA. Cotizaciones, reportes y fichas técnicas al instante desde tus datos.", price: 50000, icon: "FileText", category: "productividad" as const, sortOrder: 5 },
+    { slug: "razones-perdida", name: "Razones de Pérdida", description: "Analiza por qué se pierden conversaciones y clientes. Dashboard con métricas de abandono y sugerencias de mejora.", price: 27000, icon: "TrendingDown", category: "analytics" as const, sortOrder: 6 },
+    { slug: "nps-ia", name: "NPS IA", description: "Encuestas NPS automatizadas con análisis de sentimiento por IA. Mide la satisfacción real de tus clientes.", price: 27000, icon: "BarChart", category: "analytics" as const, sortOrder: 7 },
+    { slug: "formulas", name: "Fórmulas", description: "Crea flujos de automatización personalizados con lógica condicional. Si/entonces para respuestas, asignaciones y escalamientos.", price: 27000, icon: "Workflow", category: "productividad" as const, sortOrder: 8 },
+    { slug: "meetings-bots", name: "Meetings Bots", description: "Bots que agendan reuniones automáticamente. Sincronización con Google Calendar, Zoom y Meet.", price: 19000, icon: "Calendar", category: "productividad" as const, sortOrder: 9 },
+  ];
+
+  (async () => {
+    try {
+      for (const addonData of ADDON_CATALOG) {
+        const existing = await storage.getAddonBySlug(addonData.slug);
+        if (!existing) {
+          await storage.createAddon(addonData);
+          log(`Addon seeded: ${addonData.name}`, "addons");
+        }
+      }
+    } catch (e: any) {
+      log(`Error seeding addons: ${e.message}`, "addons");
+    }
+  })();
+
+  app.get("/api/addons", async (_req, res) => {
+    try {
+      const allAddons = await storage.getAllAddons();
+      res.json(allAddons);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener extensiones" });
+    }
+  });
+
+  app.get("/api/tenants/me/addons", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const myAddons = await storage.getTenantAddons(auth.id);
+      res.json(myAddons);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener extensiones" });
+    }
+  });
+
+  app.post("/api/tenants/me/addons", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const { addonSlug } = req.body;
+      if (!addonSlug) return res.status(400).json({ message: "Addon slug requerido" });
+
+      const addon = await storage.getAddonBySlug(addonSlug);
+      if (!addon) return res.status(404).json({ message: "Extensión no encontrada" });
+
+      const existing = await storage.getTenantAddonBySlug(auth.id, addonSlug);
+      if (existing) return res.status(400).json({ message: "Ya tienes esta extensión activa" });
+
+      if (addon.price > 0) {
+        const preference = await createAddonCheckoutPreference(
+          addonSlug,
+          addon.name,
+          addon.price,
+          auth.email,
+          auth.id
+        );
+        return res.json({ requiresPayment: true, initPoint: preference.initPoint, preferenceId: preference.preferenceId });
+      }
+
+      const ta = await storage.createTenantAddon({ tenantId: auth.id, addonSlug, status: "active" });
+      res.json({ requiresPayment: false, addon: ta });
+    } catch (error: any) {
+      log(`Error activating addon: ${error.message}`, "addons");
+      res.status(500).json({ message: "Error al activar extensión" });
+    }
+  });
+
+  app.post("/api/tenants/me/addons/:slug/cancel", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const cancelled = await storage.cancelTenantAddon(auth.id, req.params.slug);
+      if (!cancelled) return res.status(404).json({ message: "Extensión no encontrada o ya cancelada" });
+      res.json({ message: "Extensión cancelada", addon: cancelled });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al cancelar extensión" });
     }
   });
 

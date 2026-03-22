@@ -95,6 +95,47 @@ export async function createCheckoutPreference(
   };
 }
 
+export async function createAddonCheckoutPreference(
+  addonSlug: string,
+  addonName: string,
+  addonPrice: number,
+  email: string,
+  tenantId: number
+): Promise<{ preferenceId: string; initPoint: string }> {
+  if (!MP_ACCESS_TOKEN) throw new Error("Mercado Pago no configurado");
+
+  const preference = await mpFetch("/checkout/preferences", "POST", {
+    items: [
+      {
+        title: `Cappta ${addonName}`,
+        description: `Extensión ${addonName} - Suscripción Mensual`,
+        quantity: 1,
+        unit_price: addonPrice,
+        currency_id: "CLP",
+      },
+    ],
+    payer: { email },
+    external_reference: `cappta_addon_${tenantId}_${addonSlug}`,
+    back_urls: {
+      success: `https://foxbot.cl/api/mercadopago/addon-return?tenant_id=${tenantId}&addon=${addonSlug}&status=approved`,
+      failure: `https://foxbot.cl/api/mercadopago/addon-return?tenant_id=${tenantId}&addon=${addonSlug}&status=rejected`,
+      pending: `https://foxbot.cl/api/mercadopago/addon-return?tenant_id=${tenantId}&addon=${addonSlug}&status=pending`,
+    },
+    auto_return: "approved",
+    notification_url: "https://foxbot.cl/api/mercadopago/webhook",
+    statement_descriptor: "CAPPTA AI",
+    payment_methods: {
+      excluded_payment_types: [],
+      installments: 1,
+    },
+  });
+
+  return {
+    preferenceId: preference.id,
+    initPoint: preference.init_point,
+  };
+}
+
 export async function getPaymentInfo(paymentId: string): Promise<any> {
   if (!MP_ACCESS_TOKEN || !paymentId) return null;
   try {

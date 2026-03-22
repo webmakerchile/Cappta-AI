@@ -58,6 +58,12 @@ import {
   Wrench,
   Cpu,
   MessageCircle,
+  Megaphone,
+  Link,
+  Phone,
+  TrendingDown,
+  Workflow,
+  Calendar,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
@@ -246,6 +252,40 @@ const pricingPlans = [
     ],
   },
 ];
+
+const addonIconMap: Record<string, any> = {
+  Megaphone, Link, Phone, FileText, TrendingDown, BarChart3, Workflow, Calendar, Package,
+};
+
+const addonCatalog = [
+  { slug: "cappta-ads", name: "Cappta Ads", description: "Campañas inteligentes impulsadas por IA con segmentación avanzada y reportes en tiempo real.", price: 95000, icon: "Megaphone", category: "marketing" },
+  { slug: "cappta-connect", name: "Cappta Connect", description: "Integración nativa con WhatsApp Business API. Gestiona todo desde un solo panel.", price: 63000, icon: "Link", category: "comunicacion" },
+  { slug: "cappta-llamadas", name: "Cappta Llamadas", description: "500 minutos VoIP con grabación, transcripción automática y analíticas.", price: 50000, icon: "Phone", category: "comunicacion" },
+  { slug: "ig-comentarios", name: "IG Comentarios IA", description: "Respuestas inteligentes automáticas en Instagram. Aumenta engagement.", price: 50000, icon: "MessageCircle", category: "marketing" },
+  { slug: "pdf-ia", name: "PDF IA", description: "Genera cotizaciones, reportes y fichas técnicas al instante con IA.", price: 50000, icon: "FileText", category: "productividad" },
+  { slug: "razones-perdida", name: "Razones de Pérdida", description: "Analiza por qué se pierden conversaciones con métricas de abandono.", price: 27000, icon: "TrendingDown", category: "analytics" },
+  { slug: "nps-ia", name: "NPS IA", description: "Encuestas NPS automatizadas con análisis de sentimiento por IA.", price: 27000, icon: "BarChart3", category: "analytics" },
+  { slug: "formulas", name: "Fórmulas", description: "Flujos de automatización con lógica condicional para respuestas y asignaciones.", price: 27000, icon: "Workflow", category: "productividad" },
+  { slug: "meetings-bots", name: "Meetings Bots", description: "Bots que agendan reuniones automáticamente con Google Calendar y Zoom.", price: 19000, icon: "Calendar", category: "productividad" },
+];
+
+const addonCategoryLabels: Record<string, string> = {
+  marketing: "Marketing",
+  comunicacion: "Comunicación",
+  analytics: "Analytics",
+  productividad: "Productividad",
+};
+
+const addonCategoryColors: Record<string, string> = {
+  marketing: "#f59e0b",
+  comunicacion: "#06b6d4",
+  analytics: "#8b5cf6",
+  productividad: "#10b981",
+};
+
+function formatCLP(value: number): string {
+  return "$" + value.toLocaleString("es-CL");
+}
 
 interface HeroMessage {
   sender: "user" | "bot";
@@ -922,6 +962,7 @@ function MobileNav() {
           <a href="#features" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-features">Plataforma</a>
           <a href="#casos" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-cases-nav">Clientes</a>
           <a href="#pricing" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-pricing">Precios</a>
+          <a href="#extensiones" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-addons-nav">Extensiones</a>
           <a href="/guias" className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors" data-testid="link-guides-nav">Recursos</a>
         </div>
         <div className="hidden md:flex items-center gap-3">
@@ -941,6 +982,7 @@ function MobileNav() {
           <a href="#features" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Plataforma</a>
           <a href="#casos" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Clientes</a>
           <a href="#pricing" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Precios</a>
+          <a href="#extensiones" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Extensiones</a>
           <a href="/guias" onClick={() => setOpen(false)} className="block py-2.5 text-sm text-white/60 hover:text-white transition-colors">Recursos</a>
           <div className="h-px bg-white/[0.06] my-3" />
           <a href="/login" className="block">
@@ -1435,6 +1477,7 @@ export default function Landing() {
   const handoffSection = useInView(0.15);
   const stepsSection = useInView(0.1);
   const pricingSection = useInView(0.1);
+  const addonsSection = useInView(0.1);
   const faqSection = useInView(0.1);
   const casesSection = useInView(0.1);
 
@@ -2141,6 +2184,79 @@ export default function Landing() {
       </section>
 
 
+      <section id="extensiones" className="py-28 px-6 relative overflow-hidden" ref={addonsSection.ref as any} data-testid="section-addons">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 35%, 0.04) 0%, transparent 55%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+              <Package className="w-3.5 h-3.5 text-accent" />
+              <span className="text-xs font-semibold text-accent tracking-wide">EXTENSIONES Y ADDONS</span>
+            </div>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-addons-title">
+              Potencia Cappta AI con
+              <br />
+              <span className="text-gradient-brand">extensiones premium</span>
+            </h2>
+            <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed" data-testid="text-addons-description">
+              Añade superpoderes a tu plataforma. Cada extensión se activa al instante sin configuración técnica.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {addonCatalog.map((addon, index) => {
+              const IconComp = addonIconMap[addon.icon] || Package;
+              const catColor = addonCategoryColors[addon.category] || "#8b5cf6";
+              return (
+                <div
+                  key={addon.slug}
+                  className={`relative rounded-2xl transition-all duration-500 group ${addonsSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
+                  style={{ animationDelay: `${index * 80}ms` }}
+                  data-testid={`card-addon-${addon.slug}`}
+                >
+                  <div className="absolute -inset-[1px] rounded-2xl" style={{ background: `linear-gradient(135deg, ${catColor}33 0%, hsl(250, 65%, 40%, 0.15) 100%)` }}>
+                    <div className="w-full h-full rounded-2xl bg-[#0c0c0f]" />
+                  </div>
+                  <div className="relative z-10 glass-card rounded-2xl p-5 h-full flex flex-col" style={{ border: "none" }}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: `${catColor}15` }}>
+                        <IconComp className="w-5 h-5" style={{ color: catColor }} />
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border" style={{ color: catColor, borderColor: `${catColor}40`, backgroundColor: `${catColor}08` }}>
+                        {addonCategoryLabels[addon.category]}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-white/90 mb-1.5 font-heading">{addon.name}</h3>
+                    <p className="text-xs text-white/40 leading-relaxed mb-4 flex-1">{addon.description}</p>
+                    <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
+                      <div>
+                        <span className="text-xl font-black" style={{ color: catColor }}>{formatCLP(addon.price)}</span>
+                        <span className="text-[10px] text-white/30 ml-1">/mes</span>
+                      </div>
+                      <a href="#demo">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs border-white/10 text-white/60 hover:bg-white/[0.05] hover:border-white/20 rounded-lg"
+                          data-testid={`button-addon-${addon.slug}`}
+                        >
+                          Consultar
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="text-center text-sm text-white/25 mt-12">
+            Todas las extensiones se activan al instante. Cancela cuando quieras. Sin permanencia.
+          </p>
+        </div>
+      </section>
+
       <section id="faq" className="py-28 px-6 relative overflow-hidden" ref={faqSection.ref as any} data-testid="section-faq">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
@@ -2230,6 +2346,7 @@ export default function Landing() {
               <ul className="space-y-2.5 text-sm text-white/30">
                 <li><a href="#features" className="hover:text-white/70 transition-colors" data-testid="link-footer-features">Características</a></li>
                 <li><a href="#pricing" className="hover:text-white/70 transition-colors" data-testid="link-footer-pricing">Precios</a></li>
+                <li><a href="#extensiones" className="hover:text-white/70 transition-colors" data-testid="link-footer-addons">Extensiones</a></li>
                 <li><a href="#demo" className="hover:text-white/70 transition-colors" data-testid="link-footer-demo">Agendar reunión</a></li>
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-guides">Guías</a></li>
               </ul>

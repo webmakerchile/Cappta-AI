@@ -343,6 +343,39 @@ export const insertKnowledgePageSchema = createInsertSchema(knowledgePages).omit
 export type InsertKnowledgePage = z.infer<typeof insertKnowledgePageSchema>;
 export type KnowledgePage = typeof knowledgePages.$inferSelect;
 
+export const addons = pgTable("addons", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  price: integer("price").notNull(),
+  icon: text("icon").notNull().default("Package"),
+  category: text("category", { enum: ["marketing", "comunicacion", "analytics", "productividad"] }).notNull().default("productividad"),
+  active: integer("active").notNull().default(1),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const tenantAddons = pgTable("tenant_addons", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  addonSlug: text("addon_slug").notNull(),
+  status: text("status", { enum: ["active", "cancelled", "pending"] }).notNull().default("pending"),
+  activatedAt: timestamp("activated_at").defaultNow().notNull(),
+  cancelledAt: timestamp("cancelled_at"),
+  mpPaymentId: text("mp_payment_id"),
+}, (table) => [
+  index("idx_tenant_addons_tenant_id").on(table.tenantId),
+  index("idx_tenant_addons_slug").on(table.addonSlug),
+]);
+
+export const insertAddonSchema = createInsertSchema(addons).omit({ id: true });
+export type InsertAddon = z.infer<typeof insertAddonSchema>;
+export type Addon = typeof addons.$inferSelect;
+
+export const insertTenantAddonSchema = createInsertSchema(tenantAddons).omit({ id: true, activatedAt: true, cancelledAt: true });
+export type InsertTenantAddon = z.infer<typeof insertTenantAddonSchema>;
+export type TenantAddon = typeof tenantAddons.$inferSelect;
+
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
   email: z.string().email("Ingresa un correo valido").max(200),

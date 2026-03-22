@@ -61,6 +61,7 @@ import {
   Shield,
   Package,
   ShoppingBag,
+  Megaphone,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -3211,13 +3212,224 @@ function DownloadAppSection() {
   );
 }
 
-type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides" | "whatsapp";
+const addonDashboardIcons: Record<string, typeof Package> = {
+  Megaphone, Link: LinkIcon, Phone: Headphones, FileText: BookOpen, TrendingDown: TrendingUp, BarChart: BarChart3, Workflow: Sparkles, Calendar: Clock, Package, Instagram: MessageCircle,
+};
+
+const addonCategoryColors: Record<string, string> = {
+  marketing: "#f59e0b",
+  comunicacion: "#06b6d4",
+  analytics: "#8b5cf6",
+  productividad: "#10b981",
+};
+
+const addonCategoryLabels: Record<string, string> = {
+  marketing: "Marketing",
+  comunicacion: "Comunicación",
+  analytics: "Analytics",
+  productividad: "Productividad",
+};
+
+interface AddonInfo {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  price: number;
+  icon: string;
+  category: string;
+  active: number;
+  sortOrder: number;
+}
+
+interface TenantAddonInfo {
+  id: number;
+  tenantId: number;
+  addonSlug: string;
+  status: string;
+  activatedAt: string;
+  cancelledAt: string | null;
+  mpPaymentId: string | null;
+  addon: AddonInfo;
+}
+
+function ExtensionesSection({ token }: { token: string }) {
+  const { toast } = useToast();
+
+  const { data: allAddons = [], isLoading: addonsLoading } = useQuery<AddonInfo[]>({
+    queryKey: ["/api/addons"],
+    queryFn: async () => {
+      const res = await fetch("/api/addons");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const { data: myAddons = [], isLoading: myAddonsLoading } = useQuery<TenantAddonInfo[]>({
+    queryKey: ["/api/tenants/me/addons"],
+    queryFn: async () => {
+      const res = await fetch("/api/tenants/me/addons", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: async (addonSlug: string) => {
+      const res = await fetch("/api/tenants/me/addons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ addonSlug }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Error");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.requiresPayment && data.initPoint) {
+        window.open(data.initPoint, "_blank");
+        toast({ title: "Redirigiendo al pago", description: "Completa el pago para activar la extensión" });
+      } else {
+        toast({ title: "Extensión activada" });
+        queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/addons"] });
+      }
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (slug: string) => {
+      const res = await fetch(`/api/tenants/me/addons/${slug}/cancel`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Extensión cancelada" });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me/addons"] });
+    },
+    onError: () => {
+      toast({ title: "Error al cancelar", variant: "destructive" });
+    },
+  });
+
+  const activeAddonSlugs = new Set(myAddons.filter(a => a.status === "active").map(a => a.addonSlug));
+
+  if (addonsLoading || myAddonsLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-white/30" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6" data-testid="section-dashboard-addons">
+      {myAddons.filter(a => a.status === "active").length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Tus extensiones activas</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {myAddons.filter(a => a.status === "active").map((ta) => {
+              const IconComp = addonDashboardIcons[ta.addon.icon] || Package;
+              const catColor = addonCategoryColors[ta.addon.category] || "#8b5cf6";
+              return (
+                <div key={ta.id} className="glass-card rounded-xl p-4 flex items-start gap-3" data-testid={`active-addon-${ta.addonSlug}`}>
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${catColor}15` }}>
+                    <IconComp className="w-4.5 h-4.5" style={{ color: catColor }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-sm font-bold text-white/90">{ta.addon.name}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400">ACTIVA</span>
+                    </div>
+                    <p className="text-[11px] text-white/35 truncate">{ta.addon.description}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-[10px] text-red-400/60 hover:text-red-400 hover:bg-red-500/10 shrink-0"
+                    onClick={() => cancelMutation.mutate(ta.addonSlug)}
+                    disabled={cancelMutation.isPending}
+                    data-testid={`button-cancel-addon-${ta.addonSlug}`}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Todas las extensiones</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {allAddons.map((addon) => {
+            const IconComp = addonDashboardIcons[addon.icon] || Package;
+            const catColor = addonCategoryColors[addon.category] || "#8b5cf6";
+            const isActive = activeAddonSlugs.has(addon.slug);
+            return (
+              <div
+                key={addon.slug}
+                className={`glass-card rounded-xl p-4 flex flex-col transition-all duration-300 ${isActive ? "ring-1 ring-emerald-500/20" : "hover:border-white/10"}`}
+                data-testid={`addon-card-${addon.slug}`}
+              >
+                <div className="flex items-start justify-between mb-2.5">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${catColor}15` }}>
+                    <IconComp className="w-4.5 h-4.5" style={{ color: catColor }} />
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider" style={{ color: catColor, backgroundColor: `${catColor}10` }}>
+                    {addonCategoryLabels[addon.category]}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-white/90 mb-1">{addon.name}</h4>
+                <p className="text-[11px] text-white/35 leading-relaxed mb-3 flex-1">{addon.description}</p>
+                <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.06]">
+                  <span className="text-base font-black" style={{ color: catColor }}>
+                    ${addon.price.toLocaleString("es-CL")}
+                    <span className="text-[10px] text-white/25 font-normal ml-0.5">/mes</span>
+                  </span>
+                  {isActive ? (
+                    <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                      <CircleCheck className="w-3 h-3" /> Activa
+                    </span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="text-xs rounded-lg px-3 py-1.5 h-auto"
+                      onClick={() => activateMutation.mutate(addon.slug)}
+                      disabled={activateMutation.isPending}
+                      data-testid={`button-activate-addon-${addon.slug}`}
+                    >
+                      {activateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Activar"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides" | "whatsapp" | "extensiones";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadísticas", value: "stats", icon: BarChart3 },
   { title: "Configuración", value: "config", icon: Palette },
   { title: "Integración", value: "embed", icon: Code },
   { title: "WhatsApp", value: "whatsapp", icon: MessageCircle },
+  { title: "Extensiones", value: "extensiones", icon: Package },
   { title: "Descargar App", value: "download", icon: Download },
   { title: "Referidos", value: "referidos", icon: Gift },
   { title: "Guías", value: "guides", icon: BookOpen },
@@ -3538,6 +3750,7 @@ export default function Dashboard() {
               {activeTab === "guides" && "Manuales de instalación paso a paso"}
               {activeTab === "referidos" && "Invita negocios y gana meses gratis"}
               {activeTab === "whatsapp" && "Conecta tu chatbot a WhatsApp"}
+              {activeTab === "extensiones" && "Añade superpoderes a tu plataforma"}
               {activeTab === "plan" && "Gestiona tu suscripción"}
             </p>
           </div>
@@ -3572,6 +3785,7 @@ export default function Dashboard() {
             {activeTab === "guides" && <GuidesPanel />}
             {activeTab === "referidos" && <ReferidosSection />}
             {activeTab === "whatsapp" && <WhatsAppSection tenant={tenant} token={token!} />}
+            {activeTab === "extensiones" && <ExtensionesSection token={token!} />}
             {activeTab === "plan" && <PlanSection tenant={tenant} />}
           </div>
         </main>

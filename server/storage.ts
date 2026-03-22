@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
 
@@ -131,6 +131,15 @@ export interface IStorage {
   generateReferralCode(tenantId: number): Promise<string>;
   applyReferralReward(tenantId: number, plan: string, months: number): Promise<void>;
   addReferralCash(tenantId: number, amount: number): Promise<void>;
+  getAllAddons(): Promise<Addon[]>;
+  getAddonBySlug(slug: string): Promise<Addon | null>;
+  createAddon(data: InsertAddon): Promise<Addon>;
+  updateAddon(id: number, data: Partial<InsertAddon>): Promise<Addon | null>;
+  deleteAddon(id: number): Promise<boolean>;
+  getTenantAddons(tenantId: number): Promise<(TenantAddon & { addon: Addon })[]>;
+  createTenantAddon(data: InsertTenantAddon): Promise<TenantAddon>;
+  cancelTenantAddon(tenantId: number, addonSlug: string): Promise<TenantAddon | null>;
+  getTenantAddonBySlug(tenantId: number, addonSlug: string): Promise<TenantAddon | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1553,6 +1562,58 @@ export class DatabaseStorage implements IStorage {
     await db.update(tenants).set({
       cashBalance: sql`COALESCE(cash_balance, 0) + ${amount}`,
     }).where(eq(tenants.id, tenantId));
+  }
+
+  async getAllAddons(): Promise<Addon[]> {
+    return await db.select().from(addons).where(eq(addons.active, 1)).orderBy(asc(addons.sortOrder));
+  }
+
+  async getAddonBySlug(slug: string): Promise<Addon | null> {
+    const [addon] = await db.select().from(addons).where(eq(addons.slug, slug));
+    return addon || null;
+  }
+
+  async createAddon(data: InsertAddon): Promise<Addon> {
+    const [addon] = await db.insert(addons).values(data).returning();
+    return addon;
+  }
+
+  async updateAddon(id: number, data: Partial<InsertAddon>): Promise<Addon | null> {
+    const [updated] = await db.update(addons).set(data).where(eq(addons.id, id)).returning();
+    return updated || null;
+  }
+
+  async deleteAddon(id: number): Promise<boolean> {
+    const result = await db.delete(addons).where(eq(addons.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getTenantAddons(tenantId: number): Promise<(TenantAddon & { addon: Addon })[]> {
+    const results = await db
+      .select()
+      .from(tenantAddons)
+      .innerJoin(addons, eq(tenantAddons.addonSlug, addons.slug))
+      .where(eq(tenantAddons.tenantId, tenantId));
+    return results.map(r => ({ ...r.tenant_addons, addon: r.addons }));
+  }
+
+  async createTenantAddon(data: InsertTenantAddon): Promise<TenantAddon> {
+    const [ta] = await db.insert(tenantAddons).values(data).returning();
+    return ta;
+  }
+
+  async cancelTenantAddon(tenantId: number, addonSlug: string): Promise<TenantAddon | null> {
+    const [updated] = await db.update(tenantAddons)
+      .set({ status: "cancelled", cancelledAt: new Date() })
+      .where(and(eq(tenantAddons.tenantId, tenantId), eq(tenantAddons.addonSlug, addonSlug), eq(tenantAddons.status, "active")))
+      .returning();
+    return updated || null;
+  }
+
+  async getTenantAddonBySlug(tenantId: number, addonSlug: string): Promise<TenantAddon | null> {
+    const [ta] = await db.select().from(tenantAddons)
+      .where(and(eq(tenantAddons.tenantId, tenantId), eq(tenantAddons.addonSlug, addonSlug), eq(tenantAddons.status, "active")));
+    return ta || null;
   }
 }
 
