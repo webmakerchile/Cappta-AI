@@ -44,7 +44,7 @@
   --chart-4: 200 65% 50%;
   --chart-5: 340 60% 55%;
   --font-sans: 'Inter', 'Open Sans', sans-serif;
-  --font-heading: 'Sora', 'Inter', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
@@ -421,7 +421,7 @@
 }
 
 .text-gradient-brand {
-  background: linear-gradient(135deg, hsl(250, 65%, 65%) 0%, hsl(280, 55%, 60%) 100%);
+  background: linear-gradient(135deg, hsl(248, 80%, 72%) 0%, hsl(260, 55%, 58%) 50%, hsl(220, 50%, 55%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

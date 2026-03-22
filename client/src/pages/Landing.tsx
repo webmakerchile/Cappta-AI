@@ -55,7 +55,7 @@ import {
   Gift,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram } from "react-icons/si";
-import { CapptaLogo, CapptaIcon } from "@/components/CapptaLogo";
+import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
 import caseAngelGlow from "@assets/image_1772551984490.png";
 import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
@@ -888,9 +888,10 @@ function MobileNav() {
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4" data-testid="nav-bar">
       <div className={`max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3 rounded-2xl transition-all duration-500 ${scrolled ? "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/[0.06] shadow-2xl shadow-black/30" : "bg-transparent"}`}>
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
-          <CapptaIcon size={36} className="transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-lg font-extrabold tracking-tight">
-            <span className="text-gradient-brand">Cappta</span> <span className="text-white/50 font-medium ml-0.5">AI</span>
+          <CapptaIcon size={34} className="transition-transform duration-300 group-hover:scale-105" />
+          <span className="text-lg font-heading font-semibold tracking-[-0.02em]">
+            <span className="text-white/90">Cappta</span>
+            <span className="text-white/35 font-light ml-1">AI</span>
           </span>
         </a>
         <div className="hidden md:flex items-center gap-1">
@@ -1425,19 +1426,23 @@ export default function Landing() {
         </div>
 
         <div className="relative max-w-5xl mx-auto text-center">
-          <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
-            <span className="block">TU EQUIPO</span>
-            <span className="block">COMERCIAL</span>
+          <div className="flex justify-center mb-10">
+            <CapptaStackedLogo height={100} className="opacity-90" />
+          </div>
+
+          <h1 className="font-heading text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.03em] leading-[1.05] mb-6 sm:mb-8" data-testid="text-hero-title">
+            <span className="block text-white/95">TU EQUIPO</span>
+            <span className="block text-white/95">COMERCIAL</span>
             <span className="block text-gradient-brand">CON IA</span>
           </h1>
 
-          <p className="text-sm sm:text-base uppercase tracking-[0.2em] text-white/40 font-semibold mb-6">
+          <p className="text-sm sm:text-base uppercase tracking-[0.25em] text-white/30 font-medium mb-6 font-heading">
             Una extensión de tu equipo que impulsa tu negocio
           </p>
 
-          <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
+          <p className="text-base sm:text-lg text-white/45 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-description">
             Automatiza y deja que la IA responda, califique y haga seguimiento.
-            <span className="text-white/80 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
+            <span className="text-white/75 font-semibold"> Más leads, más conversión</span>, y lo mejor, sin aumentar tus costos.
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-12">
@@ -1542,7 +1547,7 @@ export default function Landing() {
               <BarChart3 className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide">RESULTADOS COMPROBADOS</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-4">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-4">
               Los números hablan
               <br />
               <span className="text-gradient-brand">por sí mismos</span>
@@ -1587,7 +1592,7 @@ export default function Landing() {
               <Sparkles className="w-3.5 h-3.5 text-accent" />
               <span className="text-xs font-semibold text-accent tracking-wide">PLATAFORMA DE IA COMERCIAL</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-features-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-features-title">
               Todo lo que necesitas
               <br />
               para hacer crecer tu negocio
@@ -1612,7 +1617,7 @@ export default function Landing() {
               <Headphones className="w-3.5 h-3.5 text-[#6366f1]" />
               <span className="text-xs font-semibold text-[#6366f1] tracking-wide">IA + EJECUTIVOS HUMANOS</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-handoff-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-handoff-title">
               La IA atiende, el ejecutivo
               <br />
               <span className="text-gradient-brand">cierra la venta</span>
@@ -1711,7 +1716,7 @@ export default function Landing() {
               <MousePointerClick className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide">LISTO EN MINUTOS</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-how-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-how-title">
               <span className="text-gradient-brand">3 pasos</span> y listo
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
@@ -1786,7 +1791,7 @@ export default function Landing() {
               <Trophy className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span className="text-xs font-semibold text-[#a78bfa] tracking-wide">CASOS DE ÉXITO</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-cases-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-cases-title">
               Historias reales <span className="text-gradient-brand">de éxito</span>
             </h2>
             <p className="text-white/40 text-lg max-w-xl mx-auto leading-relaxed">
@@ -1873,7 +1878,7 @@ export default function Landing() {
               <Star className="w-3.5 h-3.5 text-accent" />
               <span className="text-xs font-semibold text-accent tracking-wide">PRECIOS TRANSPARENTES</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-pricing-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-pricing-title">
               Empieza a crecer, sin aumentar
               <br />
               tu <span className="text-gradient-brand">gestión ni tu inversión</span>
@@ -2066,7 +2071,7 @@ export default function Landing() {
               <MessageSquare className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide">PREGUNTAS FRECUENTES</span>
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-5" data-testid="text-faq-title">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-5" data-testid="text-faq-title">
               ¿Tienes dudas?
               <br />
               <span className="text-gradient-brand">Te las resolvemos</span>
@@ -2085,7 +2090,10 @@ export default function Landing() {
         <div className="relative max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black mb-6 leading-tight" data-testid="text-cta-title">
+              <div className="mb-8">
+                <CapptaStackedLogo height={72} className="opacity-80" />
+              </div>
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] mb-6 leading-tight" data-testid="text-cta-title">
                 Empieza a crecer, sin aumentar tu
                 <br />
                 <span className="text-gradient-brand">gestión ni tu inversión</span>
@@ -2125,9 +2133,10 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-14">
             <div className="md:col-span-4">
               <div className="flex items-center gap-2.5 mb-5">
-                <CapptaIcon size={36} />
-                <span className="text-lg font-extrabold">
-                  <span className="text-gradient-brand">Cappta</span> <span className="text-white/50">AI</span>
+                <CapptaIcon size={34} />
+                <span className="text-lg font-heading font-semibold tracking-[-0.02em]">
+                  <span className="text-white/90">Cappta</span>
+                  <span className="text-white/35 font-light ml-1">AI</span>
                 </span>
               </div>
               <p className="text-sm text-white/30 leading-relaxed mb-5">
