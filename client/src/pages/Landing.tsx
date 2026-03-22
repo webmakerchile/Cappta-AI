@@ -1013,7 +1013,7 @@ function MobileNav() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4" data-testid="nav-bar">
-      <div className={`max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3 rounded-2xl transition-all duration-500 ${scrolled ? "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/[0.06] shadow-2xl shadow-black/30" : "bg-transparent"}`}>
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-6 py-3 rounded-2xl transition-all duration-500 bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/[0.06] shadow-2xl shadow-black/30">
         <a href="/" className="flex items-center gap-2.5 group flex-shrink-0" data-testid="link-home">
           <CapptaIcon size={34} className="transition-transform duration-300 group-hover:scale-105" />
           <span className="text-lg font-heading font-semibold tracking-[-0.02em]">
