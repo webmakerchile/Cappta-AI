@@ -48,7 +48,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     targetTestId: "nav-download",
     title: "Descargar App",
-    description: "Instala FoxBot como aplicación en tu celular o computador para recibir notificaciones y responder más rápido.",
+    description: "Instala Nexia AI como aplicación en tu celular o computador para recibir notificaciones y responder más rápido.",
     icon: Download,
     position: "right",
   },

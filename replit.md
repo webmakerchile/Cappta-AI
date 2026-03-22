@@ -1,15 +1,18 @@
-# FoxBot SaaS Platform by Web Maker Chile
+# Nexia AI SaaS Platform by Web Maker Chile
 
 ## Overview
-This project is a SaaS platform for AI-powered customer support chat widgets. Originally built as a standalone chat widget for CJM Digitales, it has been expanded into a multi-tenant SaaS application under the Web Maker Chile brand ("FoxBot"). The platform integrates a React + Vite frontend with an Express + Socket.io backend. Businesses can register, configure their own chat widget, and embed it in their websites via iframe. The core features include AI-powered responses, product catalog integration, real-time agent collaboration, and a knowledge base that learns from conversations.
+This project is a SaaS platform for AI-powered customer support chat widgets. Originally built as "FoxBot", it has been rebranded to **Nexia AI** with premium/luxury positioning. The platform integrates a React + Vite frontend with an Express + Socket.io backend. Businesses can register, configure their own chat widget, and embed it in their websites via iframe. The core features include AI-powered responses, product catalog integration, real-time agent collaboration, and a knowledge base that learns from conversations.
 
 ## Brand Identity
-- **Product Name**: FoxBot (by Web Maker Chile)
-- **Primary Color**: Green (HSL 142 72% 32%) - matches the Web Maker Chile fox logo
-- **Accent Color**: Orange (HSL 30 90% 52%) - matches the fox mascot
-- **Logo Assets**: `attached_assets/Logo_sin_fondo_1772247619250.png` (transparent), `attached_assets/Logo_1772247624057.png` (with background)
-- **Default Widget Color**: Green (#10b981) used as fallback when no tenant brandColor is set
-- **Note**: Purple (#6200EA) is used ONLY as CJM admin color fallback and in the admin panel UI, NOT in multi-tenant widgets
+- **Product Name**: Nexia AI (by Web Maker Chile)
+- **Primary Color**: Deep violet/indigo #7669E9 = hsl(250, 65%, 60%)
+- **Logo Component**: `client/src/components/NexiaLogo.tsx` (SVG component with NexiaLogo and NexiaIcon exports)
+- **Default Widget Color**: Green (#10b981) used as fallback when no tenant brandColor is set (tenant-configurable)
+- **Plan Names**: Nexia Starter ($79.990), Nexia Pro ($149.990), Nexia Enterprise ($349.990) CLP/mes
+- **Widget IDs**: `nexia-widget` (iframe ID), `nexia_position` (postMessage event)
+- **WordPress Plugin**: `nexia-chat` slug
+- **Domain**: foxbot.cl (CORS origins, email addresses @foxbot.cl unchanged — domain stays)
+- **Demo-first model**: All CTAs → "Agendar Demo" linking to #demo section
 - **Product Isolation**: `/api/products/browse?tenantId=X` filters products by tenant. Each tenant only sees their own products in the widget.
 - **Beautify Text**: `/api/tenant-panel/beautify-text` endpoint uses GPT-4o-mini to improve bot training text (copywriting, grammar, tone) while preserving structure and factual data.
 

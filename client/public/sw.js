@@ -1,4 +1,4 @@
-const CACHE_NAME = 'foxbot-v4';
+const CACHE_NAME = 'nexia-v1';
 const OFFLINE_URLS = ['/admin', '/dashboard', '/panel'];
 
 self.addEventListener('install', (event) => {
@@ -45,13 +45,13 @@ self.addEventListener('push', (event) => {
       data = { title: 'Nuevo mensaje', body: event.data.text() };
     }
 
-    const title = data.title || 'Nuevo mensaje - FoxBot';
+    const title = data.title || 'Nuevo mensaje - Nexia AI';
     const options = {
       body: data.body || 'Tienes un nuevo mensaje de soporte',
       icon: '/favicon-fox.png',
       badge: '/favicon-fox.png',
       vibrate: [300, 100, 300, 100, 300],
-      tag: 'foxbot-' + (data.sessionId || 'general'),
+      tag: 'nexia-' + (data.sessionId || 'general'),
       renotify: true,
       requireInteraction: true,
       silent: false,

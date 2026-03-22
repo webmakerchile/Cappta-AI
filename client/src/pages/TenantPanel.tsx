@@ -61,7 +61,7 @@ import {
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
 import type { Tenant } from "@shared/schema";
-import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
+import { NexiaIcon } from "@/components/NexiaLogo";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 
@@ -3112,9 +3112,9 @@ export default function TenantPanel() {
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
-    document.title = "FoxBot Panel - Soporte";
+    document.title = "Nexia AI Panel - Soporte";
     const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-    if (appleTitle) appleTitle.setAttribute("content", "FoxBot Panel");
+    if (appleTitle) appleTitle.setAttribute("content", "Nexia AI Panel");
     const manifestLink = document.querySelector('link[rel="manifest"]');
     if (manifestLink) {
       manifestLink.setAttribute("href", "/manifest-panel.json");
@@ -3152,7 +3152,7 @@ export default function TenantPanel() {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: "#111", fontFamily: "'DM Sans', sans-serif" }}>
         <div className="flex flex-col items-center gap-4">
-          <img src={logoSinFondo} alt="FoxBot" className="w-16 h-16 rounded-xl" />
+          <NexiaIcon className="w-16 h-16" />
           <Loader2 className="w-6 h-6 text-[#10b981] animate-spin" />
           <p className="text-white/40 text-sm" data-testid="text-loading-panel">Cargando panel...</p>
         </div>

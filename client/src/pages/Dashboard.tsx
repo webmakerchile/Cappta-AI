@@ -66,7 +66,7 @@ import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager, SiWhatsapp } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
-import logoSinFondo from "@assets/FoxBot_Logo_1772569688759.webp";
+import { NexiaIcon } from "@/components/NexiaLogo";
 import OnboardingWizard from "./OnboardingWizard";
 import DashboardTour, { TourPrompt } from "./DashboardTour";
 
@@ -681,7 +681,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
             <Globe className="w-5 h-5 text-primary" />
             Tu Negocio
           </h3>
-          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Ingresa tu sitio web y FoxBot aprendera sobre tu negocio automáticamente</p>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Ingresa tu sitio web y Nexia AI aprendera sobre tu negocio automáticamente</p>
         </div>
 
         <div className="space-y-2 animate-dash-fade-up dash-stagger-1 relative">
@@ -714,7 +714,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
               )}
             </Button>
           </div>
-          <p className="text-xs text-white/30">Al analizar tu sitio web, FoxBot extraera automáticamente la información de tu negocio (productos, servicios, contacto, horarios) y entrenara el chatbot por ti.</p>
+          <p className="text-xs text-white/30">Al analizar tu sitio web, Nexia AI extraera automáticamente la información de tu negocio (productos, servicios, contacto, horarios) y entrenara el chatbot por ti.</p>
         </div>
 
         {analyzedResult && (
@@ -1713,7 +1713,7 @@ function WidgetConfigSection({ tenant, token }: { tenant: TenantProfile; token: 
                     </div>
                   </div>
                   <div className="py-1.5 px-3 border-t border-white/[0.04] shrink-0">
-                    <p className="text-[9px] text-white/20 text-center">Potenciado por <span className="font-medium">FoxBot</span></p>
+                    <p className="text-[9px] text-white/20 text-center">Potenciado por <span className="font-medium">Nexia AI</span></p>
                   </div>
                 </div>
               )}
@@ -1862,7 +1862,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
   const embedScript = `<script>
   (function() {
     var iframe = document.createElement('iframe');
-    iframe.id = 'foxbot-widget';
+    iframe.id = 'nexia-widget';
     iframe.src = '${baseUrl}/widget?tenantId=${tenant.id}';
     iframe.allow = 'microphone';
     var pos = 'right';
@@ -1887,7 +1887,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
     window.addEventListener('message', function(e) {
       if (!e.data || !e.data.type) return;
       if (e.data.position) pos = e.data.position;
-      if (e.data.type === 'foxbot_position') { pos = e.data.position; setPos(pos, 'closed'); }
+      if (e.data.type === 'nexia_position') { pos = e.data.position; setPos(pos, 'closed'); }
       if (e.data.type === 'open_chat') setPos(pos, 'open');
       if (e.data.type === 'close_chat') setPos(pos, 'closed', e.data.width, e.data.height);
     });
@@ -1907,7 +1907,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "foxbot-chat.zip";
+      a.download = "nexia-chat.zip";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -1922,16 +1922,16 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
     {
       id: "wordpress", name: "WordPress", icon: SiWordpress, color: "#21759b", difficulty: "fácil",
       steps: [
-        { title: "Descarga el plugin de FoxBot", description: "Haz clic en el botón de abajo para descargar tu plugin personalizado. Ya viene preconfigurado con tu cuenta." },
-        { title: "Sube el plugin a WordPress", description: "En tu panel de WordPress, ve a Plugins > Añadir nuevo > Subir plugin. Selecciona el archivo foxbot-chat.zip que descargaste." },
+        { title: "Descarga el plugin de Nexia AI", description: "Haz clic en el botón de abajo para descargar tu plugin personalizado. Ya viene preconfigurado con tu cuenta." },
+        { title: "Sube el plugin a WordPress", description: "En tu panel de WordPress, ve a Plugins > Añadir nuevo > Subir plugin. Selecciona el archivo nexia-chat.zip que descargaste." },
         { title: "Activa el plugin", description: "Después de instalar, haz clic en 'Activar plugin'. Listo, el chatbot aparecerá automáticamente en todas las páginas de tu sitio." },
       ],
     },
     {
       id: "woocommerce", name: "WooCommerce", icon: SiWoocommerce, color: "#96588a", difficulty: "fácil",
       steps: [
-        { title: "Descarga el plugin de FoxBot", description: "WooCommerce funciona sobre WordPress. Haz clic en el botón de abajo para descargar tu plugin personalizado." },
-        { title: "Sube el plugin a WordPress", description: "En tu panel de WordPress/WooCommerce, ve a Plugins > Añadir nuevo > Subir plugin. Selecciona el archivo foxbot-chat.zip." },
+        { title: "Descarga el plugin de Nexia AI", description: "WooCommerce funciona sobre WordPress. Haz clic en el botón de abajo para descargar tu plugin personalizado." },
+        { title: "Sube el plugin a WordPress", description: "En tu panel de WordPress/WooCommerce, ve a Plugins > Añadir nuevo > Subir plugin. Selecciona el archivo nexia-chat.zip." },
         { title: "Activa el plugin", description: "Haz clic en 'Activar plugin'. El chatbot aparecerá en tu tienda automáticamente." },
         { title: "Conecta tu catálogo (opcional)", description: "Para que el bot muestre tus productos, activa el buscador de productos en Configuración > API de Productos e ingresa tu URL de WooCommerce REST API.", note: "Formato de URL: https://tu-tienda.com/wp-json/wc/v3/products" },
       ],
@@ -2045,7 +2045,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
         <div className="relative flex items-start justify-between">
           <div>
             <h3 className="text-lg font-bold mb-1 animate-dash-slide-right">Instala tu chatbot</h3>
-            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">FoxBot se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeño código y tu asistente estará listo.</p>
+            <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Nexia AI se integra con cualquier sitio web o plataforma que soporte HTML. Solo necesitas pegar un pequeño código y tu asistente estará listo.</p>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 shrink-0 ml-4">
             <CircleCheck className="w-4 h-4 text-green-400" />
@@ -2223,7 +2223,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
           <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <a
-                href="https://wa.me/56962530976?text=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web"
+                href="https://wa.me/56962530976?text=Hola%2C%20necesito%20ayuda%20para%20instalar%20Nexia%20AI%20en%20mi%20sitio%20web"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-green-500/5 hover:border-green-500/20 transition-all group"
@@ -2239,7 +2239,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               </a>
 
               <a
-                href="mailto:webmakerchile@gmail.com?subject=Ayuda%20instalaci%C3%B3n%20FoxBot&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20FoxBot%20en%20mi%20sitio%20web."
+                href="mailto:webmakerchile@gmail.com?subject=Ayuda%20instalaci%C3%B3n%20Nexia%20AI&body=Hola%2C%20necesito%20ayuda%20para%20instalar%20Nexia%20AI%20en%20mi%20sitio%20web."
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group"
                 data-testid="link-email-help"
               >
@@ -2253,7 +2253,7 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
               </a>
 
               <a
-                href="https://www.foxbot.cl"
+                href="https://www.nexia-ai.cl"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-orange-500/5 hover:border-orange-500/20 transition-all group"
@@ -2263,8 +2263,8 @@ function EmbedCodeSection({ tenant }: { tenant: TenantProfile }) {
                   <Bot className="w-4 h-4 text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-white/70">FoxBot</p>
-                  <p className="text-[10px] text-white/40">foxbot.cl</p>
+                  <p className="text-xs font-semibold text-white/70">Nexia AI</p>
+                  <p className="text-[10px] text-white/40">nexia-ai.cl</p>
                 </div>
               </a>
             </div>
@@ -2398,11 +2398,11 @@ function ReferidosSection() {
   const formatCLP = (v: number) => `$${v.toLocaleString("es-CL")}`;
 
   const tiers = [
-    { refs: 1, cash: "$3.000", reward: "+ 1 mes Fox Pro", color: "16,185,129", icon: <Gift className="w-4 h-4" />, desc: "Tu primer referido: dinero + plan premium" },
-    { refs: 3, cash: "$9.000", reward: "+ 2 meses Fox Pro", color: "59,130,246", icon: <Star className="w-4 h-4" />, desc: "Acumulas $3.000 CLP por cada referido" },
-    { refs: 5, cash: "$15.000", reward: "+ 3 meses Fox Enterprise", color: "245,158,11", icon: <Trophy className="w-4 h-4" />, desc: "Sesiones y mensajes ilimitados para ti" },
-    { refs: 10, cash: "$30.000", reward: "+ 6 meses Fox Enterprise", color: "168,85,247", icon: <Crown className="w-4 h-4" />, desc: "Nivel experto: dinero real + el mejor plan" },
-    { refs: 15, cash: "$45.000", reward: "Embajador FoxBot", color: "236,72,153", icon: <Shield className="w-4 h-4" />, desc: "Plan gratis permanente + $5.000 por referido" },
+    { refs: 1, cash: "$3.000", reward: "+ 1 mes Nexia Pro", color: "16,185,129", icon: <Gift className="w-4 h-4" />, desc: "Tu primer referido: dinero + plan premium" },
+    { refs: 3, cash: "$9.000", reward: "+ 2 meses Nexia Pro", color: "59,130,246", icon: <Star className="w-4 h-4" />, desc: "Acumulas $3.000 CLP por cada referido" },
+    { refs: 5, cash: "$15.000", reward: "+ 3 meses Nexia Enterprise", color: "245,158,11", icon: <Trophy className="w-4 h-4" />, desc: "Sesiones y mensajes ilimitados para ti" },
+    { refs: 10, cash: "$30.000", reward: "+ 6 meses Nexia Enterprise", color: "168,85,247", icon: <Crown className="w-4 h-4" />, desc: "Nivel experto: dinero real + el mejor plan" },
+    { refs: 15, cash: "$45.000", reward: "Embajador Nexia AI", color: "236,72,153", icon: <Shield className="w-4 h-4" />, desc: "Plan gratis permanente + $5.000 por referido" },
   ];
 
   return (
@@ -2448,11 +2448,11 @@ function ReferidosSection() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-black text-pink-400">Embajador FoxBot</span>
+                    <span className="text-sm font-black text-pink-400">Embajador Nexia AI</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-bold border border-pink-500/30">ACTIVO</span>
                   </div>
                   <p className="text-xs text-white/50 mt-0.5">
-                    Ganas <span className="text-pink-400 font-bold">$5.000 CLP</span> por referido · Plan Fox Enterprise gratis mientras mantengas {data.ambassadorThreshold}+ referidos pagados
+                    Ganas <span className="text-pink-400 font-bold">$5.000 CLP</span> por referido · Plan Nexia Enterprise gratis mientras mantengas {data.ambassadorThreshold}+ referidos pagados
                   </p>
                 </div>
               </div>
@@ -2478,7 +2478,7 @@ function ReferidosSection() {
               <span className="text-sm font-bold text-amber-400">{formatCLP(data.cashPerReferral)} CLP por cada referido confirmado</span>
             </div>
             <p className="text-xs text-white/40">
-              Cada vez que un negocio se registra con tu enlace y compra Fox Pro o Fox Enterprise, recibes {formatCLP(data.cashPerReferral)} CLP en saldo.
+              Cada vez que un negocio se registra con tu enlace y compra Nexia Pro o Nexia Enterprise, recibes {formatCLP(data.cashPerReferral)} CLP en saldo.
               {data.isAmbassador ? " Como Embajador, ganas $5.000 en vez de $3.000 por referido." : " Los Embajadores ganan $5.000 por referido."}
               {" "}Solo cuentan referidos con plan de pago activo.
             </p>
@@ -2665,7 +2665,7 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
             <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-3" />
             <h4 className="text-base font-bold text-white/80 mb-2">Disponible en planes pagados</h4>
             <p className="text-sm text-white/50 mb-4">
-              La integración con WhatsApp está disponible como add-on para los planes Fox Pro y Fox Enterprise por <span className="text-[#25d366] font-bold">$14.990 CLP/mes</span> adicionales.
+              La integración con WhatsApp está disponible como add-on para los planes Nexia Pro y Nexia Enterprise por <span className="text-[#25d366] font-bold">$14.990 CLP/mes</span> adicionales.
             </p>
             <Button
               className="bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold rounded-xl"
@@ -2695,7 +2695,7 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
                 </p>
                 <div className="flex gap-3">
                   <a
-                    href="mailto:webmakerchile@gmail.com?subject=Activar%20WhatsApp%20FoxBot&body=Hola%2C%20quiero%20activar%20la%20integraci%C3%B3n%20de%20WhatsApp%20en%20mi%20cuenta%20FoxBot."
+                    href="mailto:webmakerchile@gmail.com?subject=Activar%20WhatsApp%20Nexia%20AI&body=Hola%2C%20quiero%20activar%20la%20integraci%C3%B3n%20de%20WhatsApp%20en%20mi%20cuenta%20Nexia%20AI."
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25d366] hover:bg-[#20bd5a] text-white text-sm font-bold transition-colors"
                     data-testid="link-activate-whatsapp"
                   >
@@ -2752,7 +2752,7 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-[#25d366] mt-0.5 flex-shrink-0" />
-                  FoxBot responde automáticamente con IA usando tu base de conocimiento
+                  Nexia AI responde automáticamente con IA usando tu base de conocimiento
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-[#25d366] mt-0.5 flex-shrink-0" />
@@ -2775,7 +2775,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
-  const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
+  const planLabels: Record<string, string> = { free: "Nexia Starter", basic: "Nexia Pro", pro: "Nexia Enterprise" };
   const planPrices: Record<string, string> = { free: "$0", basic: "$19.990", pro: "$49.990" };
   const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
@@ -2895,7 +2895,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     headers: { Authorization: `Bearer ${token}` },
                   });
                   if (res.ok) {
-                    toast({ title: "Suscripción cancelada", description: "Tu plan ha sido degradado a Fox Free." });
+                    toast({ title: "Suscripción cancelada", description: "Tu plan ha sido degradado a Nexia Starter." });
                     queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
                   } else {
                     toast({ title: "Error", description: "No se pudo cancelar la suscripción", variant: "destructive" });
@@ -3018,7 +3018,7 @@ function DownloadAppSection() {
     }
   };
 
-  const currentUrl = "https://www.foxbot.cl/panel";
+  const currentUrl = "https://www.nexia-ai.cl/panel";
 
   return (
     <div className="space-y-6">
@@ -3028,9 +3028,9 @@ function DownloadAppSection() {
         <div className="relative">
           <h3 className="text-lg font-bold mb-1 animate-dash-slide-right flex items-center gap-2">
             <Download className="w-5 h-5 text-primary" />
-            Descarga FoxBot en tus dispositivos
+            Descarga Nexia AI en tus dispositivos
           </h3>
-          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Instala FoxBot como app en tu celular o computador desde <span className="text-primary font-medium">foxbot.cl/panel</span>. Tu panel es personal — solo tu puedes ver y gestionar tu negocio. Una vez que inicies sesión, no tendras que volver a hacerlo.</p>
+          <p className="text-sm text-white/40 animate-dash-slide-right dash-stagger-1">Instala Nexia AI como app en tu celular o computador desde <span className="text-primary font-medium">nexia-ai.cl/panel</span>. Tu panel es personal — solo tu puedes ver y gestionar tu negocio. Una vez que inicies sesión, no tendras que volver a hacerlo.</p>
         </div>
 
         {isInstalled && (
@@ -3038,7 +3038,7 @@ function DownloadAppSection() {
             <CircleCheck className="w-5 h-5 text-green-400 shrink-0" />
             <div>
               <p className="text-sm font-medium text-green-400">App instalada</p>
-              <p className="text-xs text-white/40">FoxBot ya está instalado en este dispositivo. Puedes abrirlo desde tu escritorio o pantalla de inicio.</p>
+              <p className="text-xs text-white/40">Nexia AI ya está instalado en este dispositivo. Puedes abrirlo desde tu escritorio o pantalla de inicio.</p>
             </div>
           </div>
         )}
@@ -3049,7 +3049,7 @@ function DownloadAppSection() {
               <Smartphone className="w-6 h-6 text-cyan-400" />
             </div>
             <h4 className="text-sm font-bold text-white/90">Celular (Android / iOS)</h4>
-            <p className="text-xs text-white/40 leading-relaxed">Agrega FoxBot a tu pantalla de inicio y recibe notificaciones push cada vez que un cliente escriba.</p>
+            <p className="text-xs text-white/40 leading-relaxed">Agrega Nexia AI a tu pantalla de inicio y recibe notificaciones push cada vez que un cliente escriba.</p>
           </div>
 
           <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 transition-all duration-300 hover:bg-white/[0.05] hover:border-white/[0.1] group">
@@ -3057,7 +3057,7 @@ function DownloadAppSection() {
               <Monitor className="w-6 h-6 text-blue-400" />
             </div>
             <h4 className="text-sm font-bold text-white/90">Computador (PC / Mac)</h4>
-            <p className="text-xs text-white/40 leading-relaxed">Instala FoxBot como aplicación de escritorio en Chrome, Edge o Brave. Se abre como una ventana independiente.</p>
+            <p className="text-xs text-white/40 leading-relaxed">Instala Nexia AI como aplicación de escritorio en Chrome, Edge o Brave. Se abre como una ventana independiente.</p>
           </div>
 
           <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 transition-all duration-300 hover:bg-white/[0.05] hover:border-white/[0.1] group">
@@ -3079,7 +3079,7 @@ function DownloadAppSection() {
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-base font-bold mb-1">Instalar ahora</h4>
-              <p className="text-xs text-white/40">Tu navegador permite instalar FoxBot directamente. Haz clic para agregarlo a tu dispositivo.</p>
+              <p className="text-xs text-white/40">Tu navegador permite instalar Nexia AI directamente. Haz clic para agregarlo a tu dispositivo.</p>
             </div>
             <Button
               onClick={handleInstall}
@@ -3111,11 +3111,11 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">Android (Chrome)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Chrome y visita foxbot.cl/panel" },
+              { step: "1", text: "Abre Chrome y visita nexia-ai.cl/panel" },
               { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
               { step: "3", text: 'Toca el menú (3 puntos arriba a la derecha)' },
               { step: "4", text: 'Selecciona "Agregar a pantalla de inicio" o "Instalar aplicación"' },
-              { step: "5", text: "FoxBot se instalara como app y tu sesión quedara activa" },
+              { step: "5", text: "Nexia AI se instalara como app y tu sesión quedara activa" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
@@ -3132,11 +3132,11 @@ function DownloadAppSection() {
               <h4 className="text-sm font-bold text-white/80">iPhone / iPad (Safari)</h4>
             </div>
             {[
-              { step: "1", text: "Abre Safari y visita foxbot.cl/panel" },
+              { step: "1", text: "Abre Safari y visita nexia-ai.cl/panel" },
               { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
               { step: "3", text: 'Toca el botón de compartir (cuadrado con flecha hacia arriba)' },
               { step: "4", text: 'Selecciona "Agregar a pantalla de inicio" y confirma' },
-              { step: "5", text: "FoxBot se instalara como app y tu sesión quedara activa" },
+              { step: "5", text: "Nexia AI se instalara como app y tu sesión quedara activa" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-blue-400">{item.step}</div>
@@ -3153,16 +3153,16 @@ function DownloadAppSection() {
             <Monitor className="w-4 h-4 text-primary" />
             Como instalar en tu computador
           </h3>
-          <p className="text-xs text-white/40">Chrome, Edge y Brave permiten instalar FoxBot como app de escritorio</p>
+          <p className="text-xs text-white/40">Chrome, Edge y Brave permiten instalar Nexia AI como app de escritorio</p>
         </div>
 
         <div className="space-y-4">
           {[
-            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita foxbot.cl/panel" },
+            { step: "1", text: "Abre tu navegador (Chrome, Edge o Brave) y visita nexia-ai.cl/panel" },
             { step: "2", text: "Inicia sesión con tu cuenta (si no tienes, registrate gratis)" },
             { step: "3", text: 'Busca el icono de instalar en la barra de direcciones o ve al menú del navegador' },
-            { step: "4", text: 'Haz clic en "Instalar FoxBot" o "Instalar aplicación"' },
-            { step: "5", text: "FoxBot se abrira como ventana independiente con tu sesión activa" },
+            { step: "4", text: 'Haz clic en "Instalar Nexia AI" o "Instalar aplicación"' },
+            { step: "5", text: "Nexia AI se abrira como ventana independiente con tu sesión activa" },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
               <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 text-[10px] font-bold text-primary">{item.step}</div>
@@ -3178,7 +3178,7 @@ function DownloadAppSection() {
             <Share2 className="w-4 h-4 text-primary" />
             Comparte con tu equipo
           </h3>
-          <p className="text-xs text-white/40">Envia este enlace a tus ejecutivos para que instalen FoxBot en sus dispositivos</p>
+          <p className="text-xs text-white/40">Envia este enlace a tus ejecutivos para que instalen Nexia AI en sus dispositivos</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -3204,7 +3204,7 @@ function DownloadAppSection() {
             <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
             <span className="font-medium">Tu panel es privado y personal</span>
           </p>
-          <p className="text-[11px] text-white/35 leading-relaxed pl-5">Cada persona que acceda a foxbot.cl/panel vera unicamente su propio negocio. Si no tiene cuenta, podra registrarse e iniciar sesión. Una vez dentro, la sesión se mantiene activa — no tendra que iniciar sesión cada vez.</p>
+          <p className="text-[11px] text-white/35 leading-relaxed pl-5">Cada persona que acceda a nexia-ai.cl/panel vera unicamente su propio negocio. Si no tiene cuenta, podra registrarse e iniciar sesión. Una vez dentro, la sesión se mantiene activa — no tendra que iniciar sesión cada vez.</p>
         </div>
       </div>
     </div>
@@ -3248,7 +3248,7 @@ export default function Dashboard() {
         toast({ title: "¡Pago exitoso!", description: "Tu plan ha sido actualizado. Ahora instala el chat en tu sitio web." });
         queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
         if (typeof window !== "undefined" && (window as any).ttq) {
-          (window as any).ttq.track("CompletePayment", { content_type: "product", content_name: "FoxBot Plan" });
+          (window as any).ttq.track("CompletePayment", { content_type: "product", content_name: "Nexia AI Plan" });
         }
         setActiveTab("guides");
       } else if (payment === "rejected") {
@@ -3354,7 +3354,7 @@ export default function Dashboard() {
         <div className="flex flex-col items-center gap-4">
           <div className="w-14 h-14 rounded-2xl glass-card flex items-center justify-center animate-float relative">
             <div className="absolute inset-0 rounded-2xl animate-glow-pulse" style={{ boxShadow: "0 0 30px rgba(16,185,129,0.15)" }} />
-            <img src={logoSinFondo} alt="FoxBot" className="w-9 h-9 object-contain relative" />
+            <NexiaIcon className="w-9 h-9 relative" />
           </div>
           <div className="flex flex-col items-center gap-2">
             <p className="text-sm text-white/50 animate-dash-fade-in">Cargando dashboard...</p>
@@ -3377,7 +3377,7 @@ export default function Dashboard() {
         onComplete={() => {
           setShowOnboarding(false);
           queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
-          const tourSeen = localStorage.getItem("foxbot_tour_seen");
+          const tourSeen = localStorage.getItem("nexia_tour_seen");
           if (!tourSeen) {
             setShowTourPrompt(true);
           }
@@ -3386,7 +3386,7 @@ export default function Dashboard() {
     );
   }
 
-  const planLabels: Record<string, string> = { free: "Fox Free", basic: "Fox Pro", pro: "Fox Enterprise" };
+  const planLabels: Record<string, string> = { free: "Nexia Starter", basic: "Nexia Pro", pro: "Nexia Enterprise" };
   const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
 
   const planTheme: Record<string, { borderColor: string; glowFrom: string; glowTo: string; orbColor: string; accentRgba: string }> = {
@@ -3435,7 +3435,7 @@ export default function Dashboard() {
               />
             ) : (
               <div className="w-9 h-9 rounded-xl glass-card flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-110 hover:rotate-3 animate-float" style={{ animationDuration: "8s" }}>
-                <img src={logoSinFondo} alt="FoxBot" className="w-6 h-6 object-contain" />
+                <NexiaIcon className="w-6 h-6" />
               </div>
             )}
             <div className="min-w-0">
@@ -3534,7 +3534,7 @@ export default function Dashboard() {
               {activeTab === "stats" && "Métricas de tu chat en tiempo real"}
               {activeTab === "config" && "Personaliza tu widget de chat"}
               {activeTab === "embed" && "Agrega el chat a tu sitio web"}
-              {activeTab === "download" && "Instala FoxBot en tu celular o computador"}
+              {activeTab === "download" && "Instala Nexia AI en tu celular o computador"}
               {activeTab === "guides" && "Manuales de instalación paso a paso"}
               {activeTab === "referidos" && "Invita negocios y gana meses gratis"}
               {activeTab === "whatsapp" && "Conecta tu chatbot a WhatsApp"}
@@ -3586,7 +3586,7 @@ export default function Dashboard() {
           }}
           onSkip={() => {
             setShowTourPrompt(false);
-            localStorage.setItem("foxbot_tour_seen", "1");
+            localStorage.setItem("nexia_tour_seen", "1");
           }}
         />
       )}
@@ -3595,11 +3595,11 @@ export default function Dashboard() {
         <DashboardTour
           onComplete={() => {
             setShowTour(false);
-            localStorage.setItem("foxbot_tour_seen", "1");
+            localStorage.setItem("nexia_tour_seen", "1");
           }}
           onSkip={() => {
             setShowTour(false);
-            localStorage.setItem("foxbot_tour_seen", "1");
+            localStorage.setItem("nexia_tour_seen", "1");
           }}
         />
       )}

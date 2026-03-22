@@ -1,12 +1,12 @@
 {
-  "name": "FoxBot - Panel de Soporte",
-  "short_name": "FoxBot Panel",
-  "description": "Atiende a tus clientes desde tu teléfono con FoxBot.",
+  "name": "Nexia AI - Panel de Soporte",
+  "short_name": "Nexia AI Panel",
+  "description": "Atiende a tus clientes desde tu teléfono con Nexia AI.",
   "start_url": "/panel",
   "scope": "/",
   "display": "standalone",
   "background_color": "#111111",
-  "theme_color": "#10b981",
+  "theme_color": "#7669E9",
   "orientation": "any",
   "icons": [
     {

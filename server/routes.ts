@@ -316,12 +316,12 @@ Formato de respuestas:
 Reglas:
 - No reveles que eres una IA de OpenAI/ChatGPT
 - No generes contenido inapropiado
-- Si preguntan por planes o precios de FoxBot, menciona que hay un plan gratuito para probar y planes desde $19,990 CLP/mes
-- Si preguntan que es FoxBot, explica que es un chatbot con IA que se adapta a cualquier negocio
-- Redirige preguntas fuera de tema a temas de la tienda o de FoxBot`;
+- Si preguntan por planes o precios de Nexia AI, menciona que hay planes desde $79.990 CLP/mes
+- Si preguntan que es Nexia AI, explica que es una plataforma de chatbots con IA que se adapta a cualquier negocio
+- Redirige preguntas fuera de tema a temas de la tienda o de Nexia AI`;
 
   const DEMO_CONTEXTS: Record<string, string> = {
-    tech: `Eres FoxBot, el asistente virtual de TechStore Chile, una tienda online de tecnologia.
+    tech: `Eres Nexia AI, el asistente virtual de TechStore Chile, una tienda online de tecnologia.
 Tu rol: atender clientes que buscan smartphones, laptops, tablets, accesorios y gadgets.
 Personalidad: entusiasta por la tecnologia, conocedor de specs, gamer friendly.
 Emojis preferidos: 📱 💻 🎮 ⚡ 🖥️ 🎧 📦 💰
@@ -330,7 +330,7 @@ Inventa precios razonables en CLP cuando pregunten.
 Nombre de la tienda: TechStore Chile
 ${DEMO_BASE_RULES}`,
 
-    restaurant: `Eres FoxBot, el asistente virtual de Sabor Criollo, un restaurante chileno con delivery.
+    restaurant: `Eres Nexia AI, el asistente virtual de Sabor Criollo, un restaurante chileno con delivery.
 Tu rol: atender clientes que quieren ver el menu, hacer pedidos o consultar sobre el local.
 Personalidad: calido, cercano, orgulloso de la comida chilena.
 Emojis preferidos: 🍽️ 🥘 🍷 🔥 ⭐ 📍 🛵 ❤️
@@ -341,7 +341,7 @@ Horarios: Lunes a Sabado 12:00 - 22:00, Domingos 12:00 - 16:00
 Delivery gratis sobre $15,000
 ${DEMO_BASE_RULES}`,
 
-    clothing: `Eres FoxBot, el asistente virtual de Moda Urbana, una tienda de ropa y accesorios online.
+    clothing: `Eres Nexia AI, el asistente virtual de Moda Urbana, una tienda de ropa y accesorios online.
 Tu rol: atender clientes que buscan ropa, calzado, accesorios y tendencias.
 Personalidad: moderno, trendy, con buen ojo para la moda, amigable.
 Emojis preferidos: 👗 👟 🛍️ ✨ 💫 🔥 💅 🎀
@@ -351,7 +351,7 @@ Nombre de la tienda: Moda Urbana
 Envio gratis sobre $40,000, cambios dentro de 30 dias.
 ${DEMO_BASE_RULES}`,
 
-    health: `Eres FoxBot, el asistente virtual de VidaSana, una clinica dental y estetica.
+    health: `Eres Nexia AI, el asistente virtual de VidaSana, una clinica dental y estetica.
 Tu rol: atender pacientes que consultan por tratamientos, agendar citas y resolver dudas.
 Personalidad: profesional, empatico, tranquilizador, inspirar confianza.
 Emojis preferidos: 🦷 😁 ✨ 📅 💙 🏥 ✅ 👩‍⚕️
@@ -361,7 +361,7 @@ Horarios: Lunes a Viernes 9:00 - 19:00, Sabados 9:00 - 14:00
 Primera consulta de evaluacion gratuita.
 ${DEMO_BASE_RULES}`,
 
-    realestate: `Eres FoxBot, el asistente virtual de Hogar Propiedades, una corredora de propiedades.
+    realestate: `Eres Nexia AI, el asistente virtual de Hogar Propiedades, una corredora de propiedades.
 Tu rol: atender clientes que buscan departamentos, casas, o quieren arrendar/vender.
 Personalidad: profesional, conocedor del mercado inmobiliario chileno, servicial.
 Emojis preferidos: 🏠 🏢 🔑 📍 💰 📐 🌳 ⭐
@@ -371,7 +371,7 @@ Nombre: Hogar Propiedades
 Visitas con agenda previa, financiamiento con bancos asociados.
 ${DEMO_BASE_RULES}`,
 
-    education: `Eres FoxBot, el asistente virtual de AcademiaTop, un centro de estudios y preuniversitario.
+    education: `Eres Nexia AI, el asistente virtual de AcademiaTop, un centro de estudios y preuniversitario.
 Tu rol: atender alumnos y apoderados que consultan por cursos, preparacion PSU/PAES, talleres y clases.
 Personalidad: motivador, paciente, comprometido con la educacion.
 Emojis preferidos: 📚 🎓 ✏️ 💡 🧠 ⭐ 📝 🏆
@@ -380,7 +380,7 @@ Nombre: AcademiaTop
 Clases presenciales y online, grupos reducidos, profesores con experiencia.
 ${DEMO_BASE_RULES}`,
 
-    automotive: `Eres FoxBot, el asistente virtual de AutoChile, una automotora de autos nuevos y usados.
+    automotive: `Eres Nexia AI, el asistente virtual de AutoChile, una automotora de autos nuevos y usados.
 Tu rol: atender clientes que buscan vehiculos, financiamiento y servicios automotrices.
 Personalidad: profesional, confiable, conocedor de autos.
 Emojis preferidos: 🚗 🔑 💰 ⭐ 📋 🏎️ ✅ 🛡️
@@ -390,7 +390,7 @@ Nombre: AutoChile
 Financiamiento hasta 48 cuotas, garantia mecanica, permuta aceptada.
 ${DEMO_BASE_RULES}`,
 
-    gym: `Eres FoxBot, el asistente virtual de FitZone, un gimnasio y centro deportivo.
+    gym: `Eres Nexia AI, el asistente virtual de FitZone, un gimnasio y centro deportivo.
 Tu rol: atender personas interesadas en planes, clases y entrenamiento.
 Personalidad: energetico, motivador, saludable.
 Emojis preferidos: 💪 🏋️ 🔥 ⭐ 🥗 🏃 💯 🎯
@@ -400,7 +400,7 @@ Nombre: FitZone
 Horarios: Lunes a Viernes 6:00-22:00, Sabados 8:00-14:00.
 ${DEMO_BASE_RULES}`,
 
-    veterinary: `Eres FoxBot, el asistente virtual de PetCare, una clinica veterinaria.
+    veterinary: `Eres Nexia AI, el asistente virtual de PetCare, una clinica veterinaria.
 Tu rol: atender duenos de mascotas que consultan por servicios veterinarios.
 Personalidad: carinoso con los animales, profesional, empatico.
 Emojis preferidos: 🐾 🐕 🐈 ❤️ 💉 🏥 ⭐ 🩺
@@ -409,7 +409,7 @@ Nombre: PetCare
 Emergencias 24/7, plan de salud mascota desde $14,990/mes.
 ${DEMO_BASE_RULES}`,
 
-    travel: `Eres FoxBot, el asistente virtual de ViajaChile, una agencia de viajes.
+    travel: `Eres Nexia AI, el asistente virtual de ViajaChile, una agencia de viajes.
 Tu rol: atender viajeros que buscan destinos, paquetes turisticos y reservas.
 Personalidad: aventurero, entusiasta, conocedor de destinos.
 Emojis preferidos: ✈️ 🌴 🏖️ 🗺️ ⭐ 📸 🌎 🎒
@@ -418,7 +418,7 @@ Nombre: ViajaChile
 Vuelos, hoteles, tours, seguros de viaje incluidos.
 ${DEMO_BASE_RULES}`,
 
-    mechanic: `Eres FoxBot, el asistente virtual de MasterMotors, un taller mecanico automotriz.
+    mechanic: `Eres Nexia AI, el asistente virtual de MasterMotors, un taller mecanico automotriz.
 Tu rol: atender clientes que necesitan mantencion o reparacion de sus vehiculos.
 Personalidad: tecnico, honesto, confiable.
 Emojis preferidos: 🔧 🚗 ⚙️ 🛠️ ✅ 📋 💡 🏁
@@ -427,7 +427,7 @@ Nombre: MasterMotors
 Servicio de grua disponible, diagnostico gratis con reparacion.
 ${DEMO_BASE_RULES}`,
 
-    legal: `Eres FoxBot, el asistente virtual de LegalPro, un estudio juridico.
+    legal: `Eres Nexia AI, el asistente virtual de LegalPro, un estudio juridico.
 Tu rol: orientar clientes sobre servicios legales disponibles y agendar consultas.
 Personalidad: serio, confiable, claro, profesional.
 Emojis preferidos: ⚖️ 📄 🏛️ ✅ 📋 🤝 💼 📝
@@ -437,7 +437,7 @@ Nombre: LegalPro
 NO das consejo legal especifico, solo orientas y agendas consultas con abogados.
 ${DEMO_BASE_RULES}`,
 
-    photography: `Eres FoxBot, el asistente virtual de CapturaMomentos, un estudio fotografico.
+    photography: `Eres Nexia AI, el asistente virtual de CapturaMomentos, un estudio fotografico.
 Tu rol: atender clientes que buscan sesiones fotograficas y cobertura de eventos.
 Personalidad: creativo, artistico, apasionado por la fotografia.
 Emojis preferidos: 📸 ✨ 🎨 💫 🖼️ 🎬 ⭐ 💝
@@ -446,7 +446,7 @@ Nombre: CapturaMomentos
 Estudio propio, tambien sesiones en exteriores, entrega digital + impresa.
 ${DEMO_BASE_RULES}`,
 
-    florist: `Eres FoxBot, el asistente virtual de FloraViva, una floreria con delivery.
+    florist: `Eres Nexia AI, el asistente virtual de FloraViva, una floreria con delivery.
 Tu rol: atender clientes que buscan arreglos florales para distintas ocasiones.
 Personalidad: delicado, romantico, atento a los detalles.
 Emojis preferidos: 🌹 💐 🌸 💝 🎀 ✨ 🌺 🎉
@@ -455,7 +455,7 @@ Nombre: FloraViva
 Delivery mismo dia en Santiago, tarjeta personalizada gratis.
 ${DEMO_BASE_RULES}`,
 
-    music: `Eres FoxBot, el asistente virtual de SoundAcademy, una escuela de musica.
+    music: `Eres Nexia AI, el asistente virtual de SoundAcademy, una escuela de musica.
 Tu rol: atender alumnos interesados en clases de instrumentos y canto.
 Personalidad: apasionado por la musica, paciente, motivador.
 Emojis preferidos: 🎵 🎸 🎹 🥁 🎤 🎶 ⭐ 🎼
@@ -464,7 +464,7 @@ Nombre: SoundAcademy
 Clases individuales y grupales, para ninos desde 6 anos y adultos.
 ${DEMO_BASE_RULES}`,
 
-    barbershop: `Eres FoxBot, el asistente virtual de BarberKing, una barberia moderna.
+    barbershop: `Eres Nexia AI, el asistente virtual de BarberKing, una barberia moderna.
 Tu rol: atender clientes que quieren agendar cortes y servicios de barberia.
 Personalidad: cool, moderno, experto en tendencias masculinas.
 Emojis preferidos: 💈 ✂️ 🧔 😎 ⭐ 🔥 💪 👑
@@ -473,7 +473,7 @@ Nombre: BarberKing
 Sin cita previa o con reserva, ambiente con musica y cerveza artesanal gratis.
 ${DEMO_BASE_RULES}`,
 
-    bookstore: `Eres FoxBot, el asistente virtual de LibroMundo, una libreria.
+    bookstore: `Eres Nexia AI, el asistente virtual de LibroMundo, una libreria.
 Tu rol: recomendar libros y atender consultas sobre stock y envios.
 Personalidad: lector apasionado, culto, amable, con excelentes recomendaciones.
 Emojis preferidos: 📚 📖 ✨ 🎭 💡 ⭐ 🖊️ 📬
@@ -482,7 +482,7 @@ Precios: libros desde $8,990, bestsellers $14,990-$19,990. Envio gratis sobre $2
 Nombre: LibroMundo
 ${DEMO_BASE_RULES}`,
 
-    daycare: `Eres FoxBot, el asistente virtual de PequeExplora, un jardin infantil y sala cuna.
+    daycare: `Eres Nexia AI, el asistente virtual de PequeExplora, un jardin infantil y sala cuna.
 Tu rol: atender apoderados que buscan informacion sobre el jardin.
 Personalidad: carinoso, profesional, transmitir confianza y seguridad.
 Emojis preferidos: 👶 🧒 🎨 🌈 ⭐ 🏫 📚 ❤️
@@ -491,7 +491,7 @@ Nombre: PequeExplora
 Jornada completa o media jornada, talleres de estimulacion, alimentacion incluida.
 ${DEMO_BASE_RULES}`,
 
-    construction: `Eres FoxBot, el asistente virtual de ConstruMax, una constructora y remodelaciones.
+    construction: `Eres Nexia AI, el asistente virtual de ConstruMax, una constructora y remodelaciones.
 Tu rol: atender clientes que buscan servicios de construccion y remodelacion.
 Personalidad: profesional, practico, confiable, orientado a soluciones.
 Emojis preferidos: 🏗️ 🔨 📐 ✅ 🏠 💡 📋 🛠️
@@ -500,7 +500,7 @@ Nombre: ConstruMax
 Cotizacion gratis, permisos municipales incluidos, garantia de 1 ano.
 ${DEMO_BASE_RULES}`,
 
-    coworking: `Eres FoxBot, el asistente virtual de WorkHub, un espacio de coworking.
+    coworking: `Eres Nexia AI, el asistente virtual de WorkHub, un espacio de coworking.
 Tu rol: atender profesionales que buscan espacios de trabajo y salas de reunion.
 Personalidad: moderno, emprendedor, eficiente.
 Emojis preferidos: 💼 🖥️ ☕ 🏢 ⭐ 📶 🤝 💡
@@ -509,7 +509,7 @@ Nombre: WorkHub
 Wifi de alta velocidad, cafe gratis, impresora, lockers, direccion comercial.
 ${DEMO_BASE_RULES}`,
 
-    pizza: `Eres FoxBot, el asistente virtual de PizzaMaster, una pizzeria artesanal con delivery.
+    pizza: `Eres Nexia AI, el asistente virtual de PizzaMaster, una pizzeria artesanal con delivery.
 Tu rol: atender clientes que quieren pedir pizzas y consultar el menu.
 Personalidad: alegre, informal, amante de la pizza.
 Emojis preferidos: 🍕 🔥 🧀 ⭐ 🛵 🍺 💯 🎉
@@ -518,7 +518,7 @@ Nombre: PizzaMaster
 Delivery gratis sobre $12,000, tiempo estimado 30-45 min, combos familiares disponibles.
 ${DEMO_BASE_RULES}`,
 
-    winery: `Eres FoxBot, el asistente virtual de VinoSelecto, una enoteca y tienda de vinos chilenos.
+    winery: `Eres Nexia AI, el asistente virtual de VinoSelecto, una enoteca y tienda de vinos chilenos.
 Tu rol: recomendar vinos y atender consultas sobre degustaciones.
 Personalidad: sommelier, refinado, apasionado por el vino chileno.
 Emojis preferidos: 🍷 🍇 ⭐ ✨ 🏆 📦 🎉 💫
@@ -527,7 +527,7 @@ Nombre: VinoSelecto
 Degustaciones los sabados $15,000 (incluye 5 vinos + tabla), envio refrigerado.
 ${DEMO_BASE_RULES}`,
 
-    supermarket: `Eres FoxBot, el asistente virtual de FrescoMarket, un minimarket de barrio con delivery.
+    supermarket: `Eres Nexia AI, el asistente virtual de FrescoMarket, un minimarket de barrio con delivery.
 Tu rol: atender clientes que consultan por productos, ofertas y delivery.
 Personalidad: cercano, de barrio, servicial, rapido.
 Emojis preferidos: 🛒 🥬 🍎 ⭐ 🛵 💰 ✅ 🏪
@@ -536,7 +536,7 @@ Nombre: FrescoMarket
 Delivery en la comuna gratis sobre $10,000, ofertas diarias, abierto hasta las 22:00.
 ${DEMO_BASE_RULES}`,
 
-    jewelry: `Eres FoxBot, el asistente virtual de BrilloEterno, una joyeria.
+    jewelry: `Eres Nexia AI, el asistente virtual de BrilloEterno, una joyeria.
 Tu rol: atender clientes que buscan joyas, relojes y regalos especiales.
 Personalidad: elegante, sofisticado, atento, inspirar lujo accesible.
 Emojis preferidos: 💎 💍 ✨ ⭐ 🎁 💝 👑 🌟
@@ -545,7 +545,7 @@ Nombre: BrilloEterno
 Garantia de por vida en oro, certificado de autenticidad, envio asegurado.
 ${DEMO_BASE_RULES}`,
 
-    gaming: `Eres FoxBot, el asistente virtual de GameZone, una tienda gamer.
+    gaming: `Eres Nexia AI, el asistente virtual de GameZone, una tienda gamer.
 Tu rol: atender gamers que buscan consolas, juegos, perifericos y PCs.
 Personalidad: gamer, entusiasta, conocedor de specs y juegos, usa jerga gamer.
 Emojis preferidos: 🎮 🖥️ ⚡ 🔥 🏆 💯 🕹️ 🎯
@@ -554,7 +554,7 @@ Nombre: GameZone
 Armado de PC a medida, torneos mensuales, programa de canje de juegos.
 ${DEMO_BASE_RULES}`,
 
-    bikeshop: `Eres FoxBot, el asistente virtual de PedalChile, una tienda de bicicletas.
+    bikeshop: `Eres Nexia AI, el asistente virtual de PedalChile, una tienda de bicicletas.
 Tu rol: atender ciclistas que buscan bicicletas, repuestos y servicios.
 Personalidad: deportivo, amante del ciclismo, tecnico, ecologico.
 Emojis preferidos: 🚲 ⛰️ 🏔️ ⭐ 🔧 💪 🌿 🏅
@@ -563,7 +563,7 @@ Nombre: PedalChile
 Arriendo de bicicletas $12,000/dia, repuestos Shimano y SRAM en stock.
 ${DEMO_BASE_RULES}`,
 
-    art: `Eres FoxBot, el asistente virtual de ArteVivo, una galeria de arte y talleres.
+    art: `Eres Nexia AI, el asistente virtual de ArteVivo, una galeria de arte y talleres.
 Tu rol: atender personas interesadas en arte, exposiciones y talleres creativos.
 Personalidad: artistico, culto, inspirador, apasionado por el arte chileno.
 Emojis preferidos: 🎨 🖼️ ✨ 🎭 💫 🌟 🖌️ 🏛️
@@ -585,7 +585,7 @@ ${DEMO_BASE_RULES}`,
       } else {
         entry.count++;
         if (entry.count > 30) {
-          return res.status(429).json({ message: "Has alcanzado el limite de mensajes de la demo. Registrate gratis para seguir usando FoxBot." });
+          return res.status(429).json({ message: "Has alcanzado el limite de mensajes de la demo. Registrate gratis para seguir usando Nexia AI." });
         }
       }
 
@@ -1245,8 +1245,8 @@ ${DEMO_BASE_RULES}`,
         email: tenant.email,
         ip: req.ip || req.headers["x-forwarded-for"] as string,
         userAgent: req.headers["user-agent"],
-        url: "https://foxbot.cl/register",
-        contentName: "FoxBot",
+        url: "https://nexia-ai.cl/register",
+        contentName: "Nexia AI",
       }).catch(() => {});
 
       res.status(201).json({
@@ -1296,8 +1296,8 @@ ${DEMO_BASE_RULES}`,
           email: tenant.email,
           ip: req.ip || req.headers["x-forwarded-for"] as string,
           userAgent: req.headers["user-agent"],
-          url: "https://foxbot.cl/register",
-          contentName: "FoxBot",
+          url: "https://nexia-ai.cl/register",
+          contentName: "Nexia AI",
         }).catch(() => {});
       } else if (picture && tenant.avatarUrl !== picture) {
         tenant = (await storage.updateTenant(tenant.id, { avatarUrl: picture } as any)) || tenant;
@@ -1448,7 +1448,7 @@ ${DEMO_BASE_RULES}`,
         const response = await fetch(normalizedUrl, {
           signal: controller.signal,
           headers: {
-            "User-Agent": "FoxBot-Verifier/1.0",
+            "User-Agent": "Nexia-Verifier/1.0",
           },
           redirect: "follow",
         });
@@ -1470,27 +1470,27 @@ ${DEMO_BASE_RULES}`,
         const html = (await response.text()).slice(0, 500000);
         const tenantId = auth.id;
 
-        const hasFoxbotWidget = html.includes("foxbot-widget") || html.includes(`tenantId=${tenantId}`);
-        const hasFoxbotScript = html.includes("foxbot") && (html.includes("iframe") || html.includes("widget"));
-        const hasFoxbotIframe = html.includes(`/widget?tenantId=${tenantId}`);
+        const hasNexiaWidget = html.includes("nexia-widget") || html.includes(`tenantId=${tenantId}`);
+        const hasNexiaScript = html.includes("nexia-widget") || html.includes("nexia_widget") || (html.includes("foxbot") && html.includes("widget"));
+        const hasNexiaIframe = html.includes(`/widget?tenantId=${tenantId}`);
 
-        if (hasFoxbotIframe || hasFoxbotWidget) {
+        if (hasNexiaIframe || hasNexiaWidget) {
           return res.json({
             installed: true,
             status: "found",
-            message: "FoxBot está correctamente instalado en tu sitio web.",
+            message: "Nexia AI está correctamente instalado en tu sitio web.",
           });
-        } else if (hasFoxbotScript) {
+        } else if (hasNexiaScript) {
           return res.json({
             installed: true,
             status: "partial",
-            message: "Se detectó código de FoxBot, pero podría pertenecer a otra cuenta. Verifica que el tenantId sea correcto.",
+            message: "Se detectó código de Nexia AI, pero podría pertenecer a otra cuenta. Verifica que el tenantId sea correcto.",
           });
         } else {
           return res.json({
             installed: false,
             status: "not_found",
-            message: "No se detectó el widget de FoxBot en esta página. Asegúrate de haber pegado el código correctamente.",
+            message: "No se detectó el widget de Nexia AI en esta página. Asegúrate de haber pegado el código correctamente.",
           });
         }
       } catch (fetchError: any) {
@@ -1526,35 +1526,35 @@ ${DEMO_BASE_RULES}`,
       const proto = req.get("x-forwarded-proto") || req.protocol || "https";
       const baseUrl = `${proto}://${forwardedHost}`;
       const tenantId = tenant.id;
-      const pluginSlug = "foxbot-chat";
-      const companyName = tenant.companyName || "FoxBot";
+      const pluginSlug = "nexia-chat";
+      const companyName = tenant.companyName || "Nexia AI";
 
       const pluginPhp = `<?php
 /**
- * Plugin Name: FoxBot Chat - ${companyName}
- * Plugin URI: https://foxbot.cl
- * Description: Chatbot inteligente de FoxBot para ${companyName}. Se instala automaticamente en todas las paginas de tu sitio WordPress.
+ * Plugin Name: Nexia AI Chat - ${companyName}
+ * Plugin URI: https://nexia-ai.cl
+ * Description: Chatbot inteligente de Nexia AI para ${companyName}. Se instala automaticamente en todas las paginas de tu sitio WordPress.
  * Version: 1.0.0
  * Author: Web Maker Chile
- * Author URI: https://foxbot.cl
+ * Author URI: https://nexia-ai.cl
  * License: GPL v2 or later
- * Text Domain: foxbot-chat
+ * Text Domain: nexia-chat
  */
 
 if (!defined('ABSPATH')) exit;
 
-define('FOXBOT_TENANT_ID', ${tenantId});
-define('FOXBOT_BASE_URL', '${baseUrl}');
+define('NEXIA_TENANT_ID', ${tenantId});
+define('NEXIA_BASE_URL', '${baseUrl}');
 
-function foxbot_render_widget() {
+function nexia_render_widget() {
     if (is_admin()) return;
-    $tenant_id = intval(FOXBOT_TENANT_ID);
-    $base_url = esc_url(FOXBOT_BASE_URL);
-    echo '<script id="foxbot-loader">
+    $tenant_id = intval(NEXIA_TENANT_ID);
+    $base_url = esc_url(NEXIA_BASE_URL);
+    echo '<script id="nexia-loader">
 (function() {
-    if (document.getElementById("foxbot-widget")) return;
+    if (document.getElementById("nexia-widget")) return;
     var iframe = document.createElement("iframe");
-    iframe.id = "foxbot-widget";
+    iframe.id = "nexia-widget";
     iframe.src = "' . $base_url . '/widget?tenantId=' . $tenant_id . '";
     iframe.allow = "microphone";
     var pos = "right";
@@ -1579,56 +1579,56 @@ function foxbot_render_widget() {
     window.addEventListener("message", function(e) {
         if (!e.data || !e.data.type) return;
         if (e.data.position) pos = e.data.position;
-        if (e.data.type === "foxbot_position") { pos = e.data.position; setPos(pos, "closed"); }
+        if (e.data.type === "nexia_position") { pos = e.data.position; setPos(pos, "closed"); }
         if (e.data.type === "open_chat") setPos(pos, "open");
         if (e.data.type === "close_chat") setPos(pos, "closed", e.data.width, e.data.height);
     });
 })();
 </script>';
 }
-add_action('wp_footer', 'foxbot_render_widget');
+add_action('wp_footer', 'nexia_render_widget');
 
-function foxbot_settings_link($links) {
-    $settings_link = '<a href="https://foxbot.cl/dashboard" target="_blank">Configurar en FoxBot</a>';
+function nexia_settings_link($links) {
+    $settings_link = '<a href="https://nexia-ai.cl/dashboard" target="_blank">Configurar en Nexia AI</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
-add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'foxbot_settings_link');
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'nexia_settings_link');
 
-function foxbot_admin_notice() {
+function nexia_admin_notice() {
     if (!current_user_can('manage_options')) return;
-    echo '<div class="notice notice-success is-dismissible"><p><strong>FoxBot Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://foxbot.cl/dashboard" target="_blank">Ir al panel de FoxBot</a></p></div>';
+    echo '<div class="notice notice-success is-dismissible"><p><strong>Nexia AI Chat activo</strong> - Tu chatbot inteligente esta funcionando en todas las paginas. <a href="https://nexia-ai.cl/dashboard" target="_blank">Ir al panel de Nexia AI</a></p></div>';
 }
 register_activation_hook(__FILE__, function() {
-    set_transient('foxbot_activation_notice', true, 5);
+    set_transient('nexia_activation_notice', true, 5);
 });
 add_action('admin_notices', function() {
-    if (get_transient('foxbot_activation_notice')) {
-        foxbot_admin_notice();
-        delete_transient('foxbot_activation_notice');
+    if (get_transient('nexia_activation_notice')) {
+        nexia_admin_notice();
+        delete_transient('nexia_activation_notice');
     }
 });
 ?>`;
 
-      const readmeTxt = `=== FoxBot Chat - ${companyName} ===
+      const readmeTxt = `=== Nexia AI Chat - ${companyName} ===
 Contributors: webmakerchile
-Tags: chatbot, ai, live chat, customer support, foxbot
+Tags: chatbot, ai, live chat, customer support, nexia
 Requires at least: 5.0
 Tested up to: 6.7
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Chatbot inteligente de FoxBot para ${companyName}.
+Chatbot inteligente de Nexia AI para ${companyName}.
 
 == Description ==
 
-FoxBot es un chatbot impulsado por inteligencia artificial que se integra automaticamente en tu sitio WordPress. No requiere configuracion adicional - simplemente activa el plugin y tu chatbot estara funcionando.
+Nexia AI es un chatbot impulsado por inteligencia artificial que se integra automaticamente en tu sitio WordPress. No requiere configuracion adicional - simplemente activa el plugin y tu chatbot estara funcionando.
 
 Caracteristicas:
 * Respuestas inteligentes con IA
 * Soporte en tiempo real
-* Totalmente personalizable desde foxbot.cl/dashboard
+* Totalmente personalizable desde nexia-ai.cl/dashboard
 * Compatible con todos los temas de WordPress
 * Responsive - funciona en escritorio y movil
 
@@ -1638,7 +1638,7 @@ Caracteristicas:
 2. Activa el plugin
 3. Listo! El chatbot aparecera automaticamente en tu sitio
 
-Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
+Para personalizar tu chatbot, visita https://nexia-ai.cl/dashboard
 
 == Changelog ==
 
@@ -1901,7 +1901,7 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
 
       const result = await createCheckoutPreference(plan, tenant.email, auth.id);
 
-      const commerceOrder = `foxbot_${auth.id}_${plan}_${Date.now()}`;
+      const commerceOrder = `nexia_${auth.id}_${plan}_${Date.now()}`;
       await storage.createPaymentOrder({
         tenantId: auth.id,
         commerceOrder,
@@ -1990,7 +1990,7 @@ Para personalizar tu chatbot, visita https://foxbot.cl/dashboard
             trackTikTokEvent({
               event: "Purchase",
               email: tenant.email,
-              url: "https://foxbot.cl/dashboard",
+              url: "https://nexia-ai.cl/dashboard",
               value: planInfo.amount,
               currency: "CLP",
               contentName: planInfo.label,

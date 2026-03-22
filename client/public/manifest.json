@@ -1,12 +1,12 @@
 {
-  "name": "FoxBot - Chatbot con IA",
-  "short_name": "FoxBot",
+  "name": "Nexia AI - Chatbot con IA",
+  "short_name": "Nexia AI",
   "description": "Chatbot inteligente con IA para tu negocio. Por Web Maker Chile.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#111111",
-  "theme_color": "#10b981",
+  "theme_color": "#7669E9",
   "orientation": "any",
   "icons": [
     {
