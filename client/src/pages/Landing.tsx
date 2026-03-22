@@ -1659,19 +1659,25 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="relative pb-12 px-6">
-          <div className="max-w-5xl mx-auto flex items-center justify-center gap-10 sm:gap-16 flex-wrap" data-testid="logos-trusted-by">
-            {[
-              { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
-              { Icon: SiShopify, name: "Shopify", size: "w-5 h-5" },
-              { Icon: SiWoo, name: "WooCommerce", size: "w-6 h-6" },
-              { Icon: SiSquarespace, name: "Squarespace", size: "w-5 h-5" },
-              { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
-              { Icon: SiWhatsapp, name: "WhatsApp", size: "w-5 h-5" },
-            ].map(({ Icon, name, size }) => (
-              <div key={name} className="flex items-center gap-2.5 group opacity-35 hover:opacity-65 transition-opacity duration-300" data-testid={`logo-partner-${name.toLowerCase()}`}>
-                <Icon className={`${size} text-white`} />
-                <span className="text-sm sm:text-base text-white font-semibold tracking-wide">{name}</span>
+        <div className="relative pb-12 overflow-hidden" data-testid="logos-trusted-by">
+          <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10" style={{ background: "linear-gradient(90deg, #030308 0%, transparent 100%)" }} />
+          <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10" style={{ background: "linear-gradient(270deg, #030308 0%, transparent 100%)" }} />
+          <div className="flex animate-marquee">
+            {[0, 1].map((set) => (
+              <div key={set} className="flex shrink-0 items-center gap-10 sm:gap-16 px-5 sm:px-8">
+                {[
+                  { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
+                  { Icon: SiShopify, name: "Shopify", size: "w-5 h-5" },
+                  { Icon: SiWoo, name: "WooCommerce", size: "w-6 h-6" },
+                  { Icon: SiSquarespace, name: "Squarespace", size: "w-5 h-5" },
+                  { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
+                  { Icon: SiWhatsapp, name: "WhatsApp", size: "w-5 h-5" },
+                ].map(({ Icon, name, size }) => (
+                  <div key={name} className="flex items-center gap-2.5 opacity-40" data-testid={`logo-partner-${name.toLowerCase()}`}>
+                    <Icon className={`${size} text-white`} />
+                    <span className="text-sm sm:text-base text-white font-semibold tracking-wide whitespace-nowrap">{name}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
