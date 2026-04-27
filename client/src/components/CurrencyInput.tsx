@@ -160,8 +160,11 @@ export function CurrencyInput({
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const caret = e.target.selectionStart ?? raw.length;
-    const ne = e.nativeEvent as InputEvent | undefined;
-    const inputType = (ne && (ne as any).inputType) || "";
+    const ne = e.nativeEvent;
+    const inputType =
+      typeof InputEvent !== "undefined" && ne instanceof InputEvent
+        ? ne.inputType
+        : "";
     const isPaste =
       inputType === "insertFromPaste" || inputType === "insertFromDrop";
 
@@ -202,8 +205,13 @@ export function CurrencyInput({
       }
     }
 
-    if (!intDigits && !decDigits && !inDec) {
-      setDisplay("");
+    if (!intDigits && !decDigits) {
+      if (inDec) {
+        setDisplay(decimalSep);
+        pendingCaret.current = decimalSep.length;
+      } else {
+        setDisplay("");
+      }
       valueRef.current = null;
       onValueChange(null);
       return;
