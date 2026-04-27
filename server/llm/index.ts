@@ -1,3 +1,21 @@
+/**
+ * Cappta AI — capa de abstracción LLM
+ *
+ * ESTADO ACTUAL (Abril 2026):
+ *  - OpenAI (gpt-4o-mini, gpt-4o): PRODUCCIÓN. Cobertura completa
+ *    de chat() y chatStream() con telemetría y fallback en runtime.
+ *  - Anthropic (claude-haiku-4, claude-sonnet-4-5): STUB / PREVIEW.
+ *    El cliente Anthropic NO está implementado: callAnthropic() lanza
+ *    error explícito y el flujo cae automáticamente al modelo barato
+ *    de OpenAI. Los modelos Claude SOLO se exponen al panel del tenant
+ *    cuando LLM_ENABLE_ANTHROPIC=1 Y existe ANTHROPIC_API_KEY — incluso
+ *    así, cualquier tráfico ruteado a Anthropic terminará registrado
+ *    como status="fallback" en llm_usage. NO usar en producción hasta
+ *    que se conecte el SDK real (follow-up #40).
+ *
+ * Cualquier cambio en plan-gating o pricing impacta a server/storage.ts
+ * y a las tarjetas de uso del panel. Tocar con cuidado.
+ */
 import OpenAI from "openai";
 import type {
   ChatCompletionMessageParam,
