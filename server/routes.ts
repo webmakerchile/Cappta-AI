@@ -1296,7 +1296,7 @@ ${DEMO_BASE_RULES}`,
 
   app.post("/api/tenants/register", async (req, res) => {
     try {
-      const { name, email, password, companyName, referralCode, requestedPlan } = req.body;
+      const { name, email, password, companyName, referralCode, requestedPlan, currency, country } = req.body;
       if (!name || !email || !password || !companyName) {
         return res.status(400).json({ message: "Todos los campos son requeridos" });
       }
@@ -1320,6 +1320,13 @@ ${DEMO_BASE_RULES}`,
         typeof requestedPlan === "string" && validRequestedPlans.includes(requestedPlan)
           ? requestedPlan
           : null;
+      const { isValidCurrencyCode, getCurrencyForCountry } = await import("@shared/currencies");
+      let resolvedCurrency: string | null = null;
+      if (typeof currency === "string" && isValidCurrencyCode(currency)) {
+        resolvedCurrency = currency.toUpperCase();
+      } else if (typeof country === "string" && country.trim()) {
+        resolvedCurrency = getCurrencyForCountry(country);
+      }
       const tenant = await storage.createTenant({
         name,
         email: email.toLowerCase().trim(),
@@ -1327,6 +1334,7 @@ ${DEMO_BASE_RULES}`,
         companyName,
         ...(referrerId ? { referredBy: referrerId } : {}),
         ...(safeRequestedPlan ? { requestedPlan: safeRequestedPlan } : {}),
+        ...(resolvedCurrency ? { currency: resolvedCurrency } : {}),
       } as any);
       if (safeRequestedPlan) {
         log(`Plan recomendado al registrar tenant ${tenant.id}: ${safeRequestedPlan} (será propuesto en el dashboard como upgrade)`, "auth");

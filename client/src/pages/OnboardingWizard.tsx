@@ -33,6 +33,12 @@ import {
 } from "lucide-react";
 import type { Tenant } from "@shared/schema";
 import { CapptaIcon } from "@/components/CapptaLogo";
+import {
+  COUNTRIES,
+  getCurrencyForCountry,
+  getCountryForCurrency,
+  getCurrency,
+} from "@shared/currencies";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
 
@@ -73,6 +79,8 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
 
   const [companyName, setCompanyName] = useState(tenant.companyName || "");
   const [domain, setDomain] = useState(tenant.domain || "");
+  const [country, setCountry] = useState<string>(getCountryForCurrency(tenant.currency));
+  const [currency, setCurrency] = useState<string>(tenant.currency || "CLP");
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(tenant.botContext || null);
   const [businessSize, setBusinessSize] = useState<string>("");
@@ -334,6 +342,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
       industry: industry || null,
       appliedTemplateSlug: appliedTemplateSlug || null,
+      currency,
       botConfigured: nextStep >= 2 ? 1 : 0,
       onboardingStep: nextStep,
     };
@@ -550,15 +559,39 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                 <p className="text-sm text-white/40">Cappta AI aprendera de tu sitio web automáticamente</p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white/60">Nombre de tu empresa</label>
-                <Input
-                  data-testid="onboarding-input-company"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Ej: Mi Tienda Online"
-                  className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-base"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">Nombre de tu empresa</label>
+                  <Input
+                    data-testid="onboarding-input-company"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Ej: Mi Tienda Online"
+                    className="h-12 rounded-xl bg-white/[0.04] border-white/[0.08] focus:border-primary/40 text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">País</label>
+                  <select
+                    data-testid="select-onboarding-country"
+                    value={country}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setCountry(next);
+                      setCurrency(getCurrencyForCountry(next));
+                    }}
+                    className="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-primary/40 focus:outline-none text-base px-3 text-white"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code} className="bg-[#0b0b0e] text-white">
+                        {c.flag} {c.name} ({c.currency})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-white/30" data-testid="text-onboarding-currency-hint">
+                    Tu moneda será {getCurrency(currency).code} — {getCurrency(currency).name} ({getCurrency(currency).symbol}). Puedes cambiarla luego en Ajustes.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">

@@ -81,6 +81,67 @@ export function isValidCurrencyCode(code?: string | null): boolean {
   return !!CURRENCY_MAP[code.toUpperCase()];
 }
 
+export interface CountryMeta {
+  code: string;
+  name: string;
+  flag: string;
+  currency: string;
+}
+
+export const COUNTRIES: CountryMeta[] = [
+  { code: "CL", name: "Chile", flag: "🇨🇱", currency: "CLP" },
+  { code: "AR", name: "Argentina", flag: "🇦🇷", currency: "ARS" },
+  { code: "BO", name: "Bolivia", flag: "🇧🇴", currency: "BOB" },
+  { code: "BR", name: "Brasil", flag: "🇧🇷", currency: "BRL" },
+  { code: "CO", name: "Colombia", flag: "🇨🇴", currency: "COP" },
+  { code: "CR", name: "Costa Rica", flag: "🇨🇷", currency: "CRC" },
+  { code: "EC", name: "Ecuador", flag: "🇪🇨", currency: "USD" },
+  { code: "SV", name: "El Salvador", flag: "🇸🇻", currency: "USD" },
+  { code: "GT", name: "Guatemala", flag: "🇬🇹", currency: "GTQ" },
+  { code: "HN", name: "Honduras", flag: "🇭🇳", currency: "HNL" },
+  { code: "MX", name: "México", flag: "🇲🇽", currency: "MXN" },
+  { code: "NI", name: "Nicaragua", flag: "🇳🇮", currency: "NIO" },
+  { code: "PA", name: "Panamá", flag: "🇵🇦", currency: "PAB" },
+  { code: "PY", name: "Paraguay", flag: "🇵🇾", currency: "PYG" },
+  { code: "PE", name: "Perú", flag: "🇵🇪", currency: "PEN" },
+  { code: "PR", name: "Puerto Rico", flag: "🇵🇷", currency: "USD" },
+  { code: "DO", name: "República Dominicana", flag: "🇩🇴", currency: "DOP" },
+  { code: "UY", name: "Uruguay", flag: "🇺🇾", currency: "UYU" },
+  { code: "VE", name: "Venezuela", flag: "🇻🇪", currency: "VES" },
+  { code: "ES", name: "España", flag: "🇪🇸", currency: "EUR" },
+  { code: "PT", name: "Portugal", flag: "🇵🇹", currency: "EUR" },
+  { code: "US", name: "Estados Unidos", flag: "🇺🇸", currency: "USD" },
+  { code: "CA", name: "Canadá", flag: "🇨🇦", currency: "CAD" },
+  { code: "GB", name: "Reino Unido", flag: "🇬🇧", currency: "GBP" },
+];
+
+const COUNTRY_TO_CURRENCY: Record<string, string> = COUNTRIES.reduce((acc, c) => {
+  acc[c.code] = c.currency;
+  return acc;
+}, {} as Record<string, string>);
+
+export function getCurrencyForCountry(countryCode?: string | null): string {
+  if (!countryCode || typeof countryCode !== "string") return DEFAULT_CURRENCY;
+  return COUNTRY_TO_CURRENCY[countryCode.toUpperCase()] || DEFAULT_CURRENCY;
+}
+
+const PREFERRED_COUNTRY_FOR_CURRENCY: Record<string, string> = {
+  USD: "US",
+  EUR: "ES",
+  CAD: "CA",
+  GBP: "GB",
+};
+
+export function getCountryForCurrency(currencyCode?: string | null): string {
+  if (!currencyCode || typeof currencyCode !== "string") return "CL";
+  const upper = currencyCode.toUpperCase();
+  if (PREFERRED_COUNTRY_FOR_CURRENCY[upper]) {
+    return PREFERRED_COUNTRY_FOR_CURRENCY[upper];
+  }
+  const match = COUNTRIES.find((c) => c.currency === upper);
+  return match ? match.code : "CL";
+}
+
 export function getCurrencySymbol(code?: string | null): string {
   return getCurrency(code).symbol;
 }
