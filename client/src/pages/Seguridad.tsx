@@ -83,7 +83,7 @@ export default function SeguridadPage() {
           <p className="text-sm text-white/55 leading-relaxed">
             La lista completa de subprocesadores con su propósito y país está publicada en{" "}
             <a href="/subprocesadores" className="text-violet-400 hover:underline" data-testid="link-subprocesadores">/subprocesadores</a>.
-            Notificamos cualquier alta o baja con 30 días de anticipación a quienes se suscriban escribiendo a webmakerchile@gmail.com con el asunto "subprocesadores".
+            Notificamos cualquier alta o baja con 30 días de anticipación a quienes se suscriban escribiendo a <a href="mailto:security@cappta.ai?subject=Suscripci%C3%B3n%20Subprocesadores" className="text-violet-400 hover:underline">security@cappta.ai</a> con el asunto "subprocesadores" (alias en provisionamiento; mientras tanto se reenvía a webmakerchile@gmail.com).
           </p>
         </section>
 
@@ -99,7 +99,7 @@ export default function SeguridadPage() {
             <div>
               <p className="text-sm text-white/80 font-semibold mb-1">¿Encontraste una vulnerabilidad?</p>
               <p className="text-xs text-white/55 leading-relaxed">
-                Reportala a <a href="mailto:webmakerchile@gmail.com?subject=Reporte%20de%20seguridad" className="text-violet-400 hover:underline" data-testid="link-report-security">webmakerchile@gmail.com</a> con el asunto "Reporte de seguridad". Acusamos recibo en menos de 24h y te mantenemos informado del progreso.
+                Reportala a <a href="mailto:security@cappta.ai?subject=Reporte%20de%20seguridad" className="text-violet-400 hover:underline" data-testid="link-report-security">security@cappta.ai</a> con el asunto "Reporte de seguridad" (alias en provisionamiento; el correo se reenvía a webmakerchile@gmail.com). Acusamos recibo en menos de 24h y te mantenemos informado del progreso.
               </p>
             </div>
           </div>
@@ -127,7 +127,8 @@ export default function SeguridadPage() {
                   { c: "Roles y permisos por usuario", s: "Operativo" },
                   { c: "Reset de contraseña por email firmado", s: "Operativo" },
                   { c: "Single Sign-On (SAML / OIDC)", s: "Disponible para Enterprise bajo contrato" },
-                  { c: "Auditoría externa SOC 2 Tipo II", s: "Roadmap 2026 (no certificados)" },
+                  { c: "Auditoría externa SOC 2 Tipo I", s: "Objetivo 6–9 meses (no certificados)" },
+                  { c: "Auditoría externa SOC 2 Tipo II", s: "Posterior a Tipo I (no certificados)" },
                   { c: "Certificación ISO 27001", s: "No certificados" },
                   { c: "Residencia de datos en la región del cliente", s: "Roadmap (hoy infraestructura en EE.UU.)" },
                   { c: "On-premise / VPC dedicado", s: "Solo Enterprise bajo evaluación" },

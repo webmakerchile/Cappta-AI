@@ -159,8 +159,8 @@ export default function SubprocesadoresPage() {
           <h2 className="text-xl font-bold text-white/85">Notificación de cambios</h2>
           <p className="text-sm text-white/60 leading-relaxed">
             Notificamos cualquier alta, baja o reemplazo de subprocesador con al menos 30 días de anticipación. Para recibir el aviso por email, suscribite escribiendo a{" "}
-            <a href="mailto:webmakerchile@gmail.com?subject=Suscripci%C3%B3n%20Subprocesadores" className="text-violet-300 hover:underline" data-testid="link-subscribe-subprocessors">webmakerchile@gmail.com</a>{" "}
-            con el asunto "Suscripción Subprocesadores".
+            <a href="mailto:security@cappta.ai?subject=Suscripci%C3%B3n%20Subprocesadores" className="text-violet-300 hover:underline" data-testid="link-subscribe-subprocessors">security@cappta.ai</a>{" "}
+            con el asunto "Suscripción Subprocesadores" (alias en provisionamiento; mientras tanto se reenvía a webmakerchile@gmail.com).
           </p>
           <p className="text-sm text-white/60 leading-relaxed">
             Si tu organización tiene objeciones razonables al cambio por motivos de protección de datos, podemos coordinar alternativas o, en su defecto, rescindir el servicio sin penalidad conforme al{" "}
@@ -174,8 +174,8 @@ export default function SubprocesadoresPage() {
             <h3 className="font-bold text-white/90 mb-1">¿Dudas sobre un proveedor?</h3>
             <p className="text-sm text-white/60 leading-relaxed">
               Si necesitás más detalle (DPA del proveedor, certificaciones, ubicación específica) escribinos a{" "}
-              <a href="mailto:webmakerchile@gmail.com" className="text-violet-300 hover:underline">webmakerchile@gmail.com</a>{" "}
-              y te lo facilitamos.
+              <a href="mailto:security@cappta.ai" className="text-violet-300 hover:underline">security@cappta.ai</a>{" "}
+              y te lo facilitamos (alias en provisionamiento; mientras tanto se reenvía a webmakerchile@gmail.com).
             </p>
           </div>
         </section>

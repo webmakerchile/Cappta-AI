@@ -69,7 +69,7 @@ export default function DPAPage() {
             Acuerdo de Procesamiento de Datos (DPA)
           </h1>
           <p className="text-sm text-white/45">Versión 1.0 · Vigente desde Abril 2026</p>
-          <p className="text-sm text-white/45">Operador: Web Maker Chile · Contacto: webmakerchile@gmail.com</p>
+          <p className="text-sm text-white/45">Operador: Web Maker Chile · Contacto: security@cappta.ai</p>
         </section>
 
         <section className="space-y-3">
@@ -223,8 +223,8 @@ export default function DPAPage() {
           <h2 className="text-xl font-bold text-white/85">15. Aceptación</h2>
           <p className="text-sm text-white/60 leading-relaxed">
             La contratación y uso de los servicios de Cappta AI por parte del Responsable implica la aceptación íntegra de este DPA. Para clientes que requieran un DPA firmado bilateralmente, escribir a{" "}
-            <a href="mailto:webmakerchile@gmail.com" className="text-violet-400 hover:underline">webmakerchile@gmail.com</a>{" "}
-            con el asunto "DPA firmable".
+            <a href="mailto:security@cappta.ai" className="text-violet-400 hover:underline">security@cappta.ai</a>{" "}
+            con el asunto "DPA firmable" (alias en provisionamiento; mientras tanto se reenvía a webmakerchile@gmail.com).
           </p>
         </section>
 

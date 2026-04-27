@@ -3,7 +3,7 @@
 **Versión:** 1.0
 **Vigente desde:** Abril 2026
 **Operador:** Web Maker Chile
-**Contacto:** webmakerchile@gmail.com
+**Contacto:** security@cappta.ai (alias en provisionamiento; mientras tanto se reenvía a webmakerchile@gmail.com)
 **Versión publicada en:** https://cappta.ai/dpa
 
 ---
@@ -104,7 +104,7 @@ Este DPA permanece vigente mientras Cappta AI trate datos personales por cuenta 
 
 ## 15. Aceptación
 
-La contratación y uso de los servicios de Cappta AI por parte del Responsable implica la aceptación íntegra de este DPA. Para clientes que requieran un DPA firmado bilateralmente, escribir a webmakerchile@gmail.com con el asunto "DPA firmable".
+La contratación y uso de los servicios de Cappta AI por parte del Responsable implica la aceptación íntegra de este DPA. Para clientes que requieran un DPA firmado bilateralmente, escribir a security@cappta.ai con el asunto "DPA firmable" (alias en provisionamiento; mientras tanto se reenvía a webmakerchile@gmail.com).
 
 ---
 

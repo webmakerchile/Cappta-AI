@@ -3516,6 +3516,18 @@ export default function TenantPanel() {
             <LogOut className="w-4 h-4" />
             Cerrar sesión
           </button>
+
+          <div className="pt-3 mt-1 border-t border-white/[0.04] flex flex-wrap gap-x-2 gap-y-1 text-[10px] text-white/25" data-testid="panel-legal-strip">
+            <a href="/seguridad" className="hover:text-white/55 transition-colors" data-testid="link-panel-security">Seguridad</a>
+            <span>·</span>
+            <a href="/dpa" className="hover:text-white/55 transition-colors" data-testid="link-panel-dpa">DPA</a>
+            <span>·</span>
+            <a href="/subprocesadores" className="hover:text-white/55 transition-colors" data-testid="link-panel-subprocessors">Subprocesadores</a>
+            <span>·</span>
+            <a href="/privacidad" className="hover:text-white/55 transition-colors">Privacidad</a>
+            <span>·</span>
+            <a href="/terminos" className="hover:text-white/55 transition-colors">Términos</a>
+          </div>
         </div>
       </aside>
 

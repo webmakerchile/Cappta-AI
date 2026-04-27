@@ -283,7 +283,7 @@ export default function EnterprisePage() {
             <strong className="text-white/75">¹ SSO:</strong> Soportamos SAML 2.0 y OIDC mediante integración bajo contrato Enterprise. No es un módulo self-service del plan estándar.
           </p>
           <p>
-            <strong className="text-white/75">² Seguridad:</strong> Operamos con cifrado AES-256 en reposo y TLS 1.2+ en tránsito, hashing bcrypt y aislamiento multi-tenant. <strong className="text-white/85">No estamos certificados</strong> bajo SOC 2 ni ISO 27001 al día de hoy; SOC 2 Tipo II está en nuestro roadmap 2026. Detalle público en{" "}
+            <strong className="text-white/75">² Seguridad:</strong> Operamos con cifrado AES-256 en reposo y TLS 1.2+ en tránsito, hashing bcrypt y aislamiento multi-tenant. <strong className="text-white/85">No estamos certificados</strong> bajo SOC 2 ni ISO 27001 al día de hoy; SOC 2 Tipo I es nuestro objetivo a 6–9 meses, con Tipo II como meta posterior. Detalle público en{" "}
             <a href="/seguridad" className="text-violet-300 hover:underline" data-testid="link-enterprise-security">/seguridad</a>.
           </p>
           <p>
