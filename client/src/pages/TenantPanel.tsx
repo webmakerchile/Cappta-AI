@@ -61,7 +61,8 @@ import {
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
 import type { Tenant } from "@shared/schema";
-import { CURRENCIES, getCurrency, getCurrencySymbol, formatMoney, formatPriceText } from "@shared/currencies";
+import { CURRENCIES, getCurrency, getCurrencySymbol, formatMoney, formatPriceText, parsePriceText } from "@shared/currencies";
+import { CurrencyInput } from "@/components/CurrencyInput";
 import {
   Command,
   CommandEmpty,
@@ -1506,7 +1507,7 @@ function ProductosTab() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
+  const [price, setPrice] = useState<number | null>(null);
   const [productUrl, setProductUrl] = useState("");
   const [category, setCategory] = useState("game");
   const [availability, setAvailability] = useState("available");
@@ -1529,12 +1530,17 @@ function ProductosTab() {
       return res.json();
     },
   });
-  const currencySymbol = getCurrencySymbol(tenantProfile?.currency || "CLP");
+  const tenantCurrency = tenantProfile?.currency || "CLP";
+  const currencyDecimals = getCurrency(tenantCurrency).decimals;
+  const serializePrice = (n: number | null): string | null => {
+    if (n === null || n === undefined || !isFinite(n)) return null;
+    return currencyDecimals === 0 ? String(Math.trunc(n)) : n.toFixed(currencyDecimals);
+  };
 
   const resetForm = () => {
     setEditId(null);
     setName("");
-    setPrice("");
+    setPrice(null);
     setProductUrl("");
     setCategory("game");
     setAvailability("available");
@@ -1544,7 +1550,7 @@ function ProductosTab() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const body = { name: name.trim(), price: price.trim() || null, productUrl: productUrl.trim() || null, category, availability, description: description.trim() || null };
+      const body = { name: name.trim(), price: serializePrice(price), productUrl: productUrl.trim() || null, category, availability, description: description.trim() || null };
       if (editId) {
         const res = await tenantFetch(`/api/tenant-panel/products/${editId}`, { method: "PATCH", body: JSON.stringify(body) });
         if (!res.ok) throw new Error("Error");
@@ -1573,7 +1579,7 @@ function ProductosTab() {
   const startEdit = (p: ProductItem) => {
     setEditId(p.id);
     setName(p.name);
-    setPrice(p.price || "");
+    setPrice(parsePriceText(p.price, tenantCurrency));
     setProductUrl(p.productUrl || "");
     setCategory(p.category);
     setAvailability(p.availability);
@@ -1604,7 +1610,14 @@ function ProductosTab() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input data-testid="input-product-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" className="bg-white/[0.04] border-white/[0.08]" />
-            <Input data-testid="input-product-price" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={`Precio (${currencySymbol})`} className="bg-white/[0.04] border-white/[0.08]" />
+            <CurrencyInput
+              data-testid="input-product-price"
+              value={price}
+              onValueChange={setPrice}
+              currency={tenantCurrency}
+              placeholder="Precio"
+              className="bg-white/[0.04] border-white/[0.08]"
+            />
             <Input data-testid="input-product-url" value={productUrl} onChange={(e) => setProductUrl(e.target.value)} placeholder="URL del producto" className="bg-white/[0.04] border-white/[0.08]" />
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger data-testid="select-product-category" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
@@ -2492,11 +2505,11 @@ function CatalogQuickEdit() {
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
-  const [editPrice, setEditPrice] = useState("");
+  const [editPrice, setEditPrice] = useState<number | null>(null);
   const [editBadge, setEditBadge] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newPrice, setNewPrice] = useState("");
+  const [newPrice, setNewPrice] = useState<number | null>(null);
   const [newBadge, setNewBadge] = useState("");
 
   const { data: products = [], isLoading } = useQuery<ProductItem[]>({
@@ -2539,7 +2552,7 @@ function CatalogQuickEdit() {
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
       setShowAddForm(false);
       setNewName("");
-      setNewPrice("");
+      setNewPrice(null);
       setNewBadge("");
       toast({ title: "Producto agregado al catálogo" });
     },
@@ -2555,10 +2568,17 @@ function CatalogQuickEdit() {
     },
   });
 
+  const tenantCurrency = tenantProfile?.currency || "CLP";
+  const currencyDecimals = getCurrency(tenantCurrency).decimals;
+  const serializePrice = (n: number | null): string | null => {
+    if (n === null || n === undefined || !isFinite(n)) return null;
+    return currencyDecimals === 0 ? String(Math.trunc(n)) : n.toFixed(currencyDecimals);
+  };
+
   const startEdit = (p: ProductItem) => {
     setEditingId(p.id);
     setEditName(p.name);
-    setEditPrice(p.price || "");
+    setEditPrice(parsePriceText(p.price, tenantCurrency));
     setEditBadge(p.badgeLabel || "");
   };
 
@@ -2566,7 +2586,7 @@ function CatalogQuickEdit() {
     if (!editName.trim()) return;
     updateMutation.mutate({
       id: editingId!,
-      data: { name: editName.trim(), price: editPrice.trim() || null, badgeLabel: editBadge.trim() || null },
+      data: { name: editName.trim(), price: serializePrice(editPrice), badgeLabel: editBadge.trim() || null },
     });
   };
 
@@ -2574,7 +2594,7 @@ function CatalogQuickEdit() {
     if (!newName.trim()) return;
     createMutation.mutate({
       name: newName.trim(),
-      price: newPrice.trim() || null,
+      price: serializePrice(newPrice),
       badgeLabel: newBadge.trim() || null,
       category: "other",
       availability: "available",
@@ -2620,11 +2640,12 @@ function CatalogQuickEdit() {
               placeholder="Nombre del producto"
               className="bg-white/[0.04] border-white/[0.08] text-sm"
             />
-            <Input
+            <CurrencyInput
               data-testid="input-new-catalog-price"
               value={newPrice}
-              onChange={(e) => setNewPrice(e.target.value)}
-              placeholder={`Precio (ej: ${currencySymbol}19.990)`}
+              onValueChange={setNewPrice}
+              currency={tenantCurrency}
+              placeholder="Precio"
               className="bg-white/[0.04] border-white/[0.08] text-sm"
             />
             <Input
@@ -2661,7 +2682,7 @@ function CatalogQuickEdit() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => { setShowAddForm(false); setNewName(""); setNewPrice(""); setNewBadge(""); }}
+              onClick={() => { setShowAddForm(false); setNewName(""); setNewPrice(null); setNewBadge(""); }}
               className="text-white/40 text-xs"
             >
               Cancelar
@@ -2703,10 +2724,11 @@ function CatalogQuickEdit() {
                       placeholder="Nombre"
                       className="bg-white/[0.04] border-white/[0.08] text-sm"
                     />
-                    <Input
+                    <CurrencyInput
                       data-testid={`input-edit-price-${p.id}`}
                       value={editPrice}
-                      onChange={(e) => setEditPrice(e.target.value)}
+                      onValueChange={setEditPrice}
+                      currency={tenantCurrency}
                       placeholder="Precio"
                       className="bg-white/[0.04] border-white/[0.08] text-sm"
                     />

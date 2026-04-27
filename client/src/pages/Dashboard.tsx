@@ -76,6 +76,7 @@ import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix,
 import type { Tenant } from "@shared/schema";
 import { CHANNEL_MIN_PLAN, planRank, type ChannelSlug } from "@shared/planMatrix";
 import { formatMoney, getCurrency } from "@shared/currencies";
+import { CurrencyInput } from "@/components/CurrencyInput";
 import { CapptaIcon } from "@/components/CapptaLogo";
 import OnboardingWizard from "./OnboardingWizard";
 import DashboardTour, { TourPrompt } from "./DashboardTour";
@@ -4151,8 +4152,8 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
     enabled: isPaidPlan,
   });
 
-  const [linkForm, setLinkForm] = useState({ description: "", amount: "", customerName: "", customerEmail: "" });
-  const [slotForm, setSlotForm] = useState({ name: "", description: "", durationMinutes: 30, price: "", requiresPayment: false });
+  const [linkForm, setLinkForm] = useState<{ description: string; amount: number | null; customerName: string; customerEmail: string }>({ description: "", amount: null, customerName: "", customerEmail: "" });
+  const [slotForm, setSlotForm] = useState<{ name: string; description: string; durationMinutes: number; price: number | null; requiresPayment: boolean }>({ name: "", description: "", durationMinutes: 30, price: null, requiresPayment: false });
 
   const createLink = useMutation({
     mutationFn: async () => {
@@ -4161,7 +4162,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           description: linkForm.description,
-          amount: parseInt(linkForm.amount),
+          amount: linkForm.amount ?? 0,
           customerName: linkForm.customerName || null,
           customerEmail: linkForm.customerEmail || null,
         }),
@@ -4170,7 +4171,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
       return res.json();
     },
     onSuccess: (link: any) => {
-      setLinkForm({ description: "", amount: "", customerName: "", customerEmail: "" });
+      setLinkForm({ description: "", amount: null, customerName: "", customerEmail: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/payment-links"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/stats"] });
       toast({ title: "Link de pago creado", description: link.paymentUrl ? "Cópialo y compártelo con tu cliente" : "Activá Mercado Pago para generar el enlace de cobro" });
@@ -4206,7 +4207,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
           name: slotForm.name,
           description: slotForm.description || null,
           durationMinutes: parseInt(String(slotForm.durationMinutes)) || 30,
-          price: slotForm.price ? parseInt(slotForm.price) : null,
+          price: slotForm.price ?? null,
           requiresPayment: slotForm.requiresPayment ? 1 : 0,
           availability,
           active: 1,
@@ -4216,7 +4217,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
       return res.json();
     },
     onSuccess: () => {
-      setSlotForm({ name: "", description: "", durationMinutes: 30, price: "", requiresPayment: false });
+      setSlotForm({ name: "", description: "", durationMinutes: 30, price: null, requiresPayment: false });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/slots"] });
       toast({ title: "Servicio creado", description: "Comparte tu link público para que reserven" });
     },
@@ -4312,7 +4313,14 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
             <p className="text-xs text-white/40 mb-4">Genera un enlace de Mercado Pago para cobrar a un cliente desde el chat o WhatsApp.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input placeholder="Descripción (ej: Consultoría 1h)" value={linkForm.description} onChange={e => setLinkForm({ ...linkForm, description: e.target.value })} data-testid="input-link-description" />
-              <Input type="number" placeholder={`Monto en ${tenantCurrency}`} value={linkForm.amount} onChange={e => setLinkForm({ ...linkForm, amount: e.target.value })} data-testid="input-link-amount" />
+              <CurrencyInput
+                value={linkForm.amount}
+                onValueChange={(v) => setLinkForm({ ...linkForm, amount: v })}
+                currency={tenantCurrency}
+                decimalsOverride={0}
+                placeholder={`Monto en ${tenantCurrency}`}
+                data-testid="input-link-amount"
+              />
               <Input placeholder="Nombre cliente (opcional)" value={linkForm.customerName} onChange={e => setLinkForm({ ...linkForm, customerName: e.target.value })} data-testid="input-link-customer-name" />
               <Input type="email" placeholder="Email cliente (opcional)" value={linkForm.customerEmail} onChange={e => setLinkForm({ ...linkForm, customerEmail: e.target.value })} data-testid="input-link-customer-email" />
             </div>
@@ -4375,7 +4383,14 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
               <Input placeholder="Nombre del servicio (ej: Consulta inicial)" value={slotForm.name} onChange={e => setSlotForm({ ...slotForm, name: e.target.value })} data-testid="input-slot-name" />
               <Input type="number" placeholder="Duración (minutos)" value={slotForm.durationMinutes} onChange={e => setSlotForm({ ...slotForm, durationMinutes: parseInt(e.target.value) || 30 })} data-testid="input-slot-duration" />
               <Input placeholder="Descripción (opcional)" value={slotForm.description} onChange={e => setSlotForm({ ...slotForm, description: e.target.value })} data-testid="input-slot-description" />
-              <Input type="number" placeholder={`Precio ${tenantCurrency} (opcional)`} value={slotForm.price} onChange={e => setSlotForm({ ...slotForm, price: e.target.value })} data-testid="input-slot-price" />
+              <CurrencyInput
+                value={slotForm.price}
+                onValueChange={(v) => setSlotForm({ ...slotForm, price: v })}
+                currency={tenantCurrency}
+                decimalsOverride={0}
+                placeholder={`Precio ${tenantCurrency} (opcional)`}
+                data-testid="input-slot-price"
+              />
             </div>
             <label className="flex items-center gap-2 mt-3 text-sm text-white/60">
               <input type="checkbox" checked={slotForm.requiresPayment} onChange={e => setSlotForm({ ...slotForm, requiresPayment: e.target.checked })} data-testid="checkbox-slot-requires-payment" />
