@@ -3223,7 +3223,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       if (!scheduledAt || isNaN(scheduledAt.getTime())) {
         return res.status(400).json({ message: "Fecha inválida" });
       }
-      const appt = await storage.createAppointment({
+      const apptInsert: InsertAppointment = {
         tenantId: auth.id,
         slotId: body.slotId || null,
         sessionId: body.sessionId || null,
@@ -3235,7 +3235,8 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         notes: body.notes || null,
         source: "manual",
         status: "scheduled",
-      } as any);
+      };
+      const appt = await storage.createAppointment(apptInsert);
       res.json(appt);
     } catch (e: any) {
       res.status(400).json({ message: e.message || "Datos inválidos" });

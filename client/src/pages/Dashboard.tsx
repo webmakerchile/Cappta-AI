@@ -3506,8 +3506,14 @@ function ExtensionesSection({ token }: { token: string }) {
 
 function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: string }) {
   const { toast } = useToast();
-  const isPaidPlan = ["basic", "scale", "pro", "enterprise"].includes(tenant.plan);
+  const isPaidPlan = ["solo", "basic", "scale", "pro", "enterprise"].includes(tenant.plan);
   const [tab, setTab] = useState<"reportes" | "pagos" | "citas">("reportes");
+
+  const authFetch = async (url: string) => {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ message: "Error" }))).message || "Error");
+    return res.json();
+  };
 
   const { data: stats } = useQuery<{
     totalAppointments: number;
@@ -3519,11 +3525,27 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
     pendingPaymentLinks: number;
     revenueThisMonth: number;
     revenueAllTime: number;
-  }>({ queryKey: ["/api/tenant-panel/connect/stats"] });
+  }>({
+    queryKey: ["/api/tenant-panel/connect/stats"],
+    queryFn: () => authFetch("/api/tenant-panel/connect/stats"),
+    enabled: isPaidPlan,
+  });
 
-  const { data: links = [] } = useQuery<any[]>({ queryKey: ["/api/tenant-panel/connect/payment-links"] });
-  const { data: appts = [] } = useQuery<any[]>({ queryKey: ["/api/tenant-panel/connect/appointments"] });
-  const { data: slots = [] } = useQuery<any[]>({ queryKey: ["/api/tenant-panel/connect/slots"] });
+  const { data: links = [] } = useQuery<any[]>({
+    queryKey: ["/api/tenant-panel/connect/payment-links"],
+    queryFn: () => authFetch("/api/tenant-panel/connect/payment-links"),
+    enabled: isPaidPlan,
+  });
+  const { data: appts = [] } = useQuery<any[]>({
+    queryKey: ["/api/tenant-panel/connect/appointments"],
+    queryFn: () => authFetch("/api/tenant-panel/connect/appointments"),
+    enabled: isPaidPlan,
+  });
+  const { data: slots = [] } = useQuery<any[]>({
+    queryKey: ["/api/tenant-panel/connect/slots"],
+    queryFn: () => authFetch("/api/tenant-panel/connect/slots"),
+    enabled: isPaidPlan,
+  });
 
   const [linkForm, setLinkForm] = useState({ description: "", amount: "", customerName: "", customerEmail: "" });
   const [slotForm, setSlotForm] = useState({ name: "", description: "", durationMinutes: 30, price: "", requiresPayment: false });

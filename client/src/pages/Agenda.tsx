@@ -42,12 +42,19 @@ function generateDays(count: number): Date[] {
 
 const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
+type AvailabilityMap = Record<string, { start: string; end: string }[]>;
+
+function parseAvailability(raw: unknown): AvailabilityMap {
+  if (!raw) return {};
+  if (typeof raw === "string") {
+    try { return JSON.parse(raw) as AvailabilityMap; } catch { return {}; }
+  }
+  if (typeof raw === "object") return raw as AvailabilityMap;
+  return {};
+}
+
 function generateSlotsForDay(day: Date, slot: SlotData, taken: { start: string; end: string }[]): Date[] {
-  let availMap: Record<string, { start: string; end: string }[]> = {};
-  try {
-    const raw = slot.availability;
-    availMap = typeof raw === "string" ? JSON.parse(raw || "{}") : (raw || {}) as any;
-  } catch {}
+  const availMap = parseAvailability(slot.availability);
   const wd = day.getDay();
   const ranges = availMap[WEEKDAY_KEYS[wd]] || availMap[String(wd)] || [];
   const candidates: Date[] = [];
