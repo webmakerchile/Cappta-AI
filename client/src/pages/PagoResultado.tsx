@@ -8,7 +8,6 @@ export default function PagoResultado() {
     return m ? parseInt(m[1]) : 0;
   }, []);
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const status = params.get("status") || "pending";
   const token = params.get("token") || "";
 
   useEffect(() => { document.documentElement.classList.add("dark"); }, []);
@@ -24,11 +23,13 @@ export default function PagoResultado() {
       return res.json();
     },
     enabled: linkId > 0,
-    refetchInterval: status === "pending" || status === "approved" ? 5000 : false,
+    refetchInterval: (query) => (query.state.data?.status === "pending" ? 5000 : false),
   });
 
-  const isPaid = link?.status === "paid" || status === "approved";
-  const isFailed = status === "rejected" || link?.status === "cancelled";
+  // Trust ONLY backend status (authoritative). URL query params are ignored to prevent spoofing.
+  const isPaid = link?.status === "paid";
+  const isFailed = link?.status === "cancelled" || link?.status === "expired";
+  const isPending = !isPaid && !isFailed;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-white p-6">

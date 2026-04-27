@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads, insertAppointmentSlotSchema } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads, insertAppointmentSlotSchema, type InsertChatPaymentLink, type InsertAppointment } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -3265,7 +3265,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       }
       const body = parsed.data;
 
-      const link = await storage.createChatPaymentLink({
+      const linkInsert: InsertChatPaymentLink = {
         tenantId: auth.id,
         sessionId: body.sessionId || null,
         customerEmail: body.customerEmail || null,
@@ -3278,7 +3278,8 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         publicToken: generatePublicToken(),
         status: "pending",
         source: body.source || "manual",
-      } as any);
+      };
+      const link = await storage.createChatPaymentLink(linkInsert);
 
       try {
         const { createChatPaymentPreference, isMercadoPagoConfigured } = await import("./flow");
@@ -3288,6 +3289,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
             linkId: link.id,
             amount: body.amount,
             description: body.description,
+            publicToken: link.publicToken,
             customerEmail: body.customerEmail || null,
             customerName: body.customerName || null,
           });
@@ -3394,7 +3396,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       });
       if (conflict) return res.status(409).json({ message: "Horario no disponible" });
 
-      const appt = await storage.createAppointment({
+      const apptInsert: InsertAppointment = {
         tenantId: slot.tenantId,
         slotId: slot.id,
         customerName,
@@ -3405,7 +3407,8 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         notes: body.notes || null,
         source: "public_page",
         status: "scheduled",
-      } as any);
+      };
+      const appt = await storage.createAppointment(apptInsert);
 
       let paymentUrl: string | null = null;
       let paymentLinkId: number | null = null;
@@ -3413,7 +3416,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       if (slot.requiresPayment === 1 && slot.price && slot.price > 0) {
         try {
           const token = generatePublicToken();
-          const link = await storage.createChatPaymentLink({
+          const linkInsert: InsertChatPaymentLink = {
             tenantId: slot.tenantId,
             customerEmail,
             customerName,
@@ -3424,7 +3427,8 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
             publicToken: token,
             status: "pending",
             source: "appointment",
-          } as any);
+          };
+          const link = await storage.createChatPaymentLink(linkInsert);
           paymentLinkId = link.id;
           paymentToken = token;
           await storage.updateAppointmentPaymentLink(appt.id, link.id);
@@ -3436,6 +3440,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
               linkId: link.id,
               amount: slot.price,
               description: `Reserva: ${slot.name}`,
+              publicToken: token,
               customerEmail,
               customerName,
             });
@@ -3487,8 +3492,95 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
 
   app.get("/api/connect/payment-return", async (req, res) => {
     const linkId = parseInt(String(req.query.link || ""));
-    const status = String(req.query.status || "pending");
-    res.redirect(`/pago-resultado/${isNaN(linkId) ? 0 : linkId}?status=${encodeURIComponent(status)}`);
+    const token = typeof req.query.token === "string" ? req.query.token : "";
+    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
+    res.redirect(`/pago-resultado/${isNaN(linkId) ? 0 : linkId}${tokenParam}`);
+  });
+
+  // Bot integration: send a payment link inside an existing chat conversation.
+  // This is the primary path for the AI bot or human agents to execute sales in chat.
+  app.post("/api/tenant-panel/chat/sessions/:sessionId/payment-link", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const sessionId = req.params.sessionId;
+    if (!sessionId) return res.status(400).json({ message: "Sesión inválida" });
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!checkConnectPlan(tenant)) {
+        return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+      }
+      const parsed = linkBodySchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Datos inválidos" });
+      }
+      const body = parsed.data;
+      const session = await storage.getSession(sessionId);
+      if (!session || session.tenantId !== auth.id) {
+        return res.status(404).json({ message: "Sesión no encontrada" });
+      }
+
+      const linkInsert: InsertChatPaymentLink = {
+        tenantId: auth.id,
+        sessionId,
+        customerEmail: body.customerEmail || session.userEmail || null,
+        customerName: body.customerName || session.userName || null,
+        productId: body.productId || null,
+        description: body.description,
+        amount: body.amount,
+        currency: "CLP",
+        provider: "mercadopago",
+        publicToken: generatePublicToken(),
+        status: "pending",
+        source: "chat",
+      };
+      const link = await storage.createChatPaymentLink(linkInsert);
+
+      let payUrl: string | null = null;
+      try {
+        const { createChatPaymentPreference, isMercadoPagoConfigured } = await import("./flow");
+        if (isMercadoPagoConfigured()) {
+          const pref = await createChatPaymentPreference({
+            tenantId: auth.id,
+            linkId: link.id,
+            amount: body.amount,
+            description: body.description,
+            publicToken: link.publicToken,
+            customerEmail: linkInsert.customerEmail,
+            customerName: linkInsert.customerName,
+          });
+          const upd = await storage.updateChatPaymentLink(link.id, {
+            externalId: pref.preferenceId,
+            paymentUrl: pref.initPoint,
+          });
+          payUrl = upd?.paymentUrl || pref.initPoint;
+        }
+      } catch (mpErr: any) {
+        log(`Bot payment-link MP error session ${sessionId}: ${mpErr.message}`, "connect");
+      }
+
+      const finalUrl = payUrl || `/pago-resultado/${link.id}?token=${encodeURIComponent(link.publicToken || "")}`;
+      const msgContent = `💳 ${body.description}\nMonto: $${body.amount.toLocaleString("es-CL")} CLP\n👉 ${finalUrl}`;
+      const msg = await storage.createMessage({
+        sessionId,
+        tenantId: auth.id,
+        userEmail: session.userEmail,
+        userName: session.userName,
+        sender: "support",
+        content: msgContent,
+        imageUrl: null,
+        adminName: "Cappta Pay",
+        adminColor: "#7669E9",
+      });
+
+      try {
+        const io: SocketIOServer | undefined = (global as any).io;
+        if (io) io.to(sessionId).emit("message", msg);
+      } catch {}
+
+      res.json({ link, message: msg, paymentUrl: finalUrl });
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Error al generar link" });
+    }
   });
   // ===================== END CAPPTA CONNECT =====================
 

@@ -295,12 +295,14 @@ export async function createChatPaymentPreference(opts: {
   linkId: number;
   amount: number;
   description: string;
+  publicToken?: string | null;
   customerEmail?: string | null;
   customerName?: string | null;
 }): Promise<{ preferenceId: string; initPoint: string }> {
   if (!MP_ACCESS_TOKEN) throw new Error("Mercado Pago no configurado");
   const safeAmount = Math.max(1, Math.round(opts.amount));
   const desc = (opts.description || "Cobro Cappta").slice(0, 200);
+  const tokenParam = opts.publicToken ? `&token=${encodeURIComponent(opts.publicToken)}` : "";
   const preference = await mpFetch("/checkout/preferences", "POST", {
     items: [
       {
@@ -314,9 +316,9 @@ export async function createChatPaymentPreference(opts: {
     payer: opts.customerEmail ? { email: opts.customerEmail, name: opts.customerName || undefined } : undefined,
     external_reference: `cappta_chatlink_${opts.tenantId}_${opts.linkId}`,
     back_urls: {
-      success: `https://www.cappta.ai/api/connect/payment-return?link=${opts.linkId}&status=approved`,
-      failure: `https://www.cappta.ai/api/connect/payment-return?link=${opts.linkId}&status=rejected`,
-      pending: `https://www.cappta.ai/api/connect/payment-return?link=${opts.linkId}&status=pending`,
+      success: `https://www.cappta.ai/api/connect/payment-return?link=${opts.linkId}${tokenParam}`,
+      failure: `https://www.cappta.ai/api/connect/payment-return?link=${opts.linkId}${tokenParam}`,
+      pending: `https://www.cappta.ai/api/connect/payment-return?link=${opts.linkId}${tokenParam}`,
     },
     auto_return: "approved",
     notification_url: "https://www.cappta.ai/api/mercadopago/webhook",
