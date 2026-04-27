@@ -262,10 +262,15 @@ export async function chat(opts: ChatOpts): Promise<ChatResult> {
   }
 }
 
+interface StreamOnceResult extends RawChatOutput {
+  emittedAny: boolean;
+}
+
 async function streamOnceOpenAI(
   model: LlmModel,
   opts: StreamOpts,
-): Promise<RawChatOutput> {
+  onChunk?: (delta: string, accumulated: string) => void,
+): Promise<StreamOnceResult> {
   const messages = opts.messages.map((m) => ({ role: m.role, content: m.content })) as ChatCompletionMessageParam[];
   const params: ChatCompletionCreateParamsStreaming = {
     model,
@@ -280,18 +285,22 @@ async function streamOnceOpenAI(
   let accumulated = "";
   let tokensIn = 0;
   let tokensOut = 0;
+  let emittedAny = false;
   for await (const chunk of stream) {
     const delta = chunk.choices?.[0]?.delta?.content;
     if (delta) {
       accumulated += delta;
-      if (opts.onChunk) opts.onChunk(delta, accumulated);
+      if (onChunk) {
+        onChunk(delta, accumulated);
+        emittedAny = true;
+      }
     }
     if (chunk.usage) {
       tokensIn = chunk.usage.prompt_tokens || tokensIn;
       tokensOut = chunk.usage.completion_tokens || tokensOut;
     }
   }
-  return { content: accumulated, tokensIn, tokensOut };
+  return { content: accumulated, tokensIn, tokensOut, emittedAny };
 }
 
 export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
@@ -306,8 +315,10 @@ export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
   const fellBackBeforeCall = useModel !== requested;
 
   const start = Date.now();
+  let primaryEmittedAny = false;
   try {
-    const { content, tokensIn, tokensOut } = await streamOnceOpenAI(useModel, opts);
+    const { content, tokensIn, tokensOut, emittedAny } = await streamOnceOpenAI(useModel, opts, opts.onChunk);
+    primaryEmittedAny = emittedAny;
     const latencyMs = Date.now() - start;
     await recordUsage({
       tenantId: opts.tenantId,
@@ -332,7 +343,7 @@ export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
   } catch (primaryErr) {
     const primaryLatency = Date.now() - start;
     const errorMessage = errorMessageOf(primaryErr);
-    console.error(`[llm] stream ${useModel} failed: ${errorMessage}`);
+    console.error(`[llm] stream ${useModel} failed (emittedAny=${primaryEmittedAny}): ${errorMessage}`);
     await recordUsage({
       tenantId: opts.tenantId,
       model: useModel,
@@ -345,14 +356,15 @@ export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
       errorMessage,
     });
 
-    // Runtime fallback: if a premium OpenAI model failed mid-stream, retry
-    // transparently with the cheap fallback so end users don't see an error.
-    if (useModel === FALLBACK_MODEL) {
+    // Runtime fallback: only safe if (a) we have a different fallback model and
+    // (b) the primary attempt did not already emit any chunks to the consumer.
+    // Otherwise we'd produce mixed/duplicated streamed text.
+    if (useModel === FALLBACK_MODEL || primaryEmittedAny) {
       throw primaryErr;
     }
     const fallbackStart = Date.now();
     try {
-      const { content, tokensIn, tokensOut } = await streamOnceOpenAI(FALLBACK_MODEL, opts);
+      const { content, tokensIn, tokensOut } = await streamOnceOpenAI(FALLBACK_MODEL, opts, opts.onChunk);
       const latencyMs = Date.now() - fallbackStart;
       await recordUsage({
         tenantId: opts.tenantId,

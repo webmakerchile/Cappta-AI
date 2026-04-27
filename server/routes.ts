@@ -199,6 +199,7 @@ export async function registerRoutes(
     email: string;
     role: string;
     displayName: string;
+    username?: string;
     isTenant?: boolean;
     isAgent?: boolean;
     agentId?: number;
@@ -1584,12 +1585,16 @@ ${DEMO_BASE_RULES}`,
   app.get("/api/admin/llm/usage", async (req, res) => {
     const user = requireAuth(req, res);
     if (!user) return;
+    if (user.role !== "superadmin" && user.role !== "admin") {
+      return res.status(403).json({ message: "Acceso restringido a admin/superadmin" });
+    }
     try {
       const days = Math.max(1, Math.min(180, Number(req.query.days) || 30));
       const stats = await storage.getLlmUsageStats({ sinceDays: days });
       res.json({ days, stats });
-    } catch (e: any) {
-      res.status(500).json({ message: "Error", error: e?.message });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      res.status(500).json({ message: "Error", error: msg });
     }
   });
 
