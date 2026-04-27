@@ -1,9 +1,16 @@
 import { Resend } from "resend";
 import { log } from "./index";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL || "soporte@foxbot.cl";
 const FROM_ADDRESS = process.env.FROM_EMAIL || "Cappta AI <noreply@foxbot.cl>";
+
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    log("RESEND_API_KEY not set, email sending disabled", "resend");
+    return null;
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 interface ContactEmailData {
   userName: string;
@@ -23,6 +30,8 @@ interface OfflineNotificationData {
 }
 
 export async function sendOfflineNotification(data: OfflineNotificationData): Promise<boolean> {
+  const resend = getResend();
+  if (!resend) return false;
   try {
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
@@ -67,6 +76,8 @@ interface ChatInviteData {
 }
 
 export async function sendChatInviteEmail(data: ChatInviteData): Promise<{ success: boolean; error?: string }> {
+  const resend = getResend();
+  if (!resend) return { success: false, error: "Email service not configured" };
   const fromAddr = FROM_ADDRESS;
 
   try {
@@ -126,6 +137,8 @@ function getProblemTypeLabel(problemType: string): string {
 }
 
 export async function sendContactNotification(data: ContactEmailData): Promise<boolean> {
+  const resend = getResend();
+  if (!resend) return false;
   try {
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
