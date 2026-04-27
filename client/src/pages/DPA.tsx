@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { CapptaLogo } from "@/components/CapptaLogo";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, Download } from "lucide-react";
 
 export default function DPAPage() {
   useEffect(() => {
@@ -36,6 +36,16 @@ export default function DPAPage() {
             <CapptaLogo size={28} textClassName="text-lg" />
           </a>
           <div className="flex items-center gap-3">
+            <a href="/dpa.md" download="cappta-ai-dpa-v1.0.md" data-testid="link-download-dpa">
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-violet-500/40 text-violet-200 hover:bg-violet-500/10"
+              >
+                <Download className="w-3.5 h-3.5 mr-1.5" />
+                Descargar .md
+              </Button>
+            </a>
             <Button
               onClick={handlePrint}
               size="sm"

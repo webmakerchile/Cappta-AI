@@ -64,6 +64,7 @@ import {
   TrendingDown,
   Workflow,
   Calendar,
+  Briefcase,
 } from "lucide-react";
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiWoo, SiDiscord, SiAirtable, SiMailchimp, SiGooglesheets } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
@@ -1687,33 +1688,78 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="relative pb-12 overflow-hidden" data-testid="logos-trusted-by">
-          <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10" style={{ background: "linear-gradient(90deg, #030308 0%, transparent 100%)" }} />
-          <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10" style={{ background: "linear-gradient(270deg, #030308 0%, transparent 100%)" }} />
-          <div className="flex animate-marquee">
-            {[0, 1].map((set) => (
-              <div key={set} className="flex shrink-0 items-center gap-10 sm:gap-16 px-5 sm:px-8">
-                {[
-                  { Icon: SiWhatsapp, name: "WhatsApp", size: "w-5 h-5" },
-                  { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
-                  { Icon: SiTelegram, name: "Telegram", size: "w-5 h-5" },
-                  { Icon: SiHubspot, name: "HubSpot", size: "w-5 h-5" },
-                  { Icon: SiMailchimp, name: "Mailchimp", size: "w-5 h-5" },
-                  { Icon: SiSlack, name: "Slack", size: "w-5 h-5" },
-                  { Icon: SiDiscord, name: "Discord", size: "w-5 h-5" },
-                  { Icon: SiNotion, name: "Notion", size: "w-5 h-5" },
-                  { Icon: SiAirtable, name: "Airtable", size: "w-5 h-5" },
-                  { Icon: SiGooglesheets, name: "Google Sheets", size: "w-5 h-5" },
-                  { Icon: SiWoo, name: "WooCommerce", size: "w-6 h-6" },
-                  { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
-                ].map(({ Icon, name, size }) => (
-                  <div key={name} className="flex items-center gap-2.5 opacity-40" data-testid={`logo-partner-${name.toLowerCase()}`}>
-                    <Icon className={`${size} text-white`} />
-                    <span className="text-sm sm:text-base text-white font-semibold tracking-wide whitespace-nowrap">{name}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
+        <div className="relative pb-12 px-6" data-testid="integrations-grouped">
+          <div className="max-w-6xl mx-auto">
+            <p className="text-center text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-8">
+              Integraciones nativas hoy
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  category: "CRM y email marketing",
+                  testid: "integrations-crm",
+                  items: [
+                    { Icon: SiHubspot, name: "HubSpot" },
+                    { Icon: Briefcase, name: "Pipedrive" },
+                    { Icon: Mail, name: "ActiveCampaign" },
+                    { Icon: SiMailchimp, name: "Mailchimp" },
+                  ],
+                },
+                {
+                  category: "E-commerce y CMS",
+                  testid: "integrations-ecommerce",
+                  items: [
+                    { Icon: SiWoo, name: "WooCommerce" },
+                    { Icon: SiWordpress, name: "WordPress" },
+                  ],
+                },
+                {
+                  category: "Productividad",
+                  testid: "integrations-productivity",
+                  items: [
+                    { Icon: SiNotion, name: "Notion" },
+                    { Icon: SiAirtable, name: "Airtable" },
+                    { Icon: SiGooglesheets, name: "Google Sheets" },
+                  ],
+                },
+                {
+                  category: "Mensajería interna",
+                  testid: "integrations-messaging",
+                  items: [
+                    { Icon: SiSlack, name: "Slack" },
+                    { Icon: SiDiscord, name: "Discord" },
+                    { Icon: Users, name: "Microsoft Teams" },
+                  ],
+                },
+              ].map(({ category, testid, items }) => (
+                <div
+                  key={category}
+                  className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5"
+                  data-testid={testid}
+                >
+                  <p className="text-[11px] font-semibold text-white/45 tracking-[0.15em] uppercase mb-4">
+                    {category}
+                  </p>
+                  <ul className="space-y-2.5">
+                    {items.map(({ Icon, name }) => (
+                      <li
+                        key={name}
+                        className="flex items-center gap-2.5 text-sm text-white/75"
+                        data-testid={`integration-${name.toLowerCase().replace(/\s+/g, "-")}`}
+                      >
+                        <Icon className="w-4 h-4 text-white/55 shrink-0" />
+                        <span>{name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-[11px] text-white/35 mt-6 max-w-xl mx-auto leading-relaxed">
+              ¿Necesitás otra plataforma? Cappta AI expone API y webhooks para conectar tu CRM, ERP o helpdesk a medida.
+              Para canales de conversación (WhatsApp, Meta, Telegram, Instagram, Messenger, Email) consultá la sección{" "}
+              <a href="/canales" className="text-violet-300 hover:underline">Canales</a>.
+            </p>
           </div>
         </div>
       </section>
