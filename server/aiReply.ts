@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import { chat as llmChat, chatStream as llmChatStream, resolveModelForTenant, DEFAULT_MODEL } from "./llm";
+import { chat as llmChat, chatStream as llmChatStream, resolveModelForTenant, DEFAULT_MODEL, type LlmMessage } from "./llm";
 
 interface ConversationEntry {
   sender: string;
@@ -380,7 +380,7 @@ async function prepareAIMessages(
   sessionData?: SessionData,
   catalogProducts?: CatalogProduct[],
   options?: AIReplyOptions
-) {
+): Promise<LlmMessage[]> {
   let knowledgeEntries: KnowledgeEntry[] = [];
   try {
     const searchTenantId = options?.tenantId || undefined;
@@ -432,7 +432,7 @@ export async function getAIReply(
       tenantId: options?.tenantId ?? null,
       model,
       kind: "tenant_reply",
-      messages: messages as any,
+      messages,
       temperature: 0.75,
       maxTokens: 1000,
     });
@@ -463,7 +463,7 @@ export async function getAIReplyStreaming(
       tenantId: options?.tenantId ?? null,
       model,
       kind: "tenant_reply_stream",
-      messages: messages as any,
+      messages,
       temperature: 0.75,
       maxTokens: 1000,
       onChunk,

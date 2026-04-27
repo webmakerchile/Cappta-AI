@@ -4490,9 +4490,14 @@ interface LLMUsageStat {
   avgLatencyMs: number;
 }
 
+interface LLMUsageResponse {
+  days: number;
+  stats: LLMUsageStat[];
+}
+
 function LLMUsagePanel() {
   const [days, setDays] = useState<number>(30);
-  const { data, isLoading } = useQuery<LLMUsageStat[]>({
+  const { data, isLoading } = useQuery<LLMUsageResponse>({
     queryKey: ["/api/admin/llm/usage", days],
     queryFn: async () => {
       const token = getAuthToken();
@@ -4504,7 +4509,7 @@ function LLMUsagePanel() {
     },
   });
 
-  const rows = data || [];
+  const rows = data?.stats || [];
   const totals = useMemo(() => {
     let requests = 0;
     let tokensIn = 0;

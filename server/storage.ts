@@ -1,6 +1,6 @@
 import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, leadScores, sequences, sequenceRuns, flows, flowRuns, integrations, apiKeys, webhookEndpoints, webhookDeliveries, industryTemplates, tenantChannels, llmUsage, type LlmUsage, type InsertLlmUsage, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink, type AppointmentStatus, type ChatPaymentLinkStatus, type LeadScore, type InsertLeadScore, type Sequence, type InsertSequence, type SequenceRun, type InsertSequenceRun, type Flow, type InsertFlow, type FlowRun, type InsertFlowRun, type Integration, type InsertIntegration, type ApiKey, type InsertApiKey, type WebhookEndpoint, type InsertWebhookEndpoint, type WebhookDelivery, type InsertWebhookDelivery, type IndustryTemplate, type InsertIndustryTemplate, type TenantChannel, type InsertTenantChannel } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, sql, ilike, or, and, gte, lte } from "drizzle-orm";
+import { eq, asc, desc, sql, ilike, or, and, gte, lte, type SQL } from "drizzle-orm";
 
 export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
@@ -1921,7 +1921,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLlmUsageStats(opts: { tenantId?: number | null; sinceDays?: number } = {}) {
-    const conds: any[] = [];
+    const conds: SQL[] = [];
     if (opts.tenantId !== undefined && opts.tenantId !== null) {
       conds.push(eq(llmUsage.tenantId, opts.tenantId));
     }
@@ -1929,7 +1929,7 @@ export class DatabaseStorage implements IStorage {
       const since = new Date(Date.now() - opts.sinceDays * 24 * 60 * 60 * 1000);
       conds.push(gte(llmUsage.occurredAt, since));
     }
-    const where = conds.length ? (conds.length === 1 ? conds[0] : and(...conds)) : undefined;
+    const where = conds.length === 0 ? undefined : conds.length === 1 ? conds[0] : and(...conds);
     const rows = await db.select({
       provider: llmUsage.provider,
       model: llmUsage.model,
@@ -1941,7 +1941,7 @@ export class DatabaseStorage implements IStorage {
       avgLatencyMs: sql<number>`coalesce(avg(${llmUsage.latencyMs}), 0)::int`,
     })
     .from(llmUsage)
-    .where(where as any)
+    .where(where)
     .groupBy(llmUsage.provider, llmUsage.model, llmUsage.status);
     return rows.map(r => ({
       provider: r.provider,
