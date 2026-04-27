@@ -2144,9 +2144,8 @@ export default function Landing() {
                       controls
                       preload="none"
                       playsInline
-                      muted
                       className="w-full h-auto block"
-                      aria-label="Grabación del panel Cappta AI bajando por más de 6.000 conversaciones reales"
+                      aria-label="Grabación del panel Cappta AI bajando por más de 6.000 conversaciones reales, con música"
                       aria-describedby="cjm-recording-description"
                       data-testid="video-cjm-chats-recording"
                     >
