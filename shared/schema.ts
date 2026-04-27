@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, serial, index, boolean, integer, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, serial, index, boolean, integer, doublePrecision, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -105,7 +105,7 @@ export const adminUsers = pgTable("admin_users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name").notNull(),
-  role: text("role", { enum: ["superadmin", "admin", "ejecutivo"] }).notNull().default("ejecutivo"),
+  role: text("role", { enum: ["superadmin", "admin", "ejecutivo", "partner"] }).notNull().default("ejecutivo"),
   color: text("color").notNull().default("#10b981"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -190,8 +190,74 @@ export const tenants = pgTable("tenants", {
   cashBalance: integer("cash_balance").notNull().default(0),
   currency: text("currency").notNull().default("CLP"),
   aiModel: text("ai_model").notNull().default("gpt-4o-mini"),
+  partnerId: integer("partner_id"),
+  partnerSlug: text("partner_slug"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const partners = pgTable("partners", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  contactEmail: text("contact_email"),
+  agencyName: text("agency_name"),
+  country: text("country"),
+  tier: text("tier", { enum: ["embajador", "certificado"] }).notNull().default("embajador"),
+  commissionPct: integer("commission_pct").notNull().default(20),
+  status: text("status", { enum: ["pending", "active", "paused"] }).notNull().default("pending"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  approvedAt: timestamp("approved_at"),
+}, (table) => [
+  index("idx_partners_slug").on(table.slug),
+  index("idx_partners_status").on(table.status),
+]);
+
+export const partnerCommissions = pgTable("partner_commissions", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").notNull(),
+  tenantId: integer("tenant_id").notNull(),
+  periodMonth: text("period_month").notNull(),
+  paidAmountCents: integer("paid_amount_cents").notNull().default(0),
+  currency: text("currency").notNull().default("CLP"),
+  commissionAmountCents: integer("commission_amount_cents").notNull().default(0),
+  commissionPctSnapshot: integer("commission_pct_snapshot").notNull(),
+  ordersCount: integer("orders_count").notNull().default(0),
+  status: text("status", { enum: ["pending", "approved", "paid"] }).notNull().default("pending"),
+  computedAt: timestamp("computed_at").defaultNow().notNull(),
+  paidAt: timestamp("paid_at"),
+}, (table) => [
+  index("idx_partner_commissions_partner_id").on(table.partnerId),
+  index("idx_partner_commissions_period").on(table.periodMonth),
+  uniqueIndex("uq_partner_commissions_period_tenant").on(table.partnerId, table.tenantId, table.periodMonth),
+]);
+
+export const partnerImpersonations = pgTable("partner_impersonations", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").notNull(),
+  adminUserId: integer("admin_user_id").notNull(),
+  tenantId: integer("tenant_id").notNull(),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  endedAt: timestamp("ended_at"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+}, (table) => [
+  index("idx_partner_impersonations_partner_id").on(table.partnerId),
+  index("idx_partner_impersonations_started_at").on(table.startedAt),
+]);
+
+export const insertPartnerSchema = createInsertSchema(partners).omit({ id: true, createdAt: true, approvedAt: true });
+export type InsertPartner = z.infer<typeof insertPartnerSchema>;
+export type Partner = typeof partners.$inferSelect;
+
+export const insertPartnerCommissionSchema = createInsertSchema(partnerCommissions).omit({ id: true, computedAt: true, paidAt: true });
+export type InsertPartnerCommission = z.infer<typeof insertPartnerCommissionSchema>;
+export type PartnerCommission = typeof partnerCommissions.$inferSelect;
+
+export const insertPartnerImpersonationSchema = createInsertSchema(partnerImpersonations).omit({ id: true, startedAt: true, endedAt: true });
+export type InsertPartnerImpersonation = z.infer<typeof insertPartnerImpersonationSchema>;
+export type PartnerImpersonation = typeof partnerImpersonations.$inferSelect;
 
 export const llmUsage = pgTable("llm_usage", {
   id: serial("id").primaryKey(),
