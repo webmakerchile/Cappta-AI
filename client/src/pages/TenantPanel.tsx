@@ -539,7 +539,8 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
   };
 
   const handleSendProduct = (product: ProductItem) => {
-    const msg = `${product.name}${product.price ? ` - $${product.price}` : ""}${product.productUrl ? `\n${product.productUrl}` : ""}`;
+    const cur = tenantProfile?.currency || "CLP";
+    const msg = `${product.name}${product.price ? ` - ${formatPriceText(product.price, cur)}` : ""}${product.productUrl ? `\n${product.productUrl}` : ""}`;
     setReplyText(msg);
     setShowProductSearch(false);
   };

@@ -119,28 +119,46 @@ export function formatMoneyWithCode(amount: number | null | undefined, code?: st
   return `${formatMoney(amount, code)} ${c.code}`;
 }
 
-export function parsePriceText(price: string | null | undefined): number | null {
+export function parsePriceText(price: string | null | undefined, code?: string | null): number | null {
   if (price === null || price === undefined) return null;
   const s = String(price).trim();
   if (!s) return null;
   const cleaned = s.replace(/[^0-9.,\-]/g, "");
   if (!cleaned) return null;
+
+  const decimals = getCurrency(code).decimals;
   const lastComma = cleaned.lastIndexOf(",");
   const lastDot = cleaned.lastIndexOf(".");
   let normalized: string;
-  if (lastComma > lastDot) {
-    normalized = cleaned.replace(/\./g, "").replace(",", ".");
-  } else if (lastDot > lastComma) {
-    normalized = cleaned.replace(/,/g, "");
+
+  if (decimals === 0) {
+    normalized = cleaned.replace(/[.,]/g, "");
+  } else if (lastComma === -1 && lastDot === -1) {
+    normalized = cleaned;
+  } else if (lastComma > -1 && lastDot > -1) {
+    if (lastComma > lastDot) {
+      normalized = cleaned.replace(/\./g, "").replace(",", ".");
+    } else {
+      normalized = cleaned.replace(/,/g, "");
+    }
   } else {
-    normalized = cleaned.replace(/,/g, "");
+    const sep = lastComma > -1 ? "," : ".";
+    const idx = lastComma > -1 ? lastComma : lastDot;
+    const after = cleaned.length - idx - 1;
+    const occurrences = (cleaned.match(new RegExp(`\\${sep}`, "g")) || []).length;
+    if (occurrences > 1 || after === 3) {
+      normalized = cleaned.split(sep).join("");
+    } else {
+      normalized = sep === "," ? cleaned.replace(",", ".") : cleaned;
+    }
   }
+
   const n = parseFloat(normalized);
   return isFinite(n) ? n : null;
 }
 
 export function formatPriceText(price: string | null | undefined, code?: string | null): string {
-  const n = parsePriceText(price);
+  const n = parsePriceText(price, code);
   if (n === null) return getCurrencySymbol(code);
   return formatMoney(n, code);
 }
