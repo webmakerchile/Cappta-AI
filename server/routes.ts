@@ -7269,20 +7269,41 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     if (!ctx) return;
     if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
     const list = await storage.getPartnerTenants(ctx.partner.id);
-    res.json(
-      list.map((t) => ({
-        id: t.id,
-        name: t.name,
-        email: t.email,
-        companyName: t.companyName,
-        plan: t.plan,
-        currency: t.currency,
-        botConfigured: t.botConfigured,
-        isTrial: t.isTrial,
-        onboardingStep: t.onboardingStep,
-        createdAt: t.createdAt,
-      })),
+    // NOTE: PLAN_PRICES is currently CLP-only. mrrCents/commissionMonthCents below
+    // are emitted in CLP (cents) regardless of tenant.currency. The UI labels them
+    // with tenant.currency as the symbol; if/when subscription pricing becomes
+    // multi-currency, expand PLAN_PRICES into a per-currency map and convert here.
+    const enriched = await Promise.all(
+      list.map(async (t) => {
+        const usage = await storage.getTenantMonthlyUsage(t.id).catch(() => ({ sessionsCount: 0, messagesCount: 0 }));
+        const planInfo = PLAN_PRICES[t.plan];
+        const mrrCents = planInfo && !t.isTrial ? planInfo.amount * 100 : 0;
+        const commissionMonthCents = Math.floor((mrrCents * (ctx.partner!.commissionPct || 0)) / 100);
+        const recentlyActive = usage.sessionsCount > 0;
+        let health: "saludable" | "riesgo" | "onboarding" = "onboarding";
+        if (t.botConfigured) {
+          health = recentlyActive ? "saludable" : "riesgo";
+        }
+        return {
+          id: t.id,
+          name: t.name,
+          email: t.email,
+          companyName: t.companyName,
+          plan: t.plan,
+          currency: t.currency,
+          botConfigured: t.botConfigured,
+          isTrial: t.isTrial,
+          onboardingStep: t.onboardingStep,
+          createdAt: t.createdAt,
+          mrrCents,
+          monthlyConversations: usage.sessionsCount,
+          monthlyMessages: usage.messagesCount,
+          commissionMonthCents,
+          health,
+        };
+      }),
     );
+    res.json(enriched);
   });
 
   app.get("/api/partners/me/commissions", async (req, res) => {

@@ -37,6 +37,11 @@ interface PartnerTenant {
   isTrial: boolean;
   onboardingStep: number | null;
   createdAt: string;
+  mrrCents: number;
+  monthlyConversations: number;
+  monthlyMessages: number;
+  commissionMonthCents: number;
+  health: "saludable" | "riesgo" | "onboarding";
 }
 
 interface PartnerCommission {
@@ -102,7 +107,7 @@ interface AdminPartnerRow {
 export default function PartnerConsole() {
   const { toast } = useToast();
   const adminToken = localStorage.getItem("admin_token");
-  const [tab, setTab] = useState<"tenants" | "commissions" | "audit" | "perfil">("tenants");
+  const [tab, setTab] = useState<"tenants" | "commissions" | "audit" | "materiales" | "perfil">("tenants");
 
   const authMeQuery = useQuery<AuthMe>({
     queryKey: ["/api/auth/me"],
@@ -296,6 +301,7 @@ export default function PartnerConsole() {
             <TabsTrigger value="tenants" data-testid="tab-tenants">Mis cuentas</TabsTrigger>
             <TabsTrigger value="commissions" data-testid="tab-commissions">Comisiones</TabsTrigger>
             <TabsTrigger value="audit" data-testid="tab-audit">Mi auditoría</TabsTrigger>
+            <TabsTrigger value="materiales" data-testid="tab-materiales">Materiales</TabsTrigger>
             <TabsTrigger value="perfil" data-testid="tab-perfil">Perfil</TabsTrigger>
           </TabsList>
 
@@ -316,7 +322,10 @@ export default function PartnerConsole() {
                         <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border/50">
                           <th className="py-3 px-2">Empresa</th>
                           <th className="py-3 px-2">Plan</th>
-                          <th className="py-3 px-2">Estado</th>
+                          <th className="py-3 px-2 text-right">MRR</th>
+                          <th className="py-3 px-2 text-right">Tu comisión / mes</th>
+                          <th className="py-3 px-2 text-right">Conversaciones (mes)</th>
+                          <th className="py-3 px-2">Salud</th>
                           <th className="py-3 px-2">Alta</th>
                           <th className="py-3 px-2 text-right">Acciones</th>
                         </tr>
@@ -332,9 +341,22 @@ export default function PartnerConsole() {
                               <Badge variant="outline" className="capitalize" data-testid={`badge-tenant-plan-${t.id}`}>{t.plan}</Badge>
                               {t.isTrial && <Badge variant="secondary" className="ml-1">trial</Badge>}
                             </td>
+                            <td className="py-3 px-2 text-right tabular-nums" data-testid={`text-tenant-mrr-${t.id}`}>
+                              {t.mrrCents > 0 ? formatMoney(t.mrrCents, t.currency) : <span className="text-muted-foreground text-xs">—</span>}
+                            </td>
+                            <td className="py-3 px-2 text-right tabular-nums font-semibold text-violet-400" data-testid={`text-tenant-commission-${t.id}`}>
+                              {t.commissionMonthCents > 0 ? formatMoney(t.commissionMonthCents, t.currency) : <span className="text-muted-foreground text-xs font-normal">—</span>}
+                            </td>
+                            <td className="py-3 px-2 text-right tabular-nums" data-testid={`text-tenant-conversations-${t.id}`}>
+                              {t.monthlyConversations.toLocaleString("es-CL")}
+                            </td>
                             <td className="py-3 px-2">
-                              <Badge variant={t.botConfigured ? "default" : "secondary"} data-testid={`badge-tenant-status-${t.id}`}>
-                                {t.botConfigured ? "Activo" : "Onboarding"}
+                              <Badge
+                                variant={t.health === "saludable" ? "default" : t.health === "riesgo" ? "destructive" : "secondary"}
+                                data-testid={`badge-tenant-health-${t.id}`}
+                                className="capitalize"
+                              >
+                                {t.health === "saludable" ? "Saludable" : t.health === "riesgo" ? "Riesgo de churn" : "Onboarding"}
                               </Badge>
                             </td>
                             <td className="py-3 px-2 text-muted-foreground">
@@ -361,7 +383,7 @@ export default function PartnerConsole() {
                       </tbody>
                     </table>
                     <p className="text-xs text-muted-foreground mt-4">
-                      Cada acceso a un panel de cliente queda registrado con fecha, IP y agente. El cliente puede ver el historial desde su panel.
+                      MRR refleja el plan activo del cliente; trials suman 0. Cada acceso a un panel queda registrado con fecha, IP y agente, y el cliente puede ver el historial desde su panel.
                     </p>
                   </div>
                 )}
@@ -504,6 +526,43 @@ export default function PartnerConsole() {
                     </table>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="materiales" className="mt-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2"><Download className="w-4 h-4" /> Materiales de venta</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Descargá los recursos para vender Cappta AI a tus clientes. Si necesitás algo a medida (deck por vertical, video demo personalizado), escribinos a <a href="mailto:partners@cappta.ai" className="text-violet-400 underline">partners@cappta.ai</a>.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    { title: "Pitch deck Cappta AI (PDF)", desc: "Presentación general para mostrar a un prospect en 10 minutos.", href: "mailto:partners@cappta.ai?subject=Pedido%20pitch%20deck", testid: "card-material-pitch" },
+                    { title: "One-pager por vertical", desc: "Resúmenes específicos por industria (retail, salud, educación, agencias, profesionales).", href: "mailto:partners@cappta.ai?subject=Pedido%20one-pagers%20por%20vertical", testid: "card-material-onepager" },
+                    { title: "Casos de éxito", desc: "Estudios de PYMEs latinoamericanas con métricas reales: % de tickets resueltos, tiempo de respuesta, retorno.", href: "mailto:partners@cappta.ai?subject=Pedido%20casos%20de%20%C3%A9xito", testid: "card-material-cases" },
+                    { title: "Script de demo + objeciones", desc: "Guion paso a paso para una demo de 15 minutos y respuestas a las 12 objeciones más frecuentes.", href: "mailto:partners@cappta.ai?subject=Pedido%20script%20de%20demo", testid: "card-material-script" },
+                  ].map((item) => (
+                    <a
+                      key={item.title}
+                      href={item.href}
+                      className="block p-4 border border-border/50 rounded-lg hover:border-violet-400/40 hover:bg-violet-500/5 transition"
+                      data-testid={item.testid}
+                    >
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        <Download className="w-4 h-4 text-violet-400" /> {item.title}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+                      <p className="text-xs text-violet-400 mt-2">Solicitar →</p>
+                    </a>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground pt-2">
+                  Estos materiales se entregan al partner por email para mantener versiones actualizadas y evitar links rotos. Estamos preparando una biblioteca self-service para Q3.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
