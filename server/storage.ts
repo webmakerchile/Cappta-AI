@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink, type AppointmentStatus, type ChatPaymentLinkStatus } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, leadScores, sequences, sequenceRuns, flows, flowRuns, integrations, apiKeys, webhookEndpoints, webhookDeliveries, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink, type AppointmentStatus, type ChatPaymentLinkStatus, type LeadScore, type InsertLeadScore, type Sequence, type InsertSequence, type SequenceRun, type InsertSequenceRun, type Flow, type InsertFlow, type FlowRun, type InsertFlowRun, type Integration, type InsertIntegration, type ApiKey, type InsertApiKey, type WebhookEndpoint, type InsertWebhookEndpoint, type WebhookDelivery, type InsertWebhookDelivery } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and, gte, lte } from "drizzle-orm";
 
@@ -1797,5 +1797,317 @@ export class DatabaseStorage implements IStorage {
     };
   }
 }
+
+// ============================================================================
+// MOTOR DE VENTAS IA - Storage extension methods
+// ============================================================================
+
+export interface SalesEngineStorage {
+  // Lead Scores
+  getLatestLeadScore(tenantId: number, sessionId: string): Promise<LeadScore | null>;
+  upsertLeadScore(data: InsertLeadScore): Promise<LeadScore>;
+  getLeadScoresByTenant(tenantId: number, opts?: { temperature?: "cold" | "warm" | "hot"; limit?: number }): Promise<LeadScore[]>;
+  getLeadScoreStats(tenantId: number): Promise<{ total: number; cold: number; warm: number; hot: number; avgScore: number }>;
+
+  // Sequences
+  getSequencesByTenant(tenantId: number): Promise<Sequence[]>;
+  getSequenceById(tenantId: number, id: number): Promise<Sequence | null>;
+  createSequence(data: InsertSequence): Promise<Sequence>;
+  updateSequence(tenantId: number, id: number, data: Partial<InsertSequence>): Promise<Sequence | null>;
+  deleteSequence(tenantId: number, id: number): Promise<boolean>;
+
+  // Sequence Runs
+  getSequenceRunsByTenant(tenantId: number, opts?: { status?: string; limit?: number }): Promise<SequenceRun[]>;
+  getSequenceRunById(tenantId: number, id: number): Promise<SequenceRun | null>;
+  createSequenceRun(data: InsertSequenceRun): Promise<SequenceRun>;
+  updateSequenceRun(id: number, data: Partial<InsertSequenceRun>): Promise<SequenceRun | null>;
+  getDueSequenceRuns(now: Date, limit?: number): Promise<SequenceRun[]>;
+  getActiveSequenceRunForUser(tenantId: number, sequenceId: number, userEmail: string): Promise<SequenceRun | null>;
+
+  // Flows
+  getFlowsByTenant(tenantId: number): Promise<Flow[]>;
+  getFlowById(tenantId: number, id: number): Promise<Flow | null>;
+  createFlow(data: InsertFlow): Promise<Flow>;
+  updateFlow(tenantId: number, id: number, data: Partial<InsertFlow>): Promise<Flow | null>;
+  deleteFlow(tenantId: number, id: number): Promise<boolean>;
+  incrementFlowRunCount(id: number): Promise<void>;
+  getActiveFlowsByTrigger(tenantId: number, triggerType: string): Promise<Flow[]>;
+
+  // Flow Runs
+  getFlowRunsByTenant(tenantId: number, opts?: { flowId?: number; limit?: number }): Promise<FlowRun[]>;
+  createFlowRun(data: InsertFlowRun): Promise<FlowRun>;
+  updateFlowRun(id: number, data: Partial<{ status: string; currentNodeId: string | null; context: string; log: string; endedAt: Date | null }>): Promise<FlowRun | null>;
+
+  // Integrations
+  getIntegrationsByTenant(tenantId: number): Promise<Integration[]>;
+  getIntegrationById(tenantId: number, id: number): Promise<Integration | null>;
+  createIntegration(data: InsertIntegration): Promise<Integration>;
+  updateIntegration(tenantId: number, id: number, data: Partial<InsertIntegration>): Promise<Integration | null>;
+  deleteIntegration(tenantId: number, id: number): Promise<boolean>;
+  markIntegrationUsed(id: number, error?: string | null): Promise<void>;
+
+  // API Keys
+  getApiKeysByTenant(tenantId: number): Promise<ApiKey[]>;
+  getApiKeyByPrefix(prefix: string): Promise<ApiKey | null>;
+  createApiKey(data: InsertApiKey): Promise<ApiKey>;
+  revokeApiKey(tenantId: number, id: number): Promise<boolean>;
+  markApiKeyUsed(id: number): Promise<void>;
+
+  // Webhook Endpoints
+  getWebhookEndpointsByTenant(tenantId: number): Promise<WebhookEndpoint[]>;
+  getWebhookEndpointById(tenantId: number, id: number): Promise<WebhookEndpoint | null>;
+  getActiveWebhookEndpointsForEvent(tenantId: number, event: string): Promise<WebhookEndpoint[]>;
+  createWebhookEndpoint(data: InsertWebhookEndpoint): Promise<WebhookEndpoint>;
+  updateWebhookEndpoint(tenantId: number, id: number, data: Partial<InsertWebhookEndpoint>): Promise<WebhookEndpoint | null>;
+  deleteWebhookEndpoint(tenantId: number, id: number): Promise<boolean>;
+  recordWebhookEndpointFailure(id: number): Promise<void>;
+  recordWebhookEndpointSuccess(id: number): Promise<void>;
+
+  // Webhook Deliveries
+  createWebhookDelivery(data: InsertWebhookDelivery): Promise<WebhookDelivery>;
+  getWebhookDeliveriesByEndpoint(endpointId: number, limit?: number): Promise<WebhookDelivery[]>;
+}
+
+class SalesEngineDb implements SalesEngineStorage {
+  // Lead Scores
+  async getLatestLeadScore(tenantId: number, sessionId: string): Promise<LeadScore | null> {
+    const r = await db.select().from(leadScores)
+      .where(and(eq(leadScores.tenantId, tenantId), eq(leadScores.sessionId, sessionId)))
+      .orderBy(desc(leadScores.calculatedAt))
+      .limit(1);
+    return r[0] || null;
+  }
+
+  async upsertLeadScore(data: InsertLeadScore): Promise<LeadScore> {
+    const r = await db.insert(leadScores).values(data).returning();
+    return r[0];
+  }
+
+  async getLeadScoresByTenant(tenantId: number, opts?: { temperature?: "cold" | "warm" | "hot"; limit?: number }): Promise<LeadScore[]> {
+    const conds = [eq(leadScores.tenantId, tenantId)];
+    if (opts?.temperature) conds.push(eq(leadScores.temperature, opts.temperature));
+    return await db.select().from(leadScores).where(and(...conds))
+      .orderBy(desc(leadScores.calculatedAt))
+      .limit(opts?.limit || 200);
+  }
+
+  async getLeadScoreStats(tenantId: number) {
+    const all = await db.select().from(leadScores).where(eq(leadScores.tenantId, tenantId));
+    const seen = new Map<string, LeadScore>();
+    for (const ls of all) {
+      const existing = seen.get(ls.sessionId);
+      if (!existing || existing.calculatedAt < ls.calculatedAt) seen.set(ls.sessionId, ls);
+    }
+    const latest = Array.from(seen.values());
+    const total = latest.length;
+    const cold = latest.filter(l => l.temperature === "cold").length;
+    const warm = latest.filter(l => l.temperature === "warm").length;
+    const hot = latest.filter(l => l.temperature === "hot").length;
+    const avgScore = total > 0 ? Math.round(latest.reduce((a, b) => a + b.score, 0) / total) : 0;
+    return { total, cold, warm, hot, avgScore };
+  }
+
+  // Sequences
+  async getSequencesByTenant(tenantId: number) {
+    return await db.select().from(sequences).where(eq(sequences.tenantId, tenantId)).orderBy(desc(sequences.createdAt));
+  }
+  async getSequenceById(tenantId: number, id: number) {
+    const r = await db.select().from(sequences).where(and(eq(sequences.tenantId, tenantId), eq(sequences.id, id))).limit(1);
+    return r[0] || null;
+  }
+  async createSequence(data: InsertSequence) {
+    const r = await db.insert(sequences).values(data).returning();
+    return r[0];
+  }
+  async updateSequence(tenantId: number, id: number, data: Partial<InsertSequence>) {
+    const r = await db.update(sequences).set(data).where(and(eq(sequences.tenantId, tenantId), eq(sequences.id, id))).returning();
+    return r[0] || null;
+  }
+  async deleteSequence(tenantId: number, id: number) {
+    const r = await db.delete(sequences).where(and(eq(sequences.tenantId, tenantId), eq(sequences.id, id))).returning();
+    return r.length > 0;
+  }
+
+  // Sequence Runs
+  async getSequenceRunsByTenant(tenantId: number, opts?: { status?: string; limit?: number }) {
+    const conds = [eq(sequenceRuns.tenantId, tenantId)];
+    if (opts?.status) conds.push(eq(sequenceRuns.status, opts.status as any));
+    return await db.select().from(sequenceRuns).where(and(...conds))
+      .orderBy(desc(sequenceRuns.createdAt)).limit(opts?.limit || 200);
+  }
+  async getSequenceRunById(tenantId: number, id: number) {
+    const r = await db.select().from(sequenceRuns).where(and(eq(sequenceRuns.tenantId, tenantId), eq(sequenceRuns.id, id))).limit(1);
+    return r[0] || null;
+  }
+  async createSequenceRun(data: InsertSequenceRun) {
+    const r = await db.insert(sequenceRuns).values(data).returning();
+    return r[0];
+  }
+  async updateSequenceRun(id: number, data: Partial<InsertSequenceRun>) {
+    const r = await db.update(sequenceRuns).set({ ...data, updatedAt: new Date() }).where(eq(sequenceRuns.id, id)).returning();
+    return r[0] || null;
+  }
+  async getDueSequenceRuns(now: Date, limit = 50) {
+    const r = await db.select().from(sequenceRuns)
+      .where(and(
+        or(eq(sequenceRuns.status, "pending"), eq(sequenceRuns.status, "running"))!,
+        lte(sequenceRuns.nextRunAt, now)
+      ))
+      .orderBy(asc(sequenceRuns.nextRunAt))
+      .limit(limit);
+    return r;
+  }
+  async getActiveSequenceRunForUser(tenantId: number, sequenceId: number, userEmail: string) {
+    const r = await db.select().from(sequenceRuns)
+      .where(and(
+        eq(sequenceRuns.tenantId, tenantId),
+        eq(sequenceRuns.sequenceId, sequenceId),
+        eq(sequenceRuns.userEmail, userEmail),
+        or(eq(sequenceRuns.status, "pending"), eq(sequenceRuns.status, "running"))!,
+      ))
+      .limit(1);
+    return r[0] || null;
+  }
+
+  // Flows
+  async getFlowsByTenant(tenantId: number) {
+    return await db.select().from(flows).where(eq(flows.tenantId, tenantId)).orderBy(desc(flows.createdAt));
+  }
+  async getFlowById(tenantId: number, id: number) {
+    const r = await db.select().from(flows).where(and(eq(flows.tenantId, tenantId), eq(flows.id, id))).limit(1);
+    return r[0] || null;
+  }
+  async createFlow(data: InsertFlow) {
+    const r = await db.insert(flows).values(data).returning();
+    return r[0];
+  }
+  async updateFlow(tenantId: number, id: number, data: Partial<InsertFlow>) {
+    const r = await db.update(flows).set({ ...data, updatedAt: new Date() }).where(and(eq(flows.tenantId, tenantId), eq(flows.id, id))).returning();
+    return r[0] || null;
+  }
+  async deleteFlow(tenantId: number, id: number) {
+    const r = await db.delete(flows).where(and(eq(flows.tenantId, tenantId), eq(flows.id, id))).returning();
+    return r.length > 0;
+  }
+  async incrementFlowRunCount(id: number) {
+    await db.update(flows).set({ runCount: sql`${flows.runCount} + 1` }).where(eq(flows.id, id));
+  }
+  async getActiveFlowsByTrigger(tenantId: number, triggerType: string) {
+    return await db.select().from(flows)
+      .where(and(eq(flows.tenantId, tenantId), eq(flows.triggerType, triggerType as any), eq(flows.active, 1)));
+  }
+
+  // Flow Runs
+  async getFlowRunsByTenant(tenantId: number, opts?: { flowId?: number; limit?: number }) {
+    const conds = [eq(flowRuns.tenantId, tenantId)];
+    if (opts?.flowId) conds.push(eq(flowRuns.flowId, opts.flowId));
+    return await db.select().from(flowRuns).where(and(...conds))
+      .orderBy(desc(flowRuns.startedAt)).limit(opts?.limit || 100);
+  }
+  async createFlowRun(data: InsertFlowRun) {
+    const r = await db.insert(flowRuns).values(data).returning();
+    return r[0];
+  }
+  async updateFlowRun(id: number, data: Partial<{ status: string; currentNodeId: string | null; context: string; log: string; endedAt: Date | null }>) {
+    const r = await db.update(flowRuns).set(data as any).where(eq(flowRuns.id, id)).returning();
+    return r[0] || null;
+  }
+
+  // Integrations
+  async getIntegrationsByTenant(tenantId: number) {
+    return await db.select().from(integrations).where(eq(integrations.tenantId, tenantId)).orderBy(desc(integrations.createdAt));
+  }
+  async getIntegrationById(tenantId: number, id: number) {
+    const r = await db.select().from(integrations).where(and(eq(integrations.tenantId, tenantId), eq(integrations.id, id))).limit(1);
+    return r[0] || null;
+  }
+  async createIntegration(data: InsertIntegration) {
+    const r = await db.insert(integrations).values(data).returning();
+    return r[0];
+  }
+  async updateIntegration(tenantId: number, id: number, data: Partial<InsertIntegration>) {
+    const r = await db.update(integrations).set(data).where(and(eq(integrations.tenantId, tenantId), eq(integrations.id, id))).returning();
+    return r[0] || null;
+  }
+  async deleteIntegration(tenantId: number, id: number) {
+    const r = await db.delete(integrations).where(and(eq(integrations.tenantId, tenantId), eq(integrations.id, id))).returning();
+    return r.length > 0;
+  }
+  async markIntegrationUsed(id: number, error?: string | null) {
+    await db.update(integrations).set({ lastUsedAt: new Date(), lastError: error || null }).where(eq(integrations.id, id));
+  }
+
+  // API Keys
+  async getApiKeysByTenant(tenantId: number) {
+    return await db.select().from(apiKeys).where(eq(apiKeys.tenantId, tenantId)).orderBy(desc(apiKeys.createdAt));
+  }
+  async getApiKeyByPrefix(prefix: string) {
+    const r = await db.select().from(apiKeys).where(eq(apiKeys.prefix, prefix)).limit(1);
+    return r[0] || null;
+  }
+  async createApiKey(data: InsertApiKey) {
+    const r = await db.insert(apiKeys).values(data).returning();
+    return r[0];
+  }
+  async revokeApiKey(tenantId: number, id: number) {
+    const r = await db.update(apiKeys).set({ active: 0 }).where(and(eq(apiKeys.tenantId, tenantId), eq(apiKeys.id, id))).returning();
+    return r.length > 0;
+  }
+  async markApiKeyUsed(id: number) {
+    await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, id));
+  }
+
+  // Webhook Endpoints
+  async getWebhookEndpointsByTenant(tenantId: number) {
+    return await db.select().from(webhookEndpoints).where(eq(webhookEndpoints.tenantId, tenantId)).orderBy(desc(webhookEndpoints.createdAt));
+  }
+  async getWebhookEndpointById(tenantId: number, id: number) {
+    const r = await db.select().from(webhookEndpoints).where(and(eq(webhookEndpoints.tenantId, tenantId), eq(webhookEndpoints.id, id))).limit(1);
+    return r[0] || null;
+  }
+  async getActiveWebhookEndpointsForEvent(tenantId: number, event: string) {
+    const all = await db.select().from(webhookEndpoints)
+      .where(and(eq(webhookEndpoints.tenantId, tenantId), eq(webhookEndpoints.active, 1)));
+    return all.filter(ep => ep.events.includes(event) || ep.events.includes("*"));
+  }
+  async createWebhookEndpoint(data: InsertWebhookEndpoint) {
+    const r = await db.insert(webhookEndpoints).values(data).returning();
+    return r[0];
+  }
+  async updateWebhookEndpoint(tenantId: number, id: number, data: Partial<InsertWebhookEndpoint>) {
+    const r = await db.update(webhookEndpoints).set(data).where(and(eq(webhookEndpoints.tenantId, tenantId), eq(webhookEndpoints.id, id))).returning();
+    return r[0] || null;
+  }
+  async deleteWebhookEndpoint(tenantId: number, id: number) {
+    const r = await db.delete(webhookEndpoints).where(and(eq(webhookEndpoints.tenantId, tenantId), eq(webhookEndpoints.id, id))).returning();
+    return r.length > 0;
+  }
+  async recordWebhookEndpointFailure(id: number) {
+    await db.update(webhookEndpoints).set({
+      failureCount: sql`${webhookEndpoints.failureCount} + 1`,
+      lastDeliveryAt: new Date(),
+    }).where(eq(webhookEndpoints.id, id));
+  }
+  async recordWebhookEndpointSuccess(id: number) {
+    await db.update(webhookEndpoints).set({
+      failureCount: 0,
+      lastDeliveryAt: new Date(),
+    }).where(eq(webhookEndpoints.id, id));
+  }
+
+  // Webhook Deliveries
+  async createWebhookDelivery(data: InsertWebhookDelivery) {
+    const r = await db.insert(webhookDeliveries).values(data).returning();
+    return r[0];
+  }
+  async getWebhookDeliveriesByEndpoint(endpointId: number, limit = 50) {
+    return await db.select().from(webhookDeliveries)
+      .where(eq(webhookDeliveries.endpointId, endpointId))
+      .orderBy(desc(webhookDeliveries.deliveredAt))
+      .limit(limit);
+  }
+}
+
+export const salesEngine: SalesEngineStorage = new SalesEngineDb();
 
 export const storage = new DatabaseStorage();

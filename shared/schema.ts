@@ -482,3 +482,236 @@ export const guestFormSchema = z.object({
 });
 
 export type GuestForm = z.infer<typeof guestFormSchema>;
+
+// ============================================================================
+// MOTOR DE VENTAS IA - Lead Scoring, Sequences, Flows, Integrations, API
+// ============================================================================
+
+export const leadScores = pgTable("lead_scores", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  sessionId: text("session_id").notNull(),
+  userEmail: text("user_email").notNull(),
+  score: integer("score").notNull().default(0),
+  temperature: text("temperature", { enum: ["cold", "warm", "hot"] }).notNull().default("cold"),
+  intent: text("intent"),
+  factors: text("factors").notNull().default("[]"),
+  reasoning: text("reasoning"),
+  nextAction: text("next_action"),
+  calculatedAt: timestamp("calculated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_lead_scores_tenant").on(table.tenantId),
+  index("idx_lead_scores_session").on(table.sessionId),
+  index("idx_lead_scores_email").on(table.userEmail),
+]);
+
+export const sequences = pgTable("sequences", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  trigger: text("trigger", { enum: ["lead_hot", "lead_warm", "no_reply_24h", "abandoned_cart", "new_session", "appointment_booked", "tag_added", "manual"] }).notNull().default("manual"),
+  steps: text("steps").notNull().default("[]"),
+  active: integer("active").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_sequences_tenant").on(table.tenantId),
+]);
+
+export const sequenceRuns = pgTable("sequence_runs", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  sequenceId: integer("sequence_id").notNull(),
+  sessionId: text("session_id"),
+  userEmail: text("user_email").notNull(),
+  userName: text("user_name"),
+  currentStep: integer("current_step").notNull().default(0),
+  status: text("status", { enum: ["pending", "running", "completed", "stopped", "error"] }).notNull().default("pending"),
+  nextRunAt: timestamp("next_run_at"),
+  lastError: text("last_error"),
+  context: text("context").notNull().default("{}"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_sequence_runs_tenant").on(table.tenantId),
+  index("idx_sequence_runs_status").on(table.status),
+  index("idx_sequence_runs_next").on(table.nextRunAt),
+]);
+
+export const flows = pgTable("flows", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  triggerType: text("trigger_type", { enum: ["new_session", "new_message", "tag_added", "lead_hot", "lead_warm", "appointment_booked", "manual", "webhook"] }).notNull().default("manual"),
+  triggerConfig: text("trigger_config").notNull().default("{}"),
+  nodes: text("nodes").notNull().default("[]"),
+  edges: text("edges").notNull().default("[]"),
+  active: integer("active").notNull().default(1),
+  runCount: integer("run_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_flows_tenant").on(table.tenantId),
+]);
+
+export const flowRuns = pgTable("flow_runs", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  flowId: integer("flow_id").notNull(),
+  sessionId: text("session_id"),
+  status: text("status", { enum: ["running", "completed", "failed", "stopped"] }).notNull().default("running"),
+  currentNodeId: text("current_node_id"),
+  context: text("context").notNull().default("{}"),
+  log: text("log").notNull().default("[]"),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  endedAt: timestamp("ended_at"),
+}, (table) => [
+  index("idx_flow_runs_tenant").on(table.tenantId),
+  index("idx_flow_runs_flow").on(table.flowId),
+]);
+
+export const integrations = pgTable("integrations", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  provider: text("provider", { enum: ["webhook", "http", "slack", "discord", "google_sheets", "google_calendar", "outlook_calendar", "hubspot", "pipedrive", "salesforce", "airtable", "notion", "teams", "stripe", "mercadopago", "mailchimp", "activecampaign"] }).notNull(),
+  name: text("name").notNull(),
+  config: text("config").notNull().default("{}"),
+  credentials: text("credentials"),
+  active: integer("active").notNull().default(1),
+  lastUsedAt: timestamp("last_used_at"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_integrations_tenant").on(table.tenantId),
+  index("idx_integrations_provider").on(table.provider),
+]);
+
+export const apiKeys = pgTable("api_keys", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: text("name").notNull(),
+  prefix: text("prefix").notNull(),
+  hashedKey: text("hashed_key").notNull(),
+  scopes: text("scopes").notNull().default("[]"),
+  lastUsedAt: timestamp("last_used_at"),
+  active: integer("active").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_api_keys_tenant").on(table.tenantId),
+  index("idx_api_keys_prefix").on(table.prefix),
+]);
+
+export const webhookEndpoints = pgTable("webhook_endpoints", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  secret: text("secret").notNull(),
+  events: text("events").array().notNull().default(sql`'{}'::text[]`),
+  active: integer("active").notNull().default(1),
+  lastDeliveryAt: timestamp("last_delivery_at"),
+  failureCount: integer("failure_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_webhook_endpoints_tenant").on(table.tenantId),
+]);
+
+export const webhookDeliveries = pgTable("webhook_deliveries", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  endpointId: integer("endpoint_id").notNull(),
+  event: text("event").notNull(),
+  payload: text("payload").notNull(),
+  statusCode: integer("status_code"),
+  response: text("response"),
+  attempts: integer("attempts").notNull().default(0),
+  success: integer("success").notNull().default(0),
+  deliveredAt: timestamp("delivered_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_webhook_deliveries_endpoint").on(table.endpointId),
+]);
+
+export const insertLeadScoreSchema = createInsertSchema(leadScores).omit({ id: true, calculatedAt: true });
+export type InsertLeadScore = z.infer<typeof insertLeadScoreSchema>;
+export type LeadScore = typeof leadScores.$inferSelect;
+
+export const insertSequenceSchema = createInsertSchema(sequences).omit({ id: true, createdAt: true });
+export type InsertSequence = z.infer<typeof insertSequenceSchema>;
+export type Sequence = typeof sequences.$inferSelect;
+
+export const insertSequenceRunSchema = createInsertSchema(sequenceRuns).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSequenceRun = z.infer<typeof insertSequenceRunSchema>;
+export type SequenceRun = typeof sequenceRuns.$inferSelect;
+
+export const insertFlowSchema = createInsertSchema(flows).omit({ id: true, createdAt: true, updatedAt: true, runCount: true });
+export type InsertFlow = z.infer<typeof insertFlowSchema>;
+export type Flow = typeof flows.$inferSelect;
+
+export const insertFlowRunSchema = createInsertSchema(flowRuns).omit({ id: true, startedAt: true, endedAt: true });
+export type InsertFlowRun = z.infer<typeof insertFlowRunSchema>;
+export type FlowRun = typeof flowRuns.$inferSelect;
+
+export const insertIntegrationSchema = createInsertSchema(integrations).omit({ id: true, createdAt: true, lastUsedAt: true, lastError: true });
+export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
+export type Integration = typeof integrations.$inferSelect;
+
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({ id: true, createdAt: true, lastUsedAt: true });
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type ApiKey = typeof apiKeys.$inferSelect;
+
+export const insertWebhookEndpointSchema = createInsertSchema(webhookEndpoints).omit({ id: true, createdAt: true, lastDeliveryAt: true, failureCount: true });
+export type InsertWebhookEndpoint = z.infer<typeof insertWebhookEndpointSchema>;
+export type WebhookEndpoint = typeof webhookEndpoints.$inferSelect;
+
+export const insertWebhookDeliverySchema = createInsertSchema(webhookDeliveries).omit({ id: true, deliveredAt: true });
+export type InsertWebhookDelivery = z.infer<typeof insertWebhookDeliverySchema>;
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+
+export type LeadTemperature = "cold" | "warm" | "hot";
+export type SequenceStatus = "pending" | "running" | "completed" | "stopped" | "error";
+export type FlowRunStatus = "running" | "completed" | "failed" | "stopped";
+
+export interface LeadScoreFactor {
+  factor: string;
+  weight: number;
+  positive: boolean;
+}
+
+export interface SequenceStep {
+  type: "wait" | "send_message" | "send_email" | "create_task" | "webhook" | "tag";
+  delayMinutes?: number;
+  message?: string;
+  subject?: string;
+  url?: string;
+  tag?: string;
+}
+
+export interface FlowNode {
+  id: string;
+  type: "trigger" | "send_message" | "wait" | "condition" | "ai_response" | "integration" | "tag" | "lead_score" | "end";
+  position: { x: number; y: number };
+  data: Record<string, any>;
+}
+
+export interface FlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+}
+
+export const ALL_WEBHOOK_EVENTS = [
+  "session.created",
+  "session.closed",
+  "message.user",
+  "message.support",
+  "lead.scored",
+  "lead.hot",
+  "appointment.booked",
+  "appointment.cancelled",
+  "payment.completed",
+  "tag.added",
+] as const;
+
+export type WebhookEvent = typeof ALL_WEBHOOK_EVENTS[number];

@@ -68,6 +68,7 @@ import {
   Receipt,
   XCircle,
   ExternalLink,
+  Brain,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -4110,7 +4111,7 @@ export default function Dashboard() {
             );
           })}
 
-          <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${theme.borderColor}` }}>
+          <div className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${theme.borderColor}` }}>
             <a
               href="/panel"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-300 bg-primary/10 text-primary font-semibold hover:bg-primary/20 group/panel"
@@ -4118,6 +4119,15 @@ export default function Dashboard() {
             >
               <Headphones className="w-[18px] h-[18px] transition-transform duration-300 group-hover/panel:scale-110" />
               <span>Panel de Soporte</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-auto text-primary/50" />
+            </a>
+            <a
+              href="/sales-engine"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-300 bg-gradient-to-r from-primary/15 to-fuchsia-500/10 text-primary font-semibold hover:from-primary/25 hover:to-fuchsia-500/20 group/sales border border-primary/20"
+              data-testid="nav-sales-engine"
+            >
+              <Brain className="w-[18px] h-[18px] transition-transform duration-300 group-hover/sales:scale-110" />
+              <span>Motor de Ventas IA</span>
               <ArrowRight className="w-3.5 h-3.5 ml-auto text-primary/50" />
             </a>
           </div>

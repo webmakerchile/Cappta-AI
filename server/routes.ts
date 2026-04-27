@@ -834,7 +834,19 @@ ${DEMO_BASE_RULES}`,
       if (req.body.problemType) upsertData.problemType = req.body.problemType;
       if (req.body.gameName) upsertData.gameName = req.body.gameName;
       if (tenantId) upsertData.tenantId = tenantId;
+      const existingSession = await storage.getSession(sessionId);
+      const isNewSession = !existingSession;
       await storage.upsertSession(upsertData);
+      if (isNewSession && tenantId) {
+        try {
+          const { triggerFlowsForEvent } = await import("./salesEngine");
+          triggerFlowsForEvent(tenantId, "new_session", {
+            sessionId,
+            userEmail: normalizedEmail,
+            userName: parsed.data.userName,
+          }).catch(() => {});
+        } catch {}
+      }
 
       if (parsed.data.sender === "user") {
         const blocked = await storage.isSessionBlocked(sessionId);
@@ -912,6 +924,19 @@ ${DEMO_BASE_RULES}`,
             sessionId
           );
         }
+      }
+
+      if (parsed.data.sender === "user" && tenantId) {
+        try {
+          const { scheduleLeadScore, triggerFlowsForEvent } = await import("./salesEngine");
+          scheduleLeadScore(tenantId, sessionId);
+          triggerFlowsForEvent(tenantId, "new_message", {
+            sessionId,
+            userEmail: normalizedEmail,
+            userName: parsed.data.userName,
+            data: { content: parsed.data.content },
+          }).catch(() => {});
+        } catch {}
       }
 
       if (parsed.data.sender === "user" && !req.body.imageUrl) {
@@ -1203,6 +1228,16 @@ ${DEMO_BASE_RULES}`,
       return null;
     }
     return auth;
+  }
+
+  // ==========================================================================
+  // MOTOR DE VENTAS IA - Sales Engine routes + workers
+  // ==========================================================================
+  try {
+    const { registerSalesEngineRoutes } = await import("./salesEngine");
+    registerSalesEngineRoutes(app, { requireTenantAuth, requireTenantOwnerOrAdmin, emitToTenantRoom });
+  } catch (e: any) {
+    log(`SalesEngine init failed: ${e?.message}`, "salesEngine");
   }
 
   app.post("/api/tenants/register", async (req, res) => {

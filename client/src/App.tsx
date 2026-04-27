@@ -95,6 +95,7 @@ const DashboardPage = lazy(() => import("@/pages/Dashboard"));
 const DemoPage = lazy(() => import("@/pages/Demo"));
 const GuidesPage = lazy(() => import("@/pages/Guides"));
 const TenantPanelPage = lazy(() => import("@/pages/TenantPanel"));
+const SalesEnginePage = lazy(() => import("@/pages/SalesEngine"));
 const PrivacyPage = lazy(() => import("@/pages/Privacy"));
 const TermsPage = lazy(() => import("@/pages/Terms"));
 const ComparePage = lazy(() => import("@/pages/Comparar"));
@@ -636,6 +637,7 @@ function App() {
   const isDemo = pathname === "/demo";
   const isGuides = pathname === "/guias";
   const isPanel = pathname === "/panel";
+  const isSalesEngine = pathname === "/sales-engine";
   const isPrivacy = pathname === "/privacidad";
   const isTerms = pathname === "/terminos";
   const isCompare = pathname === "/comparar" || pathname === "/vs-vambe";
@@ -646,9 +648,9 @@ function App() {
   const verticalSlug = verticalMatch ? verticalMatch[1] : "";
   const isAgenda = /^\/agenda\/\d+$/.test(pathname);
   const isPagoResultado = /^\/pago-resultado\/\d+$/.test(pathname);
-  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isPrivacy || isTerms || isCompare || isEnterprise || isClientes || isVertical || isAgenda || isPagoResultado;
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isSalesEngine || isPrivacy || isTerms || isCompare || isEnterprise || isClientes || isVertical || isAgenda || isPagoResultado;
 
-  const isFixedLayout = isDashboard || isPanel;
+  const isFixedLayout = isDashboard || isPanel || isSalesEngine;
 
   useEffect(() => {
     if (isSaasPage) {
@@ -698,6 +700,10 @@ function App() {
       ) : isPanel ? (
         <Suspense fallback={<SuspenseLoader />}>
           <TenantPanelPage />
+        </Suspense>
+      ) : isSalesEngine ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <SalesEnginePage />
         </Suspense>
       ) : isPrivacy ? (
         <Suspense fallback={<SuspenseLoader />}>

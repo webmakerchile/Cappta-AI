@@ -157,6 +157,13 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
+interface SessionLeadScore {
+  sessionId: string;
+  score: number;
+  temperature: "cold" | "warm" | "hot";
+  intent?: string;
+}
+
 interface SessionSummary {
   sessionId: string;
   userName: string;
@@ -275,6 +282,20 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
     },
     refetchInterval: 10000,
   });
+
+  const { data: leadScores = [] } = useQuery<SessionLeadScore[]>({
+    queryKey: ["/api/sales/lead-scores"],
+    queryFn: async () => {
+      const res = await tenantFetch(`/api/sales/lead-scores?limit=300`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+  const leadScoreMap = new Map<string, SessionLeadScore>();
+  for (const ls of leadScores) {
+    if (!leadScoreMap.has(ls.sessionId)) leadScoreMap.set(ls.sessionId, ls);
+  }
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<ChatMessage[]>({
     queryKey: ["/api/tenant-panel/sessions", selectedSession, "messages"],
@@ -655,8 +676,27 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
                     )}
                   </div>
                 </div>
-                {(session.problemType || session.gameName || (session.tags && session.tags.length > 0)) && (
+                {(session.problemType || session.gameName || (session.tags && session.tags.length > 0) || leadScoreMap.has(session.sessionId)) && (
                   <div className="flex items-center gap-1 mt-1.5 pl-11 flex-wrap">
+                    {(() => {
+                      const ls = leadScoreMap.get(session.sessionId);
+                      if (!ls) return null;
+                      const cls = ls.temperature === "hot"
+                        ? "bg-red-500/20 text-red-400 border-red-500/30"
+                        : ls.temperature === "warm"
+                          ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                          : "bg-slate-500/15 text-slate-400 border-slate-500/30";
+                      const emoji = ls.temperature === "hot" ? "🔥" : ls.temperature === "warm" ? "♨︎" : "❄";
+                      return (
+                        <span
+                          data-testid={`badge-lead-score-${session.sessionId}`}
+                          className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${cls}`}
+                          title={ls.intent || ls.temperature}
+                        >
+                          {emoji} {ls.score}
+                        </span>
+                      );
+                    })()}
                     {session.problemType && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20 font-medium">{session.problemType}</span>
                     )}
