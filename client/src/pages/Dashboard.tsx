@@ -55,6 +55,7 @@ import {
   Crown,
   Trophy,
   Link as LinkIcon,
+  Link2,
   DollarSign,
   Clock,
   MessageCircle,
@@ -62,6 +63,11 @@ import {
   Package,
   ShoppingBag,
   Megaphone,
+  CalendarDays,
+  CalendarPlus,
+  Receipt,
+  XCircle,
+  ExternalLink,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { GuidesPanel } from "./Guides";
@@ -3498,13 +3504,338 @@ function ExtensionesSection({ token }: { token: string }) {
   );
 }
 
-type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides" | "whatsapp" | "extensiones";
+function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: string }) {
+  const { toast } = useToast();
+  const isPaidPlan = ["basic", "scale", "pro", "enterprise"].includes(tenant.plan);
+  const [tab, setTab] = useState<"reportes" | "pagos" | "citas">("reportes");
+
+  const { data: stats } = useQuery<{
+    totalAppointments: number;
+    upcomingAppointments: number;
+    appointmentsThisMonth: number;
+    completedAppointments: number;
+    totalPaymentLinks: number;
+    paidPaymentLinks: number;
+    pendingPaymentLinks: number;
+    revenueThisMonth: number;
+    revenueAllTime: number;
+  }>({ queryKey: ["/api/tenant-panel/connect/stats"] });
+
+  const { data: links = [] } = useQuery<any[]>({ queryKey: ["/api/tenant-panel/connect/payment-links"] });
+  const { data: appts = [] } = useQuery<any[]>({ queryKey: ["/api/tenant-panel/connect/appointments"] });
+  const { data: slots = [] } = useQuery<any[]>({ queryKey: ["/api/tenant-panel/connect/slots"] });
+
+  const [linkForm, setLinkForm] = useState({ description: "", amount: "", customerName: "", customerEmail: "" });
+  const [slotForm, setSlotForm] = useState({ name: "", description: "", durationMinutes: 30, price: "", requiresPayment: false });
+
+  const createLink = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/tenant-panel/connect/payment-links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          description: linkForm.description,
+          amount: parseInt(linkForm.amount),
+          customerName: linkForm.customerName || null,
+          customerEmail: linkForm.customerEmail || null,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).message || "Error");
+      return res.json();
+    },
+    onSuccess: (link: any) => {
+      setLinkForm({ description: "", amount: "", customerName: "", customerEmail: "" });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/payment-links"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/stats"] });
+      toast({ title: "Link de pago creado", description: link.paymentUrl ? "Cópialo y compártelo con tu cliente" : "Activá Mercado Pago para generar el enlace de cobro" });
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const cancelLink = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/tenant-panel/connect/payment-links/${id}/cancel`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error((await res.json()).message || "Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/payment-links"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/stats"] });
+    },
+  });
+
+  const createSlot = useMutation({
+    mutationFn: async () => {
+      const availability = JSON.stringify({
+        "1": [{ start: "09:00", end: "18:00" }],
+        "2": [{ start: "09:00", end: "18:00" }],
+        "3": [{ start: "09:00", end: "18:00" }],
+        "4": [{ start: "09:00", end: "18:00" }],
+        "5": [{ start: "09:00", end: "18:00" }],
+      });
+      const res = await fetch("/api/tenant-panel/connect/slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: slotForm.name,
+          description: slotForm.description || null,
+          durationMinutes: parseInt(String(slotForm.durationMinutes)) || 30,
+          price: slotForm.price ? parseInt(slotForm.price) : null,
+          requiresPayment: slotForm.requiresPayment ? 1 : 0,
+          availability,
+          active: 1,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).message || "Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      setSlotForm({ name: "", description: "", durationMinutes: 30, price: "", requiresPayment: false });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/slots"] });
+      toast({ title: "Servicio creado", description: "Comparte tu link público para que reserven" });
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const deleteSlot = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/tenant-panel/connect/slots/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Error");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/slots"] }),
+  });
+
+  const updateApptStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await fetch(`/api/tenant-panel/connect/appointments/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/connect/stats"] });
+    },
+  });
+
+  if (!isPaidPlan) {
+    return (
+      <div className="rounded-2xl glass-card p-8 text-center">
+        <Link2 className="w-12 h-12 text-primary mx-auto mb-4" />
+        <h2 className="text-xl font-bold mb-2">Cappta Connect</h2>
+        <p className="text-white/50 mb-4">Cobra y agenda directamente desde el chat de tu sitio. Disponible desde el plan <strong className="text-primary">Básico</strong>.</p>
+        <p className="text-sm text-white/40">Mejorá tu plan para activar links de pago, reservas online y reportes de ventas cerradas.</p>
+      </div>
+    );
+  }
+
+  const fmt = (v: number) => `$${v.toLocaleString("es-CL")}`;
+  const copy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => toast({ title: "Copiado al portapapeles" }));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 border-b border-white/[0.06]">
+        {([
+          { v: "reportes", label: "Reportes", icon: BarChart3 },
+          { v: "pagos", label: "Pagos en chat", icon: DollarSign },
+          { v: "citas", label: "Citas", icon: CalendarDays },
+        ] as const).map(t => (
+          <button
+            key={t.v}
+            onClick={() => setTab(t.v)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm transition-colors border-b-2 -mb-px ${tab === t.v ? "border-primary text-primary" : "border-transparent text-white/50 hover:text-white/70"}`}
+            data-testid={`tab-connect-${t.v}`}
+          >
+            <t.icon className="w-4 h-4" />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "reportes" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Ventas cerradas (mes)", value: fmt(stats?.revenueThisMonth || 0), icon: DollarSign, accent: "text-emerald-400" },
+            { label: "Ventas totales", value: fmt(stats?.revenueAllTime || 0), icon: TrendingUp, accent: "text-primary" },
+            { label: "Pagos exitosos", value: stats?.paidPaymentLinks ?? 0, icon: Receipt, accent: "text-blue-400" },
+            { label: "Pagos pendientes", value: stats?.pendingPaymentLinks ?? 0, icon: Clock, accent: "text-amber-400" },
+            { label: "Citas próximas", value: stats?.upcomingAppointments ?? 0, icon: CalendarDays, accent: "text-primary" },
+            { label: "Citas este mes", value: stats?.appointmentsThisMonth ?? 0, icon: CalendarPlus, accent: "text-emerald-400" },
+            { label: "Citas completadas", value: stats?.completedAppointments ?? 0, icon: Check, accent: "text-blue-400" },
+            { label: "Citas totales", value: stats?.totalAppointments ?? 0, icon: Users, accent: "text-white/60" },
+          ].map((s, i) => (
+            <div key={i} className="rounded-2xl glass-card p-5" data-testid={`stat-connect-${i}`}>
+              <s.icon className={`w-5 h-5 mb-2 ${s.accent}`} />
+              <p className="text-2xl font-bold">{s.value}</p>
+              <p className="text-xs text-white/40 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "pagos" && (
+        <div className="space-y-6">
+          <div className="rounded-2xl glass-card p-6">
+            <h3 className="font-bold mb-1">Crear nuevo link de pago</h3>
+            <p className="text-xs text-white/40 mb-4">Genera un enlace de Mercado Pago para cobrar a un cliente desde el chat o WhatsApp.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input placeholder="Descripción (ej: Consultoría 1h)" value={linkForm.description} onChange={e => setLinkForm({ ...linkForm, description: e.target.value })} data-testid="input-link-description" />
+              <Input type="number" placeholder="Monto en CLP" value={linkForm.amount} onChange={e => setLinkForm({ ...linkForm, amount: e.target.value })} data-testid="input-link-amount" />
+              <Input placeholder="Nombre cliente (opcional)" value={linkForm.customerName} onChange={e => setLinkForm({ ...linkForm, customerName: e.target.value })} data-testid="input-link-customer-name" />
+              <Input type="email" placeholder="Email cliente (opcional)" value={linkForm.customerEmail} onChange={e => setLinkForm({ ...linkForm, customerEmail: e.target.value })} data-testid="input-link-customer-email" />
+            </div>
+            <Button
+              className="mt-4"
+              onClick={() => createLink.mutate()}
+              disabled={createLink.isPending || !linkForm.description || !linkForm.amount}
+              data-testid="button-create-link"
+            >
+              {createLink.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              Generar link
+            </Button>
+          </div>
+
+          <div className="rounded-2xl glass-card p-6">
+            <h3 className="font-bold mb-4">Historial de cobros ({links.length})</h3>
+            {links.length === 0 ? (
+              <p className="text-sm text-white/40 text-center py-8">Aún no has generado links de pago.</p>
+            ) : (
+              <div className="space-y-2">
+                {links.map((l: any) => (
+                  <div key={l.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]" data-testid={`row-payment-link-${l.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{l.description}</p>
+                      <p className="text-xs text-white/40">{fmt(l.amount)} CLP · {l.customerName || l.customerEmail || "Sin cliente"}</p>
+                    </div>
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${
+                      l.status === "paid" ? "bg-emerald-500/15 text-emerald-400" :
+                      l.status === "pending" ? "bg-amber-500/15 text-amber-400" :
+                      l.status === "cancelled" ? "bg-white/10 text-white/40" :
+                      "bg-red-500/15 text-red-400"
+                    }`}>{l.status === "paid" ? "PAGADO" : l.status === "pending" ? "PENDIENTE" : l.status === "cancelled" ? "CANCELADO" : "EXPIRADO"}</span>
+                    {l.paymentUrl && l.status === "pending" && (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => copy(l.paymentUrl)} data-testid={`button-copy-link-${l.id}`}>
+                          <Copy className="w-3 h-3 mr-1" /> Copiar
+                        </Button>
+                        <a href={l.paymentUrl} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1" data-testid={`link-open-${l.id}`}>
+                          Abrir <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <Button size="sm" variant="ghost" onClick={() => cancelLink.mutate(l.id)} disabled={cancelLink.isPending} data-testid={`button-cancel-link-${l.id}`}>
+                          <XCircle className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab === "citas" && (
+        <div className="space-y-6">
+          <div className="rounded-2xl glass-card p-6">
+            <h3 className="font-bold mb-1">Crear servicio agendable</h3>
+            <p className="text-xs text-white/40 mb-4">Define un tipo de cita. Tus clientes podrán reservarla desde el link público.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input placeholder="Nombre del servicio (ej: Consulta inicial)" value={slotForm.name} onChange={e => setSlotForm({ ...slotForm, name: e.target.value })} data-testid="input-slot-name" />
+              <Input type="number" placeholder="Duración (minutos)" value={slotForm.durationMinutes} onChange={e => setSlotForm({ ...slotForm, durationMinutes: parseInt(e.target.value) || 30 })} data-testid="input-slot-duration" />
+              <Input placeholder="Descripción (opcional)" value={slotForm.description} onChange={e => setSlotForm({ ...slotForm, description: e.target.value })} data-testid="input-slot-description" />
+              <Input type="number" placeholder="Precio CLP (opcional)" value={slotForm.price} onChange={e => setSlotForm({ ...slotForm, price: e.target.value })} data-testid="input-slot-price" />
+            </div>
+            <label className="flex items-center gap-2 mt-3 text-sm text-white/60">
+              <input type="checkbox" checked={slotForm.requiresPayment} onChange={e => setSlotForm({ ...slotForm, requiresPayment: e.target.checked })} data-testid="checkbox-slot-requires-payment" />
+              Requerir pago al reservar
+            </label>
+            <Button className="mt-4" onClick={() => createSlot.mutate()} disabled={createSlot.isPending || !slotForm.name} data-testid="button-create-slot">
+              {createSlot.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              Crear servicio
+            </Button>
+          </div>
+
+          <div className="rounded-2xl glass-card p-6">
+            <h3 className="font-bold mb-4">Servicios activos ({slots.length})</h3>
+            {slots.length === 0 ? (
+              <p className="text-sm text-white/40 text-center py-6">Aún no creaste servicios.</p>
+            ) : (
+              <div className="space-y-2">
+                {slots.map((s: any) => {
+                  const publicUrl = `${window.location.origin}/agenda/${s.id}`;
+                  return (
+                    <div key={s.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]" data-testid={`row-slot-${s.id}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{s.name}</p>
+                        <p className="text-xs text-white/40">{s.durationMinutes} min{s.price ? ` · ${fmt(s.price)}` : ""}{s.requiresPayment ? " · pago requerido" : ""}</p>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => copy(publicUrl)} data-testid={`button-copy-agenda-${s.id}`}>
+                        <Copy className="w-3 h-3 mr-1" /> Link
+                      </Button>
+                      <a href={publicUrl} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                        Abrir <ExternalLink className="w-3 h-3" />
+                      </a>
+                      <Button size="sm" variant="ghost" onClick={() => deleteSlot.mutate(s.id)} disabled={deleteSlot.isPending} data-testid={`button-delete-slot-${s.id}`}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl glass-card p-6">
+            <h3 className="font-bold mb-4">Próximas citas ({appts.length})</h3>
+            {appts.length === 0 ? (
+              <p className="text-sm text-white/40 text-center py-6">Aún no tienes reservas.</p>
+            ) : (
+              <div className="space-y-2">
+                {appts.map((a: any) => (
+                  <div key={a.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]" data-testid={`row-appt-${a.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{a.customerName} · {a.customerEmail}</p>
+                      <p className="text-xs text-white/40">{new Date(a.scheduledAt).toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" })}</p>
+                    </div>
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${
+                      a.status === "completed" ? "bg-emerald-500/15 text-emerald-400" :
+                      a.status === "confirmed" ? "bg-blue-500/15 text-blue-400" :
+                      a.status === "cancelled" || a.status === "no_show" ? "bg-white/10 text-white/40" :
+                      "bg-amber-500/15 text-amber-400"
+                    }`}>{a.status.toUpperCase()}</span>
+                    {a.status === "scheduled" && (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => updateApptStatus.mutate({ id: a.id, status: "confirmed" })} data-testid={`button-confirm-${a.id}`}>Confirmar</Button>
+                        <Button size="sm" variant="ghost" onClick={() => updateApptStatus.mutate({ id: a.id, status: "cancelled" })} data-testid={`button-cancel-${a.id}`}>Cancelar</Button>
+                      </>
+                    )}
+                    {a.status === "confirmed" && (
+                      <Button size="sm" variant="outline" onClick={() => updateApptStatus.mutate({ id: a.id, status: "completed" })} data-testid={`button-complete-${a.id}`}>Completar</Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides" | "whatsapp" | "extensiones" | "connect";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadísticas", value: "stats", icon: BarChart3 },
   { title: "Configuración", value: "config", icon: Palette },
   { title: "Integración", value: "embed", icon: Code },
   { title: "WhatsApp", value: "whatsapp", icon: MessageCircle },
+  { title: "Cappta Connect", value: "connect", icon: Link2 },
   { title: "Extensiones", value: "extensiones", icon: Package },
   { title: "Descargar App", value: "download", icon: Download },
   { title: "Referidos", value: "referidos", icon: Gift },
@@ -3826,6 +4157,7 @@ export default function Dashboard() {
               {activeTab === "guides" && "Manuales de instalación paso a paso"}
               {activeTab === "referidos" && "Invita negocios y gana meses gratis"}
               {activeTab === "whatsapp" && "Conecta tu chatbot a WhatsApp"}
+              {activeTab === "connect" && "Cobra y agenda directo desde el chat"}
               {activeTab === "extensiones" && "Añade superpoderes a tu plataforma"}
               {activeTab === "plan" && "Gestiona tu suscripción"}
             </p>
@@ -3861,6 +4193,7 @@ export default function Dashboard() {
             {activeTab === "guides" && <GuidesPanel />}
             {activeTab === "referidos" && <ReferidosSection />}
             {activeTab === "whatsapp" && <WhatsAppSection tenant={tenant} token={token!} />}
+            {activeTab === "connect" && <ConnectSection tenant={tenant} token={token!} />}
             {activeTab === "extensiones" && <ExtensionesSection token={token!} />}
             {activeTab === "plan" && <PlanSection tenant={tenant} />}
           </div>

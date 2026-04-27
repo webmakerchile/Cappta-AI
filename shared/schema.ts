@@ -400,6 +400,77 @@ export const insertEnterpriseLeadSchema = createInsertSchema(enterpriseLeads).om
 export type InsertEnterpriseLead = z.infer<typeof insertEnterpriseLeadSchema>;
 export type EnterpriseLead = typeof enterpriseLeads.$inferSelect;
 
+export const appointmentSlots = pgTable("appointment_slots", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  durationMinutes: integer("duration_minutes").notNull().default(30),
+  bufferMinutes: integer("buffer_minutes").notNull().default(0),
+  price: integer("price"),
+  requiresPayment: integer("requires_payment").notNull().default(0),
+  availability: text("availability").notNull().default("{}"),
+  active: integer("active").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_appointment_slots_tenant").on(table.tenantId),
+]);
+
+export const appointments = pgTable("appointments", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  slotId: integer("slot_id"),
+  sessionId: text("session_id"),
+  customerName: text("customer_name").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  customerPhone: text("customer_phone"),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  durationMinutes: integer("duration_minutes").notNull().default(30),
+  notes: text("notes"),
+  status: text("status", { enum: ["scheduled", "confirmed", "cancelled", "completed", "no_show"] }).notNull().default("scheduled"),
+  paymentLinkId: integer("payment_link_id"),
+  source: text("source", { enum: ["chat", "public_page", "manual"] }).notNull().default("public_page"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_appointments_tenant").on(table.tenantId),
+  index("idx_appointments_scheduled").on(table.scheduledAt),
+]);
+
+export const chatPaymentLinks = pgTable("chat_payment_links", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  sessionId: text("session_id"),
+  customerEmail: text("customer_email"),
+  customerName: text("customer_name"),
+  productId: integer("product_id"),
+  description: text("description").notNull(),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("CLP"),
+  provider: text("provider", { enum: ["mercadopago", "manual"] }).notNull().default("mercadopago"),
+  externalId: text("external_id"),
+  paymentUrl: text("payment_url"),
+  publicToken: text("public_token"),
+  status: text("status", { enum: ["pending", "paid", "expired", "cancelled"] }).notNull().default("pending"),
+  paidAt: timestamp("paid_at"),
+  source: text("source", { enum: ["chat", "manual", "appointment"] }).notNull().default("manual"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_chat_payment_links_tenant").on(table.tenantId),
+  index("idx_chat_payment_links_status").on(table.status),
+]);
+
+export const insertAppointmentSlotSchema = createInsertSchema(appointmentSlots).omit({ id: true, createdAt: true });
+export type InsertAppointmentSlot = z.infer<typeof insertAppointmentSlotSchema>;
+export type AppointmentSlot = typeof appointmentSlots.$inferSelect;
+
+export const insertAppointmentSchema = createInsertSchema(appointments).omit({ id: true, createdAt: true });
+export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+export type Appointment = typeof appointments.$inferSelect;
+
+export const insertChatPaymentLinkSchema = createInsertSchema(chatPaymentLinks).omit({ id: true, createdAt: true, paidAt: true });
+export type InsertChatPaymentLink = z.infer<typeof insertChatPaymentLinkSchema>;
+export type ChatPaymentLink = typeof chatPaymentLinks.$inferSelect;
+
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
   email: z.string().email("Ingresa un correo valido").max(200),

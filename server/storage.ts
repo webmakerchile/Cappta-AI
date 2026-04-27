@@ -1,6 +1,6 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, sql, ilike, or, and } from "drizzle-orm";
+import { eq, asc, desc, sql, ilike, or, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   getMessagesBySessionId(sessionId: string): Promise<Message[]>;
@@ -140,6 +140,36 @@ export interface IStorage {
   createTenantAddon(data: InsertTenantAddon): Promise<TenantAddon>;
   cancelTenantAddon(tenantId: number, addonSlug: string): Promise<TenantAddon | null>;
   getTenantAddonBySlug(tenantId: number, addonSlug: string): Promise<TenantAddon | null>;
+  // Cappta Connect: appointment slots, appointments, chat payment links
+  getAppointmentSlots(tenantId: number): Promise<AppointmentSlot[]>;
+  getAppointmentSlotById(tenantId: number, id: number): Promise<AppointmentSlot | null>;
+  getPublicAppointmentSlot(id: number): Promise<AppointmentSlot | null>;
+  createAppointmentSlot(data: InsertAppointmentSlot): Promise<AppointmentSlot>;
+  updateAppointmentSlot(tenantId: number, id: number, data: Partial<InsertAppointmentSlot>): Promise<AppointmentSlot | null>;
+  deleteAppointmentSlot(tenantId: number, id: number): Promise<boolean>;
+  getAppointments(tenantId: number, opts?: { from?: Date; to?: Date; status?: string }): Promise<Appointment[]>;
+  getAppointmentById(tenantId: number, id: number): Promise<Appointment | null>;
+  getAppointmentsBySlotInRange(slotId: number, from: Date, to: Date): Promise<Appointment[]>;
+  createAppointment(data: InsertAppointment): Promise<Appointment>;
+  updateAppointmentStatus(tenantId: number, id: number, status: "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show"): Promise<Appointment | null>;
+  updateAppointmentPaymentLink(id: number, paymentLinkId: number): Promise<void>;
+  getChatPaymentLinks(tenantId: number, opts?: { status?: string; limit?: number }): Promise<ChatPaymentLink[]>;
+  getChatPaymentLinkById(id: number): Promise<ChatPaymentLink | null>;
+  getChatPaymentLinkByExternalId(externalId: string): Promise<ChatPaymentLink | null>;
+  createChatPaymentLink(data: InsertChatPaymentLink): Promise<ChatPaymentLink>;
+  updateChatPaymentLink(id: number, data: Partial<ChatPaymentLink>): Promise<ChatPaymentLink | null>;
+  cancelChatPaymentLink(tenantId: number, id: number): Promise<ChatPaymentLink | null>;
+  getCapptaConnectStats(tenantId: number): Promise<{
+    totalAppointments: number;
+    upcomingAppointments: number;
+    appointmentsThisMonth: number;
+    completedAppointments: number;
+    totalPaymentLinks: number;
+    paidPaymentLinks: number;
+    pendingPaymentLinks: number;
+    revenueThisMonth: number;
+    revenueAllTime: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1614,6 +1644,157 @@ export class DatabaseStorage implements IStorage {
     const [ta] = await db.select().from(tenantAddons)
       .where(and(eq(tenantAddons.tenantId, tenantId), eq(tenantAddons.addonSlug, addonSlug), eq(tenantAddons.status, "active")));
     return ta || null;
+  }
+
+  async getAppointmentSlots(tenantId: number): Promise<AppointmentSlot[]> {
+    return await db.select().from(appointmentSlots)
+      .where(eq(appointmentSlots.tenantId, tenantId))
+      .orderBy(desc(appointmentSlots.createdAt));
+  }
+
+  async getAppointmentSlotById(tenantId: number, id: number): Promise<AppointmentSlot | null> {
+    const [slot] = await db.select().from(appointmentSlots)
+      .where(and(eq(appointmentSlots.id, id), eq(appointmentSlots.tenantId, tenantId)));
+    return slot || null;
+  }
+
+  async getPublicAppointmentSlot(id: number): Promise<AppointmentSlot | null> {
+    const [slot] = await db.select().from(appointmentSlots)
+      .where(and(eq(appointmentSlots.id, id), eq(appointmentSlots.active, 1)));
+    return slot || null;
+  }
+
+  async createAppointmentSlot(data: InsertAppointmentSlot): Promise<AppointmentSlot> {
+    const [slot] = await db.insert(appointmentSlots).values(data).returning();
+    return slot;
+  }
+
+  async updateAppointmentSlot(tenantId: number, id: number, data: Partial<InsertAppointmentSlot>): Promise<AppointmentSlot | null> {
+    const [updated] = await db.update(appointmentSlots).set(data)
+      .where(and(eq(appointmentSlots.id, id), eq(appointmentSlots.tenantId, tenantId)))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteAppointmentSlot(tenantId: number, id: number): Promise<boolean> {
+    const result = await db.delete(appointmentSlots)
+      .where(and(eq(appointmentSlots.id, id), eq(appointmentSlots.tenantId, tenantId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getAppointments(tenantId: number, opts?: { from?: Date; to?: Date; status?: string }): Promise<Appointment[]> {
+    const conditions = [eq(appointments.tenantId, tenantId)];
+    if (opts?.from) conditions.push(gte(appointments.scheduledAt, opts.from));
+    if (opts?.to) conditions.push(lte(appointments.scheduledAt, opts.to));
+    if (opts?.status) conditions.push(eq(appointments.status, opts.status as any));
+    return await db.select().from(appointments)
+      .where(and(...conditions))
+      .orderBy(asc(appointments.scheduledAt));
+  }
+
+  async getAppointmentById(tenantId: number, id: number): Promise<Appointment | null> {
+    const [appt] = await db.select().from(appointments)
+      .where(and(eq(appointments.id, id), eq(appointments.tenantId, tenantId)));
+    return appt || null;
+  }
+
+  async getAppointmentsBySlotInRange(slotId: number, from: Date, to: Date): Promise<Appointment[]> {
+    return await db.select().from(appointments)
+      .where(and(
+        eq(appointments.slotId, slotId),
+        gte(appointments.scheduledAt, from),
+        lte(appointments.scheduledAt, to),
+        sql`${appointments.status} != 'cancelled'`,
+      ));
+  }
+
+  async createAppointment(data: InsertAppointment): Promise<Appointment> {
+    const [appt] = await db.insert(appointments).values(data).returning();
+    return appt;
+  }
+
+  async updateAppointmentStatus(tenantId: number, id: number, status: "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show"): Promise<Appointment | null> {
+    const [updated] = await db.update(appointments).set({ status })
+      .where(and(eq(appointments.id, id), eq(appointments.tenantId, tenantId)))
+      .returning();
+    return updated || null;
+  }
+
+  async updateAppointmentPaymentLink(id: number, paymentLinkId: number): Promise<void> {
+    await db.update(appointments).set({ paymentLinkId }).where(eq(appointments.id, id));
+  }
+
+  async getChatPaymentLinks(tenantId: number, opts?: { status?: string; limit?: number }): Promise<ChatPaymentLink[]> {
+    const conditions = [eq(chatPaymentLinks.tenantId, tenantId)];
+    if (opts?.status) conditions.push(eq(chatPaymentLinks.status, opts.status as any));
+    let query = db.select().from(chatPaymentLinks)
+      .where(and(...conditions))
+      .orderBy(desc(chatPaymentLinks.createdAt))
+      .$dynamic();
+    if (opts?.limit) query = query.limit(opts.limit);
+    return await query;
+  }
+
+  async getChatPaymentLinkById(id: number): Promise<ChatPaymentLink | null> {
+    const [link] = await db.select().from(chatPaymentLinks).where(eq(chatPaymentLinks.id, id));
+    return link || null;
+  }
+
+  async getChatPaymentLinkByExternalId(externalId: string): Promise<ChatPaymentLink | null> {
+    const [link] = await db.select().from(chatPaymentLinks).where(eq(chatPaymentLinks.externalId, externalId));
+    return link || null;
+  }
+
+  async createChatPaymentLink(data: InsertChatPaymentLink): Promise<ChatPaymentLink> {
+    const [link] = await db.insert(chatPaymentLinks).values(data).returning();
+    return link;
+  }
+
+  async updateChatPaymentLink(id: number, data: Partial<ChatPaymentLink>): Promise<ChatPaymentLink | null> {
+    const [updated] = await db.update(chatPaymentLinks).set(data).where(eq(chatPaymentLinks.id, id)).returning();
+    return updated || null;
+  }
+
+  async cancelChatPaymentLink(tenantId: number, id: number): Promise<ChatPaymentLink | null> {
+    const [updated] = await db.update(chatPaymentLinks)
+      .set({ status: "cancelled" })
+      .where(and(eq(chatPaymentLinks.id, id), eq(chatPaymentLinks.tenantId, tenantId), eq(chatPaymentLinks.status, "pending")))
+      .returning();
+    return updated || null;
+  }
+
+  async getCapptaConnectStats(tenantId: number) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const allAppointments = await db.select().from(appointments).where(eq(appointments.tenantId, tenantId));
+    const totalAppointments = allAppointments.length;
+    const upcomingAppointments = allAppointments.filter(a => a.scheduledAt > now && a.status !== "cancelled").length;
+    const appointmentsThisMonth = allAppointments.filter(a => a.createdAt >= startOfMonth).length;
+    const completedAppointments = allAppointments.filter(a => a.status === "completed").length;
+
+    const allLinks = await db.select().from(chatPaymentLinks).where(eq(chatPaymentLinks.tenantId, tenantId));
+    const totalPaymentLinks = allLinks.length;
+    const paidLinks = allLinks.filter(l => l.status === "paid");
+    const paidPaymentLinks = paidLinks.length;
+    const pendingPaymentLinks = allLinks.filter(l => l.status === "pending").length;
+    const revenueThisMonth = paidLinks
+      .filter(l => l.paidAt && l.paidAt >= startOfMonth)
+      .reduce((acc, l) => acc + l.amount, 0);
+    const revenueAllTime = paidLinks.reduce((acc, l) => acc + l.amount, 0);
+
+    return {
+      totalAppointments,
+      upcomingAppointments,
+      appointmentsThisMonth,
+      completedAppointments,
+      totalPaymentLinks,
+      paidPaymentLinks,
+      pendingPaymentLinks,
+      revenueThisMonth,
+      revenueAllTime,
+    };
   }
 }
 

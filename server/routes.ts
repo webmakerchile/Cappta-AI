@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads, insertAppointmentSlotSchema } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -1970,6 +1970,28 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
           return res.status(200).json({ status: "ok" });
         }
 
+        if (payment.external_reference.startsWith("cappta_chatlink_")) {
+          const linkParts = payment.external_reference.split("_");
+          const linkTenantId = parseInt(linkParts[2]);
+          const linkId = parseInt(linkParts[3]);
+          if (!isNaN(linkTenantId) && !isNaN(linkId)) {
+            const link = await storage.getChatPaymentLinkById(linkId);
+            if (link && link.tenantId === linkTenantId) {
+              if (payment.status === "approved" && link.status !== "paid") {
+                await storage.updateChatPaymentLink(linkId, {
+                  status: "paid",
+                  paidAt: new Date(),
+                  externalId: link.externalId || String(data.id),
+                });
+                log(`Chat payment link ${linkId} marked as paid (tenant ${linkTenantId}, MP payment ${data.id})`, "connect");
+              } else if ((payment.status === "rejected" || payment.status === "cancelled") && link.status === "pending") {
+                await storage.updateChatPaymentLink(linkId, { status: "cancelled" });
+              }
+            }
+          }
+          return res.status(200).json({ status: "ok" });
+        }
+
         if (payment.external_reference.startsWith("cappta_addon_")) {
           const addonParts = payment.external_reference.split("_");
           const addonTenantId = parseInt(addonParts[2]);
@@ -3074,6 +3096,402 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
     if (!deleted) return res.status(404).json({ message: "No encontrado" });
     res.json({ success: true });
   });
+
+  // ===================== CAPPTA CONNECT =====================
+  // Plan gating: connect features available for paid plans
+  const CONNECT_PAID_PLANS = ["solo", "basic", "scale", "pro", "enterprise"];
+
+  const checkConnectPlan = (tenant: any): boolean => {
+    return CONNECT_PAID_PLANS.includes(tenant?.plan || "");
+  };
+
+  const generatePublicToken = (): string => {
+    return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+  };
+
+  // Zod validators
+  const linkBodySchema = z.object({
+    description: z.string().min(1).max(200),
+    amount: z.coerce.number().int().min(1).max(50_000_000),
+    customerName: z.string().max(120).nullable().optional(),
+    customerEmail: z.string().email().max(180).nullable().optional(),
+    sessionId: z.string().max(120).nullable().optional(),
+    productId: z.coerce.number().int().nullable().optional(),
+    source: z.enum(["chat", "manual", "appointment"]).optional(),
+  });
+
+  const bookingBodySchema = z.object({
+    slotId: z.coerce.number().int().positive(),
+    scheduledAt: z.string().min(1),
+    customerName: z.string().min(1).max(120),
+    customerEmail: z.string().email().max(180),
+    customerPhone: z.string().max(40).nullable().optional(),
+    notes: z.string().max(2000).nullable().optional(),
+  });
+
+  // Stats summary
+  app.get("/api/tenant-panel/connect/stats", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const stats = await storage.getCapptaConnectStats(auth.id);
+      res.json(stats);
+    } catch (e: any) {
+      log(`connect/stats error: ${e.message}`, "connect");
+      res.status(500).json({ message: "Error al obtener estadísticas" });
+    }
+  });
+
+  // Appointment slots (calendar config)
+  app.get("/api/tenant-panel/connect/slots", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const slots = await storage.getAppointmentSlots(auth.id);
+    res.json(slots);
+  });
+
+  app.post("/api/tenant-panel/connect/slots", async (req, res) => {
+    const auth = requireTenantOwnerOrAdmin(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!checkConnectPlan(tenant)) {
+        return res.status(403).json({ message: "Cappta Connect requiere un plan de pago (Básico o superior)" });
+      }
+      const data = insertAppointmentSlotSchema.parse({ ...req.body, tenantId: auth.id });
+      const slot = await storage.createAppointmentSlot(data);
+      res.json(slot);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/tenant-panel/connect/slots/:id", async (req, res) => {
+    const auth = requireTenantOwnerOrAdmin(req, res);
+    if (!auth) return;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const { tenantId, ...rest } = req.body || {};
+    const updated = await storage.updateAppointmentSlot(auth.id, id, rest);
+    if (!updated) return res.status(404).json({ message: "No encontrado" });
+    res.json(updated);
+  });
+
+  app.delete("/api/tenant-panel/connect/slots/:id", async (req, res) => {
+    const auth = requireTenantOwnerOrAdmin(req, res);
+    if (!auth) return;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const ok = await storage.deleteAppointmentSlot(auth.id, id);
+    if (!ok) return res.status(404).json({ message: "No encontrado" });
+    res.json({ success: true });
+  });
+
+  // Appointments list
+  app.get("/api/tenant-panel/connect/appointments", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const list = await storage.getAppointments(auth.id, { status });
+    res.json(list);
+  });
+
+  app.patch("/api/tenant-panel/connect/appointments/:id", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const status = req.body?.status;
+    const allowed = ["scheduled", "confirmed", "cancelled", "completed", "no_show"];
+    if (!allowed.includes(status)) return res.status(400).json({ message: "Estado inválido" });
+    const updated = await storage.updateAppointmentStatus(auth.id, id, status);
+    if (!updated) return res.status(404).json({ message: "No encontrado" });
+    res.json(updated);
+  });
+
+  // Manual appointment creation (from dashboard)
+  app.post("/api/tenant-panel/connect/appointments", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!checkConnectPlan(tenant)) {
+        return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+      }
+      const body = req.body || {};
+      const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
+      if (!scheduledAt || isNaN(scheduledAt.getTime())) {
+        return res.status(400).json({ message: "Fecha inválida" });
+      }
+      const appt = await storage.createAppointment({
+        tenantId: auth.id,
+        slotId: body.slotId || null,
+        sessionId: body.sessionId || null,
+        customerName: String(body.customerName || "").trim(),
+        customerEmail: String(body.customerEmail || "").trim(),
+        customerPhone: body.customerPhone || null,
+        scheduledAt,
+        durationMinutes: body.durationMinutes || 30,
+        notes: body.notes || null,
+        source: "manual",
+        status: "scheduled",
+      } as any);
+      res.json(appt);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Datos inválidos" });
+    }
+  });
+
+  // Chat payment links
+  app.get("/api/tenant-panel/connect/payment-links", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const list = await storage.getChatPaymentLinks(auth.id, { status, limit: 200 });
+    res.json(list);
+  });
+
+  app.post("/api/tenant-panel/connect/payment-links", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!checkConnectPlan(tenant)) {
+        return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+      }
+      const parsed = linkBodySchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Datos inválidos" });
+      }
+      const body = parsed.data;
+
+      const link = await storage.createChatPaymentLink({
+        tenantId: auth.id,
+        sessionId: body.sessionId || null,
+        customerEmail: body.customerEmail || null,
+        customerName: body.customerName || null,
+        productId: body.productId || null,
+        description: body.description,
+        amount: body.amount,
+        currency: "CLP",
+        provider: "mercadopago",
+        publicToken: generatePublicToken(),
+        status: "pending",
+        source: body.source || "manual",
+      } as any);
+
+      try {
+        const { createChatPaymentPreference, isMercadoPagoConfigured } = await import("./flow");
+        if (isMercadoPagoConfigured()) {
+          const pref = await createChatPaymentPreference({
+            tenantId: auth.id,
+            linkId: link.id,
+            amount: body.amount,
+            description: body.description,
+            customerEmail: body.customerEmail || null,
+            customerName: body.customerName || null,
+          });
+          const updated = await storage.updateChatPaymentLink(link.id, {
+            externalId: pref.preferenceId,
+            paymentUrl: pref.initPoint,
+          });
+          return res.json(updated || link);
+        }
+      } catch (mpErr: any) {
+        log(`MP preference error for link ${link.id}: ${mpErr.message}`, "connect");
+        await storage.updateChatPaymentLink(link.id, { provider: "manual" });
+      }
+      res.json(link);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Datos inválidos" });
+    }
+  });
+
+  app.post("/api/tenant-panel/connect/payment-links/:id/cancel", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const cancelled = await storage.cancelChatPaymentLink(auth.id, id);
+    if (!cancelled) return res.status(404).json({ message: "No se pudo cancelar" });
+    res.json(cancelled);
+  });
+
+  // ===== Public booking + payment (no auth) =====
+  app.get("/api/connect/public/slot/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const slot = await storage.getPublicAppointmentSlot(id);
+    if (!slot) return res.status(404).json({ message: "Servicio no disponible" });
+    const tenant = await storage.getTenantById(slot.tenantId);
+    res.json({
+      id: slot.id,
+      name: slot.name,
+      description: slot.description,
+      durationMinutes: slot.durationMinutes,
+      price: slot.price,
+      requiresPayment: slot.requiresPayment === 1,
+      availability: slot.availability,
+      tenantName: tenant?.companyName || tenant?.name || "",
+    });
+  });
+
+  app.get("/api/connect/public/slot/:id/availability", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const slot = await storage.getPublicAppointmentSlot(id);
+    if (!slot) return res.status(404).json({ message: "Servicio no disponible" });
+    const fromStr = typeof req.query.from === "string" ? req.query.from : undefined;
+    const toStr = typeof req.query.to === "string" ? req.query.to : undefined;
+    const from = fromStr ? new Date(fromStr) : new Date();
+    const to = toStr ? new Date(toStr) : new Date(from.getTime() + 14 * 86400000);
+    const taken = await storage.getAppointmentsBySlotInRange(id, from, to);
+    const takenISO = taken.map(t => ({
+      start: t.scheduledAt.toISOString(),
+      end: new Date(t.scheduledAt.getTime() + (t.durationMinutes || slot.durationMinutes) * 60000).toISOString(),
+    }));
+    res.json({
+      slot: {
+        id: slot.id,
+        durationMinutes: slot.durationMinutes,
+        bufferMinutes: slot.bufferMinutes,
+        availability: slot.availability,
+      },
+      taken: takenISO,
+    });
+  });
+
+  app.post("/api/connect/public/book", async (req, res) => {
+    try {
+      const parsed = bookingBodySchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Datos inválidos" });
+      }
+      const body = parsed.data;
+      const slotId = body.slotId;
+      const slot = await storage.getPublicAppointmentSlot(slotId);
+      if (!slot) return res.status(404).json({ message: "Servicio no disponible" });
+      const tenant = await storage.getTenantById(slot.tenantId);
+      if (!checkConnectPlan(tenant)) {
+        return res.status(403).json({ message: "Servicio temporalmente no disponible" });
+      }
+      const scheduledAt = new Date(body.scheduledAt);
+      if (isNaN(scheduledAt.getTime())) return res.status(400).json({ message: "Fecha inválida" });
+      const customerName = body.customerName.trim();
+      const customerEmail = body.customerEmail.trim();
+      if (scheduledAt.getTime() < Date.now() - 5 * 60000) return res.status(400).json({ message: "Fecha pasada" });
+
+      // Conflict check: any non-cancelled appointment overlapping this exact slot start
+      const dayStart = new Date(scheduledAt.getTime() - 24 * 3600000);
+      const dayEnd = new Date(scheduledAt.getTime() + 24 * 3600000);
+      const existing = await storage.getAppointmentsBySlotInRange(slotId, dayStart, dayEnd);
+      const newStart = scheduledAt.getTime();
+      const newEnd = newStart + slot.durationMinutes * 60000;
+      const conflict = existing.find(a => {
+        const s = a.scheduledAt.getTime();
+        const e = s + (a.durationMinutes || slot.durationMinutes) * 60000;
+        return newStart < e && newEnd > s;
+      });
+      if (conflict) return res.status(409).json({ message: "Horario no disponible" });
+
+      const appt = await storage.createAppointment({
+        tenantId: slot.tenantId,
+        slotId: slot.id,
+        customerName,
+        customerEmail,
+        customerPhone: body.customerPhone || null,
+        scheduledAt,
+        durationMinutes: slot.durationMinutes,
+        notes: body.notes || null,
+        source: "public_page",
+        status: "scheduled",
+      } as any);
+
+      let paymentUrl: string | null = null;
+      let paymentLinkId: number | null = null;
+      let paymentToken: string | null = null;
+      if (slot.requiresPayment === 1 && slot.price && slot.price > 0) {
+        try {
+          const token = generatePublicToken();
+          const link = await storage.createChatPaymentLink({
+            tenantId: slot.tenantId,
+            customerEmail,
+            customerName,
+            description: `Reserva: ${slot.name}`,
+            amount: slot.price,
+            currency: "CLP",
+            provider: "mercadopago",
+            publicToken: token,
+            status: "pending",
+            source: "appointment",
+          } as any);
+          paymentLinkId = link.id;
+          paymentToken = token;
+          await storage.updateAppointmentPaymentLink(appt.id, link.id);
+
+          const { createChatPaymentPreference, isMercadoPagoConfigured } = await import("./flow");
+          if (isMercadoPagoConfigured()) {
+            const pref = await createChatPaymentPreference({
+              tenantId: slot.tenantId,
+              linkId: link.id,
+              amount: slot.price,
+              description: `Reserva: ${slot.name}`,
+              customerEmail,
+              customerName,
+            });
+            const upd = await storage.updateChatPaymentLink(link.id, {
+              externalId: pref.preferenceId,
+              paymentUrl: pref.initPoint,
+            });
+            paymentUrl = upd?.paymentUrl || pref.initPoint;
+          }
+        } catch (payErr: any) {
+          log(`Booking payment link error: ${payErr.message}`, "connect");
+        }
+      }
+
+      res.json({
+        appointmentId: appt.id,
+        scheduledAt: appt.scheduledAt,
+        status: appt.status,
+        paymentLinkId,
+        paymentToken,
+        paymentUrl,
+      });
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Error al reservar" });
+    }
+  });
+
+  app.get("/api/connect/public/payment-link/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID inválido" });
+    const token = typeof req.query.token === "string" ? req.query.token : "";
+    const link = await storage.getChatPaymentLinkById(id);
+    if (!link) return res.status(404).json({ message: "No encontrado" });
+    if (link.publicToken && link.publicToken !== token) {
+      return res.status(404).json({ message: "No encontrado" });
+    }
+    const tenant = await storage.getTenantById(link.tenantId);
+    res.json({
+      id: link.id,
+      description: link.description,
+      amount: link.amount,
+      currency: link.currency,
+      status: link.status,
+      paymentUrl: link.paymentUrl,
+      paidAt: link.paidAt,
+      tenantName: tenant?.companyName || tenant?.name || "",
+    });
+  });
+
+  app.get("/api/connect/payment-return", async (req, res) => {
+    const linkId = parseInt(String(req.query.link || ""));
+    const status = String(req.query.status || "pending");
+    res.redirect(`/pago-resultado/${isNaN(linkId) ? 0 : linkId}?status=${encodeURIComponent(status)}`);
+  });
+  // ===================== END CAPPTA CONNECT =====================
+
 
   app.get("/api/tenant-panel/files", async (req, res) => {
     const auth = requireTenantAuth(req, res);

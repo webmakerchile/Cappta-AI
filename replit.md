@@ -34,6 +34,7 @@ The application uses a React frontend with Tailwind CSS and Lucide React for UI,
 *   **Plan Limit Enforcement**: Limits on sessions and messages are enforced per tenant plan, with appropriate feedback provided in the chat interface.
 *   **WhatsApp Integration**: Integrates with Twilio WhatsApp Business API for multi-channel support, configurable per tenant with an optional add-on.
 *   **Payment Integration**: Uses Mercado Pago Checkout Pro for payment processing, supporting various plans and add-ons. Webhooks handle plan upgrades upon successful payments.
+*   **Cappta Connect**: A unified business hub for paid-plan tenants combining (a) Catálogo (existing product catalog), (b) Pagos en chat (chat_payment_links + Mercado Pago preference flow with cappta_chatlink_<tid>_<lid> external_reference webhook handling), (c) Citas (appointment_slots/appointments with public booking page at `/agenda/:slotId` supporting requiresPayment + auto payment-link creation), and (d) Reportes (consolidated stats: paid links amount, pending appointments, conversion). Public payment-link lookup is protected by a per-link random publicToken to prevent enumeration. Plan-gated: solo/basic/scale/pro/enterprise.
 
 ## External Dependencies
 *   **PostgreSQL**: Primary database.
