@@ -18,6 +18,7 @@ import {
   Star,
   Send,
   Sparkles,
+  ArrowUpRight,
   ChevronRight,
   ChevronDown,
   Users,
@@ -67,8 +68,6 @@ import {
 import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiShopify, SiWoo, SiMagento, SiSquarespace, SiWebflow } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
 import heroBg from "@assets/hero_bg_v3.png";
-import caseAngelGlow from "@assets/image_1772551984490.png";
-import caseManaChile from "@assets/image_1772552079372.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -1942,81 +1941,146 @@ export default function Landing() {
           <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.1) 50%, transparent 100%)" }} />
         </div>
         <div className="relative max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">CASOS DE ÉXITO</p>
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.18), rgba(150,120,230,0.12))", border: "1px solid rgba(118,105,233,0.35)" }} data-testid="badge-flagship-case">
+              <Trophy className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">Caso emblemático · 2026</span>
+            </div>
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-cases-title">
-              Historias reales de éxito
+              CJM Digitales: <span style={{ background: "linear-gradient(135deg, #7669E9 0%, #9678E6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>+$14,3 millones</span>
+              <br className="hidden sm:block" />
+              <span className="sm:hidden"> </span>en ventas extra en 74 días
             </h2>
-            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
-              Descubre cómo empresas como la tuya están transformando su atención al cliente con Cappta AI.
+            <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-cases-description">
+              Comparación año contra año del mismo período (11 feb – 25 abr) eliminando estacionalidad. Resultados reales de la tienda chilena de juegos digitales más popular tras implementar Cappta AI.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10 ${casesSection.isVisible ? "animate-count-fade" : "opacity-0"}`} data-testid="grid-cjm-headline-metrics">
             {[
-              {
-                name: "Angel Glow",
-                url: "angelglow.cl",
-                href: "https://www.angelglow.cl/",
-                image: caseAngelGlow,
-                description: "Tienda de cosméticos que aumentó sus ventas atendiendo consultas de productos y precios 24/7 con IA.",
-                color: "#f97316",
-                industry: "E-commerce / Belleza",
-              },
-              {
-                name: "Iglesia Mana Chile",
-                url: "manachile.cl",
-                href: "https://manachile.cl/inicio",
-                image: caseManaChile,
-                description: "Comunidad que ganó productividad al automatizar la atención de sus miembros, liberando tiempo para lo esencial.",
-                color: "#dc2626",
-                industry: "Comunidad / Servicios",
-              },
-              {
-                name: "CJM Digitales",
-                url: "cjmdigitales.cl",
-                href: "https://cjmdigitales.cl/",
-                image: caseCjmDigitales,
-                description: "Empresa tech que redujo tiempos de soporte con IA y transferencia a agentes humanos cuando es necesario.",
-                color: "#8b5cf6",
-                industry: "Tecnología / Soporte",
-              },
-            ].map((caseItem, index) => (
-              <a
-                key={caseItem.name}
-                href={caseItem.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`group block ${casesSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
-                style={{ animationDelay: `${index * 150}ms` }}
-                data-testid={`case-${index}`}
+              { label: "Ventas netas", value: "+15,5%", sub: "+$14,3M en 74 días", color: "#10b981", icon: TrendingUp, testId: "metric-sales" },
+              { label: "Ticket promedio", value: "+13,5%", sub: "$17.512 → $19.880", color: "#7669E9", icon: TrendingUp, testId: "metric-ticket" },
+              { label: "Productos vendidos", value: "+12,1%", sub: "+720 unidades", color: "#9678E6", icon: TrendingUp, testId: "metric-products" },
+              { label: "Reembolsos", value: "−83,5%", sub: "$1,6M → $270K", color: "#f97316", icon: TrendingDown, testId: "metric-refunds", star: true },
+            ].map((m, i) => (
+              <div
+                key={m.label}
+                className="relative rounded-2xl glass-card p-4 sm:p-5 overflow-hidden"
+                style={{ animationDelay: `${i * 80}ms` }}
+                data-testid={`card-${m.testId}`}
               >
-                <div className="rounded-2xl glass-card glass-card-hover overflow-hidden h-full transition-all duration-500">
-                  <div className="relative overflow-hidden" style={{ height: "340px" }}>
-                    <img
-                      src={caseItem.image}
-                      alt={`${caseItem.name} - Cappta AI en acción`}
-                      className="w-full h-full object-cover object-top"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
-                    <div className="absolute top-3 right-3">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wide text-white/90" style={{ backgroundColor: hexToRgba(caseItem.color, 0.85), backdropFilter: "blur(8px)" }}>
-                        {caseItem.industry}
-                      </span>
-                    </div>
+                {m.star && (
+                  <div className="absolute top-2.5 right-2.5">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" data-testid="icon-star-refunds" />
                   </div>
-                  <div className="p-6 -mt-8 relative z-10">
-                    <h3 className="text-lg font-bold mb-1 group-hover:text-white transition-colors">{caseItem.name}</h3>
-                    <p className="text-xs font-medium mb-3" style={{ color: caseItem.color }}>{caseItem.url}</p>
-                    <p className="text-white/70 text-sm leading-relaxed">{caseItem.description}</p>
-                    <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span>Visitar sitio</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </div>
-                  </div>
+                )}
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: hexToRgba(m.color, 0.12) }}>
+                  <m.icon className="w-4 h-4" style={{ color: m.color }} />
                 </div>
-              </a>
+                <p className="text-xs text-white/50 mb-1.5">{m.label}</p>
+                <p className="font-heading text-2xl sm:text-3xl font-black mb-1" style={{ color: m.color }} data-testid={`text-${m.testId}-value`}>{m.value}</p>
+                <p className="text-[11px] text-white/45">{m.sub}</p>
+              </div>
             ))}
+          </div>
+
+          <div className={`rounded-3xl glass-card overflow-hidden ${casesSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "320ms" }} data-testid="card-cjm-showcase">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
+              <div className="lg:col-span-2 relative overflow-hidden min-h-[280px] lg:min-h-[520px]">
+                <img
+                  src={caseCjmDigitales}
+                  alt="CJM Digitales · Asistente IA de Soporte 24/7 con Cappta AI"
+                  className="w-full h-full object-cover object-top"
+                  data-testid="img-cjm-screenshot"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-[#111111] via-transparent to-transparent" />
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wide text-white" style={{ backgroundColor: hexToRgba("#7669E9", 0.9), backdropFilter: "blur(8px)" }} data-testid="badge-cjm-industry">
+                    Gaming Digital
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wide text-white/95" style={{ backgroundColor: "rgba(16,185,129,0.85)", backdropFilter: "blur(8px)" }} data-testid="badge-cjm-status">
+                    En producción
+                  </span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <h3 className="text-xl font-bold text-white mb-1" data-testid="text-cjm-name">CJM Digitales</h3>
+                  <a href="https://cjmdigitales.cl/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline" data-testid="link-cjm-site">
+                    cjmdigitales.cl <ArrowUpRight className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="lg:col-span-3 p-6 sm:p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <p className="text-xs font-semibold text-primary tracking-[0.18em] uppercase">Comparación año contra año · mismo período</p>
+                </div>
+
+                <div className="overflow-x-auto -mx-2 mb-6">
+                  <table className="w-full text-sm" data-testid="table-cjm-yoy">
+                    <thead>
+                      <tr className="text-[10px] uppercase tracking-wider text-white/40 border-b border-white/[0.08]">
+                        <th className="text-left font-semibold py-2 px-2">Métrica</th>
+                        <th className="text-right font-semibold py-2 px-2">2025 sin chatbot</th>
+                        <th className="text-right font-semibold py-2 px-2">2026 con Cappta AI</th>
+                        <th className="text-right font-semibold py-2 px-2">Cambio</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-white/80">
+                      {[
+                        { k: "Ventas netas", a: "$92.290.453", b: "$106.636.781", delta: "+15,5%", positive: true },
+                        { k: "Pedidos", a: "5.270", b: "5.364", delta: "+1,8%", positive: true },
+                        { k: "Productos vendidos", a: "5.964", b: "6.684", delta: "+12,1%", positive: true },
+                        { k: "Ticket promedio", a: "$17.512", b: "$19.880", delta: "+13,5%", positive: true },
+                        { k: "Promedio por día", a: "$1.247.168", b: "$1.441.038", delta: "+15,5%", positive: true },
+                        { k: "Reembolsos", a: "$1.639.665", b: "$270.585", delta: "−83,5%", positive: true, refund: true },
+                      ].map((row) => (
+                        <tr key={row.k} className="border-b border-white/[0.04] last:border-0" data-testid={`row-yoy-${row.k.toLowerCase().replace(/\s+/g, "-")}`}>
+                          <td className="py-2.5 px-2 text-white/85 font-medium">{row.k}</td>
+                          <td className="py-2.5 px-2 text-right text-white/55 tabular-nums">{row.a}</td>
+                          <td className="py-2.5 px-2 text-right text-white tabular-nums font-semibold">{row.b}</td>
+                          <td className={`py-2.5 px-2 text-right font-bold tabular-nums ${row.refund ? "text-amber-400" : "text-emerald-400"}`}>
+                            {row.delta}{row.refund ? " ⭐" : ""}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
+                  {[
+                    { v: "6.000+", l: "Chats atendidos", testId: "stat-chats" },
+                    { v: "+90%", l: "Calificaciones 5★", testId: "stat-stars" },
+                    { v: "64%", l: "Resuelto por IA", testId: "stat-ai" },
+                  ].map((s) => (
+                    <div key={s.l} className="rounded-xl px-3 py-3 text-center" style={{ background: "rgba(118,105,233,0.06)", border: "1px solid rgba(118,105,233,0.18)" }} data-testid={`card-${s.testId}`}>
+                      <p className="font-heading text-lg sm:text-xl font-black text-white" data-testid={`text-${s.testId}-value`}>{s.v}</p>
+                      <p className="text-[10px] sm:text-[11px] text-white/55 mt-0.5">{s.l}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-xl p-4 mb-5" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(118,105,233,0.06))", border: "1px solid rgba(16,185,129,0.18)" }} data-testid="card-cjm-quote">
+                  <p className="text-sm text-white/85 leading-relaxed italic">
+                    "Bajamos los reembolsos un 83,5% y aumentamos el ticket promedio 13,5%. El chatbot resuelve los problemas antes de que escalen, sugiere productos y vende mejor — todo sin contratar más personal."
+                  </p>
+                  <p className="text-xs text-white/50 mt-2 font-medium">— Resumen de impacto · CJM Digitales · Periodo 11 feb – 25 abr 2026</p>
+                </div>
+
+                <a
+                  href="https://cjmdigitales.cl/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(135deg, #7669E9 0%, #9678E6 100%)", boxShadow: "0 6px 20px rgba(118,105,233,0.35)" }}
+                  data-testid="link-cjm-visit"
+                >
+                  Visitar CJM Digitales
+                  <ArrowUpRight className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
