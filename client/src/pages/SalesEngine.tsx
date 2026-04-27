@@ -36,16 +36,12 @@ interface WebhookItem { id: number; name: string; url: string; events: string[];
 interface CoachInsights { stats: LeadStats; topHot: LeadScore[]; topWarm: LeadScore[]; sequencesActive: number; sequencesCompleted: number; insights: string[]; }
 
 const ALL_EVENTS = [
-  "session.created",
   "session.closed",
   "message.user",
   "message.support",
   "lead.scored",
   "lead.hot",
-  "appointment.booked",
-  "appointment.cancelled",
-  "payment.completed",
-  "tag.added",
+  "lead.qualified",
 ];
 
 const PROVIDERS = [
