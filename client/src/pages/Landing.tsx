@@ -70,6 +70,8 @@ import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLo
 import heroBg from "@assets/hero_bg_v3.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
 import cjmPanelChats from "@assets/image_1777272732233.png";
+import cjmChatsRecording from "@assets/processed/cjm_chats_recording.mp4";
+import cjmChatsRecordingPoster from "@assets/processed/cjm_chats_recording_poster.jpg";
 
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -2117,6 +2119,42 @@ export default function Landing() {
               <span className="flex items-center gap-2"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> 6.248 calificaciones</span>
               <span className="flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5 text-primary" /> 6.943 chats totales</span>
               <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-primary" /> 64% resuelto por IA</span>
+            </div>
+
+            <div className="mt-14 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-center" data-testid="section-cjm-recording">
+              <div className="text-center lg:text-left order-2 lg:order-1">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-4" style={{ background: "rgba(118,105,233,0.10)", border: "1px solid rgba(118,105,233,0.25)" }}>
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">Grabación real · Sin edición</span>
+                </div>
+                <h4 className="font-heading text-xl sm:text-2xl lg:text-3xl font-bold tracking-[-0.02em] mb-3 text-white" data-testid="text-cjm-recording-title">
+                  Los números hablan por sí solos
+                </h4>
+                <p id="cjm-recording-description" className="text-white/65 text-sm sm:text-base leading-relaxed max-w-md mx-auto lg:mx-0" data-testid="text-cjm-recording-description">
+                  Mirá cómo se siente bajar por <span className="text-white font-semibold">+6.000 conversaciones</span> reales atendidas por la IA y el equipo, una tras otra. Es la mejor forma de dimensionar el volumen que Cappta puede sostener sin sumar costos a tu operación.
+                </p>
+              </div>
+              <div className="order-1 lg:order-2 flex justify-center">
+                <div className="relative rounded-[2rem] overflow-hidden glass-card p-2" style={{ width: "min(280px, 80vw)" }} data-testid="card-cjm-recording-frame">
+                  <div className="absolute -inset-px rounded-[2rem] pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.35), rgba(150,120,230,0.15) 40%, transparent 70%)", padding: "1px", WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude" }} />
+                  <div className="relative rounded-[1.6rem] overflow-hidden bg-[#0a0a0c]">
+                    <video
+                      src={cjmChatsRecording}
+                      poster={cjmChatsRecordingPoster}
+                      controls
+                      preload="none"
+                      playsInline
+                      muted
+                      className="w-full h-auto block"
+                      aria-label="Grabación del panel Cappta AI bajando por más de 6.000 conversaciones reales"
+                      aria-describedby="cjm-recording-description"
+                      data-testid="video-cjm-chats-recording"
+                    >
+                      Tu navegador no soporta la reproducción de video. Mirá la captura del panel arriba — son las mismas 6.943 conversaciones.
+                    </video>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
