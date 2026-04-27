@@ -7204,7 +7204,7 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
         impersonationId,
       },
       JWT_SECRET,
-      { expiresIn: "2h" },
+      { expiresIn: "4h" },
     );
   }
 
