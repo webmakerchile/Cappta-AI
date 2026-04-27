@@ -3411,12 +3411,44 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       const customerEmail = body.customerEmail.trim();
       if (scheduledAt.getTime() < Date.now() - 5 * 60000) return res.status(400).json({ message: "Fecha pasada" });
 
+      // Server-side availability enforcement: scheduledAt must fall within slot's
+      // configured weekday window AND duration must fit before window end.
+      type AvailabilityRange = { start: string; end: string };
+      type AvailabilityMap = Record<string, AvailabilityRange[]>;
+      const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+      const parseAvailability = (raw: unknown): AvailabilityMap => {
+        if (!raw) return {};
+        if (typeof raw === "string") {
+          try { return JSON.parse(raw) as AvailabilityMap; } catch { return {}; }
+        }
+        if (typeof raw === "object") return raw as AvailabilityMap;
+        return {};
+      };
+      const availMap = parseAvailability(slot.availability);
+      const wd = scheduledAt.getDay();
+      const ranges: AvailabilityRange[] = availMap[WEEKDAY_KEYS[wd]] || availMap[String(wd)] || [];
+      if (ranges.length === 0) {
+        return res.status(400).json({ message: "Día no disponible para reservas" });
+      }
+      const newStart = scheduledAt.getTime();
+      const newEnd = newStart + slot.durationMinutes * 60000;
+      const fitsInWindow = ranges.some((r) => {
+        const [sh, sm] = (r.start || "00:00").split(":").map(Number);
+        const [eh, em] = (r.end || "00:00").split(":").map(Number);
+        const winStart = new Date(scheduledAt);
+        winStart.setHours(sh || 0, sm || 0, 0, 0);
+        const winEnd = new Date(scheduledAt);
+        winEnd.setHours(eh || 0, em || 0, 0, 0);
+        return newStart >= winStart.getTime() && newEnd <= winEnd.getTime();
+      });
+      if (!fitsInWindow) {
+        return res.status(400).json({ message: "Horario fuera del rango disponible" });
+      }
+
       // Conflict check: any non-cancelled appointment overlapping this exact slot start
       const dayStart = new Date(scheduledAt.getTime() - 24 * 3600000);
       const dayEnd = new Date(scheduledAt.getTime() + 24 * 3600000);
       const existing = await storage.getAppointmentsBySlotInRange(slotId, dayStart, dayEnd);
-      const newStart = scheduledAt.getTime();
-      const newEnd = newStart + slot.durationMinutes * 60000;
       const conflict = existing.find(a => {
         const s = a.scheduledAt.getTime();
         const e = s + (a.durationMinutes || slot.durationMinutes) * 60000;
@@ -3601,8 +3633,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       });
 
       try {
-        const io: SocketIOServer | undefined = (global as any).io;
-        if (io) io.to(sessionId).emit("message", msg);
+        io.to(sessionId).emit("message", msg);
       } catch {}
 
       res.json({ link, message: msg, paymentUrl: finalUrl });
