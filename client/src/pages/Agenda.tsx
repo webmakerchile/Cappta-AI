@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Calendar, Clock, Check, ArrowLeft } from "lucide-react";
+import { formatMoney } from "@shared/currencies";
 
 interface SlotData {
   id: number;
@@ -15,6 +16,7 @@ interface SlotData {
   requiresPayment: boolean;
   availability: string;
   tenantName: string;
+  currency?: string;
 }
 
 interface Availability {
@@ -212,7 +214,7 @@ export default function Agenda() {
           <div className="flex flex-wrap gap-3 text-xs text-white/50">
             <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {slot.durationMinutes} min</span>
             {slot.price ? (
-              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">${slot.price.toLocaleString("es-CL")} CLP{slot.requiresPayment ? " · pago al reservar" : ""}</span>
+              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold" data-testid="text-slot-price">{formatMoney(slot.price, slot.currency || "CLP")}{slot.requiresPayment ? " · pago al reservar" : ""}</span>
             ) : null}
           </div>
         </div>
@@ -274,7 +276,7 @@ export default function Agenda() {
               data-testid="button-confirm-booking"
             >
               {book.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Confirmar reserva {slot.price && slot.requiresPayment ? `· $${slot.price.toLocaleString("es-CL")}` : ""}
+              Confirmar reserva {slot.price && slot.requiresPayment ? `· ${formatMoney(slot.price, slot.currency || "CLP")}` : ""}
             </Button>
           </div>
         )}

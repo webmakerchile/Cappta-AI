@@ -1447,14 +1447,14 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, industry: tenant.industry, appliedTemplateSlug: tenant.appliedTemplateSlug, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, industry: tenant.industry, appliedTemplateSlug: tenant.appliedTemplateSlug, currency: tenant.currency, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
-      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, logoScale, avatarUrl, launcherImageUrl, launcherImageScale, botIconUrl, botIconScale, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, welcomeBannerText, launcherBubbleText, launcherBubbleStyle, whatsappGreeting } = req.body;
+      const { companyName, widgetColor, headerTextColor, botBubbleColor, botTextColor, userTextColor, welcomeMessage, welcomeSubtitle, logoUrl, logoScale, avatarUrl, launcherImageUrl, launcherImageScale, botIconUrl, botIconScale, widgetPosition, labelContactButton, labelTicketButton, labelFinalizeButton, domain, formFields, consultationOptions, showProductSearch, productSearchLabel, productApiUrl, botConfigured, onboardingStep, welcomeBannerText, launcherBubbleText, launcherBubbleStyle, whatsappGreeting, currency } = req.body;
       const updates: any = {};
       if (companyName !== undefined) updates.companyName = companyName;
       if (widgetColor !== undefined) updates.widgetColor = widgetColor;
@@ -1488,11 +1488,19 @@ ${DEMO_BASE_RULES}`,
       if (launcherBubbleStyle !== undefined) updates.launcherBubbleStyle = launcherBubbleStyle || "normal";
       if (whatsappGreeting !== undefined) updates.whatsappGreeting = whatsappGreeting || null;
       if (req.body.industry !== undefined) updates.industry = req.body.industry || null;
+      if (currency !== undefined) {
+        const { isValidCurrencyCode } = await import("@shared/currencies");
+        const code = String(currency || "").toUpperCase();
+        if (!isValidCurrencyCode(code)) {
+          return res.status(400).json({ message: "Moneda no válida" });
+        }
+        updates.currency = code;
+      }
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, currency: tenant.currency });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
@@ -3790,7 +3798,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         productId: body.productId || null,
         description: body.description,
         amount: body.amount,
-        currency: "CLP",
+        currency: tenant?.currency || "CLP",
         provider: "mercadopago",
         publicToken: generatePublicToken(),
         status: "pending",
@@ -3852,6 +3860,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       requiresPayment: slot.requiresPayment === 1,
       availability: slot.availability,
       tenantName: tenant?.companyName || tenant?.name || "",
+      currency: tenant?.currency || "CLP",
     });
   });
 
@@ -3965,13 +3974,14 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       if (slot.requiresPayment === 1 && slot.price && slot.price > 0) {
         try {
           const token = generatePublicToken();
+          const slotTenant = await storage.getTenantById(slot.tenantId);
           const linkInsert: InsertChatPaymentLink = {
             tenantId: slot.tenantId,
             customerEmail,
             customerName,
             description: `Reserva: ${slot.name}`,
             amount: slot.price,
-            currency: "CLP",
+            currency: slotTenant?.currency || "CLP",
             provider: "mercadopago",
             publicToken: token,
             status: "pending",
@@ -4067,6 +4077,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
       if (!session || session.tenantId !== auth.id) {
         return res.status(404).json({ message: "Sesión no encontrada" });
       }
+      const tenantCurrency = tenant?.currency || "CLP";
 
       const linkInsert: InsertChatPaymentLink = {
         tenantId: auth.id,
@@ -4076,7 +4087,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         productId: body.productId || null,
         description: body.description,
         amount: body.amount,
-        currency: "CLP",
+        currency: tenantCurrency,
         provider: "mercadopago",
         publicToken: generatePublicToken(),
         status: "pending",
@@ -4107,8 +4118,9 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         log(`Bot payment-link MP error session ${sessionId}: ${mpErr.message}`, "connect");
       }
 
+      const { formatMoney } = await import("@shared/currencies");
       const finalUrl = payUrl || `/pago-resultado/${link.id}?token=${encodeURIComponent(link.publicToken || "")}`;
-      const msgContent = `💳 ${body.description}\nMonto: $${body.amount.toLocaleString("es-CL")} CLP\n👉 ${finalUrl}`;
+      const msgContent = `💳 ${body.description}\nMonto: ${formatMoney(body.amount, tenantCurrency)}\n👉 ${finalUrl}`;
       const msg = await storage.createMessage({
         sessionId,
         tenantId: auth.id,

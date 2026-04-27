@@ -75,6 +75,7 @@ import { GuidesPanel } from "./Guides";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager, SiWhatsapp } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
 import { CHANNEL_MIN_PLAN, planRank, type ChannelSlug } from "@shared/planMatrix";
+import { formatMoney, getCurrencySymbol } from "@shared/currencies";
 import { CapptaIcon } from "@/components/CapptaLogo";
 import OnboardingWizard from "./OnboardingWizard";
 import DashboardTour, { TourPrompt } from "./DashboardTour";
@@ -2943,6 +2944,11 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                 ? "Gratis"
                 : <><span className="font-bold text-white/70">{planPrices[tenant.plan]}</span> CLP/mes</>}
             </p>
+            {(tenant.currency || "CLP") !== "CLP" && tenant.plan !== "free" && tenant.plan !== "enterprise" && (
+              <p className="text-[10px] text-amber-400/80 mt-1" data-testid="text-billed-clp-current">
+                Facturado en CLP
+              </p>
+            )}
           </div>
         </div>
 
@@ -3037,6 +3043,9 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     <div className="text-right">
                       <p className="text-2xl font-black transition-all duration-300 group-hover:scale-105" style={{ color }} data-testid={`badge-price-${key}`}>{planPrices[key]}</p>
                       <p className="text-xs text-white/30">CLP/mes</p>
+                      {(tenant.currency || "CLP") !== "CLP" && (
+                        <p className="text-[9px] text-amber-400/80 font-medium" data-testid={`text-billed-clp-${key}`}>Facturado en CLP</p>
+                      )}
                       <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">7 días para probar</p>
                       {key === "solo" ? (
                         <p className="text-[9px] text-white/30 mt-0.5">WhatsApp como add-on opcional</p>
@@ -4206,7 +4215,8 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
     );
   }
 
-  const fmt = (v: number) => `$${v.toLocaleString("es-CL")}`;
+  const tenantCurrency = tenant.currency || "CLP";
+  const fmt = (v: number) => formatMoney(v, tenantCurrency);
   const copy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => toast({ title: "Copiado al portapapeles" }));
   };
@@ -4259,7 +4269,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
             <p className="text-xs text-white/40 mb-4">Genera un enlace de Mercado Pago para cobrar a un cliente desde el chat o WhatsApp.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input placeholder="Descripción (ej: Consultoría 1h)" value={linkForm.description} onChange={e => setLinkForm({ ...linkForm, description: e.target.value })} data-testid="input-link-description" />
-              <Input type="number" placeholder="Monto en CLP" value={linkForm.amount} onChange={e => setLinkForm({ ...linkForm, amount: e.target.value })} data-testid="input-link-amount" />
+              <Input type="number" placeholder={`Monto en ${tenantCurrency}`} value={linkForm.amount} onChange={e => setLinkForm({ ...linkForm, amount: e.target.value })} data-testid="input-link-amount" />
               <Input placeholder="Nombre cliente (opcional)" value={linkForm.customerName} onChange={e => setLinkForm({ ...linkForm, customerName: e.target.value })} data-testid="input-link-customer-name" />
               <Input type="email" placeholder="Email cliente (opcional)" value={linkForm.customerEmail} onChange={e => setLinkForm({ ...linkForm, customerEmail: e.target.value })} data-testid="input-link-customer-email" />
             </div>
@@ -4284,7 +4294,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
                   <div key={l.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]" data-testid={`row-payment-link-${l.id}`}>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{l.description}</p>
-                      <p className="text-xs text-white/40">{fmt(l.amount)} CLP · {l.customerName || l.customerEmail || "Sin cliente"}</p>
+                      <p className="text-xs text-white/40">{formatMoney(l.amount, l.currency || tenantCurrency)} · {l.customerName || l.customerEmail || "Sin cliente"}</p>
                     </div>
                     <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${
                       l.status === "paid" ? "bg-emerald-500/15 text-emerald-400" :
@@ -4322,7 +4332,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
               <Input placeholder="Nombre del servicio (ej: Consulta inicial)" value={slotForm.name} onChange={e => setSlotForm({ ...slotForm, name: e.target.value })} data-testid="input-slot-name" />
               <Input type="number" placeholder="Duración (minutos)" value={slotForm.durationMinutes} onChange={e => setSlotForm({ ...slotForm, durationMinutes: parseInt(e.target.value) || 30 })} data-testid="input-slot-duration" />
               <Input placeholder="Descripción (opcional)" value={slotForm.description} onChange={e => setSlotForm({ ...slotForm, description: e.target.value })} data-testid="input-slot-description" />
-              <Input type="number" placeholder="Precio CLP (opcional)" value={slotForm.price} onChange={e => setSlotForm({ ...slotForm, price: e.target.value })} data-testid="input-slot-price" />
+              <Input type="number" placeholder={`Precio ${tenantCurrency} (opcional)`} value={slotForm.price} onChange={e => setSlotForm({ ...slotForm, price: e.target.value })} data-testid="input-slot-price" />
             </div>
             <label className="flex items-center gap-2 mt-3 text-sm text-white/60">
               <input type="checkbox" checked={slotForm.requiresPayment} onChange={e => setSlotForm({ ...slotForm, requiresPayment: e.target.checked })} data-testid="checkbox-slot-requires-payment" />
@@ -4346,7 +4356,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
                     <div key={s.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]" data-testid={`row-slot-${s.id}`}>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{s.name}</p>
-                        <p className="text-xs text-white/40">{s.durationMinutes} min{s.price ? ` · ${fmt(s.price)}` : ""}{s.requiresPayment ? " · pago requerido" : ""}</p>
+                        <p className="text-xs text-white/40">{s.durationMinutes} min{s.price ? ` · ${formatMoney(s.price, tenantCurrency)}` : ""}{s.requiresPayment ? " · pago requerido" : ""}</p>
                       </div>
                       <Button size="sm" variant="outline" onClick={() => copy(publicUrl)} data-testid={`button-copy-agenda-${s.id}`}>
                         <Copy className="w-3 h-3 mr-1" /> Link

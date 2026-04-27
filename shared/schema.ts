@@ -188,6 +188,7 @@ export const tenants = pgTable("tenants", {
   rewardPlan: text("reward_plan"),
   rewardExpiresAt: timestamp("reward_expires_at"),
   cashBalance: integer("cash_balance").notNull().default(0),
+  currency: text("currency").notNull().default("CLP"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

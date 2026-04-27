@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Clock, XCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { formatMoney } from "@shared/currencies";
 
 export default function PagoResultado() {
   const linkId = useMemo(() => {
@@ -41,7 +42,7 @@ export default function PagoResultado() {
             <Check className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2" data-testid="text-payment-success">¡Pago confirmado!</h1>
             <p className="text-white/60 mb-2">{link?.description}</p>
-            <p className="text-3xl font-bold text-emerald-400 mb-4">${link?.amount?.toLocaleString("es-CL")} CLP</p>
+            <p className="text-3xl font-bold text-emerald-400 mb-4" data-testid="text-pago-amount-success">{link ? formatMoney(link.amount, link.currency || "CLP") : ""}</p>
             <p className="text-xs text-white/40">{link?.tenantName}</p>
           </>
         ) : isFailed ? (
@@ -55,7 +56,7 @@ export default function PagoResultado() {
             <Clock className="w-12 h-12 text-amber-400 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2" data-testid="text-payment-pending">Pago en proceso</h1>
             <p className="text-white/60 mb-2">{link?.description}</p>
-            <p className="text-3xl font-bold mb-4">${link?.amount?.toLocaleString("es-CL")} CLP</p>
+            <p className="text-3xl font-bold mb-4" data-testid="text-pago-amount-pending">{link ? formatMoney(link.amount, link.currency || "CLP") : ""}</p>
             <p className="text-xs text-white/40">Estamos verificando tu pago. Esta página se actualizará automáticamente.</p>
           </>
         )}

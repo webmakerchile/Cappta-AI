@@ -61,6 +61,17 @@ import {
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
 import type { Tenant } from "@shared/schema";
+import { CURRENCIES, getCurrency, getCurrencyLabel, getCurrencySymbol, formatMoney } from "@shared/currencies";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronsUpDown, DollarSign as CurrencyIcon } from "lucide-react";
 import { CapptaIcon } from "@/components/CapptaLogo";
 
 type TenantProfile = Omit<Tenant, "passwordHash">;
@@ -1509,6 +1520,16 @@ function ProductosTab() {
     },
   });
 
+  const { data: tenantProfile } = useQuery<TenantProfile>({
+    queryKey: ["/api/tenants/me"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenants/me");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+  const currencySymbol = getCurrencySymbol(tenantProfile?.currency || "CLP");
+
   const resetForm = () => {
     setEditId(null);
     setName("");
@@ -1582,7 +1603,7 @@ function ProductosTab() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input data-testid="input-product-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" className="bg-white/[0.04] border-white/[0.08]" />
-            <Input data-testid="input-product-price" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Precio (ej: 9990)" className="bg-white/[0.04] border-white/[0.08]" />
+            <Input data-testid="input-product-price" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={`Precio (${currencySymbol})`} className="bg-white/[0.04] border-white/[0.08]" />
             <Input data-testid="input-product-url" value={productUrl} onChange={(e) => setProductUrl(e.target.value)} placeholder="URL del producto" className="bg-white/[0.04] border-white/[0.08]" />
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger data-testid="select-product-category" className="bg-white/[0.04] border-white/[0.08]"><SelectValue /></SelectTrigger>
@@ -1624,7 +1645,7 @@ function ProductosTab() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white/90">{p.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  {p.price && <span className="text-xs text-[#10b981] font-semibold">${p.price}</span>}
+                  {p.price && <span className="text-xs text-[#10b981] font-semibold" data-testid={`text-product-price-${p.id}`}>{currencySymbol}{p.price}</span>}
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/50">{categoryLabels[p.category] || p.category}</span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded ${p.availability === "available" ? "bg-emerald-500/15 text-emerald-400" : p.availability === "preorder" ? "bg-amber-500/15 text-amber-400" : "bg-red-500/15 text-red-400"}`}>{availLabels[p.availability] || p.availability}</span>
                 </div>
@@ -2486,6 +2507,16 @@ function CatalogQuickEdit() {
     },
   });
 
+  const { data: tenantProfile } = useQuery<TenantProfile>({
+    queryKey: ["/api/tenants/me"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenants/me");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+  const currencySymbol = getCurrencySymbol(tenantProfile?.currency || "CLP");
+
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       const res = await tenantFetch(`/api/tenant-panel/products/${id}`, { method: "PATCH", body: JSON.stringify(data) });
@@ -2592,7 +2623,7 @@ function CatalogQuickEdit() {
               data-testid="input-new-catalog-price"
               value={newPrice}
               onChange={(e) => setNewPrice(e.target.value)}
-              placeholder="Precio (ej: $19.990)"
+              placeholder={`Precio (ej: ${currencySymbol}19.990)`}
               className="bg-white/[0.04] border-white/[0.08] text-sm"
             />
             <Input
@@ -2715,7 +2746,7 @@ function CatalogQuickEdit() {
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20 font-medium shrink-0">{p.badgeLabel}</span>
                       )}
                     </div>
-                    <span className="text-xs text-white/40">{p.price || "Sin precio"}</span>
+                    <span className="text-xs text-white/40" data-testid={`text-catalog-price-${p.id}`}>{p.price ? `${currencySymbol}${p.price}` : "Sin precio"}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button size="sm" variant="ghost" onClick={() => startEdit(p)} className="text-white/40 hover:text-white/70 h-7 w-7 p-0" data-testid={`button-edit-catalog-${p.id}`}>
@@ -2747,12 +2778,56 @@ function AjustesTab() {
     },
   });
 
+  const { data: tenantProfile } = useQuery<TenantProfile>({
+    queryKey: ["/api/tenants/me"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenants/me");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
   const [aiEnabled, setAiEnabled] = useState(true);
   const [bhEnabled, setBhEnabled] = useState(false);
   const [bhStart, setBhStart] = useState("09:00");
   const [bhEnd, setBhEnd] = useState("18:00");
   const [bhDays, setBhDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [bhMessage, setBhMessage] = useState("Estamos fuera del horario de atención. Te responderemos pronto.");
+  const [currency, setCurrency] = useState<string>("CLP");
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+
+  useEffect(() => {
+    if (tenantProfile?.currency) setCurrency(tenantProfile.currency);
+  }, [tenantProfile?.currency]);
+
+  const currencyMutation = useMutation({
+    mutationFn: async (newCurrency: string) => {
+      const res = await tenantFetch("/api/tenants/me", { method: "PATCH", body: JSON.stringify({ currency: newCurrency }) });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Error al guardar la moneda");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/settings"] });
+      toast({ title: "Moneda actualizada" });
+    },
+    onError: (e: any) => {
+      toast({ title: "No se pudo guardar la moneda", description: e?.message || "", variant: "destructive" });
+    },
+  });
+
+  const handleCurrencyChange = (code: string) => {
+    setCurrency(code);
+    setCurrencyOpen(false);
+    currencyMutation.mutate(code);
+  };
+
+  const currentCurrency = getCurrency(currency);
+  const currencySample = formatMoney(12345.67, currency);
 
   useEffect(() => {
     if (settings) {
@@ -2810,6 +2885,67 @@ function AjustesTab() {
           </div>
           <Switch data-testid="switch-ai-enabled" checked={aiEnabled} onCheckedChange={setAiEnabled} />
         </div>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <CurrencyIcon className="w-4 h-4 text-[#7669E9]" />
+          <p className="text-sm font-medium text-white/80">Moneda del negocio</p>
+        </div>
+        <p className="text-xs text-white/40">
+          Define cómo se muestran los precios en productos, links de pago, agenda y reportes. Los planes y cobros de Cappta siguen facturándose en CLP.
+        </p>
+        <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              data-testid="button-currency-selector"
+              role="combobox"
+              aria-expanded={currencyOpen}
+              className="w-full flex items-center justify-between gap-2 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white/80 hover:bg-white/[0.06] transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/60">{currency}</span>
+                <span className="truncate">{currentCurrency.name}</span>
+                <span className="text-white/40">({currentCurrency.symbol})</span>
+              </span>
+              <ChevronsUpDown className="w-4 h-4 text-white/40 shrink-0" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-[#0a0a0a] border-white/[0.08]" align="start">
+            <Command className="bg-transparent">
+              <CommandInput data-testid="input-currency-search" placeholder="Buscar moneda..." className="text-white/80" />
+              <CommandList className="max-h-[280px]">
+                <CommandEmpty>Sin resultados</CommandEmpty>
+                <CommandGroup>
+                  {CURRENCIES.map((c) => (
+                    <CommandItem
+                      key={c.code}
+                      value={`${c.code} ${c.name}`}
+                      data-testid={`option-currency-${c.code}`}
+                      onSelect={() => handleCurrencyChange(c.code)}
+                      className="flex items-center gap-2 text-white/80 aria-selected:bg-white/[0.06]"
+                    >
+                      <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/60 w-12 text-center">{c.code}</span>
+                      <span className="flex-1 truncate">{c.name}</span>
+                      <span className="text-xs text-white/40">{c.symbol}</span>
+                      {c.code === currency && <Check className="w-3.5 h-3.5 text-[#7669E9]" />}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="text-white/40">Vista previa:</span>
+          <span className="text-white/80 font-medium" data-testid="text-currency-preview">{currencySample}</span>
+        </div>
+        {currencyMutation.isPending && (
+          <div className="flex items-center gap-2 text-xs text-white/50">
+            <Loader2 className="w-3 h-3 animate-spin" /> Guardando...
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
