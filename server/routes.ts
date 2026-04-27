@@ -1206,7 +1206,7 @@ ${DEMO_BASE_RULES}`,
 
   app.post("/api/tenants/register", async (req, res) => {
     try {
-      const { name, email, password, companyName, referralCode } = req.body;
+      const { name, email, password, companyName, referralCode, requestedPlan } = req.body;
       if (!name || !email || !password || !companyName) {
         return res.status(400).json({ message: "Todos los campos son requeridos" });
       }
@@ -1225,6 +1225,11 @@ ${DEMO_BASE_RULES}`,
         }
       }
       const passwordHash = await bcrypt.hash(password, 10);
+      const validRequestedPlans = ["solo", "basic", "scale", "enterprise"];
+      const safeRequestedPlan =
+        typeof requestedPlan === "string" && validRequestedPlans.includes(requestedPlan)
+          ? requestedPlan
+          : null;
       const tenant = await storage.createTenant({
         name,
         email: email.toLowerCase().trim(),
@@ -1232,6 +1237,9 @@ ${DEMO_BASE_RULES}`,
         companyName,
         ...(referrerId ? { referredBy: referrerId } : {}),
       });
+      if (safeRequestedPlan) {
+        log(`Plan recomendado al registrar tenant ${tenant.id}: ${safeRequestedPlan} (será propuesto en el dashboard como upgrade)`, "auth");
+      }
       if (referrerId) {
         try {
           await storage.createReferral({ referrerId, referredId: tenant.id });
