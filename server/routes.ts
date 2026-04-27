@@ -2995,6 +2995,18 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
     if (!allowed.includes(ch)) return res.status(400).json({ message: "Canal invalido" });
 
     try {
+      const { tenantCanUseChannel, getChannelMinPlan } = await import("./channels/planGating");
+      const tenantRow = await storage.getTenantById(auth.id);
+      const plan = tenantRow?.plan || "free";
+      if (!tenantCanUseChannel(plan, ch as any)) {
+        const min = getChannelMinPlan(ch as any);
+        return res.status(403).json({
+          message: `Este canal está disponible desde ${min.label}. Mejorá tu plan para activarlo.`,
+          requiredPlan: min.plan,
+          requiredPlanLabel: min.label,
+        });
+      }
+
       const body = req.body || {};
       const updates: any = {};
       // Common fields

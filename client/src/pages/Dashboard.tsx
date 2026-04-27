@@ -3520,6 +3520,15 @@ interface ChannelInfo {
   lastSyncedAt: string | null;
 }
 
+const PLAN_RANK_CLIENT: Record<string, number> = {
+  free: 0,
+  solo: 1,
+  basic: 2,
+  scale: 3,
+  pro: 3,
+  enterprise: 4,
+};
+
 const CHANNEL_CATALOG = [
   {
     slug: "telegram",
@@ -3527,6 +3536,8 @@ const CHANNEL_CATALOG = [
     emoji: "✈️",
     color: "#0088cc",
     description: "Setup express con BotFather. 60 segundos.",
+    requiredPlan: "scale",
+    requiredPlanLabel: "Cappta Scale",
     fields: [
       { key: "botToken", label: "Bot Token (BotFather)", placeholder: "123456:ABC-DEF..." },
       { key: "displayName", label: "Nombre del bot (opcional)", placeholder: "@MiBot" },
@@ -3539,6 +3550,8 @@ const CHANNEL_CATALOG = [
     emoji: "📱",
     color: "#25D366",
     description: "Conexión directa con Meta Cloud API (sin Twilio).",
+    requiredPlan: "enterprise",
+    requiredPlanLabel: "Cappta Enterprise",
     fields: [
       { key: "accessToken", label: "Access Token", placeholder: "EAAB..." },
       { key: "phoneNumberId", label: "Phone Number ID", placeholder: "1234567890" },
@@ -3552,6 +3565,8 @@ const CHANNEL_CATALOG = [
     emoji: "📷",
     color: "#E1306C",
     description: "Recibí y respondé DMs de Instagram Business.",
+    requiredPlan: "scale",
+    requiredPlanLabel: "Cappta Scale",
     fields: [
       { key: "accessToken", label: "Page Access Token", placeholder: "EAAB..." },
       { key: "igUserId", label: "IG User ID", placeholder: "1789..." },
@@ -3565,6 +3580,8 @@ const CHANNEL_CATALOG = [
     emoji: "💬",
     color: "#0084FF",
     description: "Atendé mensajes desde tu Página de Facebook.",
+    requiredPlan: "scale",
+    requiredPlanLabel: "Cappta Scale",
     fields: [
       { key: "accessToken", label: "Page Access Token", placeholder: "EAAB..." },
       { key: "pageId", label: "Page ID", placeholder: "1234567890" },
@@ -3578,6 +3595,8 @@ const CHANNEL_CATALOG = [
     emoji: "📧",
     color: "#F59E0B",
     description: "Convierte emails en conversaciones de chat.",
+    requiredPlan: "solo",
+    requiredPlanLabel: "Cappta Solo",
     fields: [
       { key: "inboundAddress", label: "Dirección inbound", placeholder: "soporte+t1@cappta.app" },
       { key: "displayName", label: "Nombre que ven los clientes", placeholder: "Soporte de tu negocio" },
@@ -3687,6 +3706,56 @@ function CanalesSection({ tenant, token }: { tenant: TenantProfile; token: strin
           const isConnected = !!existing;
           const isEnabled = existing?.enabled === 1;
           const isEditing = editing === cfg.slug;
+          const tenantRank = PLAN_RANK_CLIENT[tenant.plan] ?? 0;
+          const requiredRank = PLAN_RANK_CLIENT[cfg.requiredPlan] ?? 0;
+          const isLocked = tenantRank < requiredRank;
+
+          if (isLocked) {
+            return (
+              <div
+                key={cfg.slug}
+                className="rounded-2xl glass-card p-5 relative overflow-hidden opacity-80"
+                data-testid={`card-channel-${cfg.slug}`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-xl grayscale"
+                      style={{ background: `${cfg.color}10`, color: cfg.color }}
+                    >
+                      {cfg.emoji}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white/70" data-testid={`text-channel-name-${cfg.slug}`}>{cfg.name}</h3>
+                      <p className="text-xs text-white/40">{cfg.description}</p>
+                    </div>
+                  </div>
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full border font-medium bg-amber-500/10 border-amber-500/30 text-amber-300"
+                    data-testid={`badge-channel-locked-${cfg.slug}`}
+                  >
+                    {cfg.requiredPlanLabel}+
+                  </span>
+                </div>
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3 text-xs text-white/55 mb-3">
+                  Disponible desde <strong className="text-white/80">{cfg.requiredPlanLabel}</strong>. Mejorá tu plan para activar este canal.
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-amber-500/30 hover:bg-amber-500/10 text-amber-300"
+                  onClick={() => {
+                    const planTab = document.querySelector('[data-testid="nav-plan"]');
+                    if (planTab) (planTab as HTMLElement).click();
+                  }}
+                  data-testid={`button-upgrade-${cfg.slug}`}
+                >
+                  <Zap className="w-3.5 h-3.5 mr-2" />
+                  Mejorar a {cfg.requiredPlanLabel}
+                </Button>
+              </div>
+            );
+          }
 
           return (
             <div
