@@ -1,7 +1,7 @@
 import { storage, salesEngine } from "../storage";
 import type { LeadScoreFactor } from "@shared/schema";
 import { isTenantPaid } from "./safety";
-import { chat as llmChat, resolveModelForTenant } from "../llm";
+import { chat as llmChat, resolveCheapModelForTenant } from "../llm";
 
 const pendingScores = new Map<string, NodeJS.Timeout>();
 
@@ -58,7 +58,10 @@ Reglas:
 Responde SOLO con un objeto JSON con: score, temperature, intent, factors, reasoning, nextAction.`;
 
   try {
-    const model = resolveModelForTenant(tenant || null);
+    // Lead scoring is a low-cost background task — always use the cheapest
+    // model in the tenant's configured provider regardless of their chat
+    // model selection (e.g. tenants on gpt-4o still get gpt-4o-mini here).
+    const model = resolveCheapModelForTenant(tenant || null);
     const resp = await llmChat({
       tenantId,
       model,

@@ -1,5 +1,11 @@
 import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+  ChatCompletionChunk,
+} from "openai/resources/chat/completions";
+import type { Stream } from "openai/streaming";
 import { storage } from "../storage";
 import type { Tenant } from "@shared/schema";
 
@@ -34,8 +40,6 @@ export const MODEL_PRICING_PER_MTOK_USD: Record<LlmModel, { input: number; outpu
   "claude-sonnet-4-5": { input: 3.00, output: 15.00 },
 };
 
-// GPT-only por ahora. Anthropic queda como stub futuro y se habilita
-// explícitamente con LLM_ENABLE_ANTHROPIC=1 + ANTHROPIC_API_KEY.
 export const PLAN_ALLOWED_MODELS: Record<string, LlmModel[]> = {
   free: ["gpt-4o-mini"],
   solo: ["gpt-4o-mini"],
@@ -54,13 +58,17 @@ export const MODEL_LABELS: Record<LlmModel, string> = {
   "claude-sonnet-4-5": "Claude Sonnet 4.5 (próximamente)",
 };
 
+const CHEAP_MODEL_BY_PROVIDER: Record<LlmProvider, LlmModel> = {
+  openai: "gpt-4o-mini",
+  anthropic: "claude-haiku-4",
+};
+
 export function isValidModel(value: unknown): value is LlmModel {
   return typeof value === "string" && value in MODEL_PROVIDER;
 }
 
 export function getAllowedModelsForPlan(plan: string | null | undefined): LlmModel[] {
   const list = [...(PLAN_ALLOWED_MODELS[plan || "free"] || PLAN_ALLOWED_MODELS.free)];
-  // Anthropic queda detrás de un feature flag explícito + API key
   const anthropicEnabled = process.env.LLM_ENABLE_ANTHROPIC === "1" && !!process.env.ANTHROPIC_API_KEY;
   if (anthropicEnabled && (plan === "pro" || plan === "enterprise")) {
     return [...list, ...ANTHROPIC_PRO_MODELS];
@@ -74,6 +82,18 @@ export function resolveModelForTenant(tenant: Pick<Tenant, "plan" | "aiModel"> |
   const allowed = getAllowedModelsForPlan(plan);
   if (allowed.includes(requested)) return requested;
   return allowed[0] || DEFAULT_MODEL;
+}
+
+/**
+ * Resolves the cheapest model in the same provider family as the tenant's
+ * configured model. Used for internal/background workloads (lead scoring,
+ * KB extraction) where we want to honor the tenant's provider choice but
+ * minimize cost regardless of which premium model they picked for chat.
+ */
+export function resolveCheapModelForTenant(tenant: Pick<Tenant, "plan" | "aiModel"> | null | undefined): LlmModel {
+  const chosen = resolveModelForTenant(tenant);
+  const provider = MODEL_PROVIDER[chosen] || "openai";
+  return CHEAP_MODEL_BY_PROVIDER[provider] || DEFAULT_MODEL;
 }
 
 let _openai: OpenAI | null = null;
@@ -108,10 +128,21 @@ interface StreamOpts extends ChatOpts {
   onChunk?: (delta: string, accumulated: string) => void;
 }
 
+interface RawChatOutput {
+  content: string;
+  tokensIn: number;
+  tokensOut: number;
+}
+
 function computeCostMicros(model: LlmModel, tokensIn: number, tokensOut: number): number {
   const p = MODEL_PRICING_PER_MTOK_USD[model] || MODEL_PRICING_PER_MTOK_USD[DEFAULT_MODEL];
   const usd = (tokensIn * p.input + tokensOut * p.output) / 1_000_000;
   return Math.round(usd * 1_000_000);
+}
+
+function errorMessageOf(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  return String(e);
 }
 
 async function recordUsage(params: {
@@ -124,7 +155,7 @@ async function recordUsage(params: {
   latencyMs: number;
   status: "ok" | "fallback" | "error";
   errorMessage?: string | null;
-}) {
+}): Promise<void> {
   try {
     await storage.recordLlmUsage({
       tenantId: params.tenantId ?? null,
@@ -138,14 +169,14 @@ async function recordUsage(params: {
       status: params.status,
       errorMessage: params.errorMessage ?? null,
     });
-  } catch (e: any) {
-    console.error("[llm] recordUsage failed:", e?.message);
+  } catch (e) {
+    console.error("[llm] recordUsage failed:", errorMessageOf(e));
   }
 }
 
-async function callOpenAI(model: LlmModel, opts: ChatOpts): Promise<{ content: string; tokensIn: number; tokensOut: number }> {
+async function callOpenAI(model: LlmModel, opts: ChatOpts): Promise<RawChatOutput> {
   const messages = opts.messages.map((m) => ({ role: m.role, content: m.content })) as ChatCompletionMessageParam[];
-  const params: any = {
+  const params: ChatCompletionCreateParamsNonStreaming = {
     model,
     messages,
     temperature: opts.temperature ?? 0.7,
@@ -161,7 +192,7 @@ async function callOpenAI(model: LlmModel, opts: ChatOpts): Promise<{ content: s
   return { content, tokensIn, tokensOut };
 }
 
-async function callAnthropic(_model: LlmModel, _opts: ChatOpts): Promise<{ content: string; tokensIn: number; tokensOut: number }> {
+async function callAnthropic(_model: LlmModel, _opts: ChatOpts): Promise<RawChatOutput> {
   // Anthropic provider stub. When ANTHROPIC_API_KEY is wired and @anthropic-ai/sdk
   // is installed, this is the only place that needs to change. For now we throw
   // so the abstraction falls back to OpenAI cleanly.
@@ -175,19 +206,15 @@ export async function chat(opts: ChatOpts): Promise<ChatResult> {
 
   const start = Date.now();
   try {
-    if (provider === "anthropic") {
-      const { content, tokensIn, tokensOut } = await callAnthropic(requested, opts);
-      const latencyMs = Date.now() - start;
-      await recordUsage({ tenantId: opts.tenantId, model: requested, provider, kind, tokensIn, tokensOut, latencyMs, status: "ok" });
-      return { content, model: requested, provider, tokensIn, tokensOut, latencyMs, fellBack: false };
-    }
-    const { content, tokensIn, tokensOut } = await callOpenAI(requested, opts);
+    const { content, tokensIn, tokensOut } = provider === "anthropic"
+      ? await callAnthropic(requested, opts)
+      : await callOpenAI(requested, opts);
     const latencyMs = Date.now() - start;
     await recordUsage({ tenantId: opts.tenantId, model: requested, provider, kind, tokensIn, tokensOut, latencyMs, status: "ok" });
     return { content, model: requested, provider, tokensIn, tokensOut, latencyMs, fellBack: false };
-  } catch (primaryErr: any) {
+  } catch (primaryErr) {
     const primaryLatency = Date.now() - start;
-    const errorMessage = primaryErr?.message || String(primaryErr);
+    const errorMessage = errorMessageOf(primaryErr);
     console.error(`[llm] primary ${requested} failed: ${errorMessage}`);
     await recordUsage({
       tenantId: opts.tenantId,
@@ -228,49 +255,59 @@ export async function chat(opts: ChatOpts): Promise<ChatResult> {
         latencyMs,
         fellBack: true,
       };
-    } catch (fallbackErr: any) {
-      console.error(`[llm] fallback also failed: ${fallbackErr?.message}`);
+    } catch (fallbackErr) {
+      console.error(`[llm] fallback also failed: ${errorMessageOf(fallbackErr)}`);
       throw fallbackErr;
     }
   }
 }
 
+async function streamOnceOpenAI(
+  model: LlmModel,
+  opts: StreamOpts,
+): Promise<RawChatOutput> {
+  const messages = opts.messages.map((m) => ({ role: m.role, content: m.content })) as ChatCompletionMessageParam[];
+  const params: ChatCompletionCreateParamsStreaming = {
+    model,
+    messages,
+    temperature: opts.temperature ?? 0.7,
+    max_completion_tokens: opts.maxTokens ?? 1000,
+    stream: true,
+    stream_options: { include_usage: true },
+  };
+  const stream: Stream<ChatCompletionChunk> = await openaiClient().chat.completions.create(params);
+
+  let accumulated = "";
+  let tokensIn = 0;
+  let tokensOut = 0;
+  for await (const chunk of stream) {
+    const delta = chunk.choices?.[0]?.delta?.content;
+    if (delta) {
+      accumulated += delta;
+      if (opts.onChunk) opts.onChunk(delta, accumulated);
+    }
+    if (chunk.usage) {
+      tokensIn = chunk.usage.prompt_tokens || tokensIn;
+      tokensOut = chunk.usage.completion_tokens || tokensOut;
+    }
+  }
+  return { content: accumulated, tokensIn, tokensOut };
+}
+
 export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
   const requested = opts.model || DEFAULT_MODEL;
-  const provider = MODEL_PROVIDER[requested] || "openai";
+  const requestedProvider = MODEL_PROVIDER[requested] || "openai";
   const kind = opts.kind || "chat_stream";
-  const start = Date.now();
 
-  // Anthropic streaming not implemented yet — fall back transparently to OpenAI.
-  const useModel: LlmModel = provider === "anthropic" ? FALLBACK_MODEL : requested;
+  // Anthropic streaming not implemented yet — fall back transparently to OpenAI
+  // before even trying. This is a "pre-fallback", not a runtime failure.
+  const useModel: LlmModel = requestedProvider === "anthropic" ? FALLBACK_MODEL : requested;
   const useProvider: LlmProvider = MODEL_PROVIDER[useModel];
   const fellBackBeforeCall = useModel !== requested;
 
-  const messages = opts.messages.map((m) => ({ role: m.role, content: m.content })) as ChatCompletionMessageParam[];
+  const start = Date.now();
   try {
-    const stream = await openaiClient().chat.completions.create({
-      model: useModel,
-      messages,
-      temperature: opts.temperature ?? 0.7,
-      max_completion_tokens: opts.maxTokens ?? 1000,
-      stream: true,
-      stream_options: { include_usage: true },
-    } as any);
-
-    let accumulated = "";
-    let tokensIn = 0;
-    let tokensOut = 0;
-    for await (const chunk of stream as any) {
-      const delta = chunk.choices?.[0]?.delta?.content;
-      if (delta) {
-        accumulated += delta;
-        if (opts.onChunk) opts.onChunk(delta, accumulated);
-      }
-      if (chunk.usage) {
-        tokensIn = chunk.usage.prompt_tokens || tokensIn;
-        tokensOut = chunk.usage.completion_tokens || tokensOut;
-      }
-    }
+    const { content, tokensIn, tokensOut } = await streamOnceOpenAI(useModel, opts);
     const latencyMs = Date.now() - start;
     await recordUsage({
       tenantId: opts.tenantId,
@@ -284,7 +321,7 @@ export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
       errorMessage: fellBackBeforeCall ? `anthropic streaming not configured; used ${useModel}` : null,
     });
     return {
-      content: accumulated,
+      content,
       model: useModel,
       provider: useProvider,
       tokensIn,
@@ -292,8 +329,10 @@ export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
       latencyMs,
       fellBack: fellBackBeforeCall,
     };
-  } catch (err: any) {
-    const latencyMs = Date.now() - start;
+  } catch (primaryErr) {
+    const primaryLatency = Date.now() - start;
+    const errorMessage = errorMessageOf(primaryErr);
+    console.error(`[llm] stream ${useModel} failed: ${errorMessage}`);
     await recordUsage({
       tenantId: opts.tenantId,
       model: useModel,
@@ -301,10 +340,43 @@ export async function chatStream(opts: StreamOpts): Promise<ChatResult> {
       kind,
       tokensIn: 0,
       tokensOut: 0,
-      latencyMs,
+      latencyMs: primaryLatency,
       status: "error",
-      errorMessage: err?.message || String(err),
+      errorMessage,
     });
-    throw err;
+
+    // Runtime fallback: if a premium OpenAI model failed mid-stream, retry
+    // transparently with the cheap fallback so end users don't see an error.
+    if (useModel === FALLBACK_MODEL) {
+      throw primaryErr;
+    }
+    const fallbackStart = Date.now();
+    try {
+      const { content, tokensIn, tokensOut } = await streamOnceOpenAI(FALLBACK_MODEL, opts);
+      const latencyMs = Date.now() - fallbackStart;
+      await recordUsage({
+        tenantId: opts.tenantId,
+        model: FALLBACK_MODEL,
+        provider: MODEL_PROVIDER[FALLBACK_MODEL],
+        kind,
+        tokensIn,
+        tokensOut,
+        latencyMs,
+        status: "fallback",
+        errorMessage: `stream fallback from ${useModel}: ${errorMessage}`,
+      });
+      return {
+        content,
+        model: FALLBACK_MODEL,
+        provider: MODEL_PROVIDER[FALLBACK_MODEL],
+        tokensIn,
+        tokensOut,
+        latencyMs,
+        fellBack: true,
+      };
+    } catch (fallbackErr) {
+      console.error(`[llm] stream fallback also failed: ${errorMessageOf(fallbackErr)}`);
+      throw fallbackErr;
+    }
   }
 }

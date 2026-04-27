@@ -8,7 +8,7 @@ import {
   Plus, Tag, CheckCircle, Circle, Pencil, Trash2, Zap, Save, XCircle, Gamepad2,
   Send, ShieldCheck, ShieldOff, ShieldAlert, ImagePlus, Loader2, Package, Star, Users, Bell, BellOff, Key,
   UserPlus, UserMinus, Check, ArrowRightLeft, Settings, FileText, BookOpen,
-  DollarSign, Activity, TrendingUp, BarChart3, Globe
+  DollarSign, Activity, TrendingUp, BarChart3, Globe, Cpu
 } from "lucide-react";
 import { GuidesPanel } from "./Guides";
 import {
@@ -4479,6 +4479,150 @@ function TenantsPanel() {
   );
 }
 
+interface LLMUsageStat {
+  provider: string;
+  model: string;
+  status: string;
+  requests: number;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+  avgLatencyMs: number;
+}
+
+function LLMUsagePanel() {
+  const [days, setDays] = useState<number>(30);
+  const { data, isLoading } = useQuery<LLMUsageStat[]>({
+    queryKey: ["/api/admin/llm/usage", days],
+    queryFn: async () => {
+      const token = getAuthToken();
+      const res = await fetch(`/api/admin/llm/usage?days=${days}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("No se pudo cargar el uso de IA");
+      return res.json();
+    },
+  });
+
+  const rows = data || [];
+  const totals = useMemo(() => {
+    let requests = 0;
+    let tokensIn = 0;
+    let tokensOut = 0;
+    let costUsd = 0;
+    for (const r of rows) {
+      requests += r.requests;
+      tokensIn += r.tokensIn;
+      tokensOut += r.tokensOut;
+      costUsd += r.costUsd;
+    }
+    return { requests, tokensIn, tokensOut, costUsd };
+  }, [rows]);
+
+  const fmtUsd = (usd: number) => `$${usd.toFixed(4)}`;
+  const fmtNum = (n: number) => n.toLocaleString("es-CL");
+
+  return (
+    <div className="flex-1 overflow-auto p-4 sm:p-6 bg-[#0a0a0a]">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-[#7669E9]" />
+              Uso global de IA
+            </h2>
+            <p className="text-xs text-white/40 mt-1">Consumo agregado por proveedor, modelo y tipo de tarea (todos los tenants).</p>
+          </div>
+          <div className="flex gap-1.5">
+            {[7, 30, 90].map((d) => (
+              <button
+                key={d}
+                data-testid={`button-llm-range-${d}`}
+                onClick={() => setDays(d)}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
+                  days === d
+                    ? "bg-[#7669E9] text-white"
+                    : "bg-white/5 text-white/60 hover:bg-white/10"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="bg-white/5 border border-white/10 rounded-lg p-3" data-testid="stat-llm-requests">
+            <div className="text-xs text-white/40 mb-1">Llamadas</div>
+            <div className="text-lg sm:text-xl font-semibold text-white">{fmtNum(totals.requests)}</div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-lg p-3" data-testid="stat-llm-tokens-in">
+            <div className="text-xs text-white/40 mb-1">Tokens entrada</div>
+            <div className="text-lg sm:text-xl font-semibold text-white">{fmtNum(totals.tokensIn)}</div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-lg p-3" data-testid="stat-llm-tokens-out">
+            <div className="text-xs text-white/40 mb-1">Tokens salida</div>
+            <div className="text-lg sm:text-xl font-semibold text-white">{fmtNum(totals.tokensOut)}</div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-lg p-3" data-testid="stat-llm-cost">
+            <div className="text-xs text-white/40 mb-1">Costo USD</div>
+            <div className="text-lg sm:text-xl font-semibold text-[#34d399]">{fmtUsd(totals.costUsd)}</div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center text-white/40 py-12 text-sm">Cargando uso de IA…</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center text-white/40 py-12 text-sm">
+            Aún no hay llamadas registradas en este rango.
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+            <table className="w-full text-xs sm:text-sm" data-testid="table-llm-usage">
+              <thead>
+                <tr className="bg-white/5 text-white/50 text-left">
+                  <th className="px-3 py-2 font-normal">Proveedor</th>
+                  <th className="px-3 py-2 font-normal">Modelo</th>
+                  <th className="px-3 py-2 font-normal">Estado</th>
+                  <th className="px-3 py-2 font-normal text-right">Llamadas</th>
+                  <th className="px-3 py-2 font-normal text-right">Tokens IN</th>
+                  <th className="px-3 py-2 font-normal text-right">Tokens OUT</th>
+                  <th className="px-3 py-2 font-normal text-right">Costo USD</th>
+                  <th className="px-3 py-2 font-normal text-right">Latencia ms</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr
+                    key={`${r.provider}-${r.model}-${r.status}-${i}`}
+                    className="border-t border-white/5 text-white/70"
+                    data-testid={`row-llm-${r.provider}-${r.model}-${r.status}`}
+                  >
+                    <td className="px-3 py-2">{r.provider}</td>
+                    <td className="px-3 py-2 font-mono text-[11px]">{r.model}</td>
+                    <td className="px-3 py-2">
+                      <span className={
+                        r.status === "ok" ? "text-[#34d399]" :
+                        r.status === "fallback" ? "text-amber-400" :
+                        "text-red-400"
+                      }>{r.status}</span>
+                    </td>
+                    <td className="px-3 py-2 text-right">{fmtNum(r.requests)}</td>
+                    <td className="px-3 py-2 text-right">{fmtNum(r.tokensIn)}</td>
+                    <td className="px-3 py-2 text-right">{fmtNum(r.tokensOut)}</td>
+                    <td className="px-3 py-2 text-right text-[#34d399]">{fmtUsd(r.costUsd)}</td>
+                    <td className="px-3 py-2 text-right">{Math.round(r.avgLatencyMs)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState<{ id: number; email: string; role: string; displayName: string; color?: string } | null>(null);
@@ -4489,7 +4633,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<"all" | "bot" | "ejecutivo" | "solicita">("all");
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "pendientes" | "mis_chats">("all");
-  const [adminTab, setAdminTab] = useState<"dashboard" | "conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge" | "tenants" | "guides">("conversations");
+  const [adminTab, setAdminTab] = useState<"dashboard" | "conversations" | "canned" | "products" | "users" | "settings" | "tags" | "knowledge" | "tenants" | "guides" | "llm">("conversations");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -5118,6 +5262,21 @@ export default function AdminPage() {
         </button>
         {adminUser?.role !== "ejecutivo" && (
           <button
+            data-testid="tab-llm"
+            onClick={() => setAdminTab("llm")}
+            className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              adminTab === "llm" ? "text-[#34d399]" : "text-white/40 hover:text-white/60"
+            }`}
+          >
+            <Cpu className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            Uso de IA
+            {adminTab === "llm" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#34d399]" />
+            )}
+          </button>
+        )}
+        {adminUser?.role !== "ejecutivo" && (
+          <button
             data-testid="tab-users"
             onClick={() => setAdminTab("users")}
             className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors relative flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -5181,6 +5340,8 @@ export default function AdminPage() {
         <TenantsPanel />
       ) : adminTab === "guides" ? (
         <GuidesPanel />
+      ) : adminTab === "llm" ? (
+        <LLMUsagePanel />
       ) : (
         <div className="flex-1 flex min-h-0">
           <div className={`w-full md:w-80 lg:w-96 border-r border-white/[0.06] flex flex-col ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
