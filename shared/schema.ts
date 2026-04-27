@@ -171,7 +171,7 @@ export const tenants = pgTable("tenants", {
   aiEnabled: integer("ai_enabled").notNull().default(1),
   botContext: text("bot_context"),
   businessHoursConfig: text("business_hours_config"),
-  plan: text("plan", { enum: ["free", "basic", "pro"] }).notNull().default("free"),
+  plan: text("plan", { enum: ["free", "solo", "basic", "scale", "pro", "enterprise"] }).notNull().default("free"),
   isTrial: integer("is_trial").notNull().default(0),
   flowCustomerId: text("flow_customer_id"),
   mpSubscriptionId: text("mp_subscription_id"),
@@ -375,6 +375,30 @@ export type Addon = typeof addons.$inferSelect;
 export const insertTenantAddonSchema = createInsertSchema(tenantAddons).omit({ id: true, activatedAt: true, cancelledAt: true });
 export type InsertTenantAddon = z.infer<typeof insertTenantAddonSchema>;
 export type TenantAddon = typeof tenantAddons.$inferSelect;
+
+export const enterpriseLeads = pgTable("enterprise_leads", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  company: text("company").notNull(),
+  companySize: text("company_size"),
+  industry: text("industry"),
+  monthlyConversations: text("monthly_conversations"),
+  channels: text("channels"),
+  message: text("message"),
+  source: text("source").notNull().default("enterprise_form"),
+  status: text("status", { enum: ["new", "contacted", "qualified", "won", "lost"] }).notNull().default("new"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertEnterpriseLeadSchema = createInsertSchema(enterpriseLeads).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+export type InsertEnterpriseLead = z.infer<typeof insertEnterpriseLeadSchema>;
+export type EnterpriseLead = typeof enterpriseLeads.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

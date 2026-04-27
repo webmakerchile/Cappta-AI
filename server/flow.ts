@@ -3,21 +3,153 @@ const MP_PUBLIC_KEY = process.env.MP_PUBLIC_KEY || "";
 const BASE_URL = "https://api.mercadopago.com";
 
 export const PLAN_LIMITS: Record<string, { maxSessions: number; maxMessages: number; maxAgents: number }> = {
-  free: { maxSessions: 10, maxMessages: 100, maxAgents: 1 },
+  free: { maxSessions: 50, maxMessages: 500, maxAgents: 1 },
+  solo: { maxSessions: 200, maxMessages: 2000, maxAgents: 1 },
   basic: { maxSessions: 500, maxMessages: 5000, maxAgents: 3 },
-  pro: { maxSessions: Infinity, maxMessages: Infinity, maxAgents: 10 },
+  scale: { maxSessions: 5000, maxMessages: 50000, maxAgents: 10 },
+  pro: { maxSessions: Infinity, maxMessages: Infinity, maxAgents: 25 },
+  enterprise: { maxSessions: Infinity, maxMessages: Infinity, maxAgents: Infinity },
 };
 
+export interface PlanTierMeta {
+  slug: string;
+  name: string;
+  amount: number;
+  conversations: string;
+  messages: string;
+  channels: string[];
+  audience: string;
+  highlights: string[];
+  badge?: string;
+  cta: string;
+  ctaHref: string;
+  highlighted?: boolean;
+  sellable: boolean;
+}
+
+export const PLAN_TIERS: PlanTierMeta[] = [
+  {
+    slug: "free",
+    name: "Starter",
+    amount: 0,
+    conversations: "50 sesiones / mes",
+    messages: "500 mensajes / mes",
+    channels: ["Web widget"],
+    audience: "Para probar Cappta gratis y validar el chatbot en tu sitio.",
+    highlights: [
+      "Widget personalizable",
+      "IA con GPT-4o Mini",
+      "Base de conocimiento básica",
+      "1 usuario admin",
+    ],
+    cta: "Empezar gratis",
+    ctaHref: "/register",
+    sellable: true,
+  },
+  {
+    slug: "solo",
+    name: "Solo",
+    amount: 7990,
+    conversations: "200 sesiones / mes",
+    messages: "2.000 mensajes / mes",
+    channels: ["Web widget", "Email"],
+    audience: "Para microemprendedores y profesionales independientes.",
+    highlights: [
+      "Todo lo de Starter",
+      "KB ilimitada con análisis de URL",
+      "App PWA con notificaciones push",
+      "Plantillas verticales pre-cargadas",
+      "Soporte por email",
+    ],
+    cta: "Suscribirme",
+    ctaHref: "/register?plan=solo",
+    sellable: true,
+  },
+  {
+    slug: "basic",
+    name: "Pro",
+    amount: 19990,
+    conversations: "500 sesiones / mes",
+    messages: "5.000 mensajes / mes",
+    channels: ["Web", "WhatsApp", "Email"],
+    audience: "Para PyMEs que quieren automatizar ventas y atención.",
+    highlights: [
+      "Todo lo de Solo",
+      "WhatsApp Business incluido",
+      "3 usuarios / agentes",
+      "Catálogo de productos",
+      "Calificaciones de clientes",
+      "Soporte prioritario",
+    ],
+    badge: "Más elegido",
+    cta: "Suscribirme",
+    ctaHref: "/register?plan=basic",
+    highlighted: true,
+    sellable: true,
+  },
+  {
+    slug: "scale",
+    name: "Scale",
+    amount: 49990,
+    conversations: "5.000 sesiones / mes",
+    messages: "50.000 mensajes / mes",
+    channels: ["Web", "WhatsApp", "Instagram", "Messenger", "Telegram", "Email"],
+    audience: "Para empresas medianas con varios canales y equipos.",
+    highlights: [
+      "Todo lo de Pro",
+      "Multi-canal completo (Instagram, Messenger, Telegram)",
+      "10 usuarios / agentes con roles",
+      "Flow builder visual",
+      "Lead scoring + secuencias",
+      "Reportes avanzados",
+    ],
+    cta: "Suscribirme",
+    ctaHref: "/register?plan=scale",
+    sellable: true,
+  },
+  {
+    slug: "enterprise",
+    name: "Enterprise",
+    amount: 0,
+    conversations: "Ilimitadas",
+    messages: "Ilimitados",
+    channels: ["Todos", "API pública", "Integraciones a medida"],
+    audience: "Para empresas con SLA, seguridad y volumen alto.",
+    highlights: [
+      "Todo lo de Scale",
+      "Usuarios ilimitados",
+      "SLA dedicado y soporte 24/7",
+      "SSO + auditoría",
+      "Integraciones a medida",
+      "On-premise opcional",
+      "Cuenta dedicada",
+    ],
+    cta: "Hablar con ventas",
+    ctaHref: "/enterprise",
+    sellable: false,
+  },
+];
+
 export const PLAN_PRICES: Record<string, { amount: number; label: string; reason: string }> = {
+  solo: {
+    amount: 7990,
+    label: "Cappta Solo",
+    reason: "Cappta Solo - Suscripcion Mensual",
+  },
   basic: {
     amount: 19990,
     label: "Cappta Pro",
     reason: "Cappta Pro - Suscripcion Mensual",
   },
+  scale: {
+    amount: 49990,
+    label: "Cappta Scale",
+    reason: "Cappta Scale - Suscripcion Mensual",
+  },
   pro: {
     amount: 49990,
-    label: "Cappta Enterprise",
-    reason: "Cappta Enterprise - Suscripcion Mensual",
+    label: "Cappta Scale",
+    reason: "Cappta Scale - Suscripcion Mensual (legacy)",
   },
   basic_whatsapp: {
     amount: 34990,
@@ -26,8 +158,8 @@ export const PLAN_PRICES: Record<string, { amount: number; label: string; reason
   },
   pro_whatsapp: {
     amount: 64990,
-    label: "Cappta Enterprise + WhatsApp",
-    reason: "Cappta Enterprise + WhatsApp - Suscripcion Mensual",
+    label: "Cappta Scale + WhatsApp",
+    reason: "Cappta Scale + WhatsApp - Suscripcion Mensual",
   },
 };
 

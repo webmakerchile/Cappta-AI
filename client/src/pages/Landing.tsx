@@ -142,103 +142,145 @@ const capabilities = [
 ];
 
 
-const pricingPlans = [
+interface NewPricingPlan {
+  slug: string;
+  name: string;
+  tagline: string;
+  price: string;
+  priceSuffix: string;
+  audience: string;
+  conversations: string;
+  channels: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  highlighted?: boolean;
+  badge?: string;
+  accentColor: string;
+  borderGradient: string;
+}
+
+const pricingPlans: NewPricingPlan[] = [
   {
+    slug: "free",
     name: "Starter",
-    tier: "starter" as const,
-    badge: "Cappta",
-    badgeIcon: Zap,
-    highlighted: false,
-    implementation: { price: "$149.990", label: "one-time" },
-    monthlyFree: true,
-    regularPrice: "$199.990",
-    conversations: "2.400 conversaciones",
-    cta: "Agenda una demo",
-    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 50%, hsl(250, 65%, 55%) 100%)",
-    bgTint: "rgba(118, 105, 233, 0.03)",
+    tagline: "Para validar tu chatbot gratis",
+    price: "$0",
+    priceSuffix: "/mes",
+    audience: "Microemprendedor que quiere probar",
+    conversations: "50 sesiones / mes",
+    channels: "Web widget",
+    features: [
+      "Widget personalizable",
+      "IA con GPT-4o Mini",
+      "Base de conocimiento básica",
+      "1 usuario",
+    ],
+    cta: "Empezar gratis",
+    ctaHref: "/register",
     accentColor: "#7669E9",
-    baseFunctions: [
-      { icon: Cpu, text: "Cappta AI Core System" },
-      { icon: Smartphone, text: "App Cappta (PWA + Push)" },
-      { icon: LayoutDashboard, text: "Dashboard personalizable" },
-      { icon: Plug, text: "Integraciones estándar" },
-    ],
-    team: { users: "4", implementation: "con ingeniero" },
-    ai: {
-      model: "GPT-4o Mini",
-      modelProvider: "OpenAI",
-      funnels: "1 Embudo",
-      channels: ["whatsapp", "instagram"],
-    },
-    extras: [
-      "$0.2 por chat adicional",
-      "$0.15 por minuto adicional",
-    ],
+    borderGradient: "linear-gradient(135deg, hsl(220, 30%, 35%) 0%, hsl(250, 30%, 40%) 100%)",
   },
   {
+    slug: "solo",
+    name: "Solo",
+    tagline: "Para profesionales y emprendedores",
+    price: "$7.990",
+    priceSuffix: "/mes",
+    audience: "Microemprendedor con ventas",
+    conversations: "200 sesiones / mes",
+    channels: "Web + Email",
+    features: [
+      "Todo lo de Starter",
+      "KB ilimitada con análisis de URL",
+      "App PWA con push",
+      "Plantillas verticales",
+      "Soporte por email",
+    ],
+    cta: "Suscribirme",
+    ctaHref: "/register?plan=solo",
+    accentColor: "#7669E9",
+    borderGradient: "linear-gradient(135deg, hsl(250, 50%, 50%) 0%, hsl(260, 45%, 45%) 100%)",
+  },
+  {
+    slug: "basic",
     name: "Pro",
-    tier: "pro" as const,
-    badge: "Ads",
-    badgeIcon: Star,
+    tagline: "Para PyMEs que automatizan ventas",
+    price: "$19.990",
+    priceSuffix: "/mes",
+    audience: "Pequeña / mediana empresa",
+    conversations: "500 sesiones / mes",
+    channels: "Web + WhatsApp + Email",
+    features: [
+      "Todo lo de Solo",
+      "WhatsApp Business",
+      "3 usuarios / agentes",
+      "Catálogo de productos",
+      "Calificaciones",
+      "Soporte prioritario",
+    ],
+    cta: "Suscribirme",
+    ctaHref: "/register?plan=basic",
     highlighted: true,
-    implementation: { price: "$199.990", label: "one-time" },
-    monthlyFree: true,
-    regularPrice: "$279.990",
-    conversations: "3.000 conversaciones",
-    cta: "Agenda una demo",
-    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 25%, hsl(220, 70%, 55%) 50%, hsl(250, 65%, 55%) 75%, hsl(280, 55%, 50%) 100%)",
-    bgTint: "rgba(118, 105, 233, 0.04)",
+    badge: "Más elegido",
     accentColor: "#9678E6",
-    baseFunctions: [
-      { icon: CircleCheck, text: "Todo del Starter" },
-      { icon: BarChart3, text: "AI Insights de conversaciones" },
-      { icon: MessageCircle, text: "Comentarios IA para Instagram" },
-      { icon: Headphones, text: "Llamadas a través de Cappta" },
-    ],
-    team: { users: "12", implementation: "con ingeniero" },
-    ai: {
-      model: "Todos los modelos",
-      modelProvider: "GPT, Claude, Gemini y más",
-      funnels: "3 Embudos",
-      channels: ["whatsapp", "instagram", "messenger", "tiktok"],
-    },
-    extras: [
-      "$0.2 por chat adicional",
-      "$0.15 por minuto adicional",
-    ],
+    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 55%) 0%, hsl(280, 55%, 50%) 25%, hsl(220, 70%, 55%) 50%, hsl(250, 65%, 55%) 75%, hsl(280, 55%, 50%) 100%)",
   },
   {
-    name: "Enterprise",
-    tier: "enterprise" as const,
-    badge: null,
-    badgeIcon: Crown,
-    highlighted: false,
-    implementation: null,
-    monthlyFree: false,
-    regularPrice: "$999.990",
-    conversations: "Conversaciones ilimitadas",
-    cta: "Agenda una demo",
-    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 60%) 0%, hsl(220, 70%, 55%) 25%, hsl(280, 55%, 55%) 50%, hsl(250, 65%, 60%) 75%, hsl(220, 70%, 55%) 100%)",
-    bgTint: "rgba(118, 105, 233, 0.03)",
+    slug: "scale",
+    name: "Scale",
+    tagline: "Para empresas medianas multi-canal",
+    price: "$49.990",
+    priceSuffix: "/mes",
+    audience: "Mediana empresa",
+    conversations: "5.000 sesiones / mes",
+    channels: "Multi-canal completo",
+    features: [
+      "Todo lo de Pro",
+      "Instagram + Messenger + Telegram",
+      "10 usuarios con roles",
+      "Flow builder visual",
+      "Lead scoring + secuencias",
+      "Reportes avanzados",
+    ],
+    cta: "Suscribirme",
+    ctaHref: "/register?plan=scale",
     accentColor: "#9678E6",
-    baseFunctions: [
-      { icon: Settings, text: "Integraciones personalizadas" },
-      { icon: Wrench, text: "Horas de desarrollo incluidas" },
-      { icon: Star, text: "Soporte Gold prioritario" },
-      { icon: Crown, text: "Licencia Infinity de Cappta" },
-    ],
-    team: { users: "∞", implementation: "Consultoría todos los meses" },
-    ai: {
-      model: "Todos los modelos",
-      modelProvider: "GPT, Claude, Gemini y más",
-      funnels: "Customizado",
-      channels: ["whatsapp", "instagram", "messenger", "tiktok"],
-    },
-    extras: [
-      "Chat adicional basado en uso",
-      "Minuto adicional basado en uso",
-    ],
+    borderGradient: "linear-gradient(135deg, hsl(280, 55%, 50%) 0%, hsl(220, 70%, 55%) 100%)",
   },
+  {
+    slug: "enterprise",
+    name: "Enterprise",
+    tagline: "Para grandes empresas con SLA",
+    price: "Custom",
+    priceSuffix: "",
+    audience: "Empresa grande / regulada",
+    conversations: "Ilimitadas",
+    channels: "Todos + API privada",
+    features: [
+      "Todo lo de Scale",
+      "Usuarios ilimitados",
+      "SLA 99.95% + soporte 24/7",
+      "SSO + auditoría",
+      "Integraciones a medida",
+      "On-premise opcional",
+    ],
+    cta: "Hablar con ventas",
+    ctaHref: "/enterprise",
+    accentColor: "#9678E6",
+    borderGradient: "linear-gradient(135deg, hsl(250, 65%, 60%) 0%, hsl(220, 70%, 55%) 25%, hsl(280, 55%, 55%) 50%, hsl(250, 65%, 60%) 75%, hsl(220, 70%, 55%) 100%)",
+  },
+];
+
+const verticalsList = [
+  { slug: "ecommerce", name: "E-commerce", emoji: "🛒", desc: "Catálogo en chat + recuperación de carritos" },
+  { slug: "restaurantes", name: "Restaurantes", emoji: "🍽️", desc: "Pedidos por WhatsApp 24/7" },
+  { slug: "salones", name: "Salones y Spa", emoji: "💇", desc: "Agenda de horas con recordatorios" },
+  { slug: "clinicas", name: "Clínicas", emoji: "🩺", desc: "Triaje y agenda médica" },
+  { slug: "inmobiliarias", name: "Inmobiliarias", emoji: "🏠", desc: "Leads calificados a tus corredores" },
+  { slug: "gimnasios", name: "Gimnasios", emoji: "💪", desc: "Inscripciones y reactivación" },
+  { slug: "servicios", name: "Servicios pro", emoji: "💼", desc: "Asesorías y reuniones agendadas" },
+  { slug: "educacion", name: "Educación", emoji: "🎓", desc: "Matrículas y soporte académico" },
 ];
 
 import type { LucideIcon } from "lucide-react";
@@ -1468,6 +1510,108 @@ function FAQSection({ isVisible }: { isVisible: boolean }) {
 }
 
 
+function ROICalculator() {
+  const [conversations, setConversations] = useState(500);
+  const [conversionRate, setConversionRate] = useState(15);
+  const [avgTicket, setAvgTicket] = useState(35000);
+  const [staffHours, setStaffHours] = useState(20);
+  const [hourlyRate, setHourlyRate] = useState(4500);
+
+  const monthlyRevenue = Math.round(conversations * (conversionRate / 100) * avgTicket);
+  const staffSavings = Math.round(staffHours * 4 * hourlyRate);
+  const capptaCost = 19990;
+  const total = monthlyRevenue + staffSavings - capptaCost;
+  const roiMultiplier = (total / capptaCost).toFixed(1);
+
+  const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
+
+  return (
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-10" data-testid="roi-calculator">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="space-y-5">
+          <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">TUS NÚMEROS</p>
+
+          <div>
+            <div className="flex justify-between mb-2">
+              <label className="text-sm text-white/80">Conversaciones / mes</label>
+              <span className="text-sm font-bold text-violet-300">{conversations}</span>
+            </div>
+            <input type="range" min={50} max={5000} step={50} value={conversations} onChange={(e) => setConversations(Number(e.target.value))} className="w-full accent-violet-500" data-testid="slider-conversations" />
+          </div>
+
+          <div>
+            <div className="flex justify-between mb-2">
+              <label className="text-sm text-white/80">% que termina comprando</label>
+              <span className="text-sm font-bold text-violet-300">{conversionRate}%</span>
+            </div>
+            <input type="range" min={1} max={50} step={1} value={conversionRate} onChange={(e) => setConversionRate(Number(e.target.value))} className="w-full accent-violet-500" data-testid="slider-conversion" />
+          </div>
+
+          <div>
+            <div className="flex justify-between mb-2">
+              <label className="text-sm text-white/80">Ticket promedio (CLP)</label>
+              <span className="text-sm font-bold text-violet-300">{fmt(avgTicket)}</span>
+            </div>
+            <input type="range" min={5000} max={500000} step={5000} value={avgTicket} onChange={(e) => setAvgTicket(Number(e.target.value))} className="w-full accent-violet-500" data-testid="slider-ticket" />
+          </div>
+
+          <div className="pt-3 border-t border-white/[0.06]">
+            <div>
+              <div className="flex justify-between mb-2">
+                <label className="text-sm text-white/80">Horas/semana atendiendo chats</label>
+                <span className="text-sm font-bold text-violet-300">{staffHours}h</span>
+              </div>
+              <input type="range" min={0} max={60} step={1} value={staffHours} onChange={(e) => setStaffHours(Number(e.target.value))} className="w-full accent-violet-500" data-testid="slider-hours" />
+            </div>
+
+            <div className="mt-4">
+              <div className="flex justify-between mb-2">
+                <label className="text-sm text-white/80">Costo / hora del staff (CLP)</label>
+                <span className="text-sm font-bold text-violet-300">{fmt(hourlyRate)}</span>
+              </div>
+              <input type="range" min={2000} max={20000} step={500} value={hourlyRate} onChange={(e) => setHourlyRate(Number(e.target.value))} className="w-full accent-violet-500" data-testid="slider-hourly" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-gradient-to-br from-violet-600/20 to-violet-900/5 border border-violet-500/30 p-6 sm:p-8 flex flex-col justify-between">
+          <div className="space-y-5">
+            <p className="text-xs font-bold text-violet-300 uppercase tracking-wider">ESTIMACIÓN MENSUAL</p>
+
+            <div className="flex justify-between items-baseline pb-3 border-b border-white/10">
+              <span className="text-white/70 text-sm">Ventas adicionales</span>
+              <span className="text-2xl font-black text-white" data-testid="text-revenue">+{fmt(monthlyRevenue)}</span>
+            </div>
+            <div className="flex justify-between items-baseline pb-3 border-b border-white/10">
+              <span className="text-white/70 text-sm">Ahorro en staff</span>
+              <span className="text-2xl font-black text-white" data-testid="text-savings">+{fmt(staffSavings)}</span>
+            </div>
+            <div className="flex justify-between items-baseline pb-3 border-b border-white/10">
+              <span className="text-white/70 text-sm">Costo Cappta Pro</span>
+              <span className="text-xl font-bold text-white/60">−{fmt(capptaCost)}</span>
+            </div>
+            <div className="pt-2">
+              <p className="text-xs text-white/50 mb-1">Beneficio neto / mes</p>
+              <p className="text-5xl font-black text-violet-300" data-testid="text-roi-total">{fmt(total)}</p>
+              <p className="text-xs text-white/50 mt-2">Eso es <span className="font-bold text-violet-300">{roiMultiplier}x</span> el costo de Cappta</p>
+            </div>
+          </div>
+
+          <a href="/register" className="block mt-6">
+            <Button className="w-full py-6 rounded-xl text-base font-bold text-white" style={{ background: "linear-gradient(135deg, #7669E9 0%, #5b4dd6 100%)" }} data-testid="button-roi-cta">
+              Capturar este beneficio <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </a>
+        </div>
+      </div>
+
+      <p className="text-xs text-white/40 text-center mt-6">
+        Estimación basada en datos promedio. Resultados varían según industria, oferta y operación.
+      </p>
+    </div>
+  );
+}
+
 export default function Landing() {
   const statsSection = useInView(0.2);
   const featuresSection = useInView(0.1);
@@ -1886,206 +2030,134 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
             {pricingPlans.map((plan, index) => (
               <div
-                key={plan.name}
-                className={`relative rounded-2xl transition-all duration-500 ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"}`}
-                style={{ animationDelay: `${index * 120}ms` }}
-                data-testid={`card-pricing-${index}`}
+                key={plan.slug}
+                className={`relative rounded-2xl transition-all duration-500 flex ${pricingSection.isVisible ? "animate-count-fade" : "opacity-0"} ${plan.highlighted ? "lg:scale-[1.04] lg:z-10" : ""}`}
+                style={{ animationDelay: `${index * 80}ms` }}
+                data-testid={`card-pricing-${plan.slug}`}
               >
                 <div className="absolute -inset-[1px] rounded-2xl z-0" style={{ background: plan.borderGradient, padding: "1px" }}>
                   <div className="w-full h-full rounded-2xl bg-[#0c0c0f]" />
                 </div>
 
-                <div className="relative z-10 rounded-2xl" style={{ background: plan.bgTint }}>
+                <div className="relative z-10 rounded-2xl flex flex-col w-full" style={{ background: plan.highlighted ? "rgba(118, 105, 233, 0.06)" : "rgba(255,255,255,0.01)" }}>
+                  {plan.badge && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: "linear-gradient(135deg, #7669E9 0%, #9678E6 100%)" }}>
+                      {plan.badge}
+                    </div>
+                  )}
 
-                  <div className="px-6 pt-6 pb-5">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-2xl font-heading font-bold text-white/95" data-testid={`text-plan-name-${index}`}>
-                        {plan.name}
-                      </h3>
-                      {plan.badge && (
-                        <div className="flex items-center gap-2">
-                          {plan.tier === "pro" && (
-                            <>
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border border-violet-500/30 text-violet-400">
-                                <CircleDot className="w-2.5 h-2.5" /> Cappta
-                              </span>
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border border-amber-500/30 text-amber-400">
-                                <CircleDot className="w-2.5 h-2.5" /> Ads
-                              </span>
-                            </>
-                          )}
-                          {plan.tier === "starter" && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border border-violet-500/30 text-violet-400">
-                              <CircleDot className="w-2.5 h-2.5" /> Cappta
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {plan.tier === "enterprise" && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full bg-violet-500/60" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-violet-400/40" />
-                        </div>
-                      )}
+                  <div className="px-5 pt-6 pb-4">
+                    <h3 className="text-xl font-heading font-bold text-white/95 mb-1" data-testid={`text-plan-name-${plan.slug}`}>{plan.name}</h3>
+                    <p className="text-xs text-white/50 mb-5 min-h-[32px]">{plan.tagline}</p>
+
+                    <div className="mb-5">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl sm:text-4xl font-black text-white" data-testid={`text-plan-price-${plan.slug}`}>{plan.price}</span>
+                        {plan.priceSuffix && <span className="text-sm text-white/40">{plan.priceSuffix}</span>}
+                      </div>
+                      <p className="text-[11px] text-white/40 mt-1">{plan.audience}</p>
                     </div>
 
-                    {plan.tier !== "enterprise" ? (
-                      <div className="space-y-0">
-                        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 mb-2">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-[10px] font-bold text-white/50 tracking-wider uppercase">MES 1</p>
-                              <p className="text-xs font-bold text-white/40 uppercase">IMPLEMENTACIÓN</p>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-2xl font-extrabold text-white/90">{plan.implementation?.price}</span>
-                              <span className="text-[10px] text-white/30 block">{plan.implementation?.label}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between px-4 py-2.5">
-                          <span className="text-xs font-bold text-white/40 uppercase">MES 2</span>
-                          <span className="text-xl font-extrabold text-white/90">$0</span>
-                        </div>
-
-                        <div className="rounded-xl border border-violet-500/15 bg-violet-500/[0.04] p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-[10px] font-bold text-violet-400/70 tracking-wider uppercase">MES 3</p>
-                              <p className="text-xs font-bold text-violet-400/60 uppercase">EN ADELANTE</p>
-                              <p className="text-[10px] text-white/25 mt-1">Precio regular</p>
-                              <p className="text-[10px] text-white/25">{plan.conversations}</p>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-4xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.regularPrice}</span>
-                              <span className="text-sm text-white/30">/mes</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <div className="flex justify-center mb-3">
-                          <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                            <LayoutDashboard className="w-6 h-6 text-violet-400" />
-                          </div>
-                        </div>
-                        <p className="text-xs font-bold text-white/50 uppercase tracking-wider">UN PLAN</p>
-                        <p className="text-[10px] text-white/30 uppercase tracking-wider mb-4">DISEÑADO A LA MEDIDA</p>
-                        <div className="flex items-center justify-center gap-1">
-                          <div>
-                            <p className="text-[10px] text-white/30 uppercase tracking-wider">MENSUAL</p>
-                            <p className="text-[10px] text-white/25">DESDE</p>
-                          </div>
-                          <span className="text-4xl font-black" style={{ color: plan.accentColor }} data-testid={`text-plan-price-${index}`}>{plan.regularPrice}</span>
-                          <span className="text-sm text-white/30">/mes</span>
-                        </div>
-                        <p className="text-[10px] text-white/25 mt-1">{plan.conversations}</p>
-                      </div>
-                    )}
-
-                    <a href="/demo" className="block mt-5">
+                    <a href={plan.ctaHref} className="block mb-5">
                       <Button
-                        className={`w-full py-5 rounded-xl text-sm font-bold transition-all duration-300 ${
-                          plan.tier === "enterprise"
-                            ? "shadow-xl shadow-violet-500/15 border-0 text-white"
-                            : plan.tier === "pro"
-                            ? "shadow-xl shadow-primary/15"
-                            : "border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
+                        className={`w-full py-5 rounded-xl text-sm font-bold ${
+                          plan.highlighted
+                            ? "shadow-xl shadow-violet-500/20 text-white"
+                            : "bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/10"
                         }`}
-                        variant={plan.tier === "starter" ? "outline" : "default"}
-                        style={plan.tier === "enterprise" ? { background: "linear-gradient(135deg, hsl(250, 65%, 42%) 0%, hsl(280, 55%, 40%) 100%)" } : undefined}
-                        data-testid={`button-plan-cta-${index}`}
+                        style={plan.highlighted ? { background: "linear-gradient(135deg, #7669E9 0%, #5b4dd6 100%)" } : undefined}
+                        data-testid={`button-plan-cta-${plan.slug}`}
                       >
                         {plan.cta}
                       </Button>
                     </a>
                   </div>
 
-                  <div className="px-6 pb-5">
-                    <div className="h-px mb-5 bg-white/[0.06]" />
+                  <div className="px-5 pb-6 flex-1 flex flex-col">
+                    <div className="h-px mb-4 bg-white/[0.06]" />
 
-                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">FUNCIONES BASE</p>
-                    <div className="space-y-2.5 mb-6">
-                      {plan.baseFunctions.map((func) => (
-                        <div key={func.text} className="flex items-center gap-2.5">
-                          <func.icon className="w-3.5 h-3.5 text-violet-400/60 shrink-0" />
-                          <span className="text-sm text-white/60">{func.text}</span>
+                    <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-3 mb-4">
+                      <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">VOLUMEN</p>
+                      <p className="text-xs font-semibold text-white/85">{plan.conversations}</p>
+                      <p className="text-[10px] text-white/40 mt-1">{plan.channels}</p>
+                    </div>
+
+                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.15em] mb-3">INCLUYE</p>
+                    <div className="space-y-2 flex-1">
+                      {plan.features.map((f) => (
+                        <div key={f} className="flex items-start gap-2">
+                          <Check className="w-3.5 h-3.5 text-violet-400/80 shrink-0 mt-0.5" />
+                          <span className="text-xs text-white/70 leading-snug">{f}</span>
                         </div>
                       ))}
                     </div>
-
-                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">EQUIPO Y SOPORTE</p>
-                    <div className="grid grid-cols-2 gap-2 mb-6">
-                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                        <p className="text-2xl font-extrabold text-white/90 mb-0.5">{plan.team.users}</p>
-                        <p className="text-[10px] text-white/60">Usuarios</p>
-                      </div>
-                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                        <p className="text-sm font-bold text-white/80 mb-0.5">{plan.tier === "enterprise" ? "Consultoría" : "Implementación"}</p>
-                        <p className="text-[10px] text-white/60">{plan.team.implementation}</p>
-                      </div>
-                    </div>
-
-                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">IA Y AUTOMATIZACIÓN</p>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        {plan.tier === "starter" ? (
-                          <>
-                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider mb-1">MODELO ÚNICO</p>
-                            <p className="text-sm font-bold text-white/90">{plan.ai.model}</p>
-                            <p className="text-[10px] text-white/30">{plan.ai.modelProvider}</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-sm font-bold text-white/90">{plan.ai.model}</p>
-                            <p className="text-[10px] text-white/30 mt-0.5">{plan.ai.modelProvider}</p>
-                          </>
-                        )}
-                      </div>
-                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 flex items-center justify-center">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-violet-500" />
-                          <span className="text-sm font-semibold text-white/70">{plan.ai.funnels}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 mb-6">
-                      {plan.ai.channels.map((ch) => (
-                        <span key={ch} className="w-7 h-7 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-                          {ch === "whatsapp" && <SiWhatsapp className="w-3.5 h-3.5 text-white/50" />}
-                          {ch === "instagram" && <span className="text-white/50 text-[10px] font-bold">IG</span>}
-                          {ch === "messenger" && <span className="text-white/50 text-[10px] font-bold">M</span>}
-                          {ch === "tiktok" && <span className="text-white/50 text-[10px] font-bold">TT</span>}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] mb-3">PRECIOS</p>
-                    <div className="space-y-2">
-                      {plan.extras.map((extra) => (
-                        <div key={extra} className="flex items-center gap-2.5">
-                          <MessageSquare className="w-3.5 h-3.5 text-violet-400/40 shrink-0" />
-                          <span className="text-sm text-white/70">{extra}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <p className="text-[8px] text-white/20 text-center mt-4">No se admiten reembolsos. <a href="/terminos" className="underline hover:text-white/30">Ver términos</a></p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <p className="text-center text-sm text-white/25 mt-12">
-            Todas las funcionalidades incluidas en cada plan. Solo cambia la escala. Sin contratos de permanencia.
-          </p>
+          <div className="text-center mt-12 space-y-3">
+            <p className="text-sm text-white/40">
+              Sin permanencia · Cancela cuando quieras · ¿Necesitas más? <a href="/enterprise" className="text-violet-400 hover:underline">Habla con ventas</a>
+            </p>
+            <p className="text-sm text-white/30">
+              ¿Comparas con Vambe? <a href="/comparar" className="text-violet-400 hover:underline" data-testid="link-compare-vambe">Mira la comparativa completa →</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="verticales" className="py-28 px-6 relative overflow-hidden" data-testid="section-verticals">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.04) 0%, transparent 60%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">PARA TU INDUSTRIA</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white">
+              Plantillas listas para tu negocio
+            </h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed">
+              Cada vertical viene con catálogo, flujos y respuestas ya configuradas. Activas, personalizas y arrancas.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {verticalsList.map((v) => (
+              <a
+                key={v.slug}
+                href={`/para/${v.slug}`}
+                className="group rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 hover:border-violet-500/30 hover:bg-violet-500/[0.03] transition-all"
+                data-testid={`card-vertical-${v.slug}`}
+              >
+                <div className="text-3xl mb-3">{v.emoji}</div>
+                <h3 className="font-heading font-bold text-white mb-1 group-hover:text-violet-300 transition-colors">{v.name}</h3>
+                <p className="text-xs text-white/50 leading-snug">{v.desc}</p>
+                <p className="text-xs text-violet-400/80 mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Ver plantilla <ChevronRight className="w-3 h-3" />
+                </p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="roi" className="py-28 px-6 relative overflow-hidden" data-testid="section-roi">
+        <div className="relative max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">CALCULADORA DE ROI</p>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white">
+              ¿Cuánto ganas con Cappta?
+            </h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed">
+              Calcula cuánto ahorras en personal y cuánto ganas en ventas adicionales.
+            </p>
+          </div>
+          <ROICalculator />
         </div>
       </section>
 

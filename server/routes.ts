@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -2032,7 +2032,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
 
           try {
             const referral = await storage.getReferralByReferredId(tenantId);
-            const isPaidPlan = basePlan === "basic" || basePlan === "pro";
+            const isPaidPlan = ["solo", "basic", "scale", "pro", "enterprise"].includes(basePlan);
             if (referral && referral.confirmed === 0 && isPaidPlan) {
               await storage.confirmReferral(referral.referrerId, tenantId);
               const paidCount = await storage.getPaidReferralCount(referral.referrerId);
@@ -4795,8 +4795,11 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       const tenantsResult = await pool.query(`
         SELECT COUNT(*) as total,
                COUNT(CASE WHEN plan = 'free' THEN 1 END) as free_count,
+               COUNT(CASE WHEN plan = 'solo' THEN 1 END) as solo_count,
                COUNT(CASE WHEN plan = 'basic' THEN 1 END) as basic_count,
-               COUNT(CASE WHEN plan = 'pro' THEN 1 END) as pro_count
+               COUNT(CASE WHEN plan = 'scale' THEN 1 END) as scale_count,
+               COUNT(CASE WHEN plan = 'pro' THEN 1 END) as pro_count,
+               COUNT(CASE WHEN plan = 'enterprise' THEN 1 END) as enterprise_count
         FROM tenants
       `);
       const tenantStats = tenantsResult.rows[0];
@@ -4837,7 +4840,15 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       `);
 
       const mrrResult = await pool.query(`
-        SELECT COALESCE(SUM(CASE WHEN plan = 'basic' THEN 19990 WHEN plan = 'pro' THEN 49990 ELSE 0 END), 0) as mrr
+        SELECT COALESCE(SUM(
+          CASE
+            WHEN plan = 'solo' THEN 7990
+            WHEN plan = 'basic' THEN 19990
+            WHEN plan = 'scale' THEN 49990
+            WHEN plan = 'pro' THEN 49990
+            ELSE 0
+          END
+        ), 0) as mrr
         FROM tenants
       `);
 
@@ -4850,8 +4861,11 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
         totalMessages: parseInt(messagesResult.rows[0]?.total || "0"),
         planDistribution: {
           free: parseInt(tenantStats.free_count),
+          solo: parseInt(tenantStats.solo_count || "0"),
           basic: parseInt(tenantStats.basic_count),
+          scale: parseInt(tenantStats.scale_count || "0"),
           pro: parseInt(tenantStats.pro_count),
+          enterprise: parseInt(tenantStats.enterprise_count || "0"),
         },
         monthlyRevenue: monthlyRevenueResult.rows.map((r: any) => ({
           month: r.month,
@@ -4894,7 +4908,7 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       const { plan, isTrial, whatsappEnabled, whatsappNumber } = req.body;
       const updates: any = {};
       if (plan) {
-        if (!["free", "basic", "pro"].includes(plan)) {
+        if (!["free", "solo", "basic", "scale", "pro", "enterprise"].includes(plan)) {
           return res.status(400).json({ message: "Plan invalido" });
         }
         updates.plan = plan;
@@ -5898,6 +5912,50 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
         }
       }, 2 * 60 * 1000);
     });
+  });
+
+  app.post("/api/enterprise-leads", async (req, res) => {
+    try {
+      const data = insertEnterpriseLeadSchema.parse(req.body);
+      const { db } = await import("./db");
+      const [created] = await db.insert(enterpriseLeads).values(data).returning();
+      log(`New enterprise lead: ${data.company} (${data.email})`, "enterprise");
+      try {
+        await sendContactNotification({
+          name: data.name,
+          email: data.email,
+          gameName: `${data.company} (${data.companySize ?? "?"} empleados)`,
+          problemType: `Enterprise lead · ${data.industry ?? "industria n/d"} · ${data.monthlyConversations ?? "?"} conv/mes · canales: ${data.channels ?? "?"}`,
+          tenantId: 0,
+          message: data.message ?? undefined,
+        } as any);
+      } catch (e: any) {
+        log(`Email notify failed for enterprise lead: ${e.message}`, "enterprise");
+      }
+      res.json({ ok: true, id: created.id });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ ok: false, errors: err.errors });
+      }
+      log(`Enterprise lead error: ${err.message}`, "enterprise");
+      res.status(500).json({ ok: false, error: "Error al guardar el lead" });
+    }
+  });
+
+  app.get("/api/admin/enterprise-leads", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    if (user.role !== "admin" && user.role !== "superadmin") {
+      return res.status(403).json({ error: "Solo administradores pueden ver los leads enterprise" });
+    }
+    try {
+      const { db } = await import("./db");
+      const { desc } = await import("drizzle-orm");
+      const rows = await db.select().from(enterpriseLeads).orderBy(desc(enterpriseLeads.createdAt));
+      res.json(rows);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   return httpServer;

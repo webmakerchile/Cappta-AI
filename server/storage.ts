@@ -1513,7 +1513,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(referrals.referrerId, referrerId),
         eq(referrals.confirmed, 1),
-        sql`${tenants.plan} IN ('basic', 'pro')`
+        sql`${tenants.plan} IN ('solo', 'basic', 'scale', 'pro', 'enterprise')`
       ));
     return Number(result[0]?.count || 0);
   }

@@ -2627,7 +2627,7 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
   const [saving, setSaving] = useState(false);
   const isEnabled = (tenant as any).whatsappEnabled === 1;
   const whatsappNumber = (tenant as any).whatsappNumber || "";
-  const isPaidPlan = tenant.plan === "basic" || tenant.plan === "pro";
+  const isPaidPlan = tenant.plan === "solo" || tenant.plan === "basic" || tenant.plan === "scale" || tenant.plan === "pro" || tenant.plan === "enterprise";
 
   const handleSaveGreeting = async () => {
     setSaving(true);

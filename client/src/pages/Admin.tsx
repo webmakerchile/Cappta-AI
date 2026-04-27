@@ -3938,7 +3938,7 @@ interface DashboardMetrics {
   mrr: number;
   totalSessions: number;
   totalMessages: number;
-  planDistribution: { free: number; basic: number; pro: number };
+  planDistribution: { free: number; solo?: number; basic: number; scale?: number; pro: number; enterprise?: number };
   monthlyRevenue: { month: string; revenue: number }[];
   newTenantsPerMonth: { month: string; count: number }[];
 }
@@ -3982,9 +3982,12 @@ function SaasDashboard() {
   ];
 
   const planData = [
-    { name: "Cappta Starter", value: metrics.planDistribution.free, fill: "#6b7280" },
-    { name: "Cappta Pro", value: metrics.planDistribution.basic, fill: "#10b981" },
-    { name: "Cappta Enterprise", value: metrics.planDistribution.pro, fill: "#f59e0b" },
+    { name: "Starter", value: metrics.planDistribution.free, fill: "#6b7280" },
+    { name: "Solo", value: metrics.planDistribution.solo ?? 0, fill: "#a78bfa" },
+    { name: "Pro", value: metrics.planDistribution.basic, fill: "#10b981" },
+    { name: "Scale", value: metrics.planDistribution.scale ?? 0, fill: "#3b82f6" },
+    { name: "Pro (legacy)", value: metrics.planDistribution.pro, fill: "#06b6d4" },
+    { name: "Enterprise", value: metrics.planDistribution.enterprise ?? 0, fill: "#f59e0b" },
   ].filter(d => d.value > 0);
 
   return (
@@ -4203,11 +4206,21 @@ function TenantsPanel() {
     },
   });
 
-  const planLabels: Record<string, string> = { free: "Cappta Starter", basic: "Cappta Pro", pro: "Cappta Enterprise" };
+  const planLabels: Record<string, string> = {
+    free: "Starter",
+    solo: "Solo",
+    basic: "Pro",
+    scale: "Scale",
+    pro: "Scale (legacy)",
+    enterprise: "Enterprise",
+  };
   const planColors: Record<string, string> = {
     free: "bg-white/10 text-white/60",
+    solo: "bg-violet-500/15 text-violet-300",
     basic: "bg-[#34d399]/20 text-[#34d399]",
-    pro: "bg-yellow-500/20 text-yellow-400",
+    scale: "bg-blue-500/20 text-blue-300",
+    pro: "bg-blue-500/15 text-blue-300",
+    enterprise: "bg-yellow-500/20 text-yellow-400",
   };
 
   const statusColors: Record<string, string> = {
@@ -4357,9 +4370,12 @@ function TenantsPanel() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="free">Cappta Starter</SelectItem>
-                          <SelectItem value="basic">Cappta Pro</SelectItem>
-                          <SelectItem value="pro">Cappta Enterprise</SelectItem>
+                          <SelectItem value="free">Starter (free)</SelectItem>
+                          <SelectItem value="solo">Solo ($7.990)</SelectItem>
+                          <SelectItem value="basic">Pro ($19.990)</SelectItem>
+                          <SelectItem value="scale">Scale ($49.990)</SelectItem>
+                          <SelectItem value="enterprise">Enterprise (custom)</SelectItem>
+                          <SelectItem value="pro">Pro (legacy)</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
