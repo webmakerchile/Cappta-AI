@@ -2634,7 +2634,8 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
   const [saving, setSaving] = useState(false);
   const isEnabled = (tenant as any).whatsappEnabled === 1;
   const whatsappNumber = (tenant as any).whatsappNumber || "";
-  const isPaidPlan = tenant.plan === "basic" || tenant.plan === "scale" || tenant.plan === "pro" || tenant.plan === "enterprise";
+  const isPaidPlan = tenant.plan === "solo" || tenant.plan === "basic" || tenant.plan === "scale" || tenant.plan === "pro" || tenant.plan === "enterprise";
+  const isSoloPlan = tenant.plan === "solo";
 
   const handleSaveGreeting = async () => {
     setSaving(true);
@@ -2673,7 +2674,7 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
             <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-3" />
             <h4 className="text-base font-bold text-white/80 mb-2">Disponible en planes pagados</h4>
             <p className="text-sm text-white/50 mb-4">
-              La integración con WhatsApp está disponible como add-on para los planes Cappta Pro y Cappta Enterprise por <span className="text-[#25d366] font-bold">$14.990 CLP/mes</span> adicionales.
+              WhatsApp Business viene incluido en Cappta Pro, Scale y Enterprise. En Cappta Solo se ofrece como add-on por <span className="text-[#25d366] font-bold">$14.990 CLP/mes</span>.
             </p>
             <Button
               className="bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold rounded-xl"
@@ -2686,6 +2687,30 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
               <Zap className="w-4 h-4 mr-2" />
               Ver planes
             </Button>
+          </div>
+        ) : isSoloPlan && !isEnabled ? (
+          <div className="rounded-xl border border-[#25d366]/20 bg-[#25d366]/5 p-5">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#25d366]/15 flex items-center justify-center flex-shrink-0">
+                <SiWhatsapp className="w-5 h-5 text-[#25d366]" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-base font-bold text-white/80 mb-1">Activá WhatsApp como add-on</h4>
+                <p className="text-sm text-white/50 mb-3">
+                  En tu plan Cappta Solo podés sumar WhatsApp Business por <span className="text-[#25d366] font-bold">$14.990 CLP/mes</span> adicionales. Asignamos un número dedicado para tu negocio y configuramos la integración por vos.
+                </p>
+                <Button
+                  className="bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold rounded-xl"
+                  onClick={() => {
+                    window.location.href = "mailto:soporte@cappta.ai?subject=Activar%20WhatsApp%20add-on%20(Cappta%20Solo)";
+                  }}
+                  data-testid="button-request-whatsapp-addon"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Solicitar activación del add-on
+                </Button>
+              </div>
+            </div>
           </div>
         ) : !isEnabled ? (
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
@@ -2827,22 +2852,22 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
     free: {
       sessions: "50 / mes",
       messages: "500 / mes",
-      features: ["Chat en vivo", "Respuestas automáticas básicas", "Widget personalizable"],
+      features: ["Widget web personalizable", "IA con GPT-4o Mini", "Base de conocimiento básica", "1 usuario admin"],
     },
     solo: {
       sessions: "200 / mes",
       messages: "2.000 / mes",
-      features: ["IA con GPT", "WhatsApp 1 número", "Catálogo simple", "Soporte por email"],
+      features: ["Todo de Starter", "KB ilimitada con análisis de URL", "App PWA con notificaciones push", "Plantillas verticales", "Soporte por email"],
     },
     basic: {
       sessions: "500 / mes",
       messages: "5.000 / mes",
-      features: ["Chat en vivo", "IA avanzada con GPT", "Catálogo de productos", "Base de conocimiento", "Analíticas completas"],
+      features: ["Todo de Solo", "WhatsApp Business incluido", "3 usuarios / agentes", "Catálogo de productos", "Calificaciones de clientes", "Soporte prioritario"],
     },
     scale: {
-      sessions: "2.000 / mes",
-      messages: "20.000 / mes",
-      features: ["Todo de Pro", "Multi-canal (WhatsApp + Instagram)", "Multi-agente", "Reportes avanzados", "API"],
+      sessions: "5.000 / mes",
+      messages: "50.000 / mes",
+      features: ["Todo de Pro", "Multi-canal (Instagram, Messenger, Telegram)", "10 usuarios / agentes con roles", "Flow builder visual", "Lead scoring + secuencias", "Reportes avanzados"],
     },
     pro: {
       sessions: "Ilimitadas",
@@ -2850,9 +2875,9 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
       features: ["Plan legado — equivalente a Scale", "Soporte 24/7", "API personalizada", "Multi-agente", "Onboarding personalizado"],
     },
     enterprise: {
-      sessions: "A medida",
-      messages: "A medida",
-      features: ["SLA dedicado", "Onboarding white-glove", "Integraciones custom", "Account manager", "Seguridad y compliance"],
+      sessions: "Ilimitadas",
+      messages: "Ilimitados",
+      features: ["Todo de Scale", "Usuarios ilimitados", "SLA dedicado y soporte 24/7", "SSO + auditoría", "Integraciones a medida", "Cuenta dedicada"],
     },
   };
 
@@ -3006,6 +3031,11 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
             {upgradePlans.map(([key, limits], idx) => {
               const color = planColors[key];
               const isGreen = key === "basic";
+              const planTaglines: Record<string, string> = {
+                solo: "Para microemprendedores y profesionales independientes",
+                basic: "Para negocios en crecimiento",
+                scale: "Para empresas medianas con varios canales y equipos",
+              };
               return (
                 <div key={key} className={`rounded-2xl glass-card ${isGreen ? "glass-card-glow-green" : "glass-card-glow-orange"} p-6 transition-all duration-300 relative overflow-hidden group animate-dash-scale-in dash-stagger-${idx + 2}`}>
                   <div className="absolute top-0 left-0 right-0 h-px transition-opacity duration-500 group-hover:opacity-100 opacity-60" style={{ background: `linear-gradient(90deg, transparent 0%, ${color} 50%, transparent 100%)` }} />
@@ -3015,14 +3045,18 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     <div>
                       <h4 className="text-lg font-bold transition-colors duration-300 group-hover:text-white">{planLabels[key]}</h4>
                       <p className="text-xs text-white/35">
-                        {key === "basic" ? "Para negocios en crecimiento" : "Para grandes empresas"}
+                        {planTaglines[key] || "Mejora tus capacidades"}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black transition-all duration-300 group-hover:scale-105" style={{ color }} data-testid={`badge-price-${key}`}>{planPrices[key]}</p>
                       <p className="text-xs text-white/30">CLP/mes</p>
                       <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">7 días para probar</p>
-                      <p className="text-[9px] text-white/30 mt-0.5">No incluye chatbot WhatsApp</p>
+                      {key === "solo" ? (
+                        <p className="text-[9px] text-white/30 mt-0.5">WhatsApp como add-on opcional</p>
+                      ) : (
+                        <p className="text-[9px] text-emerald-400/70 mt-0.5">WhatsApp Business incluido</p>
+                      )}
                     </div>
                   </div>
 
@@ -4028,8 +4062,22 @@ export default function Dashboard() {
     );
   }
 
-  const planLabels: Record<string, string> = { free: "Cappta Starter", basic: "Cappta Pro", pro: "Cappta Enterprise" };
-  const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
+  const planLabels: Record<string, string> = {
+    free: "Cappta Starter",
+    solo: "Cappta Solo",
+    basic: "Cappta Pro",
+    scale: "Cappta Scale",
+    pro: "Cappta Pro (legacy)",
+    enterprise: "Cappta Enterprise",
+  };
+  const planColors: Record<string, string> = {
+    free: "#6b7280",
+    solo: "hsl(258, 78%, 65%)",
+    basic: "hsl(142, 72%, 40%)",
+    scale: "hsl(217, 91%, 60%)",
+    pro: "hsl(217, 75%, 55%)",
+    enterprise: "hsl(30, 90%, 52%)",
+  };
 
   const planTheme: Record<string, { borderColor: string; glowFrom: string; glowTo: string; orbColor: string; accentRgba: string }> = {
     free: {
@@ -4039,6 +4087,13 @@ export default function Dashboard() {
       orbColor: "rgba(16, 185, 129, 0.04)",
       accentRgba: "rgba(16, 185, 129, 0.08)",
     },
+    solo: {
+      borderColor: "rgba(167, 139, 250, 0.18)",
+      glowFrom: "rgba(167, 139, 250, 0.05)",
+      glowTo: "rgba(118, 105, 233, 0.03)",
+      orbColor: "rgba(167, 139, 250, 0.05)",
+      accentRgba: "rgba(167, 139, 250, 0.1)",
+    },
     basic: {
       borderColor: "rgba(16, 185, 129, 0.18)",
       glowFrom: "rgba(16, 185, 129, 0.04)",
@@ -4046,12 +4101,26 @@ export default function Dashboard() {
       orbColor: "rgba(245, 158, 11, 0.05)",
       accentRgba: "rgba(16, 185, 129, 0.1)",
     },
+    scale: {
+      borderColor: "rgba(59, 130, 246, 0.20)",
+      glowFrom: "rgba(59, 130, 246, 0.05)",
+      glowTo: "rgba(37, 99, 235, 0.03)",
+      orbColor: "rgba(59, 130, 246, 0.06)",
+      accentRgba: "rgba(59, 130, 246, 0.1)",
+    },
     pro: {
-      borderColor: "rgba(245, 158, 11, 0.18)",
-      glowFrom: "rgba(245, 158, 11, 0.04)",
+      borderColor: "rgba(59, 130, 246, 0.18)",
+      glowFrom: "rgba(59, 130, 246, 0.04)",
+      glowTo: "rgba(37, 99, 235, 0.03)",
+      orbColor: "rgba(59, 130, 246, 0.05)",
+      accentRgba: "rgba(59, 130, 246, 0.08)",
+    },
+    enterprise: {
+      borderColor: "rgba(245, 158, 11, 0.20)",
+      glowFrom: "rgba(245, 158, 11, 0.05)",
       glowTo: "rgba(217, 119, 6, 0.03)",
-      orbColor: "rgba(245, 158, 11, 0.06)",
-      accentRgba: "rgba(245, 158, 11, 0.1)",
+      orbColor: "rgba(245, 158, 11, 0.07)",
+      accentRgba: "rgba(245, 158, 11, 0.12)",
     },
   };
   const theme = planTheme[tenant.plan] || planTheme.free;
