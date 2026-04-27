@@ -2830,12 +2830,12 @@ function ModeloIASection() {
 
   if (isLoading || !data) return null;
 
-  const okStats = (usage?.stats || []).filter((s) => s.status === "ok");
-  const totalRequests = okStats.reduce((acc, s) => acc + s.requests, 0);
-  const totalCost = okStats.reduce((acc, s) => acc + s.costUsd, 0);
-  const totalTokens = okStats.reduce((acc, s) => acc + s.tokensIn + s.tokensOut, 0);
-  const avgLatency = okStats.length
-    ? Math.round(okStats.reduce((acc, s) => acc + s.avgLatencyMs * s.requests, 0) / Math.max(1, totalRequests))
+  const billableStats = (usage?.stats || []).filter((s) => s.status === "ok" || s.status === "fallback");
+  const totalRequests = billableStats.reduce((acc, s) => acc + s.requests, 0);
+  const totalCost = billableStats.reduce((acc, s) => acc + s.costUsd, 0);
+  const totalTokens = billableStats.reduce((acc, s) => acc + s.tokensIn + s.tokensOut, 0);
+  const avgLatency = billableStats.length
+    ? Math.round(billableStats.reduce((acc, s) => acc + s.avgLatencyMs * s.requests, 0) / Math.max(1, totalRequests))
     : 0;
 
   const isUpgradePlan = ["pro", "scale", "enterprise"].includes(data.plan);
