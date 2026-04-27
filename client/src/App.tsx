@@ -105,6 +105,9 @@ const ClientesPage = lazy(() => import("@/pages/Clientes"));
 const AgendaPage = lazy(() => import("@/pages/Agenda"));
 const PagoResultadoPage = lazy(() => import("@/pages/PagoResultado"));
 const CanalesPage = lazy(() => import("@/pages/Canales"));
+const CurrencyInputHarnessPage = lazy(
+  () => import("@/pages/CurrencyInputHarness"),
+);
 
 function FullScreenChat() {
   const {
@@ -645,6 +648,8 @@ function App() {
   const isEnterprise = pathname === "/enterprise" || pathname === "/empresas";
   const isClientes = pathname === "/clientes" || pathname === "/casos";
   const isCanales = pathname === "/canales";
+  const isCurrencyInputHarness =
+    import.meta.env.PROD !== true && pathname === "/test/currency-input";
   const verticalMatch = pathname.match(/^\/para\/([a-z0-9-]+)$/);
   const isVertical = !!verticalMatch;
   const verticalSlug = verticalMatch ? verticalMatch[1] : "";
@@ -730,6 +735,10 @@ function App() {
       ) : isCanales ? (
         <Suspense fallback={<SuspenseLoader />}>
           <CanalesPage />
+        </Suspense>
+      ) : isCurrencyInputHarness ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <CurrencyInputHarnessPage />
         </Suspense>
       ) : isVertical ? (
         <Suspense fallback={<SuspenseLoader />}>
