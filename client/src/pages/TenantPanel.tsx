@@ -61,7 +61,7 @@ import {
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
 import type { Tenant } from "@shared/schema";
-import { CURRENCIES, getCurrency, getCurrencyLabel, getCurrencySymbol, formatMoney, formatPriceText } from "@shared/currencies";
+import { CURRENCIES, getCurrency, getCurrencySymbol, formatMoney, formatPriceText } from "@shared/currencies";
 import {
   Command,
   CommandEmpty,

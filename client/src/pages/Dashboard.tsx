@@ -75,7 +75,7 @@ import { GuidesPanel } from "./Guides";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager, SiWhatsapp } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
 import { CHANNEL_MIN_PLAN, planRank, type ChannelSlug } from "@shared/planMatrix";
-import { formatMoney, getCurrencySymbol } from "@shared/currencies";
+import { formatMoney } from "@shared/currencies";
 import { CapptaIcon } from "@/components/CapptaLogo";
 import OnboardingWizard from "./OnboardingWizard";
 import DashboardTour, { TourPrompt } from "./DashboardTour";
