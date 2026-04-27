@@ -69,6 +69,7 @@ import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiS
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
 import heroBg from "@assets/hero_bg_v3.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
+import cjmPanelChats from "@assets/image_1777272732233.png";
 
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -2080,6 +2081,42 @@ export default function Landing() {
                   <ArrowUpRight className="w-4 h-4" />
                 </a>
               </div>
+            </div>
+          </div>
+
+          <div className={`mt-20 ${casesSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: "480ms" }} data-testid="section-cjm-panel-proof">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-4" style={{ background: "rgba(118,105,233,0.10)", border: "1px solid rgba(118,105,233,0.25)" }}>
+                <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">Prueba real · Captura del panel</span>
+              </div>
+              <h3 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold tracking-[-0.02em] mb-4 text-white" data-testid="text-panel-proof-title">
+                <span style={{ background: "linear-gradient(135deg, #7669E9 0%, #9678E6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>6.943 conversaciones</span> atendidas · <span className="text-amber-400">4,9★ promedio</span>
+              </h3>
+              <p className="text-white/65 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-panel-proof-description">
+                Captura real del panel de soporte de CJM Digitales con todos los chats que el asistente IA y el equipo humano han atendido — del primero al último, ninguno escondido.
+              </p>
+            </div>
+
+            <div className="relative rounded-3xl overflow-hidden glass-card p-2 sm:p-3" data-testid="card-panel-proof-frame">
+              <div className="absolute -inset-px rounded-3xl pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(118,105,233,0.35), rgba(150,120,230,0.15) 40%, transparent 70%)", padding: "1px", WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude" }} />
+              <div className="relative rounded-2xl overflow-hidden bg-[#0a0a0c]">
+                <img
+                  src={cjmPanelChats}
+                  alt="Panel de soporte de CJM Digitales — 6.943 conversaciones atendidas con calificación 4,9 estrellas"
+                  className="w-full h-auto block"
+                  loading="lazy"
+                  data-testid="img-cjm-panel-chats"
+                />
+                <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 80px rgba(118,105,233,0.10)" }} />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-white/55" data-testid="row-panel-proof-meta">
+              <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Datos en vivo del panel</span>
+              <span className="flex items-center gap-2"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> 6.248 calificaciones</span>
+              <span className="flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5 text-primary" /> 6.943 chats totales</span>
+              <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-primary" /> 64% resuelto por IA</span>
             </div>
           </div>
         </div>
