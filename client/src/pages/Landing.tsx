@@ -1589,21 +1589,21 @@ function ROICalculator() {
           <div className="space-y-5">
             <p className="text-xs font-bold text-violet-300 uppercase tracking-wider">ESTIMACIÓN MENSUAL</p>
 
-            <div className="flex justify-between items-baseline pb-3 border-b border-white/10">
-              <span className="text-white/70 text-sm">Ventas adicionales</span>
-              <span className="text-2xl font-black text-white" data-testid="text-revenue">+{fmt(monthlyRevenue)}</span>
+            <div className="flex justify-between items-baseline gap-3 pb-3 border-b border-white/10">
+              <span className="text-white/70 text-sm shrink-0">Ventas adicionales</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-white tabular-nums truncate" data-testid="text-revenue">+{fmt(monthlyRevenue)}</span>
             </div>
-            <div className="flex justify-between items-baseline pb-3 border-b border-white/10">
-              <span className="text-white/70 text-sm">Ahorro en staff</span>
-              <span className="text-2xl font-black text-white" data-testid="text-savings">+{fmt(staffSavings)}</span>
+            <div className="flex justify-between items-baseline gap-3 pb-3 border-b border-white/10">
+              <span className="text-white/70 text-sm shrink-0">Ahorro en staff</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-white tabular-nums truncate" data-testid="text-savings">+{fmt(staffSavings)}</span>
             </div>
-            <div className="flex justify-between items-baseline pb-3 border-b border-white/10">
-              <span className="text-white/70 text-sm">Costo Cappta Pro</span>
-              <span className="text-xl font-bold text-white/60">−{fmt(capptaCost)}</span>
+            <div className="flex justify-between items-baseline gap-3 pb-3 border-b border-white/10">
+              <span className="text-white/70 text-sm shrink-0">Costo Cappta Pro</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-rose-300/90 tabular-nums truncate" data-testid="text-cost">−{fmt(capptaCost)}</span>
             </div>
             <div className="pt-2">
               <p className="text-xs text-white/50 mb-1">Beneficio neto / mes</p>
-              <p className="text-5xl font-black text-violet-300" data-testid="text-roi-total">{fmt(total)}</p>
+              <p className="text-3xl sm:text-4xl lg:text-5xl font-black text-violet-300 tabular-nums break-words leading-tight" data-testid="text-roi-total">{fmt(total)}</p>
               <p className="text-xs text-white/50 mt-2">Eso es <span className="font-bold text-violet-300">{roiMultiplier}x</span> el costo de Cappta</p>
             </div>
           </div>
