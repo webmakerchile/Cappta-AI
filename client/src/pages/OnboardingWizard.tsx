@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -68,6 +68,17 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const { toast } = useToast();
   const initialStep = Math.min(tenant.onboardingStep || 0, 2);
   const [step, setStep] = useState(initialStep);
+
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const slug = url.searchParams.get("partner") || url.searchParams.get("ref");
+      if (slug && /^[a-z0-9-]{1,64}$/i.test(slug)) {
+        const existing = window.localStorage.getItem("partner_slug");
+        if (!existing) window.localStorage.setItem("partner_slug", slug.toLowerCase());
+      }
+    } catch {}
+  }, []);
 
   const [industry, setIndustry] = useState<string>(tenant.industry || "");
   const [appliedTemplateSlug, setAppliedTemplateSlug] = useState<string>(tenant.appliedTemplateSlug || "");
