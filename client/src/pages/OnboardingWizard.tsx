@@ -59,7 +59,7 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const [businessSize, setBusinessSize] = useState<string>("");
 
   const PLAN_RECOMMENDATIONS: Record<string, { plan: string; price: string; planSlug: string; reason: string }> = {
-    micro: { plan: "Free", price: "$0", planSlug: "free", reason: "Perfecto para empezar — 100 conversaciones/mes gratis." },
+    micro: { plan: "Free", price: "$0", planSlug: "free", reason: "Perfecto para empezar — 50 conversaciones/mes gratis." },
     solo: { plan: "Solo", price: "$7.990 /mes", planSlug: "solo", reason: "Ideal para freelancers y emprendedores con poco volumen." },
     small: { plan: "Pro", price: "$19.990 /mes", planSlug: "basic", reason: "Para pymes con 1-10 empleados y volumen creciente." },
     medium: { plan: "Scale", price: "$49.990 /mes", planSlug: "scale", reason: "Equipos de 10-50 personas con multi-canal y reportes." },

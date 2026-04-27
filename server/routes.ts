@@ -5922,13 +5922,12 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       log(`New enterprise lead: ${data.company} (${data.email})`, "enterprise");
       try {
         await sendContactNotification({
-          name: data.name,
-          email: data.email,
+          userName: data.name,
+          userEmail: data.email,
           gameName: `${data.company} (${data.companySize ?? "?"} empleados)`,
           problemType: `Enterprise lead · ${data.industry ?? "industria n/d"} · ${data.monthlyConversations ?? "?"} conv/mes · canales: ${data.channels ?? "?"}`,
-          tenantId: 0,
-          message: data.message ?? undefined,
-        } as any);
+          chatSummary: data.message ?? null,
+        });
       } catch (e: any) {
         log(`Email notify failed for enterprise lead: ${e.message}`, "enterprise");
       }

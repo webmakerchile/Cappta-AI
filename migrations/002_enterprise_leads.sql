@@ -1,19 +1,19 @@
 -- Enterprise leads form submissions (B2B)
+-- Schema source of truth: shared/schema.ts (enterpriseLeads). Synced via `npm run db:push`.
 CREATE TABLE IF NOT EXISTS enterprise_leads (
   id SERIAL PRIMARY KEY,
-  company_name TEXT NOT NULL,
-  contact_name TEXT NOT NULL,
+  name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,
-  company_size TEXT NOT NULL,
-  monthly_conversations TEXT,
+  company TEXT NOT NULL,
+  company_size TEXT,
   industry TEXT,
-  current_solution TEXT,
-  needs TEXT,
+  monthly_conversations TEXT,
+  channels TEXT,
+  message TEXT,
+  source TEXT NOT NULL DEFAULT 'enterprise_form',
   status TEXT NOT NULL DEFAULT 'new',
-  notes TEXT,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  contacted_at TIMESTAMP
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_enterprise_leads_status ON enterprise_leads(status);
