@@ -301,9 +301,11 @@ export async function createChatPaymentPreference(opts: {
   customerName?: string | null;
 }): Promise<{ preferenceId: string; initPoint: string }> {
   if (!MP_ACCESS_TOKEN) throw new Error("Mercado Pago no configurado");
-  const currencyCode = (opts.currency || "CLP").toUpperCase();
-  const decimals = currencyCode === "CLP" || currencyCode === "JPY" || currencyCode === "PYG" ? 0 : 2;
-  const rawAmount = Math.max(0.01, Number(opts.amount) || 0);
+  const { getCurrency } = await import("../shared/currencies");
+  const currencyMeta = getCurrency(opts.currency);
+  const currencyCode = currencyMeta.code;
+  const decimals = currencyMeta.decimals;
+  const rawAmount = Math.max(decimals === 0 ? 1 : 0.01, Number(opts.amount) || 0);
   const safeAmount = Number(rawAmount.toFixed(decimals));
   const desc = (opts.description || "Cobro Cappta").slice(0, 200);
   const tokenParam = opts.publicToken ? `&token=${encodeURIComponent(opts.publicToken)}` : "";
