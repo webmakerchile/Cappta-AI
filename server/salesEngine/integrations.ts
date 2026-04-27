@@ -26,7 +26,13 @@ export async function runIntegrationAction(input: IntegrationActionInput): Promi
   let cfg: any = {};
   try { cfg = JSON.parse(integ.config || "{}"); } catch {}
   let creds: any = {};
-  try { creds = integ.credentials ? JSON.parse(integ.credentials) : {}; } catch {}
+  try {
+    if (integ.credentials) {
+      const { decryptCredentials } = await import("./secretCrypto");
+      const dec = decryptCredentials(integ.credentials);
+      creds = dec && typeof dec === "object" ? dec : {};
+    }
+  } catch {}
 
   let result: IntegrationActionResult;
   try {

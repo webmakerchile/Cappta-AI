@@ -702,17 +702,12 @@ export interface FlowEdge {
 }
 
 export const ALL_WEBHOOK_EVENTS = [
-  "session.created",
   "session.closed",
   "message.user",
   "message.support",
   "lead.scored",
   "lead.hot",
   "lead.qualified",
-  "appointment.booked",
-  "appointment.cancelled",
-  "payment.completed",
-  "tag.added",
 ] as const;
 
 export type WebhookEvent = typeof ALL_WEBHOOK_EVENTS[number];

@@ -8,6 +8,8 @@ export interface IStorage {
   getSessionsByEmail(email: string, tenantId?: number | null): Promise<Session[]>;
   createMessage(msg: InsertMessage): Promise<Message>;
   createContactRequest(req: InsertContactRequest): Promise<ContactRequest>;
+  updateContactRequest(tenantId: number, id: number, data: Partial<InsertContactRequest>): Promise<ContactRequest | null>;
+  deleteContactRequest(tenantId: number, id: number): Promise<boolean>;
   getAllSessions(statusFilter?: "active" | "closed" | "all"): Promise<{ sessionId: string; userName: string; userEmail: string; messageCount: number; unreadCount: number; lastMessage: Date | null; firstMessage: Date | null; status: string; tags: string[]; problemType: string | null; gameName: string | null; adminActive: boolean; contactRequested: boolean; assignedTo: number | null; assignedToName: string | null; assignedToColor: string | null; lastMessageContent: string | null; lastMessageSender: string | null; blockedAt: Date | null; lastAutoEmailAt: Date | null; lastManualEmailAt: Date | null }[]>;
   markSessionRead(sessionId: string): Promise<void>;
   searchMessages(query: string): Promise<Message[]>;
@@ -492,6 +494,24 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(contactRequests)
       .orderBy(desc(contactRequests.timestamp));
+  }
+
+  async updateContactRequest(tenantId: number, id: number, data: Partial<InsertContactRequest>): Promise<ContactRequest | null> {
+    const patch: any = {};
+    for (const k of ["userEmail", "userName", "pageUrl", "pageTitle", "chatSummary", "problemType", "gameName", "notified"]) {
+      if ((data as any)[k] !== undefined) patch[k] = (data as any)[k];
+    }
+    if (Object.keys(patch).length === 0) {
+      const r = await db.select().from(contactRequests).where(and(eq(contactRequests.id, id), eq(contactRequests.tenantId, tenantId))).limit(1);
+      return r[0] || null;
+    }
+    const r = await db.update(contactRequests).set(patch).where(and(eq(contactRequests.id, id), eq(contactRequests.tenantId, tenantId))).returning();
+    return r[0] || null;
+  }
+
+  async deleteContactRequest(tenantId: number, id: number): Promise<boolean> {
+    const r = await db.delete(contactRequests).where(and(eq(contactRequests.id, id), eq(contactRequests.tenantId, tenantId))).returning();
+    return r.length > 0;
   }
 
   async getCannedResponses(): Promise<CannedResponse[]> {

@@ -266,7 +266,6 @@ export function registerSalesEngineRoutes(app: Express, deps: SalesEngineDeps) {
     const ctx = await gatePaid(req, res); if (!ctx) return;
     try {
       const list = await salesEngine.getIntegrationsByTenant(ctx.tenantId);
-      // Strip credentials in response
       res.json(list.map(i => ({ ...i, credentials: i.credentials ? "***" : null })));
     } catch (e: any) { res.status(500).json({ message: e?.message }); }
   });
@@ -275,9 +274,14 @@ export function registerSalesEngineRoutes(app: Express, deps: SalesEngineDeps) {
     const ctx = await gatePaid(req, res); if (!ctx) return;
     if (!requireTenantOwnerOrAdmin(req, res)) return;
     try {
+      const { encryptCredentials } = await import("./secretCrypto");
       const body: any = { ...req.body, tenantId: ctx.tenantId };
       if (body.config && typeof body.config !== "string") body.config = JSON.stringify(body.config);
-      if (body.credentials && typeof body.credentials !== "string") body.credentials = JSON.stringify(body.credentials);
+      if (body.credentials !== undefined && body.credentials !== null && body.credentials !== "") {
+        body.credentials = encryptCredentials(body.credentials);
+      } else {
+        body.credentials = null;
+      }
       const parsed = insertIntegrationSchema.parse(body);
       const created = await salesEngine.createIntegration(parsed);
       res.json({ ...created, credentials: created.credentials ? "***" : null });
@@ -291,12 +295,18 @@ export function registerSalesEngineRoutes(app: Express, deps: SalesEngineDeps) {
     const ctx = await gatePaid(req, res); if (!ctx) return;
     if (!requireTenantOwnerOrAdmin(req, res)) return;
     try {
+      const { encryptCredentials } = await import("./secretCrypto");
       const id = parseInt(req.params.id);
       const data: any = { ...req.body };
       delete data.tenantId; delete data.id;
       if (data.config && typeof data.config !== "string") data.config = JSON.stringify(data.config);
-      if (data.credentials && typeof data.credentials !== "string") data.credentials = JSON.stringify(data.credentials);
-      if (data.credentials === "***") delete data.credentials;
+      if (data.credentials === "***" || data.credentials === undefined) {
+        delete data.credentials;
+      } else if (data.credentials === null || data.credentials === "") {
+        data.credentials = null;
+      } else {
+        data.credentials = encryptCredentials(data.credentials);
+      }
       const updated = await salesEngine.updateIntegration(ctx.tenantId, id, data);
       if (!updated) return res.status(404).json({ message: "No encontrado" });
       res.json({ ...updated, credentials: updated.credentials ? "***" : null });
@@ -596,6 +606,45 @@ export function registerSalesEngineRoutes(app: Express, deps: SalesEngineDeps) {
       const mine = all.filter((c: any) => c.tenantId === auth.tenantId);
       const limit = Math.min(parseInt(String(req.query.limit || "100"), 10) || 100, 500);
       res.json({ data: mine.slice(0, limit), count: mine.length });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.post("/api/v1/contacts", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "contacts.write", res)) return;
+    try {
+      const b = req.body || {};
+      if (!b.userEmail || !b.userName) return res.status(400).json({ error: "userEmail_and_userName_required" });
+      const created = await storage.createContactRequest({
+        tenantId: auth.tenantId,
+        userEmail: String(b.userEmail),
+        userName: String(b.userName),
+        pageUrl: b.pageUrl || null,
+        pageTitle: b.pageTitle || null,
+        chatSummary: b.chatSummary || null,
+        problemType: b.problemType || null,
+        gameName: b.gameName || null,
+      } as any);
+      res.status(201).json({ data: created });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.patch("/api/v1/contacts/:id", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "contacts.write", res)) return;
+    try {
+      const updated = await storage.updateContactRequest(auth.tenantId, parseInt(req.params.id, 10), req.body || {});
+      if (!updated) return res.status(404).json({ error: "not_found" });
+      res.json({ data: updated });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.delete("/api/v1/contacts/:id", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "contacts.write", res)) return;
+    try {
+      const ok = await storage.deleteContactRequest(auth.tenantId, parseInt(req.params.id, 10));
+      res.json({ data: { deleted: ok } });
     } catch (e: any) { res.status(500).json({ error: e?.message }); }
   });
 
