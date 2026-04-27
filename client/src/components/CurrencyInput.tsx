@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getCurrency } from "@shared/currencies";
@@ -41,23 +48,45 @@ function formatNumber(value: number, locale: string, decimals: number): string {
   }
 }
 
-function parseDisplay(input: string, decimal: string, decimals: number): number | null {
-  if (!input) return null;
-  let cleaned = "";
-  let seenDecimal = false;
-  for (const ch of input) {
-    if (ch >= "0" && ch <= "9") {
-      cleaned += ch;
-    } else if (decimals > 0 && ch === decimal && !seenDecimal) {
-      cleaned += ".";
-      seenDecimal = true;
+function pickDecimalChar(
+  raw: string,
+  decimals: number,
+  isPaste: boolean,
+): "." | "," | null {
+  if (decimals <= 0) return null;
+  const dots = (raw.match(/\./g) || []).length;
+  const commas = (raw.match(/,/g) || []).length;
+  if (dots === 0 && commas === 0) return null;
+
+  if (dots > 0 && commas > 0) {
+    if (dots === 1 && commas > 1) return ".";
+    if (commas === 1 && dots > 1) return ",";
+    return raw.lastIndexOf(".") > raw.lastIndexOf(",") ? "." : ",";
+  }
+
+  if (dots > 1) return null;
+  if (commas > 1) return null;
+
+  const sep: "." | "," = dots === 1 ? "." : ",";
+
+  if (isPaste) {
+    const sepIdx = raw.indexOf(sep);
+    const beforeDigits = (raw.slice(0, sepIdx).match(/\d/g) || []).length;
+    const afterMatch = raw.slice(sepIdx + 1).match(/^\d+/);
+    const afterDigits = afterMatch ? afterMatch[0].length : 0;
+    const tail = raw.slice(sepIdx + 1 + afterDigits);
+    const trailingDigits = (tail.match(/\d/g) || []).length;
+    if (
+      afterDigits === 3 &&
+      beforeDigits >= 1 &&
+      beforeDigits <= 3 &&
+      trailingDigits === 0
+    ) {
+      return null;
     }
   }
-  if (!cleaned || cleaned === ".") return null;
-  const num = Number(cleaned);
-  if (!isFinite(num)) return null;
-  if (decimals === 0) return Math.trunc(num);
-  return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
+
+  return sep;
 }
 
 export function CurrencyInput({
@@ -77,7 +106,10 @@ export function CurrencyInput({
 }: CurrencyInputProps) {
   const meta = useMemo(() => getCurrency(currency), [currency]);
   const decimals = decimalsOverride ?? meta.decimals;
-  const { decimal: decimalSep } = useMemo(() => getLocaleSeparators(meta.locale), [meta.locale]);
+  const { decimal: decimalSep } = useMemo(
+    () => getLocaleSeparators(meta.locale),
+    [meta.locale],
+  );
   const prefix = prefixOverride ?? meta.code;
   const computedAriaLabel = ariaLabel
     ? `${ariaLabel} (${meta.code} – ${meta.name})`
@@ -86,8 +118,13 @@ export function CurrencyInput({
   const valueRef = useRef<number | null | undefined>(value);
   const localeRef = useRef<string>(meta.locale);
   const decimalsRef = useRef<number>(decimals);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const pendingCaret = useRef<number | null>(null);
+
   const [display, setDisplay] = useState<string>(() =>
-    typeof value === "number" && isFinite(value) ? formatNumber(value, meta.locale, decimals) : ""
+    typeof value === "number" && isFinite(value)
+      ? formatNumber(value, meta.locale, decimals)
+      : "",
   );
 
   useEffect(() => {
@@ -105,47 +142,111 @@ export function CurrencyInput({
     }
   }, [value, meta.locale, decimals]);
 
-  const handleChange = (raw: string) => {
-    let cleaned = "";
-    let seenDecimal = false;
-    let decimalDigits = 0;
-    for (const ch of raw) {
-      if (ch >= "0" && ch <= "9") {
-        if (seenDecimal) {
-          if (decimalDigits >= decimals) continue;
-          decimalDigits += 1;
+  useLayoutEffect(() => {
+    if (pendingCaret.current !== null && inputRef.current) {
+      const pos = pendingCaret.current;
+      pendingCaret.current = null;
+      const el = inputRef.current;
+      try {
+        if (document.activeElement === el) {
+          el.setSelectionRange(pos, pos);
         }
-        cleaned += ch;
-      } else if (decimals > 0 && ch === decimalSep && !seenDecimal) {
-        cleaned += decimalSep;
-        seenDecimal = true;
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [display]);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const caret = e.target.selectionStart ?? raw.length;
+    const ne = e.nativeEvent as InputEvent | undefined;
+    const inputType = (ne && (ne as any).inputType) || "";
+    const isPaste =
+      inputType === "insertFromPaste" || inputType === "insertFromDrop";
+
+    const decimalChar = pickDecimalChar(raw, decimals, isPaste);
+    const decimalPos = decimalChar ? raw.lastIndexOf(decimalChar) : -1;
+
+    let intDigitsBefore = 0;
+    let decDigitsBefore = 0;
+    let pastDecimalAtCaret = false;
+    const upTo = Math.min(caret, raw.length);
+    for (let i = 0; i < upTo; i++) {
+      if (i === decimalPos) {
+        pastDecimalAtCaret = true;
+        continue;
+      }
+      const ch = raw[i];
+      if (ch >= "0" && ch <= "9") {
+        if (pastDecimalAtCaret) decDigitsBefore++;
+        else intDigitsBefore++;
       }
     }
 
-    if (cleaned === "" || cleaned === decimalSep) {
-      setDisplay(cleaned);
+    let intDigits = "";
+    let decDigits = "";
+    let inDec = false;
+    for (let i = 0; i < raw.length; i++) {
+      if (i === decimalPos) {
+        inDec = true;
+        continue;
+      }
+      const ch = raw[i];
+      if (ch >= "0" && ch <= "9") {
+        if (inDec) {
+          if (decDigits.length < decimals) decDigits += ch;
+        } else {
+          intDigits += ch;
+        }
+      }
+    }
+
+    if (!intDigits && !decDigits && !inDec) {
+      setDisplay("");
       valueRef.current = null;
       onValueChange(null);
       return;
     }
 
-    const numeric = parseDisplay(cleaned, decimalSep, decimals);
+    const intNum = intDigits ? parseInt(intDigits, 10) : 0;
+    const numeric =
+      inDec && decDigits.length > 0
+        ? intNum + parseInt(decDigits, 10) / Math.pow(10, decDigits.length)
+        : intNum;
 
-    let formatted = cleaned;
-    if (numeric !== null) {
-      const intPart = Math.trunc(Math.abs(numeric));
-      const intStr = formatNumber(intPart, meta.locale, 0);
-      if (seenDecimal) {
-        const idx = cleaned.indexOf(decimalSep);
-        const decPart = idx >= 0 ? cleaned.slice(idx + 1) : "";
-        formatted = `${intStr}${decimalSep}${decPart}`;
+    const intStr = formatNumber(intNum, meta.locale, 0);
+    const formatted = inDec ? `${intStr}${decimalSep}${decDigits}` : intStr;
+
+    let newCaret: number;
+    if (pastDecimalAtCaret) {
+      const sepIdx = formatted.indexOf(decimalSep);
+      if (sepIdx >= 0) {
+        let count = 0;
+        let pos = sepIdx + decimalSep.length;
+        const target = Math.min(decDigitsBefore, decDigits.length);
+        while (pos < formatted.length && count < target) {
+          if (formatted[pos] >= "0" && formatted[pos] <= "9") count++;
+          pos++;
+        }
+        newCaret = pos;
       } else {
-        formatted = intStr;
+        newCaret = formatted.length;
       }
+    } else {
+      let count = 0;
+      let pos = 0;
+      const target = Math.min(intDigitsBefore, intDigits.length);
+      while (pos < formatted.length && count < target) {
+        if (formatted[pos] >= "0" && formatted[pos] <= "9") count++;
+        pos++;
+      }
+      newCaret = pos;
     }
 
     setDisplay(formatted);
     valueRef.current = numeric;
+    pendingCaret.current = newCaret;
     onValueChange(numeric);
   };
 
@@ -164,12 +265,13 @@ export function CurrencyInput({
         {prefix}
       </span>
       <Input
+        ref={inputRef}
         id={id}
         name={name}
         required={required}
         inputMode={decimals > 0 ? "decimal" : "numeric"}
         value={display}
-        onChange={(e) => handleChange(e.target.value)}
+        onChange={handleChange}
         onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
