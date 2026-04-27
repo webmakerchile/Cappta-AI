@@ -61,7 +61,7 @@ import {
 import { GuidesPanel } from "./Guides";
 import { io, Socket } from "socket.io-client";
 import type { Tenant } from "@shared/schema";
-import { CURRENCIES, getCurrency, getCurrencyLabel, getCurrencySymbol, formatMoney } from "@shared/currencies";
+import { CURRENCIES, getCurrency, getCurrencyLabel, getCurrencySymbol, formatMoney, formatPriceText } from "@shared/currencies";
 import {
   Command,
   CommandEmpty,
@@ -1138,7 +1138,7 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
                           className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors border-b border-white/[0.04] last:border-0"
                         >
                           <span className="text-xs text-white/80">{p.name}</span>
-                          {p.price && <span className="text-xs text-[#10b981] ml-2">${p.price}</span>}
+                          {p.price && <span className="text-xs text-[#10b981] ml-2">{formatPriceText(p.price, tenantProfile?.currency || "CLP")}</span>}
                         </button>
                       ))
                     )}
@@ -1645,7 +1645,7 @@ function ProductosTab() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white/90">{p.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  {p.price && <span className="text-xs text-[#10b981] font-semibold" data-testid={`text-product-price-${p.id}`}>{currencySymbol}{p.price}</span>}
+                  {p.price && <span className="text-xs text-[#10b981] font-semibold" data-testid={`text-product-price-${p.id}`}>{formatPriceText(p.price, tenantProfile?.currency || "CLP")}</span>}
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/50">{categoryLabels[p.category] || p.category}</span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded ${p.availability === "available" ? "bg-emerald-500/15 text-emerald-400" : p.availability === "preorder" ? "bg-amber-500/15 text-amber-400" : "bg-red-500/15 text-red-400"}`}>{availLabels[p.availability] || p.availability}</span>
                 </div>
@@ -2746,7 +2746,7 @@ function CatalogQuickEdit() {
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/20 font-medium shrink-0">{p.badgeLabel}</span>
                       )}
                     </div>
-                    <span className="text-xs text-white/40" data-testid={`text-catalog-price-${p.id}`}>{p.price ? `${currencySymbol}${p.price}` : "Sin precio"}</span>
+                    <span className="text-xs text-white/40" data-testid={`text-catalog-price-${p.id}`}>{p.price ? formatPriceText(p.price, tenantProfile?.currency || "CLP") : "Sin precio"}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button size="sm" variant="ghost" onClick={() => startEdit(p)} className="text-white/40 hover:text-white/70 h-7 w-7 p-0" data-testid={`button-edit-catalog-${p.id}`}>

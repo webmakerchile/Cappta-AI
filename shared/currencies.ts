@@ -94,17 +94,53 @@ export function formatMoney(amount: number | null | undefined, code?: string | n
   const c = getCurrency(code);
   const value = typeof amount === "number" && isFinite(amount) ? amount : 0;
   try {
-    const formatted = new Intl.NumberFormat(c.locale, {
+    return new Intl.NumberFormat(c.locale, {
+      style: "currency",
+      currency: c.code,
+      currencyDisplay: "symbol",
       minimumFractionDigits: c.decimals,
       maximumFractionDigits: c.decimals,
     }).format(value);
-    return `${c.symbol}${formatted}`;
   } catch {
-    return `${c.symbol}${value.toFixed(c.decimals)}`;
+    try {
+      const formatted = new Intl.NumberFormat(c.locale, {
+        minimumFractionDigits: c.decimals,
+        maximumFractionDigits: c.decimals,
+      }).format(value);
+      return `${c.symbol}${formatted}`;
+    } catch {
+      return `${c.symbol}${value.toFixed(c.decimals)}`;
+    }
   }
 }
 
 export function formatMoneyWithCode(amount: number | null | undefined, code?: string | null): string {
   const c = getCurrency(code);
   return `${formatMoney(amount, code)} ${c.code}`;
+}
+
+export function parsePriceText(price: string | null | undefined): number | null {
+  if (price === null || price === undefined) return null;
+  const s = String(price).trim();
+  if (!s) return null;
+  const cleaned = s.replace(/[^0-9.,\-]/g, "");
+  if (!cleaned) return null;
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+  let normalized: string;
+  if (lastComma > lastDot) {
+    normalized = cleaned.replace(/\./g, "").replace(",", ".");
+  } else if (lastDot > lastComma) {
+    normalized = cleaned.replace(/,/g, "");
+  } else {
+    normalized = cleaned.replace(/,/g, "");
+  }
+  const n = parseFloat(normalized);
+  return isFinite(n) ? n : null;
+}
+
+export function formatPriceText(price: string | null | undefined, code?: string | null): string {
+  const n = parsePriceText(price);
+  if (n === null) return getCurrencySymbol(code);
+  return formatMoney(n, code);
 }
