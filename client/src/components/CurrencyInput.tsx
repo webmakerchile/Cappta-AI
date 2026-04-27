@@ -48,6 +48,14 @@ function formatNumber(value: number, locale: string, decimals: number): string {
   }
 }
 
+// Decide which character is the decimal separator in a pasted/dropped string.
+// Strategy:
+//   * Both "." and "," present  -> the LAST one is decimal, the other is grouping.
+//   * Multiple of the same char  -> all are grouping (no decimal).
+//   * One single ".":            -> heuristic: 1-3 digits before + exactly 3
+//     or "," and decimals > 0       digits after with no further digits is
+//                                   treated as grouping (e.g. "1,234"); any
+//                                   other shape is treated as decimal.
 function pickDecimalCharFromPaste(
   raw: string,
   decimals: number,
@@ -84,6 +92,13 @@ function pickDecimalCharFromPaste(
   return sep;
 }
 
+// Decide which character is the decimal separator after a single-keystroke
+// edit. History-aware: a separator is treated as decimal ONLY if the user
+// just typed it (its count vs prevDisplay went up). Otherwise the previously
+// chosen decimal character is preserved. This prevents the formatter's group
+// separators from being mis-classified as decimal on subsequent keystrokes
+// (e.g. typing "12345" in es-CL grows display "1.234" -> "12.345" without
+// the "." ever being interpreted as decimal).
 function decideDecimalCharFromTyping(
   raw: string,
   prevDisplay: string,
