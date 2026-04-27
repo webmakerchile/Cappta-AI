@@ -291,7 +291,7 @@ export default function PartnerConsole() {
           </CardContent>
         </Card>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
           <TabsList>
             <TabsTrigger value="tenants" data-testid="tab-tenants">Mis cuentas</TabsTrigger>
             <TabsTrigger value="commissions" data-testid="tab-commissions">Comisiones</TabsTrigger>

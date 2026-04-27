@@ -3,7 +3,7 @@ import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import nodeCrypto from "crypto";
 import { storage } from "./storage";
-import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads, insertAppointmentSlotSchema, type InsertChatPaymentLink, type InsertAppointment } from "@shared/schema";
+import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads, insertAppointmentSlotSchema, type InsertChatPaymentLink, type InsertAppointment, type InsertPartner, type InsertPartnerCommission, type InsertTenant } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
 import { log } from "./index";
 import { z } from "zod";
@@ -1266,12 +1266,13 @@ ${DEMO_BASE_RULES}`,
     if (revokedImpersonationIdsLoaded) return;
     revokedImpersonationIdsLoaded = true;
     try {
-      const fn = (storage as any).listEndedPartnerImpersonationIdsSince;
-      if (typeof fn === "function") {
-        const ids: number[] = await fn.call(storage, new Date(Date.now() - 2 * 60 * 60 * 1000));
-        ids.forEach((id) => revokedImpersonationIds.add(id));
-      }
-    } catch {}
+      const ids = await storage.listEndedPartnerImpersonationIdsSince(
+        new Date(Date.now() - 2 * 60 * 60 * 1000),
+      );
+      ids.forEach((id) => revokedImpersonationIds.add(id));
+    } catch (err) {
+      console.warn("[partners] failed to bootstrap revoked impersonation ids", err);
+    }
   }
   ensureRevokedImpersonationIdsLoaded();
 
@@ -1371,7 +1372,7 @@ ${DEMO_BASE_RULES}`,
       } else if (typeof country === "string" && country.trim()) {
         resolvedCurrency = getCurrencyForCountry(country);
       }
-      const tenant = await storage.createTenant({
+      const tenantPayload: InsertTenant = {
         name,
         email: email.toLowerCase().trim(),
         passwordHash,
@@ -1380,7 +1381,8 @@ ${DEMO_BASE_RULES}`,
         ...(safeRequestedPlan ? { requestedPlan: safeRequestedPlan } : {}),
         ...(resolvedCurrency ? { currency: resolvedCurrency } : {}),
         ...(attributedPartner ? { partnerId: attributedPartner.id, partnerSlug: attributedPartner.slug } : {}),
-      } as any);
+      };
+      const tenant = await storage.createTenant(tenantPayload);
       if (attributedPartner) {
         log(`Tenant ${tenant.id} atribuido a partner ${attributedPartner.slug} (id ${attributedPartner.id})`, "partners");
       }
@@ -7375,6 +7377,9 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
     const impersonationId = parseInt(req.params.impersonationId, 10);
     if (!impersonationId) return res.status(400).json({ message: "impersonationId inválido" });
+    const rows = await storage.getPartnerImpersonations(ctx.partner.id, 500);
+    const owned = rows.find((r) => r.id === impersonationId);
+    if (!owned) return res.status(404).json({ message: "Impersonación no encontrada" });
     await storage.endPartnerImpersonation(impersonationId);
     revokedImpersonationIds.add(impersonationId);
     res.json({ ok: true });
@@ -7391,7 +7396,9 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
   // Admin (superadmin) endpoints
   app.get("/api/admin/partners", async (req, res) => {
     if (!requireSuperadmin(req, res)) return;
-    const status = (req.query.status as any) || "all";
+    const rawStatus = typeof req.query.status === "string" ? req.query.status : "all";
+    const status: "pending" | "active" | "paused" | "all" =
+      rawStatus === "pending" || rawStatus === "active" || rawStatus === "paused" ? rawStatus : "all";
     const list = await storage.getAllPartners(status);
     const enriched = await Promise.all(
       list.map(async (p) => {
@@ -7427,9 +7434,9 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
           displayName,
           role: "partner",
           color: "#7669E9",
-        } as any);
+        });
       } else if (user.role !== "partner") {
-        await storage.updateAdminUserRole(user.id, "partner" as any);
+        await storage.updateAdminUserRole(user.id, "partner");
       }
       const existingPartner = await storage.getPartnerByUserId(user.id);
       if (existingPartner) return res.status(409).json({ message: "Este usuario ya es partner" });
@@ -7444,7 +7451,7 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
         commissionPct: typeof commissionPct === "number" ? Math.max(0, Math.min(100, commissionPct)) : 20,
         status: "pending",
         notes: notes || null,
-      } as any);
+      });
       log(`Partner creado: #${partner.id} slug=${partner.slug} user #${user.id}`, "partners");
       res.status(201).json(partner);
     } catch (e: any) {
@@ -7457,11 +7464,11 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
     if (!requireSuperadmin(req, res)) return;
     try {
       const id = parseInt(req.params.id, 10);
-      const updates: any = {};
+      const updates: Partial<InsertPartner> & { approvedAt?: Date | null } = {};
       const { tier, commissionPct, status, displayName, agencyName, country, notes, contactEmail } = req.body;
       if (tier === "certificado" || tier === "embajador") updates.tier = tier;
       if (typeof commissionPct === "number") updates.commissionPct = Math.max(0, Math.min(100, commissionPct));
-      if (status && ["pending", "active", "paused"].includes(status)) {
+      if (status === "pending" || status === "active" || status === "paused") {
         updates.status = status;
         if (status === "active") updates.approvedAt = new Date();
       }
@@ -7512,7 +7519,7 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       const tenantList = await storage.getPartnerTenants(partner.id);
       for (const tenant of tenantList) {
         try {
-          const result: any = await dbConn.execute(sqlTag`
+          const result = await dbConn.execute(sqlTag`
             SELECT COALESCE(SUM(amount), 0)::bigint AS sum_amount, COUNT(*)::int AS orders_count
             FROM payment_orders
             WHERE tenant_id = ${tenant.id}
@@ -7520,12 +7527,14 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
               AND paid_at IS NOT NULL
               AND TO_CHAR(paid_at AT TIME ZONE 'UTC', 'YYYY-MM') = ${periodMonth}
           `);
-          const row = (result?.rows ? result.rows[0] : result?.[0]) || {};
+          const rows = (result as { rows?: Array<{ sum_amount?: string | number; orders_count?: string | number }> }).rows
+            ?? (result as unknown as Array<{ sum_amount?: string | number; orders_count?: string | number }>);
+          const row = rows?.[0] || {};
           const sumAmount = Number(row.sum_amount || 0);
           const ordersCount = Number(row.orders_count || 0);
           if (sumAmount <= 0 && ordersCount === 0) continue;
           const commissionAmount = Math.floor((sumAmount * partner.commissionPct) / 100);
-          await storage.upsertPartnerCommission({
+          const commissionPayload: InsertPartnerCommission = {
             partnerId: partner.id,
             tenantId: tenant.id,
             periodMonth,
@@ -7535,7 +7544,8 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
             commissionPctSnapshot: partner.commissionPct,
             ordersCount,
             status: "pending",
-          } as any);
+          };
+          await storage.upsertPartnerCommission(commissionPayload);
         } catch (e: any) {
           log(
             `Commission compute error partner #${partner.id} tenant #${tenant.id} (${periodMonth}): ${e.message}`,

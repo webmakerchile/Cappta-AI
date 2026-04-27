@@ -1985,6 +1985,105 @@ export class DatabaseStorage implements IStorage {
       avgLatencyMs: Number(r.avgLatencyMs || 0),
     }));
   }
+
+  // ===== Partners =====
+  async createPartner(data: InsertPartner): Promise<Partner> {
+    const r = await db.insert(partners).values(data).returning();
+    return r[0];
+  }
+  async getPartnerById(id: number): Promise<Partner | null> {
+    const r = await db.select().from(partners).where(eq(partners.id, id)).limit(1);
+    return r[0] || null;
+  }
+  async getPartnerByUserId(userId: number): Promise<Partner | null> {
+    const r = await db.select().from(partners).where(eq(partners.userId, userId)).limit(1);
+    return r[0] || null;
+  }
+  async getPartnerBySlug(slug: string): Promise<Partner | null> {
+    const r = await db.select().from(partners).where(eq(partners.slug, slug)).limit(1);
+    return r[0] || null;
+  }
+  async getAllPartners(statusFilter?: "pending" | "active" | "paused" | "all"): Promise<Partner[]> {
+    if (statusFilter && statusFilter !== "all") {
+      return await db.select().from(partners).where(eq(partners.status, statusFilter)).orderBy(desc(partners.createdAt));
+    }
+    return await db.select().from(partners).orderBy(desc(partners.createdAt));
+  }
+  async updatePartner(id: number, data: Partial<InsertPartner> & { approvedAt?: Date | null }): Promise<Partner | null> {
+    const r = await db.update(partners).set(data).where(eq(partners.id, id)).returning();
+    return r[0] || null;
+  }
+  async deletePartner(id: number): Promise<boolean> {
+    const r = await db.delete(partners).where(eq(partners.id, id)).returning();
+    return r.length > 0;
+  }
+  async getPartnerTenants(partnerId: number): Promise<Tenant[]> {
+    return await db.select().from(tenants).where(eq(tenants.partnerId, partnerId)).orderBy(desc(tenants.createdAt));
+  }
+  async attachTenantToPartner(tenantId: number, partnerId: number | null, partnerSlug: string | null): Promise<void> {
+    await db.update(tenants).set({ partnerId, partnerSlug }).where(eq(tenants.id, tenantId));
+  }
+
+  // ===== Partner commissions =====
+  async upsertPartnerCommission(data: InsertPartnerCommission): Promise<PartnerCommission> {
+    const r = await db.insert(partnerCommissions).values(data)
+      .onConflictDoUpdate({
+        target: [partnerCommissions.partnerId, partnerCommissions.tenantId, partnerCommissions.periodMonth],
+        set: {
+          paidAmountCents: data.paidAmountCents,
+          currency: data.currency,
+          commissionAmountCents: data.commissionAmountCents,
+          commissionPctSnapshot: data.commissionPctSnapshot,
+          ordersCount: data.ordersCount,
+        },
+      })
+      .returning();
+    return r[0];
+  }
+  async getPartnerCommissions(partnerId: number, periodMonth?: string): Promise<PartnerCommission[]> {
+    const where = periodMonth
+      ? and(eq(partnerCommissions.partnerId, partnerId), eq(partnerCommissions.periodMonth, periodMonth))
+      : eq(partnerCommissions.partnerId, partnerId);
+    return await db.select().from(partnerCommissions).where(where).orderBy(desc(partnerCommissions.periodMonth), desc(partnerCommissions.computedAt));
+  }
+  async getAllPartnerCommissions(periodMonth?: string): Promise<PartnerCommission[]> {
+    if (periodMonth) {
+      return await db.select().from(partnerCommissions).where(eq(partnerCommissions.periodMonth, periodMonth)).orderBy(desc(partnerCommissions.computedAt));
+    }
+    return await db.select().from(partnerCommissions).orderBy(desc(partnerCommissions.periodMonth), desc(partnerCommissions.computedAt)).limit(500);
+  }
+  async updatePartnerCommissionStatus(id: number, status: "pending" | "approved" | "paid"): Promise<PartnerCommission | null> {
+    const data: Partial<InsertPartnerCommission> & { paidAt?: Date } = { status };
+    if (status === "paid") data.paidAt = new Date();
+    const r = await db.update(partnerCommissions).set(data).where(eq(partnerCommissions.id, id)).returning();
+    return r[0] || null;
+  }
+
+  // ===== Partner impersonations (audit) =====
+  async createPartnerImpersonation(data: InsertPartnerImpersonation): Promise<PartnerImpersonation> {
+    const r = await db.insert(partnerImpersonations).values(data).returning();
+    return r[0];
+  }
+  async endPartnerImpersonation(id: number): Promise<PartnerImpersonation | null> {
+    const r = await db.update(partnerImpersonations).set({ endedAt: new Date() }).where(eq(partnerImpersonations.id, id)).returning();
+    return r[0] || null;
+  }
+  async getPartnerImpersonations(partnerId: number, limit = 100): Promise<PartnerImpersonation[]> {
+    return await db.select().from(partnerImpersonations)
+      .where(eq(partnerImpersonations.partnerId, partnerId))
+      .orderBy(desc(partnerImpersonations.startedAt))
+      .limit(limit);
+  }
+  async getRecentPartnerImpersonations(limit = 200): Promise<PartnerImpersonation[]> {
+    return await db.select().from(partnerImpersonations)
+      .orderBy(desc(partnerImpersonations.startedAt))
+      .limit(limit);
+  }
+  async listEndedPartnerImpersonationIdsSince(since: Date): Promise<number[]> {
+    const rows = await db.select({ id: partnerImpersonations.id }).from(partnerImpersonations)
+      .where(and(gte(partnerImpersonations.endedAt, since), gte(partnerImpersonations.startedAt, since)));
+    return rows.map((r) => r.id);
+  }
 }
 
 // ============================================================================
@@ -2294,105 +2393,6 @@ class SalesEngineDb implements SalesEngineStorage {
       .where(eq(webhookDeliveries.endpointId, endpointId))
       .orderBy(desc(webhookDeliveries.deliveredAt))
       .limit(limit);
-  }
-
-  // ===== Partners =====
-  async createPartner(data: InsertPartner): Promise<Partner> {
-    const r = await db.insert(partners).values(data).returning();
-    return r[0];
-  }
-  async getPartnerById(id: number): Promise<Partner | null> {
-    const r = await db.select().from(partners).where(eq(partners.id, id)).limit(1);
-    return r[0] || null;
-  }
-  async getPartnerByUserId(userId: number): Promise<Partner | null> {
-    const r = await db.select().from(partners).where(eq(partners.userId, userId)).limit(1);
-    return r[0] || null;
-  }
-  async getPartnerBySlug(slug: string): Promise<Partner | null> {
-    const r = await db.select().from(partners).where(eq(partners.slug, slug)).limit(1);
-    return r[0] || null;
-  }
-  async getAllPartners(statusFilter?: "pending" | "active" | "paused" | "all"): Promise<Partner[]> {
-    if (statusFilter && statusFilter !== "all") {
-      return await db.select().from(partners).where(eq(partners.status, statusFilter)).orderBy(desc(partners.createdAt));
-    }
-    return await db.select().from(partners).orderBy(desc(partners.createdAt));
-  }
-  async updatePartner(id: number, data: Partial<InsertPartner> & { approvedAt?: Date | null }): Promise<Partner | null> {
-    const r = await db.update(partners).set(data).where(eq(partners.id, id)).returning();
-    return r[0] || null;
-  }
-  async deletePartner(id: number): Promise<boolean> {
-    const r = await db.delete(partners).where(eq(partners.id, id)).returning();
-    return r.length > 0;
-  }
-  async getPartnerTenants(partnerId: number): Promise<Tenant[]> {
-    return await db.select().from(tenants).where(eq(tenants.partnerId, partnerId)).orderBy(desc(tenants.createdAt));
-  }
-  async attachTenantToPartner(tenantId: number, partnerId: number | null, partnerSlug: string | null): Promise<void> {
-    await db.update(tenants).set({ partnerId, partnerSlug }).where(eq(tenants.id, tenantId));
-  }
-
-  // ===== Partner commissions =====
-  async upsertPartnerCommission(data: InsertPartnerCommission): Promise<PartnerCommission> {
-    const r = await db.insert(partnerCommissions).values(data)
-      .onConflictDoUpdate({
-        target: [partnerCommissions.partnerId, partnerCommissions.tenantId, partnerCommissions.periodMonth],
-        set: {
-          paidAmountCents: data.paidAmountCents,
-          currency: data.currency,
-          commissionAmountCents: data.commissionAmountCents,
-          commissionPctSnapshot: data.commissionPctSnapshot,
-          ordersCount: data.ordersCount,
-        },
-      })
-      .returning();
-    return r[0];
-  }
-  async getPartnerCommissions(partnerId: number, periodMonth?: string): Promise<PartnerCommission[]> {
-    const where = periodMonth
-      ? and(eq(partnerCommissions.partnerId, partnerId), eq(partnerCommissions.periodMonth, periodMonth))
-      : eq(partnerCommissions.partnerId, partnerId);
-    return await db.select().from(partnerCommissions).where(where).orderBy(desc(partnerCommissions.periodMonth), desc(partnerCommissions.computedAt));
-  }
-  async getAllPartnerCommissions(periodMonth?: string): Promise<PartnerCommission[]> {
-    if (periodMonth) {
-      return await db.select().from(partnerCommissions).where(eq(partnerCommissions.periodMonth, periodMonth)).orderBy(desc(partnerCommissions.computedAt));
-    }
-    return await db.select().from(partnerCommissions).orderBy(desc(partnerCommissions.periodMonth), desc(partnerCommissions.computedAt)).limit(500);
-  }
-  async updatePartnerCommissionStatus(id: number, status: "pending" | "approved" | "paid"): Promise<PartnerCommission | null> {
-    const data: any = { status };
-    if (status === "paid") data.paidAt = new Date();
-    const r = await db.update(partnerCommissions).set(data).where(eq(partnerCommissions.id, id)).returning();
-    return r[0] || null;
-  }
-
-  // ===== Partner impersonations (audit) =====
-  async createPartnerImpersonation(data: InsertPartnerImpersonation): Promise<PartnerImpersonation> {
-    const r = await db.insert(partnerImpersonations).values(data).returning();
-    return r[0];
-  }
-  async endPartnerImpersonation(id: number): Promise<PartnerImpersonation | null> {
-    const r = await db.update(partnerImpersonations).set({ endedAt: new Date() }).where(eq(partnerImpersonations.id, id)).returning();
-    return r[0] || null;
-  }
-  async getPartnerImpersonations(partnerId: number, limit = 100): Promise<PartnerImpersonation[]> {
-    return await db.select().from(partnerImpersonations)
-      .where(eq(partnerImpersonations.partnerId, partnerId))
-      .orderBy(desc(partnerImpersonations.startedAt))
-      .limit(limit);
-  }
-  async getRecentPartnerImpersonations(limit = 200): Promise<PartnerImpersonation[]> {
-    return await db.select().from(partnerImpersonations)
-      .orderBy(desc(partnerImpersonations.startedAt))
-      .limit(limit);
-  }
-  async listEndedPartnerImpersonationIdsSince(since: Date): Promise<number[]> {
-    const rows = await db.select({ id: partnerImpersonations.id }).from(partnerImpersonations)
-      .where(and(gte(partnerImpersonations.endedAt, since), gte(partnerImpersonations.startedAt, since)));
-    return rows.map((r) => r.id);
   }
 }
 
