@@ -2117,6 +2117,97 @@ export default function Landing() {
         </div>
       </section>
 
+      <section id="migra" className="py-28 px-6 relative overflow-hidden" data-testid="section-migrate-from-vambe">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.06) 0%, transparent 55%)" }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5" style={{ background: "rgba(118,105,233,0.10)", border: "1px solid rgba(118,105,233,0.25)" }}>
+              <Zap className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">¿VIENES DE VAMBE?</span>
+            </div>
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-5 text-white" data-testid="text-migrate-title">
+              Migra a Cappta en 48 horas.
+              <br />
+              <span className="text-white/70">Sin costo. Sin downtime.</span>
+            </h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed" data-testid="text-migrate-description">
+              Tu base de conocimiento, tus flujos y tu historial — los importamos por vos. Te recibimos con <span className="text-white font-semibold">60 días de garantía</span> y <span className="text-white font-semibold">sin setup fee</span>.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            {[
+              {
+                label: "Setup fee",
+                vambe: "USD 600 a USD 650",
+                cappta: "USD 0",
+                detail: "Onboarding self-service guiado por IA o asistido sin cargo.",
+                icon: Tag,
+              },
+              {
+                label: "Tiempo de puesta en marcha",
+                vambe: "~2 semanas con ingeniero asignado",
+                cappta: "48 h asistidas · 10 min self-service",
+                detail: "El wizard analiza tu sitio, propone tono, productos y FAQs.",
+                icon: Clock,
+              },
+              {
+                label: "Transparencia de precios",
+                vambe: "Standard USD 413/mes + venta asistida",
+                cappta: "Planes públicos, sin permanencia",
+                detail: "Lo que ves en la web es lo que pagas. Cancelás cuando quieras.",
+                icon: CircleCheck,
+              },
+            ].map((row, i) => {
+              const Icon = row.icon;
+              return (
+                <div key={row.label} className="relative rounded-2xl glass-card p-6 flex flex-col" data-testid={`card-migrate-row-${i}`}>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-violet-500/[0.08]">
+                      <Icon className="w-5 h-5 text-violet-400" />
+                    </div>
+                    <p className="text-sm font-semibold text-white/80">{row.label}</p>
+                  </div>
+
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                      <X className="w-4 h-4 text-red-400/80 mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40 mb-0.5">Vambe</p>
+                        <p className="text-sm text-white/70 leading-snug" data-testid={`text-migrate-vambe-${i}`}>{row.vambe}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 p-3 rounded-xl" style={{ background: "rgba(118,105,233,0.08)", border: "1px solid rgba(118,105,233,0.20)" }}>
+                      <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-primary/80 mb-0.5">Cappta</p>
+                        <p className="text-sm text-white font-semibold leading-snug" data-testid={`text-migrate-cappta-${i}`}>{row.cappta}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-white/50 leading-relaxed mt-auto">{row.detail}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-center">
+            <a href="/agendar?from=vambe" data-testid="link-migrate-cta">
+              <Button size="lg" className="text-white font-semibold px-8 h-12 rounded-xl" style={{ background: "linear-gradient(135deg, #7669E9 0%, #9678E6 100%)" }}>
+                Solicitar migración asistida
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </a>
+            <p className="text-[11px] text-white/40 mt-4 max-w-md mx-auto">
+              Conservás todas tus conversaciones e historial. Sin permanencia ni letra chica. Datos comparativos publicados por Vambe a oct. 2025.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section id="pricing" className="py-28 px-6 relative overflow-hidden" ref={pricingSection.ref as any} data-testid="section-pricing">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full" style={{ background: "radial-gradient(circle, hsl(250, 65%, 40%, 0.05) 0%, transparent 50%)" }} />
