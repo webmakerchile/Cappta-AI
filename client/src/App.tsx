@@ -100,6 +100,7 @@ const TermsPage = lazy(() => import("@/pages/Terms"));
 const ComparePage = lazy(() => import("@/pages/Comparar"));
 const EnterprisePage = lazy(() => import("@/pages/Enterprise"));
 const VerticalPage = lazy(() => import("@/pages/VerticalPage"));
+const ClientesPage = lazy(() => import("@/pages/Clientes"));
 
 function FullScreenChat() {
   const {
@@ -637,10 +638,11 @@ function App() {
   const isTerms = pathname === "/terminos";
   const isCompare = pathname === "/comparar" || pathname === "/vs-vambe";
   const isEnterprise = pathname === "/enterprise" || pathname === "/empresas";
+  const isClientes = pathname === "/clientes" || pathname === "/casos";
   const verticalMatch = pathname.match(/^\/para\/([a-z0-9-]+)$/);
   const isVertical = !!verticalMatch;
   const verticalSlug = verticalMatch ? verticalMatch[1] : "";
-  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isPrivacy || isTerms || isCompare || isEnterprise || isVertical;
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isPrivacy || isTerms || isCompare || isEnterprise || isClientes || isVertical;
 
   const isFixedLayout = isDashboard || isPanel;
 
@@ -708,6 +710,10 @@ function App() {
       ) : isEnterprise ? (
         <Suspense fallback={<SuspenseLoader />}>
           <EnterprisePage />
+        </Suspense>
+      ) : isClientes ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <ClientesPage />
         </Suspense>
       ) : isVertical ? (
         <Suspense fallback={<SuspenseLoader />}>

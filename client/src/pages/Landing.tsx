@@ -281,6 +281,10 @@ const verticalsList = [
   { slug: "gimnasios", name: "Gimnasios", emoji: "💪", desc: "Inscripciones y reactivación" },
   { slug: "servicios", name: "Servicios pro", emoji: "💼", desc: "Asesorías y reuniones agendadas" },
   { slug: "educacion", name: "Educación", emoji: "🎓", desc: "Matrículas y soporte académico" },
+  { slug: "automotriz", name: "Automotriz", emoji: "🚗", desc: "Cotizaciones y agenda de servicios" },
+  { slug: "turismo", name: "Turismo y hoteles", emoji: "✈️", desc: "Reservas y check-in multi-idioma" },
+  { slug: "veterinarias", name: "Veterinarias", emoji: "🐾", desc: "Agenda y recordatorios de vacunas" },
+  { slug: "construccion", name: "Construcción", emoji: "🔧", desc: "Cotización de materiales y B2B" },
 ];
 
 import type { LucideIcon } from "lucide-react";

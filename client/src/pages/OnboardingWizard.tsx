@@ -56,6 +56,16 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const [domain, setDomain] = useState(tenant.domain || "");
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<string | null>(tenant.botContext || null);
+  const [businessSize, setBusinessSize] = useState<string>("");
+
+  const PLAN_RECOMMENDATIONS: Record<string, { plan: string; price: string; planSlug: string; reason: string }> = {
+    micro: { plan: "Free", price: "$0", planSlug: "free", reason: "Perfecto para empezar — 100 conversaciones/mes gratis." },
+    solo: { plan: "Solo", price: "$7.990 /mes", planSlug: "solo", reason: "Ideal para freelancers y emprendedores con poco volumen." },
+    small: { plan: "Pro", price: "$19.990 /mes", planSlug: "basic", reason: "Para pymes con 1-10 empleados y volumen creciente." },
+    medium: { plan: "Scale", price: "$49.990 /mes", planSlug: "scale", reason: "Equipos de 10-50 personas con multi-canal y reportes." },
+    large: { plan: "Enterprise", price: "Custom", planSlug: "enterprise", reason: "Más de 50 personas, SLA y onboarding dedicado." },
+  };
+  const recommendedPlan = businessSize ? PLAN_RECOMMENDATIONS[businessSize] : null;
 
   const [widgetColor, setWidgetColor] = useState(tenant.widgetColor || "#10b981");
   const [headerTextColor, setHeaderTextColor] = useState(tenant.headerTextColor || "#ffffff");
@@ -495,6 +505,53 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
                   <p className="text-xs text-amber-300/80">Haz clic en "Analizar" para que Cappta AI aprenda sobre tu negocio automáticamente.</p>
                 </div>
               )}
+
+              <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+                <label className="text-sm font-medium text-white/60">¿Cuál es el tamaño de tu negocio?</label>
+                <p className="text-xs text-white/30">Te ayudamos a elegir el plan correcto. Lo puedes cambiar después.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[
+                    { id: "micro", label: "Solo yo", emoji: "🙋" },
+                    { id: "solo", label: "Freelancer", emoji: "💼" },
+                    { id: "small", label: "1–10", emoji: "👥" },
+                    { id: "medium", label: "10–50", emoji: "🏢" },
+                    { id: "large", label: "50+", emoji: "🏛️" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setBusinessSize(opt.id)}
+                      className={`rounded-xl border p-3 text-center text-xs transition-all ${
+                        businessSize === opt.id
+                          ? "border-primary bg-primary/15 text-white"
+                          : "border-white/[0.08] bg-white/[0.02] text-white/60 hover:border-white/20"
+                      }`}
+                      data-testid={`onboarding-size-${opt.id}`}
+                    >
+                      <div className="text-xl mb-1">{opt.emoji}</div>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {recommendedPlan && (
+                  <div
+                    className="mt-3 rounded-xl bg-primary/5 border border-primary/20 p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2"
+                    data-testid="onboarding-plan-recommendation"
+                  >
+                    <Rocket className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">
+                        Te recomendamos:{" "}
+                        <span className="font-bold text-white" data-testid="text-recommended-plan">
+                          Cappta {recommendedPlan.plan}
+                        </span>{" "}
+                        <span className="text-white/50">— {recommendedPlan.price}</span>
+                      </p>
+                      <p className="text-xs text-white/50 mt-1">{recommendedPlan.reason}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="flex justify-end pt-2">
                 <Button

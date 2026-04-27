@@ -1,8 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /panel
-Disallow: /widget
+Disallow: /dashboard
 Disallow: /api/
 
-Sitemap: https://foxbot.cl/sitemap.xml
+Sitemap: https://cappta.ai/sitemap.xml
