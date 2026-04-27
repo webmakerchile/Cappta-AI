@@ -540,7 +540,7 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
   };
 
   const handleSendProduct = (product: ProductItem) => {
-    const cur = tenantProfile?.currency || "CLP";
+    const cur = tenant?.currency || "CLP";
     const msg = `${product.name}${product.price ? ` - ${formatPriceText(product.price, cur)}` : ""}${product.productUrl ? `\n${product.productUrl}` : ""}`;
     setReplyText(msg);
     setShowProductSearch(false);
@@ -1140,7 +1140,7 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
                           className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors border-b border-white/[0.04] last:border-0"
                         >
                           <span className="text-xs text-white/80">{p.name}</span>
-                          {p.price && <span className="text-xs text-[#10b981] ml-2">{formatPriceText(p.price, tenantProfile?.currency || "CLP")}</span>}
+                          {p.price && <span className="text-xs text-[#10b981] ml-2">{formatPriceText(p.price, tenant?.currency || "CLP")}</span>}
                         </button>
                       ))
                     )}
