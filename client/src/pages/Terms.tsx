@@ -141,6 +141,13 @@ export default function TermsPage() {
 
       <footer className="border-t border-white/[0.04] py-8 px-6 text-center text-sm text-white/20">
         &copy; {new Date().getFullYear()} Cappta AI by Web Maker Chile. Todos los derechos reservados.
+        <div className="mt-2 text-xs text-white/30">
+          <a href="/seguridad" className="hover:text-white/60 transition-colors" data-testid="link-footer-security">Seguridad</a> ·{" "}
+          <a href="/dpa" className="hover:text-white/60 transition-colors" data-testid="link-footer-dpa">DPA</a> ·{" "}
+          <a href="/subprocesadores" className="hover:text-white/60 transition-colors" data-testid="link-footer-subprocessors">Subprocesadores</a> ·{" "}
+          <a href="/privacidad" className="hover:text-white/60 transition-colors">Privacidad</a> ·{" "}
+          <a href="/terminos" className="hover:text-white/60 transition-colors">Términos</a>
+        </div>
       </footer>
     </div>
   );

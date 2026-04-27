@@ -128,11 +128,11 @@ export default function EnterprisePage() {
             <div className="space-y-4">
               {[
                 { Icon: Crown, title: "Volumen ilimitado", desc: "Sesiones, mensajes y agentes sin límite. Pricing custom según uso real." },
-                { Icon: Shield, title: "SSO + Auditoría", desc: "Single Sign-On con SAML/OIDC, logs de auditoría exportables y compliance." },
-                { Icon: Users, title: "Equipo dedicado", desc: "Customer Success Manager, soporte 24/7 y onboarding white-glove." },
+                { Icon: Shield, title: "SSO + Auditoría¹", desc: "Single Sign-On con SAML/OIDC y logs de auditoría exportables. Activación bajo contrato Enterprise." },
+                { Icon: Users, title: "Equipo dedicado", desc: "Customer Success Manager, soporte priorizado y onboarding white-glove." },
                 { Icon: Globe, title: "Integraciones a medida", desc: "Conectamos tu CRM, ERP, helpdesk o cualquier sistema interno con API privada." },
-                { Icon: Lock, title: "Seguridad enterprise", desc: "Datos encriptados en reposo y en tránsito. On-premise opcional." },
-                { Icon: Headphones, title: "SLA 99.95%", desc: "Garantía contractual de uptime y tiempo de respuesta a incidentes." },
+                { Icon: Lock, title: "Seguridad enterprise²", desc: "Cifrado en reposo y en tránsito, aislamiento multi-tenant. On-premise / VPC bajo evaluación caso a caso." },
+                { Icon: Headphones, title: "SLA contractual³", desc: "Acuerdo de nivel de servicio con métricas de uptime y respuesta definidas por contrato Enterprise." },
               ].map(({ Icon, title, desc }) => (
                 <div key={title} className="flex items-start gap-3" data-testid={`feature-${title.substring(0, 15)}`}>
                   <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center shrink-0">
@@ -276,8 +276,34 @@ export default function EnterprisePage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] py-8 px-6 text-center text-xs text-white/30">
-        © Cappta AI · Enterprise · <a href="/privacidad" className="hover:text-white/50">Privacidad</a> · <a href="/terminos" className="hover:text-white/50">Términos</a>
+      <section className="border-t border-white/[0.06] py-12 px-6">
+        <div className="max-w-3xl mx-auto rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-xs text-white/55 leading-relaxed space-y-3" data-testid="enterprise-disclaimers">
+          <p className="font-bold text-white/70 uppercase tracking-[0.15em] text-[10px]">Notas y disclaimers</p>
+          <p>
+            <strong className="text-white/75">¹ SSO:</strong> Soportamos SAML 2.0 y OIDC mediante integración bajo contrato Enterprise. No es un módulo self-service del plan estándar.
+          </p>
+          <p>
+            <strong className="text-white/75">² Seguridad:</strong> Operamos con cifrado AES-256 en reposo y TLS 1.2+ en tránsito, hashing bcrypt y aislamiento multi-tenant. <strong className="text-white/85">No estamos certificados</strong> bajo SOC 2 ni ISO 27001 al día de hoy; SOC 2 Tipo II está en nuestro roadmap 2026. Detalle público en{" "}
+            <a href="/seguridad" className="text-violet-300 hover:underline" data-testid="link-enterprise-security">/seguridad</a>.
+          </p>
+          <p>
+            <strong className="text-white/75">³ SLA:</strong> Las métricas específicas de uptime, tiempos de respuesta y créditos por incumplimiento se definen en el contrato Enterprise firmado, no en este sitio.
+          </p>
+          <p>
+            <strong className="text-white/75">On-premise / VPC dedicado:</strong> Disponible bajo evaluación de viabilidad y costo. No es un producto estandarizado.
+          </p>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/[0.06] py-8 px-6 text-center text-xs text-white/30 space-y-2">
+        <p>© Cappta AI · Enterprise</p>
+        <p>
+          <a href="/seguridad" className="hover:text-white/60 transition-colors" data-testid="link-footer-security">Seguridad</a> ·{" "}
+          <a href="/dpa" className="hover:text-white/60 transition-colors" data-testid="link-footer-dpa">DPA</a> ·{" "}
+          <a href="/subprocesadores" className="hover:text-white/60 transition-colors" data-testid="link-footer-subprocessors">Subprocesadores</a> ·{" "}
+          <a href="/privacidad" className="hover:text-white/60 transition-colors">Privacidad</a> ·{" "}
+          <a href="/terminos" className="hover:text-white/60 transition-colors">Términos</a>
+        </p>
       </footer>
     </div>
   );

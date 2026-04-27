@@ -65,7 +65,7 @@ import {
   Workflow,
   Calendar,
 } from "lucide-react";
-import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiSalesforce, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiShopify, SiWoo, SiMagento, SiSquarespace, SiWebflow } from "react-icons/si";
+import { SiGoogle, SiApple, SiAmazonwebservices, SiMeta, SiOpenai, SiStripe, SiSlack, SiHubspot, SiTwilio, SiNotion, SiGithub, SiZoom, SiWhatsapp, SiTelegram, SiWordpress, SiWoo, SiDiscord, SiAirtable, SiMailchimp, SiGooglesheets } from "react-icons/si";
 import { CapptaLogo, CapptaIcon, CapptaStackedLogo } from "@/components/CapptaLogo";
 import heroBg from "@assets/hero_bg_v3.png";
 import caseCjmDigitales from "@assets/image_1772552113098.png";
@@ -99,7 +99,7 @@ const capabilities = [
     summary: "Catálogo en el chat, carrito y checkout sin salir de la conversación.",
     details: [
       "Tus clientes exploran productos, ven precios y disponibilidad sin salir del chat",
-      "Compatible con WooCommerce, Shopify, WordPress, Wix y cualquier plataforma",
+      "Compatible con WooCommerce, WordPress y cualquier sitio web que permita insertar código",
       "Recomendaciones inteligentes basadas en el contexto de la conversación",
     ],
     iconColor: "#9678E6",
@@ -318,7 +318,7 @@ const addonCatalog: AddonCatalogItem[] = [
   { slug: "razones-perdida", name: "Razones de Pérdida", description: "Analiza por qué se pierden conversaciones con métricas de abandono.", price: 27000, icon: "TrendingDown", category: "analytics" },
   { slug: "nps-ia", name: "NPS IA", description: "Encuestas NPS automatizadas con análisis de sentimiento por IA.", price: 27000, icon: "BarChart3", category: "analytics" },
   { slug: "formulas", name: "Fórmulas", description: "Flujos de automatización con lógica condicional para respuestas y asignaciones.", price: 27000, icon: "Workflow", category: "productividad" },
-  { slug: "meetings-bots", name: "Meetings Bots", description: "Bots que agendan reuniones automáticamente con Google Calendar y Zoom.", price: 19000, icon: "Calendar", category: "productividad" },
+  { slug: "meetings-bots", name: "Meetings Bots", description: "Bots que agendan reuniones automáticamente vía nuestro módulo de Agenda integrado.", price: 19000, icon: "Calendar", category: "productividad" },
 ];
 
 const addonCategoryLabels: Record<string, string> = {
@@ -1463,7 +1463,7 @@ const faqItems = [
   },
   {
     q: "¿Necesito conocimientos técnicos para instalar Cappta AI?",
-    a: "No. Nuestro equipo te ayuda con la instalación completa. Solo necesitas pegar un código en tu sitio web (WordPress, Shopify, WooCommerce, Wix, etc.) y listo. También ofrecemos onboarding personalizado en los planes Pro y Enterprise.",
+    a: "No. Nuestro equipo te ayuda con la instalación completa. Solo necesitas pegar un fragmento de código en tu sitio web (WordPress, WooCommerce o cualquier plataforma que permita insertar HTML) y listo. También ofrecemos onboarding personalizado en los planes Pro y Enterprise.",
   },
   {
     q: "¿Puedo probar Cappta AI antes de comprar?",
@@ -1471,7 +1471,7 @@ const faqItems = [
   },
   {
     q: "¿Qué plataformas soporta Cappta AI?",
-    a: "Cappta AI es compatible con WordPress, WooCommerce, Shopify, Wix, y cualquier sitio web que permita insertar código HTML. También ofrecemos integración vía API para plataformas personalizadas.",
+    a: "Cappta AI es compatible con WordPress, WooCommerce y cualquier sitio web que permita insertar código HTML. Para CRMs nos integramos con HubSpot, Pipedrive, Mailchimp y ActiveCampaign. También ofrecemos integración vía API y webhooks para plataformas personalizadas.",
   },
   {
     q: "¿Puedo cancelar mi suscripción en cualquier momento?",
@@ -1694,12 +1694,18 @@ export default function Landing() {
             {[0, 1].map((set) => (
               <div key={set} className="flex shrink-0 items-center gap-10 sm:gap-16 px-5 sm:px-8">
                 {[
-                  { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
-                  { Icon: SiShopify, name: "Shopify", size: "w-5 h-5" },
-                  { Icon: SiWoo, name: "WooCommerce", size: "w-6 h-6" },
-                  { Icon: SiSquarespace, name: "Squarespace", size: "w-5 h-5" },
-                  { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
                   { Icon: SiWhatsapp, name: "WhatsApp", size: "w-5 h-5" },
+                  { Icon: SiMeta, name: "Meta", size: "w-5 h-5" },
+                  { Icon: SiTelegram, name: "Telegram", size: "w-5 h-5" },
+                  { Icon: SiHubspot, name: "HubSpot", size: "w-5 h-5" },
+                  { Icon: SiMailchimp, name: "Mailchimp", size: "w-5 h-5" },
+                  { Icon: SiSlack, name: "Slack", size: "w-5 h-5" },
+                  { Icon: SiDiscord, name: "Discord", size: "w-5 h-5" },
+                  { Icon: SiNotion, name: "Notion", size: "w-5 h-5" },
+                  { Icon: SiAirtable, name: "Airtable", size: "w-5 h-5" },
+                  { Icon: SiGooglesheets, name: "Google Sheets", size: "w-5 h-5" },
+                  { Icon: SiWoo, name: "WooCommerce", size: "w-6 h-6" },
+                  { Icon: SiWordpress, name: "WordPress", size: "w-5 h-5" },
                 ].map(({ Icon, name, size }) => (
                   <div key={name} className="flex items-center gap-2.5 opacity-40" data-testid={`logo-partner-${name.toLowerCase()}`}>
                     <Icon className={`${size} text-white`} />
@@ -1859,7 +1865,7 @@ export default function Landing() {
                 {
                   step: "02",
                   title: "Conecta tu tienda",
-                  desc: "Integra WooCommerce, Shopify, tu API o entrena la base de conocimiento con tus documentos.",
+                  desc: "Integra WooCommerce, HubSpot, Slack, Notion, tu API o webhooks; o entrena la base de conocimiento con tus documentos.",
                   icon: Plug,
                   color: "#3b82f6",
                 },
@@ -2202,7 +2208,10 @@ export default function Landing() {
               </Button>
             </a>
             <p className="text-[11px] text-white/40 mt-4 max-w-md mx-auto">
-              Conservás todas tus conversaciones e historial. Sin permanencia ni letra chica. Datos comparativos publicados por Vambe a oct. 2025.
+              Conservás todas tus conversaciones e historial. Sin permanencia ni letra chica.
+            </p>
+            <p className="text-[10px] text-white/30 mt-3 max-w-xl mx-auto leading-relaxed" data-testid="text-vambe-disclaimer">
+              * Cifras de referencia: setup fee USD 600–650, tiempo de implementación ≈ 2 semanas y plan Standard USD 413/mes según comunicaciones públicas y propuestas comerciales de Vambe vigentes a octubre 2025. Consultá con cada proveedor las condiciones actualizadas antes de comparar.
             </p>
           </div>
         </div>
@@ -2526,14 +2535,17 @@ export default function Landing() {
               <h4 className="font-bold mb-4 text-xs text-white/60 tracking-[0.15em] uppercase">Integraciones</h4>
               <ul className="space-y-2.5 text-sm text-white/60">
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-woo">WooCommerce</a></li>
-                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-shopify">Shopify</a></li>
                 <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-wordpress">WordPress</a></li>
-                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-api">API Custom</a></li>
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-crm">HubSpot · Pipedrive</a></li>
+                <li><a href="/guias" className="hover:text-white/70 transition-colors" data-testid="link-footer-api">API y Webhooks</a></li>
               </ul>
             </div>
             <div className="md:col-span-2">
-              <h4 className="font-bold mb-4 text-xs text-white/60 tracking-[0.15em] uppercase">Legal</h4>
+              <h4 className="font-bold mb-4 text-xs text-white/60 tracking-[0.15em] uppercase">Legal y confianza</h4>
               <ul className="space-y-2.5 text-sm text-white/60">
+                <li><a href="/seguridad" className="hover:text-white/70 transition-colors" data-testid="link-footer-security">Seguridad</a></li>
+                <li><a href="/dpa" className="hover:text-white/70 transition-colors" data-testid="link-footer-dpa">DPA</a></li>
+                <li><a href="/subprocesadores" className="hover:text-white/70 transition-colors" data-testid="link-footer-subprocessors">Subprocesadores</a></li>
                 <li><a href="/privacidad" className="hover:text-white/70 transition-colors" data-testid="link-footer-privacy">Privacidad</a></li>
                 <li><a href="/terminos" className="hover:text-white/70 transition-colors" data-testid="link-footer-terms">Términos</a></li>
                 <li><a href="mailto:webmakerchile@gmail.com" className="hover:text-white/70 transition-colors" data-testid="link-footer-contact">Contacto</a></li>

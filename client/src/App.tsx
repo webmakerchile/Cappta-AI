@@ -98,6 +98,9 @@ const TenantPanelPage = lazy(() => import("@/pages/TenantPanel"));
 const SalesEnginePage = lazy(() => import("@/pages/SalesEngine"));
 const PrivacyPage = lazy(() => import("@/pages/Privacy"));
 const TermsPage = lazy(() => import("@/pages/Terms"));
+const SeguridadPage = lazy(() => import("@/pages/Seguridad"));
+const DPAPage = lazy(() => import("@/pages/DPA"));
+const SubprocesadoresPage = lazy(() => import("@/pages/Subprocesadores"));
 const ComparePage = lazy(() => import("@/pages/Comparar"));
 const EnterprisePage = lazy(() => import("@/pages/Enterprise"));
 const VerticalPage = lazy(() => import("@/pages/VerticalPage"));
@@ -644,6 +647,9 @@ function App() {
   const isSalesEngine = pathname === "/sales-engine";
   const isPrivacy = pathname === "/privacidad";
   const isTerms = pathname === "/terminos";
+  const isSeguridad = pathname === "/seguridad";
+  const isDPA = pathname === "/dpa";
+  const isSubprocesadores = pathname === "/subprocesadores";
   const isCompare = pathname === "/comparar" || pathname === "/vs-vambe";
   const isEnterprise = pathname === "/enterprise" || pathname === "/empresas";
   const isClientes = pathname === "/clientes" || pathname === "/casos";
@@ -655,7 +661,7 @@ function App() {
   const verticalSlug = verticalMatch ? verticalMatch[1] : "";
   const isAgenda = /^\/agenda\/\d+$/.test(pathname);
   const isPagoResultado = /^\/pago-resultado\/\d+$/.test(pathname);
-  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isSalesEngine || isPrivacy || isTerms || isCompare || isEnterprise || isClientes || isCanales || isVertical || isAgenda || isPagoResultado;
+  const isSaasPage = isLanding || isRegister || isLogin || isDashboard || isDemo || isGuides || isPanel || isSalesEngine || isPrivacy || isTerms || isSeguridad || isDPA || isSubprocesadores || isCompare || isEnterprise || isClientes || isCanales || isVertical || isAgenda || isPagoResultado;
 
   const isFixedLayout = isDashboard || isPanel || isSalesEngine;
 
@@ -719,6 +725,18 @@ function App() {
       ) : isTerms ? (
         <Suspense fallback={<SuspenseLoader />}>
           <TermsPage />
+        </Suspense>
+      ) : isSeguridad ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <SeguridadPage />
+        </Suspense>
+      ) : isDPA ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <DPAPage />
+        </Suspense>
+      ) : isSubprocesadores ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <SubprocesadoresPage />
         </Suspense>
       ) : isCompare ? (
         <Suspense fallback={<SuspenseLoader />}>

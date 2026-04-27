@@ -269,8 +269,15 @@ export default function ComparePage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] py-8 px-6 text-center text-xs text-white/30">
-        © Cappta AI · Comparativa actualizada {new Date().toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
+      <footer className="border-t border-white/[0.06] py-8 px-6 text-center text-xs text-white/30 space-y-2">
+        <p>© Cappta AI · Comparativa actualizada {new Date().toLocaleDateString("es-CL", { month: "long", year: "numeric" })}</p>
+        <p>
+          <a href="/seguridad" className="hover:text-white/60 transition-colors" data-testid="link-footer-security">Seguridad</a> ·{" "}
+          <a href="/dpa" className="hover:text-white/60 transition-colors" data-testid="link-footer-dpa">DPA</a> ·{" "}
+          <a href="/subprocesadores" className="hover:text-white/60 transition-colors" data-testid="link-footer-subprocessors">Subprocesadores</a> ·{" "}
+          <a href="/privacidad" className="hover:text-white/60 transition-colors">Privacidad</a> ·{" "}
+          <a href="/terminos" className="hover:text-white/60 transition-colors">Términos</a>
+        </p>
       </footer>
     </div>
   );
