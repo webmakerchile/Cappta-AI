@@ -189,8 +189,31 @@ export const tenants = pgTable("tenants", {
   rewardExpiresAt: timestamp("reward_expires_at"),
   cashBalance: integer("cash_balance").notNull().default(0),
   currency: text("currency").notNull().default("CLP"),
+  aiModel: text("ai_model").notNull().default("gpt-4o-mini"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const llmUsage = pgTable("llm_usage", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id"),
+  provider: text("provider", { enum: ["openai", "anthropic"] }).notNull().default("openai"),
+  model: text("model").notNull(),
+  kind: text("kind").notNull().default("chat"),
+  tokensIn: integer("tokens_in").notNull().default(0),
+  tokensOut: integer("tokens_out").notNull().default(0),
+  costUsdMicros: integer("cost_usd_micros").notNull().default(0),
+  latencyMs: integer("latency_ms").notNull().default(0),
+  status: text("status", { enum: ["ok", "fallback", "error"] }).notNull().default("ok"),
+  errorMessage: text("error_message"),
+  occurredAt: timestamp("occurred_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_llm_usage_tenant_id").on(table.tenantId),
+  index("idx_llm_usage_occurred_at").on(table.occurredAt),
+]);
+
+export const insertLlmUsageSchema = createInsertSchema(llmUsage).omit({ id: true, occurredAt: true });
+export type InsertLlmUsage = z.infer<typeof insertLlmUsageSchema>;
+export type LlmUsage = typeof llmUsage.$inferSelect;
 
 export const referrals = pgTable("referrals", {
   id: serial("id").primaryKey(),

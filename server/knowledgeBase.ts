@@ -1,13 +1,5 @@
-import OpenAI from "openai";
 import { storage } from "./storage";
-
-let _openai: OpenAI | null = null;
-function getOpenAIClient(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
-  return _openai;
-}
+import { chat as llmChat, DEFAULT_MODEL } from "./llm";
 
 interface ExtractionResult {
   sessionsProcessed: number;
@@ -92,18 +84,20 @@ export async function extractKnowledgeFromSessions(options?: { limit?: number })
         })
         .join("\n");
 
-      const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o-mini",
+      const llmResult = await llmChat({
+        tenantId: null,
+        model: DEFAULT_MODEL,
+        kind: "knowledge_extraction",
         messages: [
           { role: "system", content: EXTRACTION_PROMPT },
           { role: "user", content: `Conversación (${messages.length} mensajes):\n\n${conversationText}` },
         ],
         temperature: 0.3,
-        max_completion_tokens: 1500,
-        response_format: { type: "json_object" },
+        maxTokens: 1500,
+        responseFormat: "json_object",
       });
 
-      const responseText = response.choices[0]?.message?.content;
+      const responseText = llmResult.content;
       if (!responseText) continue;
 
       let entries: any[];

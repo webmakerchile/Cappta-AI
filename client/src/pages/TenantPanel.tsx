@@ -2792,6 +2792,119 @@ function CatalogQuickEdit() {
   );
 }
 
+function ModeloIASection() {
+  const { toast } = useToast();
+  const { data, isLoading } = useQuery<{ current: string; stored: string; plan: string; models: { id: string; label: string; provider: string }[] }>({
+    queryKey: ["/api/tenant-panel/llm/models"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/llm/models");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+  const { data: usage } = useQuery<{ days: number; stats: Array<{ provider: string; model: string; status: string; requests: number; tokensIn: number; tokensOut: number; costUsd: number; avgLatencyMs: number }> }>({
+    queryKey: ["/api/tenant-panel/llm/usage"],
+    queryFn: async () => {
+      const res = await tenantFetch("/api/tenant-panel/llm/usage?days=30");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const mutate = useMutation({
+    mutationFn: async (model: string) => {
+      const res = await tenantFetch("/api/tenants/me", { method: "PATCH", body: JSON.stringify({ aiModel: model }) });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "No se pudo cambiar el modelo");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-panel/llm/models"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+      toast({ title: "Modelo de IA actualizado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e?.message || "", variant: "destructive" }),
+  });
+
+  if (isLoading || !data) return null;
+
+  const okStats = (usage?.stats || []).filter((s) => s.status === "ok");
+  const totalRequests = okStats.reduce((acc, s) => acc + s.requests, 0);
+  const totalCost = okStats.reduce((acc, s) => acc + s.costUsd, 0);
+  const totalTokens = okStats.reduce((acc, s) => acc + s.tokensIn + s.tokensOut, 0);
+  const avgLatency = okStats.length
+    ? Math.round(okStats.reduce((acc, s) => acc + s.avgLatencyMs * s.requests, 0) / Math.max(1, totalRequests))
+    : 0;
+
+  const isUpgradePlan = ["pro", "scale", "enterprise"].includes(data.plan);
+
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4" data-testid="section-modelo-ia">
+      <div>
+        <p className="text-sm font-medium text-white/80">Modelo de IA</p>
+        <p className="text-xs text-white/40 mt-0.5">
+          Elegí qué modelo de OpenAI usa tu bot. Los planes superiores acceden a modelos más potentes.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        {data.models.map((m) => {
+          const selected = data.stored === m.id;
+          return (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => !selected && mutate.mutate(m.id)}
+              disabled={mutate.isPending || selected}
+              data-testid={`button-model-${m.id}`}
+              className={`w-full text-left rounded-lg border px-3 py-2.5 transition flex items-center justify-between ${
+                selected
+                  ? "border-[#7669E9]/60 bg-[#7669E9]/10"
+                  : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]"
+              }`}
+            >
+              <div>
+                <p className="text-sm text-white/85">{m.label}</p>
+                <p className="text-[11px] text-white/40 mt-0.5 uppercase tracking-wide">{m.provider}</p>
+              </div>
+              {selected && <span className="text-[11px] text-[#7669E9] font-semibold">EN USO</span>}
+            </button>
+          );
+        })}
+        {data.models.length <= 1 && !isUpgradePlan && (
+          <p className="text-[11px] text-white/40">
+            Tu plan incluye <strong>gpt-4o-mini</strong>. Mejorá a Scale, Pro o Enterprise para acceder a gpt-4o.
+          </p>
+        )}
+      </div>
+
+      <div className="border-t border-white/[0.06] pt-3">
+        <p className="text-xs text-white/50 mb-2">Uso de IA · últimos 30 días</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-2">
+            <p className="text-[10px] uppercase tracking-wide text-white/40">Requests</p>
+            <p className="text-sm font-semibold text-white/85" data-testid="text-llm-requests">{totalRequests.toLocaleString()}</p>
+          </div>
+          <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-2">
+            <p className="text-[10px] uppercase tracking-wide text-white/40">Tokens</p>
+            <p className="text-sm font-semibold text-white/85" data-testid="text-llm-tokens">{totalTokens.toLocaleString()}</p>
+          </div>
+          <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-2">
+            <p className="text-[10px] uppercase tracking-wide text-white/40">Costo USD</p>
+            <p className="text-sm font-semibold text-white/85" data-testid="text-llm-cost">${totalCost.toFixed(4)}</p>
+          </div>
+          <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-2">
+            <p className="text-[10px] uppercase tracking-wide text-white/40">Latencia</p>
+            <p className="text-sm font-semibold text-white/85" data-testid="text-llm-latency">{avgLatency} ms</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AjustesTab() {
   const { toast } = useToast();
 
@@ -2912,6 +3025,8 @@ function AjustesTab() {
           <Switch data-testid="switch-ai-enabled" checked={aiEnabled} onCheckedChange={setAiEnabled} />
         </div>
       </div>
+
+      <ModeloIASection />
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
         <div className="flex items-center gap-2">

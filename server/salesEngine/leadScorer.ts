@@ -1,13 +1,7 @@
-import OpenAI from "openai";
 import { storage, salesEngine } from "../storage";
 import type { LeadScoreFactor } from "@shared/schema";
 import { isTenantPaid } from "./safety";
-
-let _openai: OpenAI | null = null;
-function getClient(): OpenAI {
-  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  return _openai;
-}
+import { chat as llmChat, resolveModelForTenant } from "../llm";
 
 const pendingScores = new Map<string, NodeJS.Timeout>();
 
@@ -64,17 +58,20 @@ Reglas:
 Responde SOLO con un objeto JSON con: score, temperature, intent, factors, reasoning, nextAction.`;
 
   try {
-    const resp = await getClient().chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      max_tokens: 400,
+    const model = resolveModelForTenant(tenant || null);
+    const resp = await llmChat({
+      tenantId,
+      model,
+      kind: "lead_score",
+      responseFormat: "json_object",
+      maxTokens: 400,
       temperature: 0.2,
       messages: [
         { role: "system", content: sys },
         { role: "user", content: `Conversacion:\n${conversation}\n\nPerfil cliente: nombre=${session.userName}, email=${session.userEmail}, problema=${session.problemType || ""}.` },
       ],
     });
-    const raw = resp.choices[0]?.message?.content || "{}";
+    const raw = resp.content || "{}";
     const parsed = JSON.parse(raw);
     let score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)));
     let temperature = parsed.temperature as "cold" | "warm" | "hot";

@@ -212,6 +212,11 @@ export async function registerRoutes(
       res.status(401).json({ message: "Token invalido o expirado" });
       return null;
     }
+    // Tenant tokens (signed with same secret) carry isTenant=true; rechazar para endpoints admin
+    if ((user as any).isTenant) {
+      res.status(403).json({ message: "Acceso restringido al panel admin" });
+      return null;
+    }
     return user;
   }
 
@@ -1467,7 +1472,7 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, industry: tenant.industry, appliedTemplateSlug: tenant.appliedTemplateSlug, currency: tenant.currency, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, industry: tenant.industry, appliedTemplateSlug: tenant.appliedTemplateSlug, currency: tenant.currency, aiModel: tenant.aiModel, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
@@ -1516,14 +1521,63 @@ ${DEMO_BASE_RULES}`,
         }
         updates.currency = code;
       }
+      if (req.body.aiModel !== undefined) {
+        const { isValidModel, getAllowedModelsForPlan, DEFAULT_MODEL } = await import("./llm");
+        const requested = String(req.body.aiModel || "");
+        if (!isValidModel(requested)) {
+          return res.status(400).json({ message: "Modelo no válido" });
+        }
+        const currentTenant = await storage.getTenantById(auth.id);
+        const allowed = getAllowedModelsForPlan(currentTenant?.plan);
+        if (!allowed.includes(requested)) {
+          return res.status(403).json({ message: "Tu plan no permite este modelo. Actualiza a Pro o Enterprise para acceder a modelos premium." });
+        }
+        updates.aiModel = requested || DEFAULT_MODEL;
+      }
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
       }
-      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, currency: tenant.currency });
+      res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, currency: tenant.currency, aiModel: tenant.aiModel });
     } catch (error: any) {
       log(`Error actualizando tenant: ${error.message}`, "api");
       res.status(500).json({ message: "Error al actualizar" });
+    }
+  });
+
+  // ========== LLM: modelos disponibles + uso ==========
+  app.get("/api/tenant-panel/llm/models", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const tenant = await storage.getTenantById(auth.id);
+    if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+    const { getAllowedModelsForPlan, MODEL_LABELS, MODEL_PROVIDER, resolveModelForTenant, DEFAULT_MODEL } = await import("./llm");
+    const allowed = getAllowedModelsForPlan(tenant.plan);
+    res.json({
+      current: resolveModelForTenant(tenant),
+      stored: tenant.aiModel || DEFAULT_MODEL,
+      plan: tenant.plan,
+      models: allowed.map((m) => ({ id: m, label: MODEL_LABELS[m], provider: MODEL_PROVIDER[m] })),
+    });
+  });
+
+  app.get("/api/tenant-panel/llm/usage", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const days = Math.max(1, Math.min(90, Number(req.query.days) || 30));
+    const stats = await storage.getLlmUsageStats({ tenantId: auth.id, sinceDays: days });
+    res.json({ days, stats });
+  });
+
+  app.get("/api/admin/llm/usage", async (req, res) => {
+    const user = requireAuth(req, res);
+    if (!user) return;
+    try {
+      const days = Math.max(1, Math.min(180, Number(req.query.days) || 30));
+      const stats = await storage.getLlmUsageStats({ sinceDays: days });
+      res.json({ days, stats });
+    } catch (e: any) {
+      res.status(500).json({ message: "Error", error: e?.message });
     }
   });
 

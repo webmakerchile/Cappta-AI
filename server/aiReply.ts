@@ -1,5 +1,5 @@
-import OpenAI from "openai";
 import { storage } from "./storage";
+import { chat as llmChat, chatStream as llmChatStream, resolveModelForTenant, DEFAULT_MODEL } from "./llm";
 
 interface ConversationEntry {
   sender: string;
@@ -64,14 +64,14 @@ interface AIReplyOptions {
   baseUrl?: string;
 }
 
-let _openai: OpenAI | null = null;
-function getOpenAIClient(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+async function pickModelForTenant(tenantId?: number | null) {
+  if (!tenantId) return DEFAULT_MODEL;
+  try {
+    const t = await storage.getTenantById(tenantId);
+    return resolveModelForTenant(t || null);
+  } catch {
+    return DEFAULT_MODEL;
   }
-  return _openai;
 }
 
 function buildTenantSystemPrompt(
@@ -426,20 +426,21 @@ export async function getAIReply(
 ): Promise<string> {
   try {
     const messages = await prepareAIMessages(userMessage, conversationHistory, sessionData, catalogProducts, options);
+    const model = await pickModelForTenant(options?.tenantId);
 
-    const response = await getOpenAIClient().chat.completions.create({
-      model: "gpt-4o-mini",
+    const result = await llmChat({
+      tenantId: options?.tenantId ?? null,
+      model,
+      kind: "tenant_reply",
       messages: messages as any,
       temperature: 0.75,
-      max_completion_tokens: 1000,
+      maxTokens: 1000,
     });
 
-    let reply = response.choices[0]?.message?.content;
-    if (!reply) {
+    if (!result.content) {
       return "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo o contacta a un agente.";
     }
-
-    return cleanReply(reply);
+    return cleanReply(result.content);
   } catch (error) {
     console.error("Error en AI reply:", error);
     return "Lo siento, estoy experimentando dificultades tecnicas. Por favor, contacta a un agente para obtener ayuda.";
@@ -456,29 +457,22 @@ export async function getAIReplyStreaming(
 ): Promise<string> {
   try {
     const messages = await prepareAIMessages(userMessage, conversationHistory, sessionData, catalogProducts, options);
+    const model = await pickModelForTenant(options?.tenantId);
 
-    const stream = await getOpenAIClient().chat.completions.create({
-      model: "gpt-4o-mini",
+    const result = await llmChatStream({
+      tenantId: options?.tenantId ?? null,
+      model,
+      kind: "tenant_reply_stream",
       messages: messages as any,
       temperature: 0.75,
-      max_completion_tokens: 1000,
-      stream: true,
+      maxTokens: 1000,
+      onChunk,
     });
 
-    let accumulated = "";
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0]?.delta?.content;
-      if (delta) {
-        accumulated += delta;
-        if (onChunk) onChunk(delta, accumulated);
-      }
-    }
-
-    if (!accumulated) {
+    if (!result.content) {
       return "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo o contacta a un agente.";
     }
-
-    return cleanReply(accumulated);
+    return cleanReply(result.content);
   } catch (error) {
     console.error("Error en AI reply streaming:", error);
     return "Lo siento, estoy experimentando dificultades tecnicas. Por favor, contacta a un agente para obtener ayuda.";
