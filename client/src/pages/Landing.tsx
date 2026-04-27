@@ -1623,7 +1623,6 @@ function ROICalculator() {
 }
 
 export default function Landing() {
-  const statsSection = useInView(0.2);
   const featuresSection = useInView(0.1);
   const handoffSection = useInView(0.15);
   const stepsSection = useInView(0.1);
@@ -1707,47 +1706,6 @@ export default function Landing() {
                     <span className="text-sm sm:text-base text-white font-semibold tracking-wide whitespace-nowrap">{name}</span>
                   </div>
                 ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-
-      <section className="py-28 px-6 relative overflow-hidden" ref={statsSection.ref as any} data-testid="section-stats">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(118,105,233,0.15) 50%, transparent 100%)" }} />
-        </div>
-        <div className="relative max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase mb-5">RESULTADOS COMPROBADOS</p>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] mb-4 text-white">
-              Los números hablan por sí mismos
-            </h2>
-            <p className="text-white/60 text-base max-w-lg mx-auto">Ve el impacto en métricas reales.</p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { value: "3x", label: "Más conversiones automáticas", icon: TrendingUp, desc: "Sin aumentar personal comercial ni gestiones manuales" },
-              { value: "+90%", label: "Consultas resueltas por IA", icon: Users, desc: "Reducción en tareas manuales con flujos automatizados" },
-              { value: "+50", label: "Empresas confían en nosotros", icon: Shield, desc: "Desde startups hasta empresas consolidadas en Chile" },
-              { value: "99.9%", label: "Uptime garantizado", icon: Clock, desc: "Confiabilidad empresarial con automatización que nunca para" },
-              { value: "<2s", label: "Tiempo de respuesta", icon: Zap, desc: "Velocidad de IA para no perder ningún lead" },
-              { value: "5+", label: "Canales impulsados por IA", icon: MessageSquare, desc: "WhatsApp, Web, WordPress, Shopify y más" },
-            ].map(({ value, label, icon: Icon, desc }, i) => (
-              <div key={label} className={`group ${statsSection.isVisible ? "animate-count-fade" : "opacity-0"}`} style={{ animationDelay: `${i * 80}ms` }} data-testid={`stat-${label}`}>
-                <div className="rounded-2xl glass-card p-6 h-full transition-all duration-300 hover:border-white/[0.12]">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl mb-5 bg-violet-500/[0.08]">
-                    <Icon className="w-5 h-5 text-violet-400" />
-                  </div>
-                  <p className="text-4xl sm:text-5xl font-black mb-2 text-white">
-                    <CountUp target={value} />
-                  </p>
-                  <p className="text-sm font-semibold text-white/80 mb-1">{label}</p>
-                  <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
-                </div>
               </div>
             ))}
           </div>
