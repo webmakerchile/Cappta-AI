@@ -48,10 +48,9 @@ function formatNumber(value: number, locale: string, decimals: number): string {
   }
 }
 
-function pickDecimalChar(
+function pickDecimalCharFromPaste(
   raw: string,
   decimals: number,
-  isPaste: boolean,
 ): "." | "," | null {
   if (decimals <= 0) return null;
   const dots = (raw.match(/\./g) || []).length;
@@ -68,25 +67,50 @@ function pickDecimalChar(
   if (commas > 1) return null;
 
   const sep: "." | "," = dots === 1 ? "." : ",";
+  const sepIdx = raw.indexOf(sep);
+  const beforeDigits = (raw.slice(0, sepIdx).match(/\d/g) || []).length;
+  const afterMatch = raw.slice(sepIdx + 1).match(/^\d+/);
+  const afterDigits = afterMatch ? afterMatch[0].length : 0;
+  const tail = raw.slice(sepIdx + 1 + afterDigits);
+  const trailingDigits = (tail.match(/\d/g) || []).length;
+  if (
+    afterDigits === 3 &&
+    beforeDigits >= 1 &&
+    beforeDigits <= 3 &&
+    trailingDigits === 0
+  ) {
+    return null;
+  }
+  return sep;
+}
 
-  if (isPaste) {
-    const sepIdx = raw.indexOf(sep);
-    const beforeDigits = (raw.slice(0, sepIdx).match(/\d/g) || []).length;
-    const afterMatch = raw.slice(sepIdx + 1).match(/^\d+/);
-    const afterDigits = afterMatch ? afterMatch[0].length : 0;
-    const tail = raw.slice(sepIdx + 1 + afterDigits);
-    const trailingDigits = (tail.match(/\d/g) || []).length;
-    if (
-      afterDigits === 3 &&
-      beforeDigits >= 1 &&
-      beforeDigits <= 3 &&
-      trailingDigits === 0
-    ) {
-      return null;
-    }
+function decideDecimalCharFromTyping(
+  raw: string,
+  prevDisplay: string,
+  decimals: number,
+  prevDecimalChar: "." | "," | null,
+): "." | "," | null {
+  if (decimals <= 0) return null;
+  const rDots = (raw.match(/\./g) || []).length;
+  const rCommas = (raw.match(/,/g) || []).length;
+  if (rDots === 0 && rCommas === 0) return null;
+
+  const pDots = (prevDisplay.match(/\./g) || []).length;
+  const pCommas = (prevDisplay.match(/,/g) || []).length;
+
+  const dotsAdded = rDots - pDots;
+  const commasAdded = rCommas - pCommas;
+
+  if (dotsAdded > 0 && commasAdded <= 0) return ".";
+  if (commasAdded > 0 && dotsAdded <= 0) return ",";
+  if (dotsAdded > 0 && commasAdded > 0) {
+    return raw.lastIndexOf(".") > raw.lastIndexOf(",") ? "." : ",";
   }
 
-  return sep;
+  if (prevDecimalChar === "." && rDots > 0) return ".";
+  if (prevDecimalChar === "," && rCommas > 0) return ",";
+
+  return null;
 }
 
 export function CurrencyInput({
@@ -120,12 +144,24 @@ export function CurrencyInput({
   const decimalsRef = useRef<number>(decimals);
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingCaret = useRef<number | null>(null);
+  const prevDecimalCharRef = useRef<"." | "," | null>(null);
 
-  const [display, setDisplay] = useState<string>(() =>
-    typeof value === "number" && isFinite(value)
-      ? formatNumber(value, meta.locale, decimals)
-      : "",
-  );
+  const [display, setDisplay] = useState<string>(() => {
+    if (typeof value === "number" && isFinite(value)) {
+      return formatNumber(value, meta.locale, decimals);
+    }
+    return "";
+  });
+
+  useEffect(() => {
+    if (display && decimals > 0) {
+      prevDecimalCharRef.current = decimalSep as "." | ",";
+    } else {
+      prevDecimalCharRef.current = null;
+    }
+    // We only want this to seed the ref on first render. Real updates happen below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const localeChanged = localeRef.current !== meta.locale;
@@ -136,11 +172,15 @@ export function CurrencyInput({
     localeRef.current = meta.locale;
     decimalsRef.current = decimals;
     if (typeof value === "number" && isFinite(value)) {
-      setDisplay(formatNumber(value, meta.locale, decimals));
+      const newDisplay = formatNumber(value, meta.locale, decimals);
+      setDisplay(newDisplay);
+      prevDecimalCharRef.current =
+        decimals > 0 ? (decimalSep as "." | ",") : null;
     } else if (value === null || value === undefined) {
       setDisplay("");
+      prevDecimalCharRef.current = null;
     }
-  }, [value, meta.locale, decimals]);
+  }, [value, meta.locale, decimals, decimalSep]);
 
   useLayoutEffect(() => {
     if (pendingCaret.current !== null && inputRef.current) {
@@ -168,7 +208,14 @@ export function CurrencyInput({
     const isPaste =
       inputType === "insertFromPaste" || inputType === "insertFromDrop";
 
-    const decimalChar = pickDecimalChar(raw, decimals, isPaste);
+    const decimalChar = isPaste
+      ? pickDecimalCharFromPaste(raw, decimals)
+      : decideDecimalCharFromTyping(
+          raw,
+          display,
+          decimals,
+          prevDecimalCharRef.current,
+        );
     const decimalPos = decimalChar ? raw.lastIndexOf(decimalChar) : -1;
 
     let intDigitsBefore = 0;
@@ -209,8 +256,10 @@ export function CurrencyInput({
       if (inDec) {
         setDisplay(decimalSep);
         pendingCaret.current = decimalSep.length;
+        prevDecimalCharRef.current = decimalSep as "." | ",";
       } else {
         setDisplay("");
+        prevDecimalCharRef.current = null;
       }
       valueRef.current = null;
       onValueChange(null);
@@ -255,12 +304,20 @@ export function CurrencyInput({
     setDisplay(formatted);
     valueRef.current = numeric;
     pendingCaret.current = newCaret;
+    prevDecimalCharRef.current = inDec ? (decimalSep as "." | ",") : null;
     onValueChange(numeric);
   };
 
   const handleBlur = () => {
     if (typeof valueRef.current === "number" && isFinite(valueRef.current)) {
-      setDisplay(formatNumber(valueRef.current, meta.locale, decimals));
+      const newDisplay = formatNumber(
+        valueRef.current,
+        meta.locale,
+        decimals,
+      );
+      setDisplay(newDisplay);
+      prevDecimalCharRef.current =
+        decimals > 0 ? (decimalSep as "." | ",") : null;
     }
   };
 
