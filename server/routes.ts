@@ -2991,15 +2991,14 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     const ch = req.params.channel;
-    const allowed = ["whatsapp", "whatsapp_cloud", "instagram", "messenger", "telegram", "email"];
-    if (!allowed.includes(ch)) return res.status(400).json({ message: "Canal invalido" });
+    const { isChannelSlug, tenantCanUseChannel, getChannelMinPlan } = await import("@shared/planMatrix");
+    if (!isChannelSlug(ch)) return res.status(400).json({ message: "Canal invalido" });
 
     try {
-      const { tenantCanUseChannel, getChannelMinPlan } = await import("./channels/planGating");
       const tenantRow = await storage.getTenantById(auth.id);
       const plan = tenantRow?.plan || "free";
-      if (!tenantCanUseChannel(plan, ch as any)) {
-        const min = getChannelMinPlan(ch as any);
+      if (!tenantCanUseChannel(plan, ch)) {
+        const min = getChannelMinPlan(ch);
         return res.status(403).json({
           message: `Este canal está disponible desde ${min.label}. Mejorá tu plan para activarlo.`,
           requiredPlan: min.plan,
