@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 
 declare global {
   interface Window {
@@ -24,6 +25,7 @@ interface GoogleSignInProps {
 export function GoogleSignIn({ onSuccess, text = "Continuar con Google" }: GoogleSignInProps) {
   const [loading, setLoading] = useState(false);
   const [clientId, setClientId] = useState<string | null>(null);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const buttonRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -34,7 +36,8 @@ export function GoogleSignIn({ onSuccess, text = "Continuar con Google" }: Googl
       .then((data) => {
         if (data.clientId) setClientId(data.clientId);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setConfigLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -90,7 +93,32 @@ export function GoogleSignIn({ onSuccess, text = "Continuar con Google" }: Googl
     });
   }, [scriptLoaded, clientId, onSuccess, toast]);
 
-  if (!clientId) return null;
+  if (!configLoaded) {
+    return (
+      <div
+        className="w-full h-11 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center gap-2 text-sm text-white/30"
+        data-testid="button-google-signin-loading"
+      >
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Cargando opciones de inicio de sesión...
+      </div>
+    );
+  }
+
+  if (!clientId) {
+    return (
+      <button
+        type="button"
+        disabled
+        title="El administrador aún no configuró la credencial de Google. Usa tu email para continuar."
+        className="w-full h-11 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center gap-2 text-sm text-white/35 cursor-not-allowed"
+        data-testid="button-google-signin-unavailable"
+      >
+        <SiGoogle className="w-4 h-4" />
+        Inicio de sesión con Google no disponible
+      </button>
+    );
+  }
 
   return (
     <div className="relative">
