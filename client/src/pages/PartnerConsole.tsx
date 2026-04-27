@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { Fragment, useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +86,15 @@ interface AuthMe {
   displayName: string;
 }
 
+interface AdminPartnerTenantSummary {
+  id: number;
+  companyName: string;
+  email: string;
+  plan: string;
+  isTrial: boolean;
+  botConfigured: boolean;
+}
+
 interface AdminPartnerRow {
   id: number;
   userId: number;
@@ -102,6 +111,9 @@ interface AdminPartnerRow {
   createdAt: string;
   tenantsCount: number;
   totalCommissionCents: number;
+  totalMrrCents: number;
+  rank: number;
+  tenants: AdminPartnerTenantSummary[];
 }
 
 export default function PartnerConsole() {
@@ -621,6 +633,7 @@ export default function PartnerConsole() {
 function SuperadminPartnersPanel() {
   const { toast } = useToast();
   const [showCreate, setShowCreate] = useState(false);
+  const [expandedPartnerId, setExpandedPartnerId] = useState<number | null>(null);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -665,6 +678,8 @@ function SuperadminPartnersPanel() {
   });
 
   const partners = partnersQuery.data || [];
+  const totalNetworkMrrCents = partners.reduce((s, p) => s + (p.totalMrrCents || 0), 0);
+  const totalNetworkTenants = partners.reduce((s, p) => s + (p.tenantsCount || 0), 0);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -749,9 +764,33 @@ function SuperadminPartnersPanel() {
           </Card>
         )}
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Card data-testid="card-network-partners">
+            <CardContent className="pt-6">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Partners totales</p>
+              <p className="text-2xl font-bold mt-1 tabular-nums" data-testid="text-network-partners">{partners.length}</p>
+            </CardContent>
+          </Card>
+          <Card data-testid="card-network-tenants">
+            <CardContent className="pt-6">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Cuentas referidas</p>
+              <p className="text-2xl font-bold mt-1 tabular-nums" data-testid="text-network-tenants">{totalNetworkTenants.toLocaleString("es-CL")}</p>
+            </CardContent>
+          </Card>
+          <Card data-testid="card-network-mrr">
+            <CardContent className="pt-6">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">MRR red de partners</p>
+              <p className="text-2xl font-bold mt-1 tabular-nums text-violet-400" data-testid="text-network-mrr">
+                {(totalNetworkMrrCents / 100).toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Suma de planes activos no-trial.</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-violet-400" /> Partners ({partners.length})</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-violet-400" /> Ranking de partners ({partners.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {partnersQuery.isLoading ? (
@@ -763,60 +802,105 @@ function SuperadminPartnersPanel() {
                 <table className="w-full text-sm">
                   <thead className="text-left text-xs text-muted-foreground uppercase border-b border-border/50">
                     <tr>
+                      <th className="py-2 pr-3">#</th>
                       <th className="py-2 pr-3">Partner</th>
                       <th className="py-2 pr-3">Slug</th>
                       <th className="py-2 pr-3">Tier</th>
                       <th className="py-2 pr-3">%</th>
-                      <th className="py-2 pr-3">Tenants</th>
-                      <th className="py-2 pr-3">Comisión total</th>
+                      <th className="py-2 pr-3 text-right">Tenants</th>
+                      <th className="py-2 pr-3 text-right">MRR generada</th>
+                      <th className="py-2 pr-3 text-right">Comisión total</th>
                       <th className="py-2 pr-3">Estado</th>
                       <th className="py-2 pr-3">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {partners.map((p) => (
-                      <tr key={p.id} className="border-b border-border/30" data-testid={`row-partner-${p.id}`}>
-                        <td className="py-2 pr-3">
-                          <div className="font-medium" data-testid={`text-partner-name-${p.id}`}>{p.displayName}</div>
-                          <div className="text-xs text-muted-foreground">{p.contactEmail}</div>
-                        </td>
-                        <td className="py-2 pr-3 font-mono text-xs">{p.slug}</td>
-                        <td className="py-2 pr-3 capitalize">{p.tier}</td>
-                        <td className="py-2 pr-3">{p.commissionPct}%</td>
-                        <td className="py-2 pr-3" data-testid={`text-partner-tenants-${p.id}`}>{p.tenantsCount}</td>
-                        <td className="py-2 pr-3 tabular-nums">{(p.totalCommissionCents / 100).toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })}</td>
-                        <td className="py-2 pr-3">
-                          <Badge variant={p.status === "active" ? "default" : p.status === "paused" ? "secondary" : "outline"} data-testid={`badge-partner-status-${p.id}`}>
-                            {p.status}
-                          </Badge>
-                        </td>
-                        <td className="py-2 pr-3">
-                          <div className="flex gap-1">
-                            {p.status !== "active" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateStatusMut.mutate({ id: p.id, status: "active" })}
-                                disabled={updateStatusMut.isPending}
-                                data-testid={`button-activate-partner-${p.id}`}
-                              >
-                                <CheckCircle2 className="w-3 h-3" />
-                              </Button>
-                            )}
-                            {p.status === "active" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateStatusMut.mutate({ id: p.id, status: "paused" })}
-                                disabled={updateStatusMut.isPending}
-                                data-testid={`button-pause-partner-${p.id}`}
-                              >
-                                <PauseCircle className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
+                      <Fragment key={p.id}>
+                        <tr className="border-b border-border/30" data-testid={`row-partner-${p.id}`}>
+                          <td className="py-2 pr-3 font-bold text-violet-400 tabular-nums" data-testid={`text-partner-rank-${p.id}`}>#{p.rank}</td>
+                          <td className="py-2 pr-3">
+                            <button
+                              type="button"
+                              className="font-medium hover:text-violet-400 transition text-left"
+                              onClick={() => setExpandedPartnerId(expandedPartnerId === p.id ? null : p.id)}
+                              data-testid={`button-expand-partner-${p.id}`}
+                            >
+                              {p.displayName} {expandedPartnerId === p.id ? "▾" : "▸"}
+                            </button>
+                            <div className="text-xs text-muted-foreground">{p.contactEmail}</div>
+                          </td>
+                          <td className="py-2 pr-3 font-mono text-xs">{p.slug}</td>
+                          <td className="py-2 pr-3 capitalize">{p.tier}</td>
+                          <td className="py-2 pr-3">{p.commissionPct}%</td>
+                          <td className="py-2 pr-3 text-right tabular-nums" data-testid={`text-partner-tenants-${p.id}`}>{p.tenantsCount}</td>
+                          <td className="py-2 pr-3 text-right tabular-nums" data-testid={`text-partner-mrr-${p.id}`}>
+                            {(p.totalMrrCents / 100).toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })}
+                          </td>
+                          <td className="py-2 pr-3 text-right tabular-nums">{(p.totalCommissionCents / 100).toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })}</td>
+                          <td className="py-2 pr-3">
+                            <Badge variant={p.status === "active" ? "default" : p.status === "paused" ? "secondary" : "outline"} data-testid={`badge-partner-status-${p.id}`}>
+                              {p.status}
+                            </Badge>
+                          </td>
+                          <td className="py-2 pr-3">
+                            <div className="flex gap-1">
+                              {p.status !== "active" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateStatusMut.mutate({ id: p.id, status: "active" })}
+                                  disabled={updateStatusMut.isPending}
+                                  data-testid={`button-activate-partner-${p.id}`}
+                                >
+                                  <CheckCircle2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                              {p.status === "active" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateStatusMut.mutate({ id: p.id, status: "paused" })}
+                                  disabled={updateStatusMut.isPending}
+                                  data-testid={`button-pause-partner-${p.id}`}
+                                >
+                                  <PauseCircle className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {expandedPartnerId === p.id && (
+                          <tr className="border-b border-border/30 bg-muted/20" data-testid={`row-partner-tenants-${p.id}`}>
+                            <td colSpan={10} className="py-3 px-4">
+                              {p.tenants.length === 0 ? (
+                                <p className="text-xs text-muted-foreground italic">Este partner aún no tiene cuentas referidas.</p>
+                              ) : (
+                                <div className="space-y-1">
+                                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Cuentas vinculadas</p>
+                                  {p.tenants.map((t) => (
+                                    <div key={t.id} className="flex items-center justify-between text-xs py-1 border-b border-border/20 last:border-0" data-testid={`row-partner-tenant-${p.id}-${t.id}`}>
+                                      <div>
+                                        <span className="font-medium">{t.companyName}</span>
+                                        <span className="text-muted-foreground ml-2">{t.email}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-[10px] capitalize">{t.plan}</Badge>
+                                        {t.isTrial && <Badge variant="secondary" className="text-[10px]">trial</Badge>}
+                                        {t.botConfigured ? (
+                                          <Badge variant="default" className="text-[10px]">activo</Badge>
+                                        ) : (
+                                          <Badge variant="secondary" className="text-[10px]">onboarding</Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>

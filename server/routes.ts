@@ -7426,10 +7426,30 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
         const tenants = await storage.getPartnerTenants(p.id);
         const commissions = await storage.getPartnerCommissions(p.id);
         const totalCommissionCents = commissions.reduce((s, c) => s + c.commissionAmountCents, 0);
-        return { ...p, tenantsCount: tenants.length, totalCommissionCents };
+        // Aggregate active (non-trial) MRR across all linked tenants. PLAN_PRICES is CLP-only today.
+        const totalMrrCents = tenants.reduce((sum, t) => {
+          if (t.isTrial) return sum;
+          const planInfo = PLAN_PRICES[t.plan];
+          return sum + (planInfo ? planInfo.amount * 100 : 0);
+        }, 0);
+        const tenantSummaries = tenants.map((t) => ({
+          id: t.id,
+          companyName: t.companyName,
+          email: t.email,
+          plan: t.plan,
+          isTrial: t.isTrial,
+          botConfigured: t.botConfigured,
+        }));
+        return { ...p, tenantsCount: tenants.length, totalCommissionCents, totalMrrCents, tenants: tenantSummaries };
       }),
     );
-    res.json(enriched);
+    // Ranking: order by totalMrrCents desc (active partners first), then by tenants count.
+    enriched.sort((a, b) => {
+      if (b.totalMrrCents !== a.totalMrrCents) return b.totalMrrCents - a.totalMrrCents;
+      return b.tenantsCount - a.tenantsCount;
+    });
+    const ranked = enriched.map((p, idx) => ({ ...p, rank: idx + 1 }));
+    res.json(ranked);
   });
 
   app.post("/api/admin/partners", async (req, res) => {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -68,27 +68,6 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const { toast } = useToast();
   const initialStep = Math.min(tenant.onboardingStep || 0, 2);
   const [step, setStep] = useState(initialStep);
-
-  // Defensive partner attribution: if a user lands on onboarding with ?partner=slug
-  // (e.g. shared link), persist it for 30 days so it's available on next signup
-  // path. The primary capture lives in App.tsx + Register.tsx; this is a safety net.
-  useEffect(() => {
-    try {
-      const slug = new URLSearchParams(window.location.search).get("partner");
-      if (slug && /^[a-z0-9_-]{2,40}$/i.test(slug)) {
-        const exp = Number(localStorage.getItem("partner_slug_exp") || "0");
-        if (!localStorage.getItem("partner_slug") || Date.now() > exp) {
-          localStorage.setItem("partner_slug", slug.toLowerCase());
-          localStorage.setItem(
-            "partner_slug_exp",
-            String(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          );
-        }
-      }
-    } catch {
-      /* ignore storage errors */
-    }
-  }, []);
 
   const [industry, setIndustry] = useState<string>(tenant.industry || "");
   const [appliedTemplateSlug, setAppliedTemplateSlug] = useState<string>(tenant.appliedTemplateSlug || "");
