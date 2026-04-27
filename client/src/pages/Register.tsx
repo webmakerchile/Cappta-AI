@@ -49,12 +49,14 @@ export default function Register() {
     mutationFn: async (data: RegisterForm) => {
       const urlParams = new URLSearchParams(window.location.search);
       const referralCode = urlParams.get("ref") || "";
+      const requestedPlan = urlParams.get("plan") || "";
       const res = await apiRequest("POST", "/api/tenants/register", {
         name: data.name,
         email: data.email,
         companyName: data.companyName,
         password: data.password,
         ...(referralCode ? { referralCode } : {}),
+        ...(requestedPlan ? { requestedPlan } : {}),
       });
       return res.json();
     },
@@ -67,9 +69,16 @@ export default function Register() {
         title: "Cuenta creada",
         description: "Tu cuenta ha sido creada exitosamente.",
       });
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 1500);
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedPlan = urlParams.get("plan");
+      const validPlans = ["solo", "basic", "scale"];
+      if (requestedPlan === "enterprise") {
+        setTimeout(() => { window.location.href = "/enterprise"; }, 1500);
+      } else if (requestedPlan && validPlans.includes(requestedPlan)) {
+        setTimeout(() => { window.location.href = `/dashboard?upgrade=${requestedPlan}`; }, 1500);
+      } else {
+        setTimeout(() => { window.location.href = "/dashboard"; }, 1500);
+      }
     },
     onError: (error: Error) => {
       toast({

@@ -282,9 +282,13 @@ const verticalsList = [
   { slug: "servicios", name: "Servicios pro", emoji: "💼", desc: "Asesorías y reuniones agendadas" },
   { slug: "educacion", name: "Educación", emoji: "🎓", desc: "Matrículas y soporte académico" },
   { slug: "automotriz", name: "Automotriz", emoji: "🚗", desc: "Cotizaciones y agenda de servicios" },
-  { slug: "turismo", name: "Turismo y hoteles", emoji: "✈️", desc: "Reservas y check-in multi-idioma" },
+  { slug: "turismo", name: "Turismo", emoji: "✈️", desc: "Reservas multi-idioma" },
   { slug: "veterinarias", name: "Veterinarias", emoji: "🐾", desc: "Agenda y recordatorios de vacunas" },
   { slug: "construccion", name: "Construcción", emoji: "🔧", desc: "Cotización de materiales y B2B" },
+  { slug: "abogados", name: "Abogados", emoji: "⚖️", desc: "Triage legal y consultas pagadas" },
+  { slug: "agencias", name: "Agencias", emoji: "📣", desc: "Cualificación BANT + diagnósticos" },
+  { slug: "fintech", name: "Fintech", emoji: "💳", desc: "Onboarding KYC y soporte 24/7" },
+  { slug: "hoteles", name: "Hoteles", emoji: "🏨", desc: "Reservas directas + conserjería" },
 ];
 
 import type { LucideIcon } from "lucide-react";

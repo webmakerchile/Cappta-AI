@@ -18,6 +18,10 @@
   <url><loc>https://cappta.ai/para/turismo</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://cappta.ai/para/veterinarias</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://cappta.ai/para/construccion</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://cappta.ai/para/abogados</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://cappta.ai/para/agencias</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://cappta.ai/para/fintech</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://cappta.ai/para/hoteles</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://cappta.ai/login</loc><priority>0.5</priority><changefreq>yearly</changefreq></url>
   <url><loc>https://cappta.ai/register</loc><priority>0.6</priority><changefreq>yearly</changefreq></url>
 </urlset>

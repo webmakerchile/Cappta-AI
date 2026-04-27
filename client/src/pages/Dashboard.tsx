@@ -2776,25 +2776,76 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
-  const planLabels: Record<string, string> = { free: "Cappta Starter", basic: "Cappta Pro", pro: "Cappta Enterprise" };
-  const planPrices: Record<string, string> = { free: "$0", basic: "$19.990", pro: "$49.990" };
-  const planColors: Record<string, string> = { free: "#6b7280", basic: "hsl(142, 72%, 40%)", pro: "hsl(30, 90%, 52%)" };
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("upgrade");
+    const validPlans = ["solo", "basic", "scale"];
+    if (requested && validPlans.includes(requested) && requested !== tenant.plan) {
+      toast({
+        title: "Plan recomendado",
+        description: `Estás viendo el flujo de upgrade a Cappta ${requested === "basic" ? "Pro" : requested[0].toUpperCase() + requested.slice(1)}. Confirma abajo para activarlo.`,
+      });
+      const url = new URL(window.location.href);
+      url.searchParams.delete("upgrade");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [tenant.plan, toast]);
+
+  const planLabels: Record<string, string> = {
+    free: "Cappta Starter",
+    solo: "Cappta Solo",
+    basic: "Cappta Pro",
+    scale: "Cappta Scale",
+    pro: "Cappta Pro (legacy)",
+    enterprise: "Cappta Enterprise",
+  };
+  const planPrices: Record<string, string> = {
+    free: "$0",
+    solo: "$7.990",
+    basic: "$19.990",
+    scale: "$49.990",
+    pro: "$49.990",
+    enterprise: "Custom",
+  };
+  const planColors: Record<string, string> = {
+    free: "#6b7280",
+    solo: "hsl(258, 78%, 65%)",
+    basic: "hsl(142, 72%, 40%)",
+    scale: "hsl(217, 91%, 60%)",
+    pro: "hsl(217, 75%, 55%)",
+    enterprise: "hsl(30, 90%, 52%)",
+  };
 
   const planLimits: Record<string, { sessions: string; messages: string; features: string[] }> = {
     free: {
-      sessions: "10 / mes",
-      messages: "100 / mes",
+      sessions: "50 / mes",
+      messages: "500 / mes",
       features: ["Chat en vivo", "Respuestas automáticas básicas", "Widget personalizable"],
+    },
+    solo: {
+      sessions: "200 / mes",
+      messages: "2.000 / mes",
+      features: ["IA con GPT", "WhatsApp 1 número", "Catálogo simple", "Soporte por email"],
     },
     basic: {
       sessions: "500 / mes",
       messages: "5.000 / mes",
       features: ["Chat en vivo", "IA avanzada con GPT", "Catálogo de productos", "Base de conocimiento", "Analíticas completas"],
     },
+    scale: {
+      sessions: "2.000 / mes",
+      messages: "20.000 / mes",
+      features: ["Todo de Pro", "Multi-canal (WhatsApp + Instagram)", "Multi-agente", "Reportes avanzados", "API"],
+    },
     pro: {
       sessions: "Ilimitadas",
       messages: "Ilimitados",
-      features: ["Todo incluido", "Soporte 24/7 dedicado", "API personalizada", "Multi-agente", "Onboarding personalizado"],
+      features: ["Plan legado — equivalente a Scale", "Soporte 24/7", "API personalizada", "Multi-agente", "Onboarding personalizado"],
+    },
+    enterprise: {
+      sessions: "A medida",
+      messages: "A medida",
+      features: ["SLA dedicado", "Onboarding white-glove", "Integraciones custom", "Account manager", "Seguridad y compliance"],
     },
   };
 
@@ -2828,8 +2879,10 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
 
   const upgradePlans = Object.entries(planLimits).filter(
     ([key]) => {
-      const order = ["free", "basic", "pro"];
-      return order.indexOf(key) > order.indexOf(tenant.plan);
+      const order = ["free", "solo", "basic", "scale", "pro", "enterprise"];
+      const currentIdx = order.indexOf(tenant.plan);
+      const targetIdx = order.indexOf(key);
+      return targetIdx > currentIdx && key !== "pro";
     }
   );
 
