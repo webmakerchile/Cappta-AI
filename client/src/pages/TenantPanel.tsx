@@ -172,6 +172,7 @@ interface SessionSummary {
   unreadCount: number;
   lastMessage: string | null;
   status: string;
+  channel: string;
   tags: string[];
   problemType: string | null;
   gameName: string | null;
@@ -183,6 +184,16 @@ interface SessionSummary {
   sessionRating: number | null;
   ratingComment: string | null;
 }
+
+const CHANNEL_META: Record<string, { label: string; color: string; bg: string; emoji: string }> = {
+  web: { label: "Web", color: "#10b981", bg: "rgba(16,185,129,0.15)", emoji: "🌐" },
+  whatsapp: { label: "WhatsApp", color: "#25D366", bg: "rgba(37,211,102,0.15)", emoji: "📱" },
+  whatsapp_cloud: { label: "WhatsApp", color: "#25D366", bg: "rgba(37,211,102,0.15)", emoji: "📱" },
+  instagram: { label: "Instagram", color: "#E1306C", bg: "rgba(225,48,108,0.15)", emoji: "📷" },
+  messenger: { label: "Messenger", color: "#0084FF", bg: "rgba(0,132,255,0.15)", emoji: "💬" },
+  telegram: { label: "Telegram", color: "#0088cc", bg: "rgba(0,136,204,0.15)", emoji: "✈️" },
+  email: { label: "Email", color: "#F59E0B", bg: "rgba(245,158,11,0.15)", emoji: "📧" },
+};
 
 interface ChatMessage {
   id: number;
@@ -249,6 +260,7 @@ const notifSound = typeof window !== "undefined" ? new Audio("data:audio/wav;bas
 
 type AgentFilter = "all" | "bot" | "ejecutivo";
 type AssignFilter = "all" | "pendientes" | "mis";
+type ChannelFilter = "all" | "web" | "whatsapp" | "instagram" | "messenger" | "telegram" | "email";
 
 function ChatsTab({ token, tenant, currentName }: { token: string; tenant: TenantProfile; currentName: string }) {
   const { toast } = useToast();
@@ -256,6 +268,7 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
   const [agentFilter, setAgentFilter] = useState<AgentFilter>("all");
   const [assignFilter, setAssignFilter] = useState<AssignFilter>("all");
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [chatSearchQuery, setChatSearchQuery] = useState("");
   const [showChatSearch, setShowChatSearch] = useState(false);
@@ -529,8 +542,20 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
     if (agentFilter === "ejecutivo" && !s.adminActive) return false;
     if (assignFilter === "pendientes" && s.assignedToName) return false;
     if (assignFilter === "mis" && !s.adminActive) return false;
+    if (channelFilter !== "all") {
+      const sChan = (s.channel || "web").toLowerCase();
+      if (channelFilter === "whatsapp" && sChan !== "whatsapp" && sChan !== "whatsapp_cloud") return false;
+      if (channelFilter !== "whatsapp" && sChan !== channelFilter) return false;
+    }
     return true;
   });
+
+  const channelCounts = sessions.reduce((acc: Record<string, number>, s) => {
+    const c = (s.channel || "web").toLowerCase();
+    const key = c === "whatsapp_cloud" ? "whatsapp" : c;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
 
   const selectedSessionData = sessions.find((s) => s.sessionId === selectedSession);
 
@@ -613,6 +638,34 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
               </button>
             ))}
           </div>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1" data-testid="channel-filter">
+            {([
+              { id: "all" as ChannelFilter, label: "🌍 Todos", color: "#10b981" },
+              { id: "web" as ChannelFilter, label: "🌐 Web", color: "#10b981" },
+              { id: "whatsapp" as ChannelFilter, label: "📱 WA", color: "#25D366" },
+              { id: "instagram" as ChannelFilter, label: "📷 IG", color: "#E1306C" },
+              { id: "messenger" as ChannelFilter, label: "💬 FB", color: "#0084FF" },
+              { id: "telegram" as ChannelFilter, label: "✈️ TG", color: "#0088cc" },
+              { id: "email" as ChannelFilter, label: "📧 Email", color: "#F59E0B" },
+            ]).map((f) => {
+              const count = f.id === "all" ? sessions.length : (channelCounts[f.id] || 0);
+              const active = channelFilter === f.id;
+              return (
+                <button
+                  key={f.id}
+                  data-testid={`button-channel-filter-${f.id}`}
+                  onClick={() => setChannelFilter(f.id)}
+                  className={`text-[10px] px-2 py-1 rounded transition-colors whitespace-nowrap border ${active ? "" : "text-white/40 bg-white/[0.04] border-white/[0.06]"}`}
+                  style={active ? { background: `${f.color}26`, borderColor: `${f.color}66`, color: f.color } : undefined}
+                >
+                  {f.label}
+                  {count > 0 && (
+                    <span className="ml-1 opacity-70">({count})</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -639,6 +692,20 @@ function ChatsTab({ token, tenant, currentName }: { token: string; tenant: Tenan
                       {(session.userName || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#111] ${session.status === "active" ? "bg-emerald-400" : "bg-white/20"}`} />
+                    {(() => {
+                      const meta = CHANNEL_META[(session.channel || "web").toLowerCase()] || CHANNEL_META.web;
+                      if ((session.channel || "web") === "web") return null;
+                      return (
+                        <span
+                          className="absolute -top-1 -left-1 w-4 h-4 rounded-full border-2 border-[#111] flex items-center justify-center text-[8px]"
+                          style={{ background: meta.color }}
+                          title={meta.label}
+                          data-testid={`badge-channel-${session.sessionId}`}
+                        >
+                          {meta.emoji}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">

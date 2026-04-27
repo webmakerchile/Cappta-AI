@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { queryClient } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,10 +48,28 @@ const STEPS = [
   { title: "¡Listo!", icon: Rocket, description: "Tu chatbot está listo" },
 ];
 
+interface IndustryTemplate {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  emoji: string;
+  color: string;
+  icon: string;
+}
+
 export default function OnboardingWizard({ tenant, token, onComplete }: OnboardingWizardProps) {
   const { toast } = useToast();
   const initialStep = Math.min(tenant.onboardingStep || 0, 2);
   const [step, setStep] = useState(initialStep);
+
+  const [industry, setIndustry] = useState<string>(tenant.industry || "");
+  const [appliedTemplateSlug, setAppliedTemplateSlug] = useState<string>(tenant.appliedTemplateSlug || "");
+  const [applyingTemplate, setApplyingTemplate] = useState<string | null>(null);
+
+  const { data: industryTemplates = [] } = useQuery<IndustryTemplate[]>({
+    queryKey: ["/api/industry-templates"],
+  });
 
   const [companyName, setCompanyName] = useState(tenant.companyName || "");
   const [domain, setDomain] = useState(tenant.domain || "");
@@ -102,6 +121,33 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
   const botIconInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [previewMode, setPreviewMode] = useState<"welcome" | "chat" | "launcher">("welcome");
+
+  const applyTemplate = async (slug: string) => {
+    setApplyingTemplate(slug);
+    try {
+      const res = await fetch(`/api/tenants/me/apply-template/${slug}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Error al aplicar plantilla" }));
+        throw new Error(err.message);
+      }
+      const updatedTenant = await res.json();
+      setIndustry(updatedTenant.industry || slug);
+      setAppliedTemplateSlug(slug);
+      if (updatedTenant.welcomeMessage) setWelcomeMessage(updatedTenant.welcomeMessage);
+      if (updatedTenant.welcomeSubtitle) setWelcomeSubtitle(updatedTenant.welcomeSubtitle);
+      if (updatedTenant.consultationOptions) {
+        try { setConsultationOptions(JSON.parse(updatedTenant.consultationOptions)); } catch {}
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+      toast({ title: "Plantilla aplicada", description: "Tu chatbot ya tiene mensajes y opciones para tu rubro." });
+    } catch (err: any) {
+      toast({ title: "Error al aplicar plantilla", description: err.message, variant: "destructive" });
+    }
+    setApplyingTemplate(null);
+  };
 
   const handleAnalyzeUrl = async () => {
     const urlToAnalyze = domain.trim();
@@ -286,6 +332,8 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
       launcherBubbleText: launcherBubbleText.trim() || null,
       launcherBubbleStyle,
       consultationOptions: consultationOptions.length > 0 ? JSON.stringify(consultationOptions) : null,
+      industry: industry || null,
+      appliedTemplateSlug: appliedTemplateSlug || null,
       botConfigured: nextStep >= 2 ? 1 : 0,
       onboardingStep: nextStep,
     };
@@ -444,6 +492,57 @@ export default function OnboardingWizard({ tenant, token, onComplete }: Onboardi
           {step === 0 && (
             <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar" data-testid="onboarding-step-0">
               <div>
+                <h2 className="text-lg font-bold flex items-center gap-2 mb-1">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Elige tu rubro
+                </h2>
+                <p className="text-sm text-white/40">Aplicamos una plantilla optimizada con mensajes, opciones y respuestas listas en 1 click.</p>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" data-testid="industry-picker">
+                {industryTemplates.map((tpl) => {
+                  const isSelected = appliedTemplateSlug === tpl.slug;
+                  const isApplying = applyingTemplate === tpl.slug;
+                  return (
+                    <button
+                      key={tpl.slug}
+                      type="button"
+                      onClick={() => applyTemplate(tpl.slug)}
+                      disabled={!!applyingTemplate}
+                      className={`relative rounded-xl border p-3 text-center text-xs transition-all hover-elevate ${
+                        isSelected
+                          ? "border-primary bg-primary/15 text-white shadow-lg shadow-primary/10"
+                          : "border-white/[0.08] bg-white/[0.02] text-white/70 hover:border-white/20"
+                      } ${isApplying ? "opacity-60" : ""}`}
+                      data-testid={`industry-card-${tpl.slug}`}
+                      style={isSelected ? { borderColor: tpl.color, background: `${tpl.color}1A` } : undefined}
+                    >
+                      {isSelected && (
+                        <div className="absolute top-1 right-1">
+                          <Check className="w-3 h-3 text-primary" />
+                        </div>
+                      )}
+                      {isApplying && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/40 rounded-xl">
+                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        </div>
+                      )}
+                      <div className="text-2xl mb-1">{tpl.emoji}</div>
+                      <div className="font-medium leading-tight">{tpl.name}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              {appliedTemplateSlug && (
+                <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 flex items-start gap-2" data-testid="industry-applied-banner">
+                  <CircleCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-xs text-white/70">
+                    Plantilla aplicada. Tu chatbot ya tiene mensajes y opciones para tu rubro. Puedes ajustarlas más adelante.
+                  </p>
+                </div>
+              )}
+
+              <div className="border-t border-white/[0.06] pt-6">
                 <h2 className="text-lg font-bold flex items-center gap-2 mb-1">
                   <Globe className="w-5 h-5 text-primary" />
                   Cuentanos sobre tu negocio

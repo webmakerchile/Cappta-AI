@@ -3407,6 +3407,427 @@ interface TenantAddonInfo {
   addon: AddonInfo;
 }
 
+interface IndustryTemplateDashboard {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  emoji: string;
+  color: string;
+  icon: string;
+}
+
+function PlantillasSection({ tenant, token }: { tenant: TenantProfile; token: string }) {
+  const { toast } = useToast();
+  const [applying, setApplying] = useState<string | null>(null);
+  const { data: templates = [] } = useQuery<IndustryTemplateDashboard[]>({
+    queryKey: ["/api/industry-templates"],
+  });
+
+  const applyTemplate = async (slug: string) => {
+    if (!confirm(`¿Aplicar la plantilla "${templates.find(t => t.slug === slug)?.name}"? Esto reemplazará tu mensaje de bienvenida y opciones de consulta.`)) {
+      return;
+    }
+    setApplying(slug);
+    try {
+      const res = await fetch(`/api/tenants/me/apply-template/${slug}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error al aplicar");
+      queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
+      toast({ title: "Plantilla aplicada", description: "Tu chatbot ya tiene la nueva configuración." });
+    } catch (err: any) {
+      toast({ title: "Error al aplicar plantilla", description: err.message, variant: "destructive" });
+    }
+    setApplying(null);
+  };
+
+  const currentSlug = tenant.appliedTemplateSlug || "";
+
+  return (
+    <div className="space-y-5" data-testid="section-plantillas">
+      <div className="rounded-2xl glass-card p-5 sm:p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Plantillas verticales</h2>
+            <p className="text-sm text-white/50">
+              Aplica una plantilla optimizada para tu rubro en 1 click. Incluye mensajes de bienvenida, opciones de consulta y respuestas rápidas listas para usar.
+            </p>
+          </div>
+        </div>
+        {currentSlug && (
+          <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 mb-4 flex items-center gap-2">
+            <CircleCheck className="w-4 h-4 text-primary" />
+            <p className="text-sm text-white/70">
+              Plantilla activa:{" "}
+              <strong className="text-white">{templates.find((t) => t.slug === currentSlug)?.name || currentSlug}</strong>
+            </p>
+          </div>
+        )}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {templates.map((tpl) => {
+            const isActive = currentSlug === tpl.slug;
+            const isApplying = applying === tpl.slug;
+            return (
+              <button
+                key={tpl.slug}
+                onClick={() => applyTemplate(tpl.slug)}
+                disabled={!!applying}
+                className={`relative rounded-xl border p-4 text-left transition-all hover-elevate ${
+                  isActive
+                    ? "border-primary bg-primary/10 shadow-lg shadow-primary/10"
+                    : "border-white/[0.08] bg-white/[0.02] hover:border-white/20"
+                } ${isApplying ? "opacity-60" : ""}`}
+                data-testid={`button-template-${tpl.slug}`}
+                style={isActive ? { borderColor: tpl.color, background: `${tpl.color}1A` } : undefined}
+              >
+                {isApplying && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-xl">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  </div>
+                )}
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-3xl">{tpl.emoji}</span>
+                  {isActive && <CircleCheck className="w-4 h-4 text-primary mt-1" />}
+                </div>
+                <h3 className="font-bold text-sm mb-1" data-testid={`text-template-name-${tpl.slug}`}>{tpl.name}</h3>
+                <p className="text-xs text-white/40 leading-tight line-clamp-2">{tpl.description}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ChannelInfo {
+  id: number;
+  channel: string;
+  enabled: number;
+  displayName: string | null;
+  externalId: string | null;
+  inboundAddress: string | null;
+  status: string;
+  statusMessage: string | null;
+  hasAccessToken: boolean;
+  hasBotToken: boolean;
+  hasWebhookSecret: boolean;
+  lastSyncedAt: string | null;
+}
+
+const CHANNEL_CATALOG = [
+  {
+    slug: "telegram",
+    name: "Telegram",
+    emoji: "✈️",
+    color: "#0088cc",
+    description: "Setup express con BotFather. 60 segundos.",
+    fields: [
+      { key: "botToken", label: "Bot Token (BotFather)", placeholder: "123456:ABC-DEF..." },
+      { key: "displayName", label: "Nombre del bot (opcional)", placeholder: "@MiBot" },
+    ],
+    docs: "Creá tu bot con @BotFather en Telegram (/newbot) y pegá aquí el token. Cappta configura el webhook automáticamente.",
+  },
+  {
+    slug: "whatsapp_cloud",
+    name: "WhatsApp Cloud API",
+    emoji: "📱",
+    color: "#25D366",
+    description: "Conexión directa con Meta Cloud API (sin Twilio).",
+    fields: [
+      { key: "accessToken", label: "Access Token", placeholder: "EAAB..." },
+      { key: "phoneNumberId", label: "Phone Number ID", placeholder: "1234567890" },
+      { key: "webhookSecret", label: "Verify Token", placeholder: "Tu verify token (App Setup)" },
+    ],
+    docs: "Configurá tu app en Meta for Developers, generá Access Token y Phone Number ID.",
+  },
+  {
+    slug: "instagram",
+    name: "Instagram DM",
+    emoji: "📷",
+    color: "#E1306C",
+    description: "Recibí y respondé DMs de Instagram Business.",
+    fields: [
+      { key: "accessToken", label: "Page Access Token", placeholder: "EAAB..." },
+      { key: "igUserId", label: "IG User ID", placeholder: "1789..." },
+      { key: "webhookSecret", label: "Verify Token", placeholder: "Tu verify token" },
+    ],
+    docs: "Conectá tu cuenta Business de Instagram a una Página de Facebook. Genera el Page Access Token con permisos de instagram_basic e instagram_manage_messages.",
+  },
+  {
+    slug: "messenger",
+    name: "Facebook Messenger",
+    emoji: "💬",
+    color: "#0084FF",
+    description: "Atendé mensajes desde tu Página de Facebook.",
+    fields: [
+      { key: "accessToken", label: "Page Access Token", placeholder: "EAAB..." },
+      { key: "pageId", label: "Page ID", placeholder: "1234567890" },
+      { key: "webhookSecret", label: "Verify Token", placeholder: "Tu verify token" },
+    ],
+    docs: "Conectá tu Página de Facebook con Meta for Developers y permisos pages_messaging.",
+  },
+  {
+    slug: "email",
+    name: "Email-to-Chat",
+    emoji: "📧",
+    color: "#F59E0B",
+    description: "Convierte emails en conversaciones de chat.",
+    fields: [
+      { key: "inboundAddress", label: "Dirección inbound", placeholder: "soporte+t1@cappta.app" },
+      { key: "displayName", label: "Nombre que ven los clientes", placeholder: "Soporte de tu negocio" },
+    ],
+    docs: "Configurá una dirección de email inbound. Reenviá tus emails desde tu casilla y respondé desde el inbox.",
+  },
+];
+
+function CanalesSection({ tenant, token }: { tenant: TenantProfile; token: string }) {
+  const { toast } = useToast();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
+
+  const { data: channels = [], refetch } = useQuery<ChannelInfo[]>({
+    queryKey: ["/api/tenants/me/channels"],
+    queryFn: async () => {
+      const res = await fetch("/api/tenants/me/channels", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  const startEdit = (slug: string) => {
+    const existing = channels.find((c) => c.channel === slug);
+    setFormValues({
+      displayName: existing?.displayName || "",
+      externalId: existing?.externalId || "",
+      inboundAddress: existing?.inboundAddress || "",
+    });
+    setEditing(slug);
+  };
+
+  const saveChannel = async (slug: string) => {
+    try {
+      const payload: any = { ...formValues, enabled: 1 };
+      const res = await fetch(`/api/tenants/me/channels/${slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Error" }));
+        throw new Error(err.message || "Error al guardar");
+      }
+      toast({ title: "Canal guardado", description: "Tu canal está conectado." });
+      setEditing(null);
+      setFormValues({});
+      refetch();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const toggleChannel = async (slug: string, enabled: boolean) => {
+    try {
+      const res = await fetch(`/api/tenants/me/channels/${slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ enabled: enabled ? 1 : 0 }),
+      });
+      if (!res.ok) throw new Error("Error");
+      refetch();
+      toast({ title: enabled ? "Canal activado" : "Canal pausado" });
+    } catch {
+      toast({ title: "Error al actualizar canal", variant: "destructive" });
+    }
+  };
+
+  const deleteChannel = async (slug: string) => {
+    if (!confirm("¿Eliminar este canal? Se desconectará y se borrarán sus credenciales.")) return;
+    try {
+      const res = await fetch(`/api/tenants/me/channels/${slug}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error");
+      refetch();
+      toast({ title: "Canal eliminado" });
+    } catch {
+      toast({ title: "Error al eliminar canal", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="space-y-5" data-testid="section-canales">
+      <div className="rounded-2xl glass-card p-5 sm:p-6">
+        <div className="flex items-start gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Canales conectados</h2>
+            <p className="text-sm text-white/50">
+              Conectá WhatsApp, Instagram, Messenger, Telegram y Email. Tus mensajes llegan al mismo inbox del Panel de Soporte.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {CHANNEL_CATALOG.map((cfg) => {
+          const existing = channels.find((c) => c.channel === cfg.slug);
+          const isConnected = !!existing;
+          const isEnabled = existing?.enabled === 1;
+          const isEditing = editing === cfg.slug;
+
+          return (
+            <div
+              key={cfg.slug}
+              className="rounded-2xl glass-card p-5"
+              data-testid={`card-channel-${cfg.slug}`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                    style={{ background: `${cfg.color}20`, color: cfg.color }}
+                  >
+                    {cfg.emoji}
+                  </div>
+                  <div>
+                    <h3 className="font-bold" data-testid={`text-channel-name-${cfg.slug}`}>{cfg.name}</h3>
+                    <p className="text-xs text-white/40">{cfg.description}</p>
+                  </div>
+                </div>
+                {isConnected && (
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full border font-medium"
+                    style={{
+                      background: isEnabled ? `${cfg.color}20` : "rgba(255,255,255,0.04)",
+                      borderColor: isEnabled ? `${cfg.color}66` : "rgba(255,255,255,0.08)",
+                      color: isEnabled ? cfg.color : "rgba(255,255,255,0.4)",
+                    }}
+                    data-testid={`status-channel-${cfg.slug}`}
+                  >
+                    {isEnabled ? "Activo" : "Pausado"}
+                  </span>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div className="space-y-3">
+                  {cfg.fields.map((f) => (
+                    <div key={f.key}>
+                      <label className="text-xs text-white/60 mb-1 block">{f.label}</label>
+                      <Input
+                        type={f.key.toLowerCase().includes("token") || f.key.toLowerCase().includes("secret") ? "password" : "text"}
+                        placeholder={f.placeholder}
+                        value={formValues[f.key] || ""}
+                        onChange={(e) => setFormValues({ ...formValues, [f.key]: e.target.value })}
+                        className="bg-white/[0.04] border-white/[0.08]"
+                        data-testid={`input-${cfg.slug}-${f.key}`}
+                      />
+                    </div>
+                  ))}
+                  <p className="text-[11px] text-white/40 leading-relaxed">{cfg.docs}</p>
+                  {(cfg.slug === "instagram" || cfg.slug === "messenger" || cfg.slug === "whatsapp_cloud") && (
+                    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-2 text-[11px] text-white/50">
+                      <strong className="text-white/70">Webhook URL:</strong>{" "}
+                      <code className="text-primary break-all">
+                        {baseUrl}/api/channels/{cfg.slug === "whatsapp_cloud" ? "whatsapp-cloud" : cfg.slug}/webhook
+                      </code>
+                    </div>
+                  )}
+                  {cfg.slug === "email" && (
+                    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-2 text-[11px] text-white/50">
+                      <strong className="text-white/70">Webhook inbound:</strong>{" "}
+                      <code className="text-primary break-all">{baseUrl}/api/channels/email/inbound</code>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button onClick={() => saveChannel(cfg.slug)} className="flex-1" data-testid={`button-save-${cfg.slug}`}>
+                      Guardar y conectar
+                    </Button>
+                    <Button variant="outline" onClick={() => { setEditing(null); setFormValues({}); }} data-testid={`button-cancel-${cfg.slug}`}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => startEdit(cfg.slug)}
+                    variant={isConnected ? "outline" : "default"}
+                    size="sm"
+                    className="flex-1"
+                    data-testid={`button-${isConnected ? "edit" : "connect"}-${cfg.slug}`}
+                  >
+                    {isConnected ? "Editar" : "Conectar"}
+                  </Button>
+                  {isConnected && (
+                    <>
+                      <Button
+                        onClick={() => toggleChannel(cfg.slug, !isEnabled)}
+                        variant="outline"
+                        size="sm"
+                        data-testid={`button-toggle-${cfg.slug}`}
+                      >
+                        {isEnabled ? "Pausar" : "Activar"}
+                      </Button>
+                      <Button
+                        onClick={() => deleteChannel(cfg.slug)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-400 hover:text-red-300"
+                        data-testid={`button-delete-${cfg.slug}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="rounded-2xl glass-card p-5 sm:p-6">
+        <h3 className="font-bold mb-2 flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-primary" />
+          ¿Cómo funciona la omnicanalidad?
+        </h3>
+        <ul className="space-y-2 text-sm text-white/60">
+          <li className="flex items-start gap-2">
+            <CircleCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <span>Cada canal aparece como una conversación más en el <strong>Panel de Soporte</strong>, con un badge de color para identificarlo.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CircleCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <span>Tus respuestas vuelven automáticamente por el mismo canal de origen (WhatsApp por WhatsApp, IG por IG, etc.).</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CircleCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <span>Tu plantilla de rubro se aplica automáticamente al primer mensaje en cualquier canal.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CircleCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <span>Podés filtrar el inbox por canal para concentrarte en uno a la vez.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function ExtensionesSection({ token }: { token: string }) {
   const { toast } = useToast();
 
@@ -3921,10 +4342,12 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
   );
 }
 
-type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides" | "whatsapp" | "extensiones" | "connect";
+type DashboardTab = "stats" | "config" | "embed" | "download" | "plan" | "referidos" | "guides" | "whatsapp" | "extensiones" | "connect" | "plantillas" | "canales";
 
 const navItems: { title: string; value: DashboardTab; icon: typeof Settings }[] = [
   { title: "Estadísticas", value: "stats", icon: BarChart3 },
+  { title: "Plantillas", value: "plantillas", icon: Sparkles },
+  { title: "Canales", value: "canales", icon: Zap },
   { title: "Configuración", value: "config", icon: Palette },
   { title: "Integración", value: "embed", icon: Code },
   { title: "WhatsApp", value: "whatsapp", icon: MessageCircle },
@@ -4296,6 +4719,8 @@ export default function Dashboard() {
               {activeTab === "whatsapp" && "Conecta tu chatbot a WhatsApp"}
               {activeTab === "connect" && "Cobra y agenda directo desde el chat"}
               {activeTab === "extensiones" && "Añade superpoderes a tu plataforma"}
+              {activeTab === "plantillas" && "Aplica una plantilla optimizada para tu rubro"}
+              {activeTab === "canales" && "Conecta WhatsApp, Instagram, Telegram, Email y más"}
               {activeTab === "plan" && "Gestiona tu suscripción"}
             </p>
           </div>
@@ -4332,6 +4757,8 @@ export default function Dashboard() {
             {activeTab === "whatsapp" && <WhatsAppSection tenant={tenant} token={token!} />}
             {activeTab === "connect" && <ConnectSection tenant={tenant} token={token!} />}
             {activeTab === "extensiones" && <ExtensionesSection token={token!} />}
+            {activeTab === "plantillas" && <PlantillasSection tenant={tenant} token={token!} />}
+            {activeTab === "canales" && <CanalesSection tenant={tenant} token={token!} />}
             {activeTab === "plan" && <PlanSection tenant={tenant} />}
           </div>
         </main>

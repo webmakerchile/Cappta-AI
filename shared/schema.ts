@@ -14,11 +14,14 @@ export const messages = pgTable("messages", {
   imageUrl: text("image_url"),
   adminName: text("admin_name"),
   adminColor: text("admin_color"),
+  channel: text("channel", { enum: ["web", "whatsapp", "whatsapp_cloud", "instagram", "messenger", "telegram", "email"] }).notNull().default("web"),
+  externalMessageId: text("external_message_id"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 }, (table) => [
   index("idx_messages_session_id").on(table.sessionId),
   index("idx_messages_user_email").on(table.userEmail),
   index("idx_messages_tenant_id").on(table.tenantId),
+  index("idx_messages_channel").on(table.channel),
 ]);
 
 export const sessions = pgTable("sessions", {
@@ -28,6 +31,8 @@ export const sessions = pgTable("sessions", {
   userName: text("user_name").notNull(),
   status: text("status", { enum: ["active", "closed"] }).notNull().default("active"),
   tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+  channel: text("channel", { enum: ["web", "whatsapp", "whatsapp_cloud", "instagram", "messenger", "telegram", "email"] }).notNull().default("web"),
+  externalThreadId: text("external_thread_id"),
   problemType: text("problem_type"),
   gameName: text("game_name"),
   adminActive: boolean("admin_active").notNull().default(false),
@@ -172,6 +177,8 @@ export const tenants = pgTable("tenants", {
   botContext: text("bot_context"),
   businessHoursConfig: text("business_hours_config"),
   plan: text("plan", { enum: ["free", "solo", "basic", "scale", "pro", "enterprise"] }).notNull().default("free"),
+  industry: text("industry"),
+  appliedTemplateSlug: text("applied_template_slug"),
   isTrial: integer("is_trial").notNull().default(0),
   flowCustomerId: text("flow_customer_id"),
   mpSubscriptionId: text("mp_subscription_id"),
@@ -473,6 +480,61 @@ export type ChatPaymentLink = typeof chatPaymentLinks.$inferSelect;
 
 export type AppointmentStatus = "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show";
 export type ChatPaymentLinkStatus = "pending" | "paid" | "expired" | "cancelled";
+
+export const industryTemplates = pgTable("industry_templates", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull().default("Briefcase"),
+  emoji: text("emoji").notNull().default("🏢"),
+  color: text("color").notNull().default("#7669E9"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: integer("active").notNull().default(1),
+  welcomeMessage: text("welcome_message").notNull(),
+  welcomeSubtitle: text("welcome_subtitle").notNull().default(""),
+  botContext: text("bot_context").notNull(),
+  cannedResponses: text("canned_responses").notNull().default("[]"),
+  knowledgeEntries: text("knowledge_entries").notNull().default("[]"),
+  suggestedTags: text("suggested_tags").notNull().default("[]"),
+  consultationOptions: text("consultation_options").notNull().default("[]"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertIndustryTemplateSchema = createInsertSchema(industryTemplates).omit({ id: true, createdAt: true });
+export type InsertIndustryTemplate = z.infer<typeof insertIndustryTemplateSchema>;
+export type IndustryTemplate = typeof industryTemplates.$inferSelect;
+
+export const tenantChannels = pgTable("tenant_channels", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  channel: text("channel", { enum: ["whatsapp", "whatsapp_cloud", "instagram", "messenger", "telegram", "email"] }).notNull(),
+  enabled: integer("enabled").notNull().default(0),
+  displayName: text("display_name"),
+  externalId: text("external_id"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  webhookSecret: text("webhook_secret"),
+  phoneNumberId: text("phone_number_id"),
+  pageId: text("page_id"),
+  igUserId: text("ig_user_id"),
+  botToken: text("bot_token"),
+  inboundAddress: text("inbound_address"),
+  config: text("config").notNull().default("{}"),
+  status: text("status", { enum: ["pending", "connected", "error", "disabled"] }).notNull().default("pending"),
+  statusMessage: text("status_message"),
+  lastSyncedAt: timestamp("last_synced_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_tenant_channels_tenant").on(table.tenantId),
+  index("idx_tenant_channels_channel").on(table.channel),
+  index("idx_tenant_channels_external").on(table.externalId),
+]);
+
+export const insertTenantChannelSchema = createInsertSchema(tenantChannels).omit({ id: true, createdAt: true, updatedAt: true, lastSyncedAt: true });
+export type InsertTenantChannel = z.infer<typeof insertTenantChannelSchema>;
+export type TenantChannel = typeof tenantChannels.$inferSelect;
 
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),

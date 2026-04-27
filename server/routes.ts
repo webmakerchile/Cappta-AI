@@ -19,6 +19,42 @@ import { trackTikTokEvent } from "./tiktok";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
+import crypto from "crypto";
+
+function safeJsonArray(text: string | null | undefined): any[] {
+  if (!text) return [];
+  try {
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function sanitizeChannel(c: any) {
+  if (!c) return null;
+  return {
+    id: c.id,
+    tenantId: c.tenantId,
+    channel: c.channel,
+    enabled: c.enabled,
+    displayName: c.displayName,
+    externalId: c.externalId,
+    phoneNumberId: c.phoneNumberId,
+    pageId: c.pageId,
+    igUserId: c.igUserId,
+    inboundAddress: c.inboundAddress,
+    config: c.config,
+    status: c.status,
+    statusMessage: c.statusMessage,
+    lastSyncedAt: c.lastSyncedAt,
+    hasAccessToken: !!c.accessToken,
+    hasBotToken: !!c.botToken,
+    hasWebhookSecret: !!c.webhookSecret,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+  };
+}
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const SESSION_CREATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
@@ -1290,7 +1326,8 @@ ${DEMO_BASE_RULES}`,
         passwordHash,
         companyName,
         ...(referrerId ? { referredBy: referrerId } : {}),
-      });
+        ...(safeRequestedPlan ? { requestedPlan: safeRequestedPlan } : {}),
+      } as any);
       if (safeRequestedPlan) {
         log(`Plan recomendado al registrar tenant ${tenant.id}: ${safeRequestedPlan} (será propuesto en el dashboard como upgrade)`, "auth");
       }
@@ -1410,7 +1447,7 @@ ${DEMO_BASE_RULES}`,
     if (!tenant) {
       return res.status(404).json({ message: "Tenant no encontrado" });
     }
-    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, createdAt: tenant.createdAt });
+    res.json({ id: tenant.id, name: tenant.name, email: tenant.email, companyName: tenant.companyName, plan: tenant.plan, widgetColor: tenant.widgetColor, headerTextColor: tenant.headerTextColor, botBubbleColor: tenant.botBubbleColor, botTextColor: tenant.botTextColor, userTextColor: tenant.userTextColor, welcomeMessage: tenant.welcomeMessage, welcomeSubtitle: tenant.welcomeSubtitle, logoUrl: tenant.logoUrl, logoScale: tenant.logoScale, avatarUrl: tenant.avatarUrl, launcherImageUrl: tenant.launcherImageUrl, launcherImageScale: tenant.launcherImageScale, botIconUrl: tenant.botIconUrl, botIconScale: tenant.botIconScale, widgetPosition: tenant.widgetPosition, labelContactButton: tenant.labelContactButton, labelTicketButton: tenant.labelTicketButton, labelFinalizeButton: tenant.labelFinalizeButton, domain: tenant.domain, formFields: tenant.formFields, consultationOptions: tenant.consultationOptions, showProductSearch: tenant.showProductSearch, productSearchLabel: tenant.productSearchLabel, productApiUrl: tenant.productApiUrl, botConfigured: tenant.botConfigured, onboardingStep: tenant.onboardingStep, welcomeBannerText: tenant.welcomeBannerText, launcherBubbleText: tenant.launcherBubbleText, launcherBubbleStyle: tenant.launcherBubbleStyle, whatsappEnabled: tenant.whatsappEnabled, whatsappNumber: tenant.whatsappNumber, whatsappGreeting: tenant.whatsappGreeting, industry: tenant.industry, appliedTemplateSlug: tenant.appliedTemplateSlug, createdAt: tenant.createdAt });
   });
 
   app.patch("/api/tenants/me", async (req, res) => {
@@ -1450,6 +1487,7 @@ ${DEMO_BASE_RULES}`,
       if (launcherBubbleText !== undefined) updates.launcherBubbleText = launcherBubbleText || null;
       if (launcherBubbleStyle !== undefined) updates.launcherBubbleStyle = launcherBubbleStyle || "normal";
       if (whatsappGreeting !== undefined) updates.whatsappGreeting = whatsappGreeting || null;
+      if (req.body.industry !== undefined) updates.industry = req.body.industry || null;
       const tenant = await storage.updateTenant(auth.id, updates);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant no encontrado" });
@@ -2838,6 +2876,382 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
     }
   });
 
+  // ========== INDUSTRY TEMPLATES + OMNICHANNEL ==========
+
+  app.get("/api/industry-templates", async (_req, res) => {
+    try {
+      const templates = await storage.getAllIndustryTemplates();
+      res.json(templates.map(t => ({
+        id: t.id,
+        slug: t.slug,
+        name: t.name,
+        description: t.description,
+        icon: t.icon,
+        emoji: t.emoji,
+        color: t.color,
+        sortOrder: t.sortOrder,
+        welcomeMessage: t.welcomeMessage,
+        welcomeSubtitle: t.welcomeSubtitle,
+        suggestedTags: safeJsonArray(t.suggestedTags),
+        consultationOptions: safeJsonArray(t.consultationOptions),
+        cannedResponses: safeJsonArray(t.cannedResponses),
+        knowledgeEntries: safeJsonArray(t.knowledgeEntries),
+      })));
+    } catch (error: any) {
+      log(`industry-templates error: ${error.message}`, "templates");
+      res.status(500).json({ message: "Error al obtener plantillas" });
+    }
+  });
+
+  app.post("/api/tenants/me/apply-template/:slug", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const template = await storage.getIndustryTemplateBySlug(req.params.slug);
+      if (!template) return res.status(404).json({ message: "Plantilla no encontrada" });
+
+      const tenant = await storage.getTenantById(auth.id);
+      if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+
+      const consultations = safeJsonArray(template.consultationOptions);
+      const tagsArr = safeJsonArray(template.suggestedTags) as string[];
+
+      await storage.updateTenant(auth.id, {
+        industry: template.slug,
+        appliedTemplateSlug: template.slug,
+        welcomeMessage: template.welcomeMessage,
+        welcomeSubtitle: template.welcomeSubtitle || tenant.welcomeSubtitle,
+        botContext: template.botContext,
+        consultationOptions: consultations.length ? JSON.stringify(consultations) : tenant.consultationOptions,
+      });
+
+      // Apply canned responses (idempotent: skip if shortcut already exists)
+      const cannedTplsRaw = safeJsonArray(template.cannedResponses);
+      const cannedTpls = cannedTplsRaw as Array<{ shortcut: string; content: string }>;
+      const existingCanned = await storage.getTenantCannedResponses(auth.id);
+      const existingShortcuts = new Set(existingCanned.map(c => c.shortcut));
+      for (const c of cannedTpls) {
+        if (!c?.shortcut || existingShortcuts.has(c.shortcut)) continue;
+        try { await storage.createTenantCannedResponse(auth.id, c.shortcut, c.content); } catch {}
+      }
+
+      // Apply knowledge entries (skip duplicates by question)
+      const kbTplsRaw = safeJsonArray(template.knowledgeEntries);
+      const kbTpls = kbTplsRaw as Array<{ question: string; answer: string; category?: string }>;
+      const existingKb = await storage.getTenantKnowledgeEntries(auth.id, {});
+      const existingKbQ = new Set(existingKb.map(k => (k.question || "").toLowerCase().trim()));
+      for (const k of kbTpls) {
+        if (!k?.question || existingKbQ.has(k.question.toLowerCase().trim())) continue;
+        try {
+          await storage.createTenantKnowledgeEntry(auth.id, {
+            question: k.question,
+            answer: k.answer,
+            category: (k.category as any) || "general",
+            status: "approved",
+          });
+        } catch {}
+      }
+
+      // Apply suggested tags
+      for (const tag of tagsArr) {
+        if (!tag) continue;
+        try { await storage.addTenantTag(auth.id, tag); } catch {}
+      }
+
+      const refreshed = await storage.getTenantById(auth.id);
+      res.json({
+        success: true,
+        appliedTemplate: template.slug,
+        tenant: refreshed,
+        appliedCounts: {
+          cannedResponses: cannedTpls.length,
+          knowledgeEntries: kbTpls.length,
+          tags: tagsArr.length,
+        },
+      });
+    } catch (error: any) {
+      log(`apply-template error: ${error.message}`, "templates");
+      res.status(500).json({ message: "Error al aplicar plantilla" });
+    }
+  });
+
+  // Tenant Channels CRUD
+  app.get("/api/tenants/me/channels", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const channels = await storage.getTenantChannels(auth.id);
+      res.json(channels.map(c => sanitizeChannel(c)));
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al obtener canales" });
+    }
+  });
+
+  app.put("/api/tenants/me/channels/:channel", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    const ch = req.params.channel;
+    const allowed = ["whatsapp", "whatsapp_cloud", "instagram", "messenger", "telegram", "email"];
+    if (!allowed.includes(ch)) return res.status(400).json({ message: "Canal invalido" });
+
+    try {
+      const body = req.body || {};
+      const updates: any = {};
+      // Common fields
+      if (body.enabled !== undefined) updates.enabled = body.enabled ? 1 : 0;
+      if (body.displayName !== undefined) updates.displayName = body.displayName || null;
+      if (body.externalId !== undefined) updates.externalId = body.externalId || null;
+      if (body.accessToken !== undefined) updates.accessToken = body.accessToken || null;
+      if (body.refreshToken !== undefined) updates.refreshToken = body.refreshToken || null;
+      if (body.webhookSecret !== undefined) updates.webhookSecret = body.webhookSecret || null;
+      if (body.phoneNumberId !== undefined) updates.phoneNumberId = body.phoneNumberId || null;
+      if (body.pageId !== undefined) updates.pageId = body.pageId || null;
+      if (body.igUserId !== undefined) updates.igUserId = body.igUserId || null;
+      if (body.botToken !== undefined) updates.botToken = body.botToken || null;
+      if (body.inboundAddress !== undefined) updates.inboundAddress = (body.inboundAddress || "").toLowerCase().trim() || null;
+      if (body.config !== undefined) updates.config = typeof body.config === "string" ? body.config : JSON.stringify(body.config || {});
+
+      // Channel-specific connection logic
+      let status: "pending" | "connected" | "error" | "disabled" = updates.enabled === 0 ? "disabled" : "pending";
+      let statusMessage: string | null = null;
+
+      if (ch === "telegram" && updates.botToken) {
+        const { getTelegramBotInfo, setTelegramWebhook } = await import("./channels/telegram");
+        const info = await getTelegramBotInfo(updates.botToken);
+        if (info.ok && info.result) {
+          updates.externalId = String(info.result.id);
+          updates.displayName = updates.displayName || `@${info.result.username}`;
+          const baseUrl = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
+          const secret = updates.webhookSecret || crypto.randomBytes(16).toString("hex");
+          updates.webhookSecret = secret;
+          const hookUrl = `${baseUrl}/api/channels/telegram/webhook/${auth.id}`;
+          const hookRes = await setTelegramWebhook(updates.botToken, hookUrl, secret);
+          if (hookRes.ok) {
+            status = "connected";
+            statusMessage = `Webhook activo: ${hookUrl}`;
+          } else {
+            status = "error";
+            statusMessage = `Error al registrar webhook: ${hookRes.description || "desconocido"}`;
+          }
+        } else {
+          status = "error";
+          statusMessage = `Token inválido: ${info.description || "no se pudo verificar"}`;
+        }
+      } else if (ch === "email") {
+        // Generate inbound address if not provided
+        if (!updates.inboundAddress) {
+          updates.inboundAddress = `t${auth.id}@inbound.cappta.cl`;
+        }
+        if (updates.enabled !== 0) {
+          status = "connected";
+          statusMessage = `Reenviá los correos a: ${updates.inboundAddress}`;
+        }
+      } else if (ch === "instagram" || ch === "messenger" || ch === "whatsapp_cloud") {
+        if (updates.accessToken && (updates.pageId || updates.igUserId || updates.phoneNumberId)) {
+          status = updates.enabled === 0 ? "disabled" : "connected";
+          statusMessage = "Credenciales guardadas. Configurá el webhook hacia /api/channels/" + ch + "/webhook";
+        } else if (updates.enabled !== 0) {
+          status = "pending";
+          statusMessage = "Faltan credenciales para conectar";
+        }
+      } else if (ch === "whatsapp" && updates.enabled === 0) {
+        status = "disabled";
+      }
+
+      updates.status = status;
+      updates.statusMessage = statusMessage;
+      updates.lastSyncedAt = new Date();
+
+      const saved = await storage.upsertTenantChannel(auth.id, ch, updates);
+      res.json(sanitizeChannel(saved));
+    } catch (error: any) {
+      log(`upsert channel ${ch} error: ${error.message}`, "channels");
+      res.status(500).json({ message: "Error al guardar canal" });
+    }
+  });
+
+  app.delete("/api/tenants/me/channels/:channel", async (req, res) => {
+    const auth = requireTenantAuth(req, res);
+    if (!auth) return;
+    try {
+      const ok = await storage.deleteTenantChannel(auth.id, req.params.channel);
+      res.json({ success: ok });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error al eliminar canal" });
+    }
+  });
+
+  // ============ CHANNEL WEBHOOKS ============
+
+  // Telegram webhook
+  app.post("/api/channels/telegram/webhook/:tenantId", async (req, res) => {
+    try {
+      const tenantId = parseInt(req.params.tenantId, 10);
+      if (!tenantId) return res.status(400).end();
+      const cfg = await storage.getTenantChannel(tenantId, "telegram");
+      if (!cfg || !cfg.enabled) return res.status(200).end();
+      const provided = req.headers["x-telegram-bot-api-secret-token"];
+      if (cfg.webhookSecret && provided !== cfg.webhookSecret) {
+        return res.status(401).end();
+      }
+      const { handleTelegramUpdate } = await import("./channels/telegram");
+      const result = await handleTelegramUpdate(tenantId, req.body);
+      if (result) {
+        const session = await storage.getSession(result.sessionId);
+        const message = (await storage.getMessagesBySessionId(result.sessionId)).slice(-1)[0];
+        if (session && message) {
+          io.to(`tenant:${tenantId}`).emit("tenant_new_message", { sessionId: session.sessionId, message, session });
+          io.to("admin_room").emit("admin_new_message", { sessionId: session.sessionId, message, userName: session.userName, content: message.content });
+        }
+      }
+      res.status(200).json({ ok: true });
+    } catch (error: any) {
+      log(`telegram webhook error: ${error.message}`, "telegram");
+      res.status(200).end();
+    }
+  });
+
+  // Meta verify (Instagram + Messenger + WhatsApp Cloud)
+  const metaVerify = (req: any, res: any) => {
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+    const expected = process.env.META_VERIFY_TOKEN || "cappta-meta-verify";
+    if (mode === "subscribe" && token === expected) {
+      return res.status(200).send(challenge);
+    }
+    res.status(403).end();
+  };
+  app.get("/api/channels/instagram/webhook", metaVerify);
+  app.get("/api/channels/messenger/webhook", metaVerify);
+  app.get("/api/channels/whatsapp-cloud/webhook", metaVerify);
+
+  app.post("/api/channels/instagram/webhook", async (req, res) => {
+    try {
+      const body = req.body || {};
+      const entries = body.entry || [];
+      for (const entry of entries) {
+        const igAccountId = entry?.id;
+        if (!igAccountId) continue;
+        const cfg = await storage.getTenantChannelByExternalId("instagram", String(igAccountId));
+        if (!cfg || !cfg.enabled) continue;
+        const { handleInstagramEvent } = await import("./channels/instagram");
+        const result = await handleInstagramEvent(cfg, entry);
+        if (result) {
+          const session = await storage.getSession(result.sessionId);
+          const message = (await storage.getMessagesBySessionId(result.sessionId)).slice(-1)[0];
+          if (session && message) {
+            io.to(`tenant:${cfg.tenantId}`).emit("tenant_new_message", { sessionId: session.sessionId, message, session });
+            io.to("admin_room").emit("admin_new_message", { sessionId: session.sessionId, message, userName: session.userName, content: message.content });
+          }
+        }
+      }
+      res.status(200).json({ ok: true });
+    } catch (error: any) {
+      log(`instagram webhook error: ${error.message}`, "instagram");
+      res.status(200).end();
+    }
+  });
+
+  app.post("/api/channels/messenger/webhook", async (req, res) => {
+    try {
+      const body = req.body || {};
+      const entries = body.entry || [];
+      for (const entry of entries) {
+        const pageId = entry?.id;
+        if (!pageId) continue;
+        const cfg = await storage.getTenantChannelByExternalId("messenger", String(pageId));
+        if (!cfg || !cfg.enabled) continue;
+        const { handleMessengerEvent } = await import("./channels/messenger");
+        const result = await handleMessengerEvent(cfg, entry);
+        if (result) {
+          const session = await storage.getSession(result.sessionId);
+          const message = (await storage.getMessagesBySessionId(result.sessionId)).slice(-1)[0];
+          if (session && message) {
+            io.to(`tenant:${cfg.tenantId}`).emit("tenant_new_message", { sessionId: session.sessionId, message, session });
+            io.to("admin_room").emit("admin_new_message", { sessionId: session.sessionId, message, userName: session.userName, content: message.content });
+          }
+        }
+      }
+      res.status(200).json({ ok: true });
+    } catch (error: any) {
+      log(`messenger webhook error: ${error.message}`, "messenger");
+      res.status(200).end();
+    }
+  });
+
+  app.post("/api/channels/whatsapp-cloud/webhook", async (req, res) => {
+    try {
+      const body = req.body || {};
+      const entries = body.entry || [];
+      for (const entry of entries) {
+        const value = entry?.changes?.[0]?.value;
+        const phoneNumberId = value?.metadata?.phone_number_id;
+        if (!phoneNumberId) continue;
+        const cfg = await storage.getTenantChannelByExternalId("whatsapp_cloud", String(phoneNumberId));
+        if (!cfg || !cfg.enabled) continue;
+        const { handleWhatsAppCloudEvent } = await import("./channels/whatsappCloud");
+        const result = await handleWhatsAppCloudEvent(cfg, entry);
+        if (result) {
+          const session = await storage.getSession(result.sessionId);
+          const message = (await storage.getMessagesBySessionId(result.sessionId)).slice(-1)[0];
+          if (session && message) {
+            io.to(`tenant:${cfg.tenantId}`).emit("tenant_new_message", { sessionId: session.sessionId, message, session });
+            io.to("admin_room").emit("admin_new_message", { sessionId: session.sessionId, message, userName: session.userName, content: message.content });
+          }
+        }
+      }
+      res.status(200).json({ ok: true });
+    } catch (error: any) {
+      log(`whatsapp-cloud webhook error: ${error.message}`, "wa-cloud");
+      res.status(200).end();
+    }
+  });
+
+  // Email-to-Chat inbound (generic JSON payload — works with Resend Inbound, SendGrid Parse, Postmark, etc.)
+  app.post("/api/channels/email/inbound", async (req, res) => {
+    try {
+      const b = req.body || {};
+      // Normalize payloads from various providers
+      const to = b.to || b.recipient || b.To || (Array.isArray(b.envelope?.to) ? b.envelope.to[0] : b.envelope?.to) || "";
+      const fromRaw = b.from || b.sender || b.From || b.envelope?.from || "";
+      const fromMatch = String(fromRaw).match(/<?([^<>\s]+@[^<>\s]+)>?/);
+      const fromEmail = fromMatch ? fromMatch[1] : String(fromRaw);
+      const fromName = String(fromRaw).replace(/<[^>]+>/, "").trim().replace(/^"|"$/g, "") || fromEmail.split("@")[0];
+      const subject = b.subject || b.Subject || "";
+      const text = b.text || b["body-plain"] || b.TextBody || "";
+      const html = b.html || b["body-html"] || b.HtmlBody || "";
+      const messageId = b["message-id"] || b.messageId || b.MessageID || undefined;
+      const threadId = b.threadId || b["in-reply-to"] || b.InReplyTo || undefined;
+
+      if (!to || !fromEmail) return res.status(400).json({ message: "Faltan campos: to/from" });
+
+      const { handleInboundEmail } = await import("./channels/emailChannel");
+      const result = await handleInboundEmail({
+        to: String(to),
+        from: fromEmail,
+        fromName,
+        subject,
+        text,
+        html,
+        messageId,
+        threadId,
+      });
+      if (result) {
+        const session = await storage.getSession(result.sessionId);
+        const message = (await storage.getMessagesBySessionId(result.sessionId)).slice(-1)[0];
+        if (session && message) {
+          io.to(`tenant:${session.tenantId}`).emit("tenant_new_message", { sessionId: session.sessionId, message, session });
+          io.to("admin_room").emit("admin_new_message", { sessionId: session.sessionId, message, userName: session.userName, content: message.content });
+        }
+      }
+      res.status(200).json({ ok: true, accepted: !!result });
+    } catch (error: any) {
+      log(`email inbound error: ${error.message}`, "email-channel");
+      res.status(200).end();
+    }
+  });
+
   // ========== TENANT PANEL ROUTES ==========
 
   app.get("/api/tenant-panel/sessions", async (req, res) => {
@@ -2886,7 +3300,8 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         imageUrl: imageUrl || null,
         adminName: agentName,
         adminColor: agentColor,
-      });
+        channel: (session.channel || "web") as any,
+      } as any);
       await storage.touchSession(req.params.sessionId);
       io.to(`session:${req.params.sessionId}`).emit("new_message", msg);
       io.to("admin_room").emit("admin_new_message", {
@@ -2896,6 +3311,16 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
         message: msg,
         assignedTo: session.assignedTo,
       });
+
+      // If this session originated from an external channel, dispatch outbound
+      if (session.channel && session.channel !== "web") {
+        try {
+          const { sendOutboundForSession } = await import("./channels/index");
+          await sendOutboundForSession(session, content || "", imageUrl);
+        } catch (err: any) {
+          log(`outbound dispatch failed (${session.channel}): ${err.message}`, "channels");
+        }
+      }
       res.json(msg);
     } catch (error: any) {
       res.status(500).json({ message: "Error al enviar mensaje" });

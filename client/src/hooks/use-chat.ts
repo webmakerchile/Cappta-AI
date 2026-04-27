@@ -401,6 +401,10 @@ export function useChat(tenantId?: number | null) {
               content: errorData.message || "Se alcanzó el límite de tu plan. Contacta al administrador.",
               imageUrl: null,
               tenantId: tenantId ? Number(tenantId) : null,
+              adminName: null,
+              adminColor: null,
+              channel: "web",
+              externalMessageId: null,
               timestamp: new Date(),
             };
             queryClient.setQueryData(

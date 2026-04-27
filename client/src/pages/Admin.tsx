@@ -919,6 +919,7 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
       const optimisticMsg: Message = {
         id: tempId,
         sessionId,
+        tenantId: null,
         userEmail: "",
         userName: "Soporte",
         sender: "support",
@@ -926,6 +927,8 @@ function ChatViewer({ sessionId, searchQuery, sessions, adminUser }: { sessionId
         imageUrl: data.imageUrl || null,
         adminName: adminUser?.displayName || null,
         adminColor: adminUser?.color || "#10b981",
+        channel: "web",
+        externalMessageId: null,
         timestamp: new Date(),
       };
       queryClient.setQueryData<Message[]>(

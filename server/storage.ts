@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, leadScores, sequences, sequenceRuns, flows, flowRuns, integrations, apiKeys, webhookEndpoints, webhookDeliveries, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink, type AppointmentStatus, type ChatPaymentLinkStatus, type LeadScore, type InsertLeadScore, type Sequence, type InsertSequence, type SequenceRun, type InsertSequenceRun, type Flow, type InsertFlow, type FlowRun, type InsertFlowRun, type Integration, type InsertIntegration, type ApiKey, type InsertApiKey, type WebhookEndpoint, type InsertWebhookEndpoint, type WebhookDelivery, type InsertWebhookDelivery } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, leadScores, sequences, sequenceRuns, flows, flowRuns, integrations, apiKeys, webhookEndpoints, webhookDeliveries, industryTemplates, tenantChannels, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink, type AppointmentStatus, type ChatPaymentLinkStatus, type LeadScore, type InsertLeadScore, type Sequence, type InsertSequence, type SequenceRun, type InsertSequenceRun, type Flow, type InsertFlow, type FlowRun, type InsertFlowRun, type Integration, type InsertIntegration, type ApiKey, type InsertApiKey, type WebhookEndpoint, type InsertWebhookEndpoint, type WebhookDelivery, type InsertWebhookDelivery, type IndustryTemplate, type InsertIndustryTemplate, type TenantChannel, type InsertTenantChannel } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and, gte, lte } from "drizzle-orm";
 
@@ -172,6 +172,19 @@ export interface IStorage {
     revenueThisMonth: number;
     revenueAllTime: number;
   }>;
+  // Industry templates
+  getAllIndustryTemplates(): Promise<IndustryTemplate[]>;
+  getIndustryTemplateBySlug(slug: string): Promise<IndustryTemplate | null>;
+  upsertIndustryTemplate(data: InsertIndustryTemplate): Promise<IndustryTemplate>;
+  // Tenant channels
+  getTenantChannels(tenantId: number): Promise<TenantChannel[]>;
+  getTenantChannel(tenantId: number, channel: string): Promise<TenantChannel | null>;
+  getTenantChannelByExternalId(channel: string, externalId: string): Promise<TenantChannel | null>;
+  upsertTenantChannel(tenantId: number, channel: string, data: Partial<InsertTenantChannel>): Promise<TenantChannel>;
+  updateTenantChannel(id: number, data: Partial<InsertTenantChannel>): Promise<TenantChannel | null>;
+  deleteTenantChannel(tenantId: number, channel: string): Promise<boolean>;
+  // Channel-aware sessions
+  findSessionByExternalThread(tenantId: number, channel: string, externalThreadId: string): Promise<Session | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1301,6 +1314,7 @@ export class DatabaseStorage implements IStorage {
         s.user_name AS "userName",
         s.user_email AS "userEmail",
         s.status,
+        s.channel,
         s.tags,
         s.problem_type AS "problemType",
         s.game_name AS "gameName",
@@ -1347,6 +1361,7 @@ export class DatabaseStorage implements IStorage {
       unreadCount: r.lastReadAt ? r.unreadAfterRead : r.totalUserMessages,
       lastMessage: r.lastMessage || null,
       status: r.status,
+      channel: r.channel || "web",
       tags: Array.isArray(r.tags) ? r.tags : [],
       problemType: r.problemType,
       gameName: r.gameName,
@@ -1696,9 +1711,78 @@ export class DatabaseStorage implements IStorage {
     return updated || null;
   }
 
+  // ============== INDUSTRY TEMPLATES ==============
+  async getAllIndustryTemplates(): Promise<IndustryTemplate[]> {
+    return await db.select().from(industryTemplates).where(eq(industryTemplates.active, 1)).orderBy(asc(industryTemplates.sortOrder));
+  }
+
+  async getIndustryTemplateBySlug(slug: string): Promise<IndustryTemplate | null> {
+    const [t] = await db.select().from(industryTemplates).where(eq(industryTemplates.slug, slug));
+    return t || null;
+  }
+
+  async upsertIndustryTemplate(data: InsertIndustryTemplate): Promise<IndustryTemplate> {
+    const existing = await this.getIndustryTemplateBySlug(data.slug);
+    if (existing) {
+      const [updated] = await db.update(industryTemplates).set(data).where(eq(industryTemplates.slug, data.slug)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(industryTemplates).values(data).returning();
+    return created;
+  }
+
+  // ============== TENANT CHANNELS ==============
+  async getTenantChannels(tenantId: number): Promise<TenantChannel[]> {
+    return await db.select().from(tenantChannels).where(eq(tenantChannels.tenantId, tenantId)).orderBy(asc(tenantChannels.channel));
+  }
+
+  async getTenantChannel(tenantId: number, channel: string): Promise<TenantChannel | null> {
+    const [c] = await db.select().from(tenantChannels)
+      .where(and(eq(tenantChannels.tenantId, tenantId), eq(tenantChannels.channel, channel as any)));
+    return c || null;
+  }
+
+  async getTenantChannelByExternalId(channel: string, externalId: string): Promise<TenantChannel | null> {
+    const [c] = await db.select().from(tenantChannels)
+      .where(and(eq(tenantChannels.channel, channel as any), eq(tenantChannels.externalId, externalId)));
+    return c || null;
+  }
+
+  async upsertTenantChannel(tenantId: number, channel: string, data: Partial<InsertTenantChannel>): Promise<TenantChannel> {
+    const existing = await this.getTenantChannel(tenantId, channel);
+    if (existing) {
+      const [updated] = await db.update(tenantChannels)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(tenantChannels.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(tenantChannels).values({
+      tenantId,
+      channel: channel as any,
+      ...data,
+    }).returning();
+    return created;
+  }
+
+  async updateTenantChannel(id: number, data: Partial<InsertTenantChannel>): Promise<TenantChannel | null> {
+    const [updated] = await db.update(tenantChannels)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(tenantChannels.id, id))
+      .returning();
+    return updated || null;
+  }
+
   async deleteAppointmentSlot(tenantId: number, id: number): Promise<boolean> {
     const result = await db.delete(appointmentSlots)
       .where(and(eq(appointmentSlots.id, id), eq(appointmentSlots.tenantId, tenantId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async deleteTenantChannel(tenantId: number, channel: string): Promise<boolean> {
+    const result = await db.delete(tenantChannels)
+      .where(and(eq(tenantChannels.tenantId, tenantId), eq(tenantChannels.channel, channel as any)))
       .returning();
     return result.length > 0;
   }
@@ -1815,6 +1899,16 @@ export class DatabaseStorage implements IStorage {
       revenueThisMonth,
       revenueAllTime,
     };
+  }
+
+  async findSessionByExternalThread(tenantId: number, channel: string, externalThreadId: string): Promise<Session | null> {
+    const [s] = await db.select().from(sessions)
+      .where(and(
+        eq(sessions.tenantId, tenantId),
+        eq(sessions.channel, channel as any),
+        eq(sessions.externalThreadId, externalThreadId),
+      ));
+    return s || null;
   }
 }
 
