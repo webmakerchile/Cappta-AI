@@ -8,6 +8,7 @@ import { WelcomeForm } from "@/components/WelcomeForm";
 import { useChat } from "@/hooks/use-chat";
 import { MessageCircle, ArrowLeft, Headphones, Loader2, AlertTriangle } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; retryCount: number }> {
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -108,6 +109,7 @@ const ClientesPage = lazy(() => import("@/pages/Clientes"));
 const AgendaPage = lazy(() => import("@/pages/Agenda"));
 const PagoResultadoPage = lazy(() => import("@/pages/PagoResultado"));
 const CanalesPage = lazy(() => import("@/pages/Canales"));
+const PartnerConsolePage = lazy(() => import("@/pages/PartnerConsole"));
 const CurrencyInputHarnessPage = lazy(
   () => import("@/pages/CurrencyInputHarness"),
 );
@@ -654,6 +656,7 @@ function App() {
   const isEnterprise = pathname === "/enterprise" || pathname === "/empresas";
   const isClientes = pathname === "/clientes" || pathname === "/casos";
   const isCanales = pathname === "/canales";
+  const isPartnerConsole = pathname === "/partners";
   const isCurrencyInputHarness =
     import.meta.env.PROD !== true && pathname === "/test/currency-input";
   const verticalMatch = pathname.match(/^\/para\/([a-z0-9-]+)$/);
@@ -679,8 +682,26 @@ function App() {
     }
   }, [isSaasPage, isFixedLayout]);
 
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("partner");
+      if (slug && /^[a-z0-9][a-z0-9-]{1,30}$/i.test(slug)) {
+        localStorage.setItem("partner_slug", slug.toLowerCase());
+        localStorage.setItem("partner_slug_exp", String(Date.now() + 30 * 24 * 60 * 60 * 1000));
+      } else {
+        const exp = Number(localStorage.getItem("partner_slug_exp") || "0");
+        if (exp && Date.now() > exp) {
+          localStorage.removeItem("partner_slug");
+          localStorage.removeItem("partner_slug_exp");
+        }
+      }
+    } catch {}
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
+      <ImpersonationBanner />
       <ErrorBoundary>
       {isAdmin ? (
         <Suspense fallback={<SuspenseLoader />}>
@@ -753,6 +774,10 @@ function App() {
       ) : isCanales ? (
         <Suspense fallback={<SuspenseLoader />}>
           <CanalesPage />
+        </Suspense>
+      ) : isPartnerConsole ? (
+        <Suspense fallback={<SuspenseLoader />}>
+          <PartnerConsolePage />
         </Suspense>
       ) : isCurrencyInputHarness ? (
         <Suspense fallback={<SuspenseLoader />}>

@@ -44,6 +44,7 @@ export interface IStorage {
   getAllAdminUsers(): Promise<AdminUser[]>;
   createAdminUser(data: InsertAdminUser): Promise<AdminUser>;
   updateAdminUserPassword(id: number, passwordHash: string): Promise<AdminUser | null>;
+  updateAdminUserRole(id: number, role: AdminUser["role"]): Promise<AdminUser | null>;
   deleteAdminUser(id: number): Promise<boolean>;
   // Push subscriptions
   getPushSubscriptionsByUserId(adminUserId: number): Promise<PushSubscription[]>;
@@ -207,6 +208,7 @@ export interface IStorage {
   createPartnerImpersonation(data: InsertPartnerImpersonation): Promise<PartnerImpersonation>;
   endPartnerImpersonation(id: number): Promise<PartnerImpersonation | null>;
   getPartnerImpersonations(partnerId: number, limit?: number): Promise<PartnerImpersonation[]>;
+  listEndedPartnerImpersonationIdsSince(since: Date): Promise<number[]>;
   getRecentPartnerImpersonations(limit?: number): Promise<PartnerImpersonation[]>;
 }
 
@@ -906,6 +908,15 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(adminUsers)
       .set({ passwordHash })
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async updateAdminUserRole(id: number, role: AdminUser["role"]): Promise<AdminUser | null> {
+    const [updated] = await db
+      .update(adminUsers)
+      .set({ role })
       .where(eq(adminUsers.id, id))
       .returning();
     return updated || null;
@@ -2377,6 +2388,11 @@ class SalesEngineDb implements SalesEngineStorage {
     return await db.select().from(partnerImpersonations)
       .orderBy(desc(partnerImpersonations.startedAt))
       .limit(limit);
+  }
+  async listEndedPartnerImpersonationIdsSince(since: Date): Promise<number[]> {
+    const rows = await db.select({ id: partnerImpersonations.id }).from(partnerImpersonations)
+      .where(and(gte(partnerImpersonations.endedAt, since), gte(partnerImpersonations.startedAt, since)));
+    return rows.map((r) => r.id);
   }
 }
 

@@ -50,6 +50,7 @@ export default function Register() {
       const urlParams = new URLSearchParams(window.location.search);
       const referralCode = urlParams.get("ref") || "";
       const requestedPlan = urlParams.get("plan") || "";
+      const partnerSlug = urlParams.get("partner") || localStorage.getItem("partner_slug") || "";
       const res = await apiRequest("POST", "/api/tenants/register", {
         name: data.name,
         email: data.email,
@@ -57,11 +58,16 @@ export default function Register() {
         password: data.password,
         ...(referralCode ? { referralCode } : {}),
         ...(requestedPlan ? { requestedPlan } : {}),
+        ...(partnerSlug ? { partnerSlug } : {}),
       });
       return res.json();
     },
     onSuccess: (data: { token: string }) => {
       localStorage.setItem("tenant_token", data.token);
+      try {
+        localStorage.removeItem("partner_slug");
+        localStorage.removeItem("partner_slug_exp");
+      } catch {}
       if (typeof window !== "undefined" && (window as any).ttq) {
         (window as any).ttq.track("CompleteRegistration", { content_name: "Cappta AI" });
       }

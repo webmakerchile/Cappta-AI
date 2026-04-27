@@ -1260,10 +1260,28 @@ ${DEMO_BASE_RULES}`,
     isAgent?: boolean;
   }
 
+  const revokedImpersonationIds = new Set<number>();
+  let revokedImpersonationIdsLoaded = false;
+  async function ensureRevokedImpersonationIdsLoaded() {
+    if (revokedImpersonationIdsLoaded) return;
+    revokedImpersonationIdsLoaded = true;
+    try {
+      const fn = (storage as any).listEndedPartnerImpersonationIdsSince;
+      if (typeof fn === "function") {
+        const ids: number[] = await fn.call(storage, new Date(Date.now() - 2 * 60 * 60 * 1000));
+        ids.forEach((id) => revokedImpersonationIds.add(id));
+      }
+    } catch {}
+  }
+  ensureRevokedImpersonationIdsLoaded();
+
   function verifyTenantToken(token: string): TenantAuthResult | null {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       if (!decoded.isTenant) return null;
+      if (decoded.isImpersonation && typeof decoded.impersonationId === "number" && revokedImpersonationIds.has(decoded.impersonationId)) {
+        return null;
+      }
       return {
         id: decoded.id,
         email: decoded.email,
@@ -1314,7 +1332,7 @@ ${DEMO_BASE_RULES}`,
 
   app.post("/api/tenants/register", async (req, res) => {
     try {
-      const { name, email, password, companyName, referralCode, requestedPlan, currency, country } = req.body;
+      const { name, email, password, companyName, referralCode, requestedPlan, currency, country, partnerSlug } = req.body;
       if (!name || !email || !password || !companyName) {
         return res.status(400).json({ message: "Todos los campos son requeridos" });
       }
@@ -1330,6 +1348,14 @@ ${DEMO_BASE_RULES}`,
         const referrer = await storage.getTenantByReferralCode(referralCode.trim().toUpperCase());
         if (referrer) {
           referrerId = referrer.id;
+        }
+      }
+      let attributedPartner: { id: number; slug: string } | null = null;
+      if (partnerSlug && typeof partnerSlug === "string" && partnerSlug.trim()) {
+        const slugLower = partnerSlug.trim().toLowerCase();
+        const partner = await storage.getPartnerBySlug(slugLower);
+        if (partner && partner.status === "active") {
+          attributedPartner = { id: partner.id, slug: partner.slug };
         }
       }
       const passwordHash = await bcrypt.hash(password, 10);
@@ -1353,7 +1379,11 @@ ${DEMO_BASE_RULES}`,
         ...(referrerId ? { referredBy: referrerId } : {}),
         ...(safeRequestedPlan ? { requestedPlan: safeRequestedPlan } : {}),
         ...(resolvedCurrency ? { currency: resolvedCurrency } : {}),
+        ...(attributedPartner ? { partnerId: attributedPartner.id, partnerSlug: attributedPartner.slug } : {}),
       } as any);
+      if (attributedPartner) {
+        log(`Tenant ${tenant.id} atribuido a partner ${attributedPartner.slug} (id ${attributedPartner.id})`, "partners");
+      }
       if (safeRequestedPlan) {
         log(`Plan recomendado al registrar tenant ${tenant.id}: ${safeRequestedPlan} (será propuesto en el dashboard como upgrade)`, "auth");
       }
@@ -7151,6 +7181,381 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       res.status(500).json({ error: err.message });
     }
   });
+
+  // ==========================================================================
+  // PARTNERS / CONSOLA DE AGENCIAS
+  // ==========================================================================
+  function generatePartnerImpersonationToken(
+    tenant: { id: number; email: string; companyName: string },
+    impersonationId: number,
+    partnerId: number,
+  ) {
+    return jwt.sign(
+      {
+        id: tenant.id,
+        email: tenant.email,
+        companyName: tenant.companyName,
+        isTenant: true,
+        role: "owner",
+        isImpersonation: true,
+        impersonatedByPartnerId: partnerId,
+        impersonationId,
+      },
+      JWT_SECRET,
+      { expiresIn: "2h" },
+    );
+  }
+
+  async function requirePartnerCtx(req: any, res: any) {
+    const user = requireAuth(req, res);
+    if (!user) return null;
+    if (user.role !== "partner") {
+      res.status(403).json({ message: "Acceso restringido al panel de partners" });
+      return null;
+    }
+    const partner = await storage.getPartnerByUserId(user.id);
+    if (!partner) {
+      res.status(403).json({ message: "Tu usuario no está vinculado a ningún partner" });
+      return null;
+    }
+    if (partner.status !== "active") {
+      res.status(403).json({ message: "Tu cuenta de partner está pendiente de aprobación o pausada" });
+      return null;
+    }
+    return { user, partner };
+  }
+
+  function requireSuperadmin(req: any, res: any) {
+    const user = requireAuth(req, res);
+    if (!user) return null;
+    if (user.role !== "superadmin") {
+      res.status(403).json({ message: "Solo superadmin" });
+      return null;
+    }
+    return user;
+  }
+
+  // Public: validate partner slug for attribution UI
+  app.get("/api/partners/by-slug/:slug", async (req, res) => {
+    try {
+      const partner = await storage.getPartnerBySlug(req.params.slug.toLowerCase());
+      if (!partner || partner.status !== "active") {
+        return res.status(404).json({ message: "Partner no encontrado" });
+      }
+      res.json({
+        slug: partner.slug,
+        displayName: partner.displayName,
+        agencyName: partner.agencyName,
+        tier: partner.tier,
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  // Partner self-service
+  app.get("/api/partners/me", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const tenants = await storage.getPartnerTenants(ctx.partner.id);
+    res.json({ partner: ctx.partner, tenantsCount: tenants.length });
+  });
+
+  app.get("/api/partners/me/tenants", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const list = await storage.getPartnerTenants(ctx.partner.id);
+    res.json(
+      list.map((t) => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+        companyName: t.companyName,
+        plan: t.plan,
+        currency: t.currency,
+        botConfigured: t.botConfigured,
+        isTrial: t.isTrial,
+        onboardingStep: t.onboardingStep,
+        createdAt: t.createdAt,
+      })),
+    );
+  });
+
+  app.get("/api/partners/me/commissions", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const period = typeof req.query.period === "string" ? req.query.period : undefined;
+    const list = await storage.getPartnerCommissions(ctx.partner.id, period);
+    res.json(list);
+  });
+
+  app.get("/api/partners/me/commissions.csv", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const list = await storage.getPartnerCommissions(ctx.partner.id);
+    const tenantById = new Map<number, any>();
+    for (const c of list) {
+      if (!tenantById.has(c.tenantId)) {
+        const t = await storage.getTenantById(c.tenantId);
+        if (t) tenantById.set(c.tenantId, t);
+      }
+    }
+    const escape = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [
+      ["periodo", "tenant_id", "tenant", "moneda", "monto_pagado_centavos", "comision_pct", "comision_centavos", "ordenes", "estado", "computado_en"],
+      ...list.map((c) => {
+        const t = tenantById.get(c.tenantId);
+        return [
+          c.periodMonth,
+          c.tenantId,
+          t?.companyName || "",
+          c.currency,
+          c.paidAmountCents,
+          c.commissionPctSnapshot,
+          c.commissionAmountCents,
+          c.ordersCount,
+          c.status,
+          c.computedAt instanceof Date ? c.computedAt.toISOString() : c.computedAt,
+        ];
+      }),
+    ];
+    const csv = rows.map((r) => r.map(escape).join(",")).join("\n");
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="cappta-partner-${ctx.partner.slug}-comisiones.csv"`,
+    );
+    res.send(csv);
+  });
+
+  app.post("/api/partners/me/impersonate/:tenantId", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const tenantId = parseInt(req.params.tenantId, 10);
+    if (!tenantId) return res.status(400).json({ message: "tenantId inválido" });
+    const tenant = await storage.getTenantById(tenantId);
+    if (!tenant) return res.status(404).json({ message: "Tenant no encontrado" });
+    if (tenant.partnerId !== ctx.partner.id) {
+      return res.status(403).json({ message: "Este tenant no pertenece a tu cartera" });
+    }
+    const audit = await storage.createPartnerImpersonation({
+      partnerId: ctx.partner.id,
+      adminUserId: ctx.user.id,
+      tenantId,
+      ipAddress: ((req.ip || (req.headers["x-forwarded-for"] as string) || "") + "").substring(0, 45),
+      userAgent: ((req.headers["user-agent"] as string) || "").substring(0, 500),
+    });
+    const tenantToken = generatePartnerImpersonationToken(
+      { id: tenant.id, email: tenant.email, companyName: tenant.companyName },
+      audit.id,
+      ctx.partner.id,
+    );
+    log(
+      `Partner impersonation: partner #${ctx.partner.id} (${ctx.partner.slug}) → tenant #${tenant.id} (${tenant.companyName}) audit #${audit.id}`,
+      "partners",
+    );
+    res.json({
+      tenantToken,
+      impersonationId: audit.id,
+      tenantId: tenant.id,
+      tenantName: tenant.companyName,
+      partnerName: ctx.partner.displayName,
+      expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+    });
+  });
+
+  app.post("/api/partners/me/impersonate/:impersonationId/end", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const impersonationId = parseInt(req.params.impersonationId, 10);
+    if (!impersonationId) return res.status(400).json({ message: "impersonationId inválido" });
+    await storage.endPartnerImpersonation(impersonationId);
+    revokedImpersonationIds.add(impersonationId);
+    res.json({ ok: true });
+  });
+
+  app.get("/api/partners/me/impersonations", async (req, res) => {
+    const ctx = await requirePartnerCtx(req, res);
+    if (!ctx) return;
+    if (!ctx.partner) return res.status(404).json({ message: "Partner no encontrado" });
+    const list = await storage.getPartnerImpersonations(ctx.partner.id, 50);
+    res.json(list);
+  });
+
+  // Admin (superadmin) endpoints
+  app.get("/api/admin/partners", async (req, res) => {
+    if (!requireSuperadmin(req, res)) return;
+    const status = (req.query.status as any) || "all";
+    const list = await storage.getAllPartners(status);
+    const enriched = await Promise.all(
+      list.map(async (p) => {
+        const tenants = await storage.getPartnerTenants(p.id);
+        const commissions = await storage.getPartnerCommissions(p.id);
+        const totalCommissionCents = commissions.reduce((s, c) => s + c.commissionAmountCents, 0);
+        return { ...p, tenantsCount: tenants.length, totalCommissionCents };
+      }),
+    );
+    res.json(enriched);
+  });
+
+  app.post("/api/admin/partners", async (req, res) => {
+    if (!requireSuperadmin(req, res)) return;
+    try {
+      const { email, password, displayName, slug, agencyName, country, tier, commissionPct, contactEmail, notes } = req.body;
+      if (!email || !password || !displayName || !slug) {
+        return res.status(400).json({ message: "email, password, displayName y slug son requeridos" });
+      }
+      const slugRe = /^[a-z0-9][a-z0-9-]{1,30}$/i;
+      if (!slugRe.test(slug)) {
+        return res.status(400).json({ message: "Slug inválido (solo letras, números y guiones, 2-31 chars)" });
+      }
+      const slugLower = (slug as string).toLowerCase();
+      const existingSlug = await storage.getPartnerBySlug(slugLower);
+      if (existingSlug) return res.status(409).json({ message: "Slug ya en uso" });
+      let user = await storage.getAdminUserByEmail(String(email).toLowerCase().trim());
+      if (!user) {
+        const hash = await bcrypt.hash(password, 12);
+        user = await storage.createAdminUser({
+          email: String(email).toLowerCase().trim(),
+          passwordHash: hash,
+          displayName,
+          role: "partner",
+          color: "#7669E9",
+        } as any);
+      } else if (user.role !== "partner") {
+        await storage.updateAdminUserRole(user.id, "partner" as any);
+      }
+      const existingPartner = await storage.getPartnerByUserId(user.id);
+      if (existingPartner) return res.status(409).json({ message: "Este usuario ya es partner" });
+      const partner = await storage.createPartner({
+        userId: user.id,
+        slug: slugLower,
+        displayName,
+        contactEmail: contactEmail || String(email).toLowerCase().trim(),
+        agencyName: agencyName || null,
+        country: country || null,
+        tier: tier === "certificado" ? "certificado" : "embajador",
+        commissionPct: typeof commissionPct === "number" ? Math.max(0, Math.min(100, commissionPct)) : 20,
+        status: "pending",
+        notes: notes || null,
+      } as any);
+      log(`Partner creado: #${partner.id} slug=${partner.slug} user #${user.id}`, "partners");
+      res.status(201).json(partner);
+    } catch (e: any) {
+      log(`Error creating partner: ${e.message}`, "partners");
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.patch("/api/admin/partners/:id", async (req, res) => {
+    if (!requireSuperadmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id, 10);
+      const updates: any = {};
+      const { tier, commissionPct, status, displayName, agencyName, country, notes, contactEmail } = req.body;
+      if (tier === "certificado" || tier === "embajador") updates.tier = tier;
+      if (typeof commissionPct === "number") updates.commissionPct = Math.max(0, Math.min(100, commissionPct));
+      if (status && ["pending", "active", "paused"].includes(status)) {
+        updates.status = status;
+        if (status === "active") updates.approvedAt = new Date();
+      }
+      if (typeof displayName === "string") updates.displayName = displayName;
+      if (typeof agencyName === "string") updates.agencyName = agencyName;
+      if (typeof country === "string") updates.country = country;
+      if (typeof notes === "string") updates.notes = notes;
+      if (typeof contactEmail === "string") updates.contactEmail = contactEmail;
+      const updated = await storage.updatePartner(id, updates);
+      if (!updated) return res.status(404).json({ message: "Partner no encontrado" });
+      res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.get("/api/admin/partners/:id/commissions", async (req, res) => {
+    if (!requireSuperadmin(req, res)) return;
+    const id = parseInt(req.params.id, 10);
+    const list = await storage.getPartnerCommissions(id);
+    res.json(list);
+  });
+
+  app.patch("/api/admin/partner-commissions/:id", async (req, res) => {
+    if (!requireSuperadmin(req, res)) return;
+    const id = parseInt(req.params.id, 10);
+    const { status } = req.body;
+    if (!["pending", "approved", "paid"].includes(status)) {
+      return res.status(400).json({ message: "Estado inválido" });
+    }
+    const updated = await storage.updatePartnerCommissionStatus(id, status);
+    if (!updated) return res.status(404).json({ message: "Comisión no encontrada" });
+    res.json(updated);
+  });
+
+  app.get("/api/admin/partner-impersonations", async (req, res) => {
+    if (!requireSuperadmin(req, res)) return;
+    const list = await storage.getRecentPartnerImpersonations(200);
+    res.json(list);
+  });
+
+  // Worker: monthly commission computation (idempotent via upsert)
+  async function computePartnerCommissionsForMonth(periodMonth: string) {
+    const { db: dbConn } = await import("./db");
+    const { sql: sqlTag } = await import("drizzle-orm");
+    const allPartners = await storage.getAllPartners("active");
+    for (const partner of allPartners) {
+      const tenantList = await storage.getPartnerTenants(partner.id);
+      for (const tenant of tenantList) {
+        try {
+          const result: any = await dbConn.execute(sqlTag`
+            SELECT COALESCE(SUM(amount), 0)::bigint AS sum_amount, COUNT(*)::int AS orders_count
+            FROM payment_orders
+            WHERE tenant_id = ${tenant.id}
+              AND status = 'paid'
+              AND paid_at IS NOT NULL
+              AND TO_CHAR(paid_at AT TIME ZONE 'UTC', 'YYYY-MM') = ${periodMonth}
+          `);
+          const row = (result?.rows ? result.rows[0] : result?.[0]) || {};
+          const sumAmount = Number(row.sum_amount || 0);
+          const ordersCount = Number(row.orders_count || 0);
+          if (sumAmount <= 0 && ordersCount === 0) continue;
+          const commissionAmount = Math.floor((sumAmount * partner.commissionPct) / 100);
+          await storage.upsertPartnerCommission({
+            partnerId: partner.id,
+            tenantId: tenant.id,
+            periodMonth,
+            paidAmountCents: sumAmount,
+            currency: tenant.currency,
+            commissionAmountCents: commissionAmount,
+            commissionPctSnapshot: partner.commissionPct,
+            ordersCount,
+            status: "pending",
+          } as any);
+        } catch (e: any) {
+          log(
+            `Commission compute error partner #${partner.id} tenant #${tenant.id} (${periodMonth}): ${e.message}`,
+            "partners",
+          );
+        }
+      }
+    }
+  }
+
+  function tickPartnerCommissions() {
+    const now = new Date();
+    const cur = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+    const prevDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const prev = `${prevDate.getUTCFullYear()}-${String(prevDate.getUTCMonth() + 1).padStart(2, "0")}`;
+    computePartnerCommissionsForMonth(cur).catch(() => {});
+    computePartnerCommissionsForMonth(prev).catch(() => {});
+  }
+  setInterval(tickPartnerCommissions, 60 * 60 * 1000);
+  setTimeout(tickPartnerCommissions, 30000);
 
   return httpServer;
 }
