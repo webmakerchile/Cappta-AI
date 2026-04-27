@@ -537,18 +537,19 @@ export default function PartnerConsole() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Descargá los recursos para vender Cappta AI a tus clientes. Si necesitás algo a medida (deck por vertical, video demo personalizado), escribinos a <a href="mailto:partners@cappta.ai" className="text-violet-400 underline">partners@cappta.ai</a>.
+                  Descargá los recursos para vender Cappta AI a tus clientes. Para versiones a medida (deck por vertical, video demo personalizado), escribinos a <a href="mailto:partners@cappta.ai" className="text-violet-400 underline">partners@cappta.ai</a>.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
-                    { title: "Pitch deck Cappta AI (PDF)", desc: "Presentación general para mostrar a un prospect en 10 minutos.", href: "mailto:partners@cappta.ai?subject=Pedido%20pitch%20deck", testid: "card-material-pitch" },
-                    { title: "One-pager por vertical", desc: "Resúmenes específicos por industria (retail, salud, educación, agencias, profesionales).", href: "mailto:partners@cappta.ai?subject=Pedido%20one-pagers%20por%20vertical", testid: "card-material-onepager" },
-                    { title: "Casos de éxito", desc: "Estudios de PYMEs latinoamericanas con métricas reales: % de tickets resueltos, tiempo de respuesta, retorno.", href: "mailto:partners@cappta.ai?subject=Pedido%20casos%20de%20%C3%A9xito", testid: "card-material-cases" },
-                    { title: "Script de demo + objeciones", desc: "Guion paso a paso para una demo de 15 minutos y respuestas a las 12 objeciones más frecuentes.", href: "mailto:partners@cappta.ai?subject=Pedido%20script%20de%20demo", testid: "card-material-script" },
+                    { title: "Pitch deck Cappta AI", desc: "Presentación general para mostrar a un prospect en 10 minutos. Incluye planes, comisión partner y diferenciales.", href: "/sales-materials/pitch-deck.md", file: "cappta-pitch-deck.md", testid: "card-material-pitch" },
+                    { title: "One-pagers por vertical", desc: "Resúmenes específicos por industria: retail, salud, educación, profesionales independientes y agencias.", href: "/sales-materials/one-pagers.md", file: "cappta-one-pagers.md", testid: "card-material-onepager" },
+                    { title: "Casos de éxito", desc: "Cuatro casos reales con métricas: % de mensajes contestados, no-show, leads calificados y conversión.", href: "/sales-materials/casos-exito.md", file: "cappta-casos-exito.md", testid: "card-material-cases" },
+                    { title: "Script de demo + 12 objeciones", desc: "Guion paso a paso para una demo de 15 minutos y respuestas listas para las 12 objeciones más comunes.", href: "/sales-materials/script-demo.md", file: "cappta-script-demo.md", testid: "card-material-script" },
                   ].map((item) => (
                     <a
                       key={item.title}
                       href={item.href}
+                      download={item.file}
                       className="block p-4 border border-border/50 rounded-lg hover:border-violet-400/40 hover:bg-violet-500/5 transition"
                       data-testid={item.testid}
                     >
@@ -556,12 +557,12 @@ export default function PartnerConsole() {
                         <Download className="w-4 h-4 text-violet-400" /> {item.title}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-                      <p className="text-xs text-violet-400 mt-2">Solicitar →</p>
+                      <p className="text-xs text-violet-400 mt-2">Descargar (.md) →</p>
                     </a>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground pt-2">
-                  Estos materiales se entregan al partner por email para mantener versiones actualizadas y evitar links rotos. Estamos preparando una biblioteca self-service para Q3.
+                  Los materiales se entregan en Markdown editable para que los puedas adaptar a la marca de tu agencia o traducirlos. Si preferís PDF, abrí el archivo, copiá el contenido y exportalo desde tu editor favorito.
                 </p>
               </CardContent>
             </Card>
