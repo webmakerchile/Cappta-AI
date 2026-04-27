@@ -2930,11 +2930,18 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
             <h3 className="text-lg font-bold mb-1">Tu Plan Actual</h3>
             <p className="text-sm text-white/40">Gestiona tu suscripción</p>
           </div>
-          <div className="px-4 py-2 rounded-xl text-sm font-bold animate-icon-pop transition-all duration-300 hover:scale-105" style={{ backgroundColor: `${currentColor}15`, color: currentColor, boxShadow: `0 0 20px ${currentColor}10` }} data-testid="badge-plan">
-            <span className="flex items-center gap-1.5">
+          <div className="text-right animate-icon-pop">
+            <div className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:scale-105 inline-flex items-center gap-1.5" style={{ backgroundColor: `${currentColor}15`, color: currentColor, boxShadow: `0 0 20px ${currentColor}10` }} data-testid="badge-plan">
               <Sparkles className="w-3.5 h-3.5" />
               {planLabels[tenant.plan] || tenant.plan}
-            </span>
+            </div>
+            <p className="text-xs text-white/45 mt-1.5" data-testid="text-current-plan-price">
+              {tenant.plan === "enterprise"
+                ? "Precio personalizado"
+                : tenant.plan === "free"
+                ? "Gratis"
+                : <><span className="font-bold text-white/70">{planPrices[tenant.plan]}</span> CLP/mes</>}
+            </p>
           </div>
         </div>
 
@@ -3000,28 +3007,6 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
       )}
 
       {tenant.plan !== "enterprise" && (
-        <div className="rounded-2xl glass-card p-5 sm:p-6 animate-dash-fade-up flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-orange-400/20">
-          <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-orange-400/10 p-3">
-              <Sparkles className="w-5 h-5" style={{ color: "hsl(30, 90%, 52%)" }} />
-            </div>
-            <div>
-              <h4 className="text-base font-bold mb-1">¿Necesitas un plan a medida?</h4>
-              <p className="text-sm text-white/50">Cappta Enterprise: SLA dedicado, integraciones custom, account manager y onboarding white-glove.</p>
-            </div>
-          </div>
-          <Button
-            asChild
-            variant="outline"
-            className="rounded-xl h-11 px-5 font-bold border-orange-400/40 hover:bg-orange-400/10 whitespace-nowrap"
-            data-testid="button-contact-sales-enterprise"
-          >
-            <a href="/enterprise">Hablar con ventas</a>
-          </Button>
-        </div>
-      )}
-
-      {upgradePlans.length > 0 && (
         <div className="animate-dash-fade-up dash-stagger-4">
           <h3 className="text-base font-bold mb-4 text-white/70 flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary animate-glow-pulse" />
@@ -3104,6 +3089,57 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                 </div>
               );
             })}
+
+            <div className={`rounded-2xl glass-card glass-card-glow-orange p-6 transition-all duration-300 relative overflow-hidden group animate-dash-scale-in dash-stagger-${upgradePlans.length + 2}`} data-testid="card-upgrade-enterprise">
+              <div className="absolute top-0 left-0 right-0 h-px transition-opacity duration-500 group-hover:opacity-100 opacity-60" style={{ background: "linear-gradient(90deg, transparent 0%, hsl(30, 90%, 52%) 50%, transparent 100%)" }} />
+              <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full transition-all duration-700 opacity-0 group-hover:opacity-100" style={{ background: "radial-gradient(circle, hsla(30, 90%, 52%, 0.1), transparent 60%)" }} />
+
+              <div className="flex items-center justify-between mb-4 relative">
+                <div>
+                  <h4 className="text-lg font-bold transition-colors duration-300 group-hover:text-white">{planLabels.enterprise}</h4>
+                  <p className="text-xs text-white/35">Para grandes empresas y operaciones críticas</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black transition-all duration-300 group-hover:scale-105" style={{ color: "hsl(30, 90%, 52%)" }} data-testid="badge-price-enterprise">A medida</p>
+                  <p className="text-xs text-white/30">Precio personalizado</p>
+                  <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">SLA dedicado</p>
+                  <p className="text-[9px] text-emerald-400/70 mt-0.5">WhatsApp Business incluido</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-4 relative">
+                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 transition-all duration-300 group-hover:bg-white/[0.05]">
+                  <p className="text-xs text-white/35">Sesiones</p>
+                  <p className="text-sm font-bold">{planLimits.enterprise.sessions}</p>
+                </div>
+                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 transition-all duration-300 group-hover:bg-white/[0.05]">
+                  <p className="text-xs text-white/35">Mensajes</p>
+                  <p className="text-sm font-bold">{planLimits.enterprise.messages}</p>
+                </div>
+              </div>
+
+              <ul className="space-y-2 mb-5 relative">
+                {planLimits.enterprise.features.slice(0, 6).map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-white/50 transition-colors duration-300 group-hover:text-white/65">
+                    <Check className="h-3.5 w-3.5 transition-transform duration-300 group-hover:scale-110" style={{ color: "hsl(30, 90%, 52%)" }} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                asChild
+                className="w-full rounded-xl h-11 font-bold transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden"
+                style={{ backgroundColor: "hsl(30, 90%, 52%)", color: "white" }}
+                data-testid="button-contact-sales-enterprise"
+              >
+                <a href="/enterprise" className="flex items-center justify-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Hablar con ventas
+                </a>
+              </Button>
+              <p className="text-[9px] text-white/25 text-center mt-2">Onboarding white-glove, account manager y contrato a medida.</p>
+            </div>
           </div>
         </div>
       )}
