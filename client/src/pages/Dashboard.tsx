@@ -4318,6 +4318,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
                 onValueChange={(v) => setLinkForm({ ...linkForm, amount: v })}
                 currency={tenantCurrency}
                 placeholder={`Monto en ${tenantCurrency}`}
+                ariaLabel="Monto del link de pago"
                 data-testid="input-link-amount"
               />
               <Input placeholder="Nombre cliente (opcional)" value={linkForm.customerName} onChange={e => setLinkForm({ ...linkForm, customerName: e.target.value })} data-testid="input-link-customer-name" />
@@ -4387,6 +4388,7 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
                 onValueChange={(v) => setSlotForm({ ...slotForm, price: v })}
                 currency={tenantCurrency}
                 placeholder={`Precio ${tenantCurrency} (opcional)`}
+                ariaLabel="Precio del servicio agendable"
                 data-testid="input-slot-price"
               />
             </div>

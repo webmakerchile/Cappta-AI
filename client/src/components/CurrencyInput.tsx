@@ -12,6 +12,7 @@ export interface CurrencyInputProps {
   className?: string;
   disabled?: boolean;
   prefixOverride?: string;
+  ariaLabel?: string;
   ["data-testid"]?: string;
   id?: string;
   name?: string;
@@ -68,6 +69,7 @@ export function CurrencyInput({
   className,
   disabled,
   prefixOverride,
+  ariaLabel,
   id,
   name,
   required,
@@ -77,6 +79,9 @@ export function CurrencyInput({
   const decimals = decimalsOverride ?? meta.decimals;
   const { decimal: decimalSep } = useMemo(() => getLocaleSeparators(meta.locale), [meta.locale]);
   const prefix = prefixOverride ?? meta.code;
+  const computedAriaLabel = ariaLabel
+    ? `${ariaLabel} (${meta.code} – ${meta.name})`
+    : `Monto en ${meta.code} – ${meta.name}`;
 
   const valueRef = useRef<number | null | undefined>(value);
   const localeRef = useRef<string>(meta.locale);
@@ -170,6 +175,7 @@ export function CurrencyInput({
         disabled={disabled}
         className={cn("pl-12", className)}
         data-testid={rest["data-testid"]}
+        aria-label={computedAriaLabel}
         autoComplete="off"
       />
     </div>

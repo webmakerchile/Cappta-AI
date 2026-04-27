@@ -1616,6 +1616,7 @@ function ProductosTab() {
               onValueChange={setPrice}
               currency={tenantCurrency}
               placeholder="Precio"
+              ariaLabel="Precio del producto"
               className="bg-white/[0.04] border-white/[0.08]"
             />
             <Input data-testid="input-product-url" value={productUrl} onChange={(e) => setProductUrl(e.target.value)} placeholder="URL del producto" className="bg-white/[0.04] border-white/[0.08]" />
@@ -2646,6 +2647,7 @@ function CatalogQuickEdit() {
               onValueChange={setNewPrice}
               currency={tenantCurrency}
               placeholder="Precio"
+              ariaLabel="Precio del nuevo producto"
               className="bg-white/[0.04] border-white/[0.08] text-sm"
             />
             <Input
@@ -2730,6 +2732,7 @@ function CatalogQuickEdit() {
                       onValueChange={setEditPrice}
                       currency={tenantCurrency}
                       placeholder="Precio"
+                      ariaLabel={`Precio de ${p.name || "producto"}`}
                       className="bg-white/[0.04] border-white/[0.08] text-sm"
                     />
                     <Input
