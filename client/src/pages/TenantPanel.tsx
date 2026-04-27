@@ -2825,7 +2825,7 @@ function ModeloIASection() {
       queryClient.invalidateQueries({ queryKey: ["/api/tenants/me"] });
       toast({ title: "Modelo de IA actualizado" });
     },
-    onError: (e: any) => toast({ title: "Error", description: e?.message || "", variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message || "", variant: "destructive" }),
   });
 
   if (isLoading || !data) return null;

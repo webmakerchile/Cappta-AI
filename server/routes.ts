@@ -194,13 +194,25 @@ export async function registerRoutes(
     return jwt.sign({ id: user.id, email: user.email, role: user.role, displayName: user.displayName }, JWT_SECRET, { expiresIn: "7d" });
   }
 
-  function verifyToken(token: string): { id: number; email: string; role: string; displayName: string } | null {
+  interface AuthTokenPayload {
+    id: number;
+    email: string;
+    role: string;
+    displayName: string;
+    isTenant?: boolean;
+    isAgent?: boolean;
+    agentId?: number;
+    companyName?: string;
+    color?: string;
+  }
+
+  function verifyToken(token: string): AuthTokenPayload | null {
     try {
-      return jwt.verify(token, JWT_SECRET) as any;
+      return jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
     } catch { return null; }
   }
 
-  function requireAuth(req: any, res: any): { id: number; email: string; role: string; displayName: string } | null {
+  function requireAuth(req: any, res: any): AuthTokenPayload | null {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({ message: "No autorizado" });
@@ -213,7 +225,7 @@ export async function registerRoutes(
       return null;
     }
     // Tenant tokens (signed with same secret) carry isTenant=true; rechazar para endpoints admin
-    if ((user as any).isTenant) {
+    if (user.isTenant) {
       res.status(403).json({ message: "Acceso restringido al panel admin" });
       return null;
     }
