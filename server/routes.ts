@@ -928,13 +928,31 @@ ${DEMO_BASE_RULES}`,
 
       if (parsed.data.sender === "user" && tenantId) {
         try {
-          const { scheduleLeadScore, triggerFlowsForEvent } = await import("./salesEngine");
+          const { scheduleLeadScore, triggerFlowsForEvent, dispatchWebhookEvent } = await import("./salesEngine");
           scheduleLeadScore(tenantId, sessionId);
           triggerFlowsForEvent(tenantId, "new_message", {
             sessionId,
             userEmail: normalizedEmail,
             userName: parsed.data.userName,
             data: { content: parsed.data.content },
+          }).catch(() => {});
+          dispatchWebhookEvent(tenantId, "message.user", {
+            sessionId,
+            userEmail: normalizedEmail,
+            userName: parsed.data.userName,
+            content: parsed.data.content,
+            messageId: message.id,
+          }).catch(() => {});
+        } catch {}
+      } else if (parsed.data.sender === "support" && tenantId) {
+        try {
+          const { dispatchWebhookEvent } = await import("./salesEngine");
+          dispatchWebhookEvent(tenantId, "message.support", {
+            sessionId,
+            userEmail: normalizedEmail,
+            userName: parsed.data.userName,
+            content: parsed.data.content,
+            messageId: message.id,
           }).catch(() => {});
         } catch {}
       }
@@ -5119,6 +5137,17 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
         return res.status(404).json({ message: "Sesion no encontrada" });
       }
       io.to("admin_room").emit("session_updated", { sessionId: req.params.sessionId, type: "status", session: updated });
+      if (status === "closed" && updated.tenantId) {
+        try {
+          const { dispatchWebhookEvent } = await import("./salesEngine");
+          dispatchWebhookEvent(updated.tenantId, "session.closed", {
+            sessionId: req.params.sessionId,
+            userEmail: updated.userEmail,
+            userName: updated.userName,
+            closedBy: adminUser.username,
+          }).catch(() => {});
+        } catch {}
+      }
       res.json(updated);
     } catch (error: any) {
       log(`Error al actualizar estado: ${error.message}`, "api");
@@ -5388,6 +5417,18 @@ Analiza CADA pagina y CADA texto extraido, extrae TODA la informacion. Solo incl
       const created = await storage.createRating(ratingData);
       await storage.updateSessionStatus(parsed.data.sessionId, "closed");
       io.to("admin_room").emit("session_updated", { sessionId: parsed.data.sessionId, type: "status", session: { status: "closed" } });
+      if (ratingSession?.tenantId) {
+        try {
+          const { dispatchWebhookEvent } = await import("./salesEngine");
+          dispatchWebhookEvent(ratingSession.tenantId, "session.closed", {
+            sessionId: parsed.data.sessionId,
+            userEmail: ratingSession.userEmail,
+            userName: ratingSession.userName,
+            closedBy: "user_rating",
+            rating,
+          }).catch(() => {});
+        } catch {}
+      }
       res.status(201).json(created);
     } catch (error: any) {
       log(`Error al crear calificacion: ${error.message}`, "api");

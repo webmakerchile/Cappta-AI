@@ -116,6 +116,14 @@ Responde SOLO con un objeto JSON con: score, temperature, intent, factors, reaso
           intent,
           nextAction,
         });
+        await dispatchWebhookEvent(tenantId, "lead.qualified", {
+          sessionId,
+          userEmail: session.userEmail,
+          userName: session.userName,
+          score,
+          intent,
+          nextAction,
+        });
       } catch {}
       try {
         const { triggerSequencesForEvent } = await import("./sequenceEngine");

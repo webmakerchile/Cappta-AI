@@ -7,7 +7,7 @@ import { calculateAndStoreLeadScore, scheduleLeadScore } from "./leadScorer";
 import { triggerSequencesForEvent, attachSequenceEmitter, startSequenceWorker } from "./sequenceEngine";
 import { triggerFlowsForEvent, attachFlowEmitter, executeFlow } from "./flowEngine";
 import { runIntegrationAction, testIntegration } from "./integrations";
-import { dispatchWebhookEvent } from "./webhookDispatcher";
+import { dispatchWebhookEvent, dispatchWebhookToEndpoint } from "./webhookDispatcher";
 import {
   insertSequenceSchema, insertFlowSchema, insertIntegrationSchema, insertApiKeySchema, insertWebhookEndpointSchema,
   ALL_WEBHOOK_EVENTS,
@@ -434,8 +434,21 @@ export function registerSalesEngineRoutes(app: Express, deps: SalesEngineDeps) {
     try {
       const ep = await salesEngine.getWebhookEndpointById(ctx.tenantId, parseInt(req.params.id));
       if (!ep) return res.status(404).json({ message: "No encontrado" });
-      await dispatchWebhookEvent(ctx.tenantId, "test.ping", { message: "Webhook test from Cappta", timestamp: new Date().toISOString(), endpointId: ep.id });
-      res.json({ ok: true, message: "Test enviado, revisa los registros en unos segundos." });
+      let subscribed: string[] = [];
+      if (Array.isArray(ep.events)) {
+        subscribed = ep.events as string[];
+      } else if (typeof ep.events === "string") {
+        try { subscribed = JSON.parse(ep.events as string); } catch { subscribed = []; }
+      }
+      const sampleEvent = subscribed.includes("*") || subscribed.length === 0
+        ? "test.ping"
+        : subscribed.find((e) => (ALL_WEBHOOK_EVENTS as readonly string[]).includes(e)) || subscribed[0] || "test.ping";
+      dispatchWebhookToEndpoint(ctx.tenantId, ep.id, sampleEvent, {
+        test: true,
+        message: "Webhook de prueba enviado por Cappta",
+        endpointId: ep.id,
+      });
+      res.json({ ok: true, message: `Test enviado como ${sampleEvent}, revisa los registros en unos segundos.` });
     } catch (e: any) { res.status(500).json({ message: e?.message }); }
   });
 
@@ -574,6 +587,102 @@ export function registerSalesEngineRoutes(app: Express, deps: SalesEngineDeps) {
     } catch (e: any) { res.status(500).json({ error: e?.message }); }
   });
 
+  // ----- CONTACTS (lead requests) -----
+  app.get("/api/v1/contacts", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "contacts.read", res)) return;
+    try {
+      const all = await storage.getContactRequests();
+      const mine = all.filter((c: any) => c.tenantId === auth.tenantId);
+      const limit = Math.min(parseInt(String(req.query.limit || "100"), 10) || 100, 500);
+      res.json({ data: mine.slice(0, limit), count: mine.length });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  // ----- PRODUCTS (catalog) -----
+  app.get("/api/v1/products", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "products.read", res)) return;
+    try {
+      const list = await storage.getTenantProducts(auth.tenantId);
+      res.json({ data: list, count: list.length });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.post("/api/v1/products", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "products.write", res)) return;
+    try {
+      if (!req.body?.name) return res.status(400).json({ error: "name_required" });
+      const created = await storage.createTenantProduct(auth.tenantId, req.body);
+      res.status(201).json({ data: created });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.patch("/api/v1/products/:id", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "products.write", res)) return;
+    try {
+      const updated = await storage.updateTenantProduct(auth.tenantId, parseInt(req.params.id, 10), req.body || {});
+      if (!updated) return res.status(404).json({ error: "not_found" });
+      res.json({ data: updated });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.delete("/api/v1/products/:id", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "products.write", res)) return;
+    try {
+      const ok = await storage.deleteTenantProduct(auth.tenantId, parseInt(req.params.id, 10));
+      res.json({ data: { deleted: ok } });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  // ----- KNOWLEDGE BASE -----
+  app.get("/api/v1/kb", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "kb.read", res)) return;
+    try {
+      const list = await storage.getTenantKnowledgeEntries(auth.tenantId, {
+        status: req.query.status ? String(req.query.status) : undefined,
+        category: req.query.category ? String(req.query.category) : undefined,
+        query: req.query.q ? String(req.query.q) : undefined,
+      });
+      res.json({ data: list, count: list.length });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.post("/api/v1/kb", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "kb.write", res)) return;
+    try {
+      if (!req.body?.question || !req.body?.answer) {
+        return res.status(400).json({ error: "question_and_answer_required" });
+      }
+      const created = await storage.createTenantKnowledgeEntry(auth.tenantId, req.body);
+      res.status(201).json({ data: created });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.patch("/api/v1/kb/:id", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "kb.write", res)) return;
+    try {
+      const updated = await storage.updateTenantKnowledgeEntry(auth.tenantId, parseInt(req.params.id, 10), req.body || {});
+      if (!updated) return res.status(404).json({ error: "not_found" });
+      res.json({ data: updated });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
+  app.delete("/api/v1/kb/:id", async (req, res) => {
+    const auth = await authenticateApiRequest(req, res); if (!auth) return;
+    if (!requireScope(auth, "kb.write", res)) return;
+    try {
+      const ok = await storage.deleteTenantKnowledgeEntry(auth.tenantId, parseInt(req.params.id, 10));
+      res.json({ data: { deleted: ok } });
+    } catch (e: any) { res.status(500).json({ error: e?.message }); }
+  });
+
   // Interactive API docs
   app.get("/api-docs", (_req, res) => {
     const html = `<!doctype html><html lang="es"><head>
@@ -621,8 +730,19 @@ td,th{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-siz
 
 <div class="endpoint"><span class="method GET">GET</span><code>/api/v1/leads/stats</code> <span class="scope">scope: leads.read</span><p class="lead">Conteo de leads por temperatura y promedio de score.</p></div>
 
-<div class="endpoint"><span class="method POST">POST</span><code>/api/v1/leads/score</code> <span class="scope">scope: leads.write</span><p class="lead">Recalcula el score de una sesion con IA.</p>
-<pre>{"sessionId": "abc123"}</pre></div>
+<div class="endpoint"><span class="method POST">POST</span><code>/api/v1/leads/score</code> <span class="scope">scope: leads.write</span><p class="lead">Recalcula el score de una sesion con IA.</p></div>
+
+<div class="endpoint"><span class="method GET">GET</span><code>/api/v1/contacts</code> <span class="scope">scope: contacts.read</span><p class="lead">Lista de contactos / lead requests del tenant.</p></div>
+
+<div class="endpoint"><span class="method GET">GET</span><code>/api/v1/products</code> <span class="scope">scope: products.read</span><p class="lead">Catalogo de productos del tenant.</p></div>
+<div class="endpoint"><span class="method POST">POST</span><code>/api/v1/products</code> <span class="scope">scope: products.write</span><p class="lead">Crea producto. Body: <code>{ name, description?, price?, category?, platform?, imageUrl? }</code></p></div>
+<div class="endpoint"><span class="method PATCH">PATCH</span><code>/api/v1/products/{id}</code> <span class="scope">scope: products.write</span><p class="lead">Actualiza producto.</p></div>
+<div class="endpoint"><span class="method DELETE">DELETE</span><code>/api/v1/products/{id}</code> <span class="scope">scope: products.write</span><p class="lead">Elimina producto.</p></div>
+
+<div class="endpoint"><span class="method GET">GET</span><code>/api/v1/kb</code> <span class="scope">scope: kb.read</span><p class="lead">Entradas de knowledge base. Query: <code>status</code>, <code>category</code>, <code>q</code></p></div>
+<div class="endpoint"><span class="method POST">POST</span><code>/api/v1/kb</code> <span class="scope">scope: kb.write</span><p class="lead">Crea entrada KB. Body: <code>{ question, answer, category?, status? }</code></p></div>
+<div class="endpoint"><span class="method PATCH">PATCH</span><code>/api/v1/kb/{id}</code> <span class="scope">scope: kb.write</span><p class="lead">Actualiza entrada KB.</p></div>
+<div class="endpoint"><span class="method DELETE">DELETE</span><code>/api/v1/kb/{id}</code> <span class="scope">scope: kb.write</span><p class="lead">Elimina entrada KB.</p></div>
 
 <h2>Webhooks salientes</h2>
 <p>Configura URLs en <code>Dashboard → API & Webhooks</code> para recibir notificaciones de eventos. Cada delivery incluye:</p>

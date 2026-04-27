@@ -19,6 +19,10 @@ export async function dispatchWebhookEvent(tenantId: number, event: string, data
   }
 }
 
+export function dispatchWebhookToEndpoint(tenantId: number, endpointId: number, event: string, data: any) {
+  enqueue({ tenantId, endpointId, event, payload: { event, data, timestamp: new Date().toISOString() }, attempt: 0 });
+}
+
 function enqueue(job: { tenantId: number; endpointId: number; event: string; payload: any; attempt: number }) {
   queue.push(job);
   if (!processing) processQueue();
@@ -47,11 +51,8 @@ async function deliverOnce(job: { tenantId: number; endpointId: number; event: s
   let success = false;
 
   try {
-    const { assertSafeUrl } = await import("./safety");
-    assertSafeUrl(ep.url);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    const res = await fetch(ep.url, {
+    const { safeFetch } = await import("./safety");
+    const res = await safeFetch(ep.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,9 +62,8 @@ async function deliverOnce(job: { tenantId: number; endpointId: number; event: s
         "User-Agent": "Cappta-Webhooks/1.0",
       },
       body,
-      signal: controller.signal,
+      timeoutMs: TIMEOUT_MS,
     });
-    clearTimeout(timer);
     statusCode = res.status;
     response = (await res.text()).slice(0, 2000);
     success = res.ok;

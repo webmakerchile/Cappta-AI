@@ -1,4 +1,6 @@
 import { storage } from "../storage";
+import dns from "node:dns/promises";
+import net from "node:net";
 
 const PAID_PLANS = new Set(["solo", "basic", "scale", "pro", "enterprise"]);
 
@@ -21,7 +23,32 @@ export function invalidateTenantPlanCache(tenantId: number) {
   tenantPlanCache.delete(tenantId);
 }
 
-const PRIVATE_HOST_RE = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.|169\.254\.|0\.0\.0\.0|::1|fc00:|fe80:|metadata\.google\.internal|metadata)$/i;
+const PRIVATE_HOST_RE = /^(localhost|metadata\.google\.internal|metadata)$/i;
+
+function isPrivateOrUnsafeIP(ip: string): boolean {
+  if (!ip) return true;
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split(".").map(n => parseInt(n, 10));
+    if (a === 0) return true;
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a >= 224) return true;
+    return false;
+  }
+  if (net.isIPv6(ip)) {
+    const lower = ip.toLowerCase();
+    if (lower === "::1" || lower === "::") return true;
+    if (lower.startsWith("fc") || lower.startsWith("fd")) return true;
+    if (lower.startsWith("fe80")) return true;
+    if (lower.startsWith("::ffff:")) return isPrivateOrUnsafeIP(lower.slice(7));
+    return false;
+  }
+  return true;
+}
 
 export function assertSafeUrl(rawUrl: string): URL {
   let parsed: URL;
@@ -33,19 +60,35 @@ export function assertSafeUrl(rawUrl: string): URL {
   if (PRIVATE_HOST_RE.test(host)) {
     throw new Error(`Host bloqueado por seguridad: ${host}`);
   }
-  if (process.env.NODE_ENV === "production" && host === "0.0.0.0") {
-    throw new Error("Host bloqueado por seguridad");
+  if (net.isIP(host) && isPrivateOrUnsafeIP(host)) {
+    throw new Error(`Host bloqueado por seguridad: ${host}`);
   }
   return parsed;
 }
 
+async function assertResolvedHostIsPublic(hostname: string): Promise<void> {
+  if (net.isIP(hostname)) return;
+  let addrs: { address: string; family: number }[] = [];
+  try {
+    addrs = await dns.lookup(hostname, { all: true });
+  } catch (e: any) {
+    throw new Error(`No se pudo resolver host: ${hostname}`);
+  }
+  for (const a of addrs) {
+    if (isPrivateOrUnsafeIP(a.address)) {
+      throw new Error(`Host resuelve a IP bloqueada (${a.address})`);
+    }
+  }
+}
+
 export async function safeFetch(url: string, init: RequestInit & { timeoutMs?: number } = {}): Promise<Response> {
-  assertSafeUrl(url);
+  const parsed = assertSafeUrl(url);
+  await assertResolvedHostIsPublic(parsed.hostname);
   const controller = new AbortController();
   const timeoutMs = init.timeoutMs ?? 10_000;
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    return await fetch(url, { ...init, signal: controller.signal, redirect: "manual" as any });
   } finally {
     clearTimeout(t);
   }

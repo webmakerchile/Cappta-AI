@@ -708,6 +708,7 @@ export const ALL_WEBHOOK_EVENTS = [
   "message.support",
   "lead.scored",
   "lead.hot",
+  "lead.qualified",
   "appointment.booked",
   "appointment.cancelled",
   "payment.completed",

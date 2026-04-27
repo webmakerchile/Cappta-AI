@@ -377,8 +377,8 @@ function FlowsTab({ toast }: { toast: any }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-white/60">Flujos visuales: trigger → acciones → integraciones, con condiciones.</p>
-          <p className="text-xs text-white/40 mt-1">Editor visual drag-and-drop disponible próximamente. Por ahora define los nodos en JSON.</p>
+          <p className="text-sm text-white/60">Flujos: trigger → acciones → integraciones, con condiciones y ramas.</p>
+          <p className="text-xs text-white/40 mt-1">Define el grafo de nodos en JSON. Tipos soportados: <code>send_message</code>, <code>tag</code>, <code>lead_score</code>, <code>http</code>, <code>wait</code>, <code>condition</code>, <code>branch</code>.</p>
         </div>
         <Button onClick={() => { setEditing(null); setOpen(true); }} className="bg-primary hover:bg-primary/90" data-testid="button-new-flow"><Plus className="w-4 h-4 mr-1" /> Nuevo flujo</Button>
       </div>

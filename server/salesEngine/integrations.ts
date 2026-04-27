@@ -82,15 +82,8 @@ export async function runIntegrationAction(input: IntegrationActionInput): Promi
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
-  const { assertSafeUrl } = await import("./safety");
-  assertSafeUrl(url);
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(t);
-  }
+  const { safeFetch } = await import("./safety");
+  return safeFetch(url, { ...init, timeoutMs: TIMEOUT_MS });
 }
 
 async function runWebhook(cfg: any, data: any): Promise<IntegrationActionResult> {
