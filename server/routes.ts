@@ -1448,6 +1448,18 @@ ${DEMO_BASE_RULES}`,
     }
   });
 
+  app.get("/api/fx/rates", async (_req, res) => {
+    try {
+      const { getFxRates } = await import("./fxRates");
+      const data = await getFxRates();
+      res.set("Cache-Control", "public, max-age=3600");
+      res.json(data);
+    } catch (err: any) {
+      log(`Error en /api/fx/rates: ${err?.message || err}`, "fx");
+      res.status(500).json({ message: "FX no disponible" });
+    }
+  });
+
   app.get("/api/tenants/me", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;

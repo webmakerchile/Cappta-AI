@@ -75,7 +75,7 @@ import { GuidesPanel } from "./Guides";
 import { SiWordpress, SiShopify, SiWoocommerce, SiMagento, SiSquarespace, SiWix, SiWebflow, SiHtml5, SiGoogletagmanager, SiWhatsapp } from "react-icons/si";
 import type { Tenant } from "@shared/schema";
 import { CHANNEL_MIN_PLAN, planRank, type ChannelSlug } from "@shared/planMatrix";
-import { formatMoney } from "@shared/currencies";
+import { formatMoney, getCurrency } from "@shared/currencies";
 import { CapptaIcon } from "@/components/CapptaLogo";
 import OnboardingWizard from "./OnboardingWizard";
 import DashboardTour, { TourPrompt } from "./DashboardTour";
@@ -2841,6 +2841,47 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
     pro: "$49.990",
     enterprise: "Custom",
   };
+  const planPricesClp: Record<string, number> = {
+    free: 0,
+    solo: 7990,
+    basic: 19990,
+    scale: 49990,
+    pro: 49990,
+    enterprise: 0,
+  };
+
+  const tenantCurrency = (tenant.currency || "CLP").toUpperCase();
+  const showFx = tenantCurrency !== "CLP";
+
+  const { data: fxData } = useQuery<{ base: string; date: string; rates: Record<string, number> }>({
+    queryKey: ["/api/fx/rates"],
+    enabled: showFx,
+    staleTime: 24 * 60 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
+  });
+
+  const fxRate = showFx && fxData?.rates ? fxData.rates[tenantCurrency] : null;
+  const renderConverted = (planKey: string, testIdSuffix: string) => {
+    if (!showFx || !fxRate || !isFinite(fxRate) || fxRate <= 0) return null;
+    const clp = planPricesClp[planKey];
+    if (!clp || clp <= 0) return null;
+    const meta = getCurrency(tenantCurrency);
+    const rounded = Math.max(1, Math.round(clp * fxRate));
+    let amountStr: string;
+    try {
+      amountStr = new Intl.NumberFormat(meta.locale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(rounded);
+    } catch {
+      amountStr = String(rounded);
+    }
+    return (
+      <p className="text-[10px] text-white/55 font-semibold mt-0.5" data-testid={`text-plan-converted-${testIdSuffix}`}>
+        ≈ {meta.code} {amountStr} aprox.
+      </p>
+    );
+  };
   const planColors: Record<string, string> = {
     free: "#6b7280",
     solo: "hsl(258, 78%, 65%)",
@@ -2944,6 +2985,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                 ? "Gratis"
                 : <><span className="font-bold text-white/70">{planPrices[tenant.plan]}</span> CLP/mes</>}
             </p>
+            {renderConverted(tenant.plan, "current")}
             {(tenant.currency || "CLP") !== "CLP" && tenant.plan !== "free" && tenant.plan !== "enterprise" && (
               <p className="text-[10px] text-amber-400/80 mt-1" data-testid="text-billed-clp-current">
                 Facturado en CLP
@@ -3043,6 +3085,7 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
                     <div className="text-right">
                       <p className="text-2xl font-black transition-all duration-300 group-hover:scale-105" style={{ color }} data-testid={`badge-price-${key}`}>{planPrices[key]}</p>
                       <p className="text-xs text-white/30">CLP/mes</p>
+                      {renderConverted(key, key)}
                       {(tenant.currency || "CLP") !== "CLP" && (
                         <p className="text-[9px] text-amber-400/80 font-medium" data-testid={`text-billed-clp-${key}`}>Facturado en CLP</p>
                       )}
