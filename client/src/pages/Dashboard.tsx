@@ -2627,7 +2627,7 @@ function WhatsAppSection({ tenant, token }: { tenant: TenantProfile; token: stri
   const [saving, setSaving] = useState(false);
   const isEnabled = (tenant as any).whatsappEnabled === 1;
   const whatsappNumber = (tenant as any).whatsappNumber || "";
-  const isPaidPlan = tenant.plan === "solo" || tenant.plan === "basic" || tenant.plan === "scale" || tenant.plan === "pro" || tenant.plan === "enterprise";
+  const isPaidPlan = tenant.plan === "basic" || tenant.plan === "scale" || tenant.plan === "pro" || tenant.plan === "enterprise";
 
   const handleSaveGreeting = async () => {
     setSaving(true);
@@ -2882,7 +2882,9 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
       const order = ["free", "solo", "basic", "scale", "pro", "enterprise"];
       const currentIdx = order.indexOf(tenant.plan);
       const targetIdx = order.indexOf(key);
-      return targetIdx > currentIdx && key !== "pro";
+      // Enterprise es solo por ventas, no aparece en checkout self-serve.
+      // Pro es plan legado, no se ofrece como upgrade.
+      return targetIdx > currentIdx && key !== "pro" && key !== "enterprise";
     }
   );
 
@@ -2962,6 +2964,28 @@ function PlanSection({ tenant }: { tenant: TenantProfile }) {
               Cancelar suscripción
             </Button>
           </div>
+        </div>
+      )}
+
+      {tenant.plan !== "enterprise" && (
+        <div className="rounded-2xl glass-card p-5 sm:p-6 animate-dash-fade-up flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-orange-400/20">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-orange-400/10 p-3">
+              <Sparkles className="w-5 h-5" style={{ color: "hsl(30, 90%, 52%)" }} />
+            </div>
+            <div>
+              <h4 className="text-base font-bold mb-1">¿Necesitas un plan a medida?</h4>
+              <p className="text-sm text-white/50">Cappta Enterprise: SLA dedicado, integraciones custom, account manager y onboarding white-glove.</p>
+            </div>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl h-11 px-5 font-bold border-orange-400/40 hover:bg-orange-400/10 whitespace-nowrap"
+            data-testid="button-contact-sales-enterprise"
+          >
+            <a href="/enterprise">Hablar con ventas</a>
+          </Button>
         </div>
       )}
 
