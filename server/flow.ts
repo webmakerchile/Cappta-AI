@@ -294,13 +294,17 @@ export async function createChatPaymentPreference(opts: {
   tenantId: number;
   linkId: number;
   amount: number;
+  currency?: string | null;
   description: string;
   publicToken?: string | null;
   customerEmail?: string | null;
   customerName?: string | null;
 }): Promise<{ preferenceId: string; initPoint: string }> {
   if (!MP_ACCESS_TOKEN) throw new Error("Mercado Pago no configurado");
-  const safeAmount = Math.max(1, Math.round(opts.amount));
+  const currencyCode = (opts.currency || "CLP").toUpperCase();
+  const decimals = currencyCode === "CLP" || currencyCode === "JPY" || currencyCode === "PYG" ? 0 : 2;
+  const rawAmount = Math.max(0.01, Number(opts.amount) || 0);
+  const safeAmount = Number(rawAmount.toFixed(decimals));
   const desc = (opts.description || "Cobro Cappta").slice(0, 200);
   const tokenParam = opts.publicToken ? `&token=${encodeURIComponent(opts.publicToken)}` : "";
   const preference = await mpFetch("/checkout/preferences", "POST", {
@@ -310,7 +314,7 @@ export async function createChatPaymentPreference(opts: {
         description: desc,
         quantity: 1,
         unit_price: safeAmount,
-        currency_id: "CLP",
+        currency_id: currencyCode,
       },
     ],
     payer: opts.customerEmail ? { email: opts.customerEmail, name: opts.customerName || undefined } : undefined,

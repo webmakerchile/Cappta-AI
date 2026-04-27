@@ -3632,7 +3632,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
   // Zod validators
   const linkBodySchema = z.object({
     description: z.string().min(1).max(200),
-    amount: z.coerce.number().int().min(1).max(50_000_000),
+    amount: z.coerce.number().positive().max(50_000_000),
     customerName: z.string().max(120).nullable().optional(),
     customerEmail: z.string().email().max(180).nullable().optional(),
     sessionId: z.string().max(120).nullable().optional(),
@@ -3833,6 +3833,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
             tenantId: auth.id,
             linkId: link.id,
             amount: body.amount,
+            currency: tenant?.currency || "CLP",
             description: body.description,
             publicToken: link.publicToken,
             customerEmail: body.customerEmail || null,
@@ -4018,6 +4019,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
               tenantId: slot.tenantId,
               linkId: link.id,
               amount: slot.price,
+              currency: slotTenant?.currency || "CLP",
               description: `Reserva: ${slot.name}`,
               publicToken: token,
               customerEmail,
@@ -4123,6 +4125,7 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
             tenantId: auth.id,
             linkId: link.id,
             amount: body.amount,
+            currency: tenantCurrency,
             description: body.description,
             publicToken: link.publicToken,
             customerEmail: linkInsert.customerEmail,

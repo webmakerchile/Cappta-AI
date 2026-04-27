@@ -4317,7 +4317,6 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
                 value={linkForm.amount}
                 onValueChange={(v) => setLinkForm({ ...linkForm, amount: v })}
                 currency={tenantCurrency}
-                decimalsOverride={0}
                 placeholder={`Monto en ${tenantCurrency}`}
                 data-testid="input-link-amount"
               />
@@ -4387,7 +4386,6 @@ function ConnectSection({ tenant, token }: { tenant: TenantProfile; token: strin
                 value={slotForm.price}
                 onValueChange={(v) => setSlotForm({ ...slotForm, price: v })}
                 currency={tenantCurrency}
-                decimalsOverride={0}
                 placeholder={`Precio ${tenantCurrency} (opcional)`}
                 data-testid="input-slot-price"
               />

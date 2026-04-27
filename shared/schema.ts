@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, serial, index, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, serial, index, boolean, integer, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -415,7 +415,7 @@ export const appointmentSlots = pgTable("appointment_slots", {
   description: text("description"),
   durationMinutes: integer("duration_minutes").notNull().default(30),
   bufferMinutes: integer("buffer_minutes").notNull().default(0),
-  price: integer("price"),
+  price: doublePrecision("price"),
   requiresPayment: integer("requires_payment").notNull().default(0),
   availability: text("availability").notNull().default("{}"),
   active: integer("active").notNull().default(1),
@@ -452,7 +452,7 @@ export const chatPaymentLinks = pgTable("chat_payment_links", {
   customerName: text("customer_name"),
   productId: integer("product_id"),
   description: text("description").notNull(),
-  amount: integer("amount").notNull(),
+  amount: doublePrecision("amount").notNull(),
   currency: text("currency").notNull().default("CLP"),
   provider: text("provider", { enum: ["mercadopago", "manual"] }).notNull().default("mercadopago"),
   externalId: text("external_id"),
