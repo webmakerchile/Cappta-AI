@@ -471,6 +471,9 @@ export const insertChatPaymentLinkSchema = createInsertSchema(chatPaymentLinks).
 export type InsertChatPaymentLink = z.infer<typeof insertChatPaymentLinkSchema>;
 export type ChatPaymentLink = typeof chatPaymentLinks.$inferSelect;
 
+export type AppointmentStatus = "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show";
+export type ChatPaymentLinkStatus = "pending" | "paid" | "expired" | "cancelled";
+
 export const guestFormSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").max(100),
   email: z.string().email("Ingresa un correo valido").max(200),

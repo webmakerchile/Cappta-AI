@@ -1,4 +1,4 @@
-import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink } from "@shared/schema";
+import { messages, sessions, cannedResponses, contactRequests, products, ratings, adminUsers, pushSubscriptions, tenantPushSubscriptions, customTags, appSettings, knowledgeBase, knowledgePages, tenants, paymentOrders, tenantFiles, tenantAgents, referrals, addons, tenantAddons, appointmentSlots, appointments, chatPaymentLinks, type Message, type InsertMessage, type ContactRequest, type InsertContactRequest, type Session, type InsertSession, type CannedResponse, type InsertCannedResponse, type Product, type InsertProduct, type Rating, type InsertRating, type AdminUser, type InsertAdminUser, type PushSubscription, type InsertPushSubscription, type TenantPushSubscription, type InsertTenantPushSubscription, type KnowledgeBase, type InsertKnowledgeBase, type Tenant, type InsertTenant, type TenantFile, type InsertTenantFile, type TenantAgent, type InsertTenantAgent, type Referral, type InsertReferral, type Addon, type InsertAddon, type TenantAddon, type InsertTenantAddon, type AppointmentSlot, type InsertAppointmentSlot, type Appointment, type InsertAppointment, type ChatPaymentLink, type InsertChatPaymentLink, type AppointmentStatus, type ChatPaymentLinkStatus } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, sql, ilike, or, and, gte, lte } from "drizzle-orm";
 
@@ -1683,11 +1683,11 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  async getAppointments(tenantId: number, opts?: { from?: Date; to?: Date; status?: string }): Promise<Appointment[]> {
+  async getAppointments(tenantId: number, opts?: { from?: Date; to?: Date; status?: AppointmentStatus }): Promise<Appointment[]> {
     const conditions = [eq(appointments.tenantId, tenantId)];
     if (opts?.from) conditions.push(gte(appointments.scheduledAt, opts.from));
     if (opts?.to) conditions.push(lte(appointments.scheduledAt, opts.to));
-    if (opts?.status) conditions.push(eq(appointments.status, opts.status as any));
+    if (opts?.status) conditions.push(eq(appointments.status, opts.status));
     return await db.select().from(appointments)
       .where(and(...conditions))
       .orderBy(asc(appointments.scheduledAt));
@@ -1725,9 +1725,9 @@ export class DatabaseStorage implements IStorage {
     await db.update(appointments).set({ paymentLinkId }).where(eq(appointments.id, id));
   }
 
-  async getChatPaymentLinks(tenantId: number, opts?: { status?: string; limit?: number }): Promise<ChatPaymentLink[]> {
+  async getChatPaymentLinks(tenantId: number, opts?: { status?: ChatPaymentLinkStatus; limit?: number }): Promise<ChatPaymentLink[]> {
     const conditions = [eq(chatPaymentLinks.tenantId, tenantId)];
-    if (opts?.status) conditions.push(eq(chatPaymentLinks.status, opts.status as any));
+    if (opts?.status) conditions.push(eq(chatPaymentLinks.status, opts.status));
     let query = db.select().from(chatPaymentLinks)
       .where(and(...conditions))
       .orderBy(desc(chatPaymentLinks.createdAt))

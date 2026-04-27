@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import nodeCrypto from "crypto";
 import { storage } from "./storage";
 import { insertMessageSchema, insertCannedResponseSchema, insertProductSchema, insertRatingSchema, insertAdminUserSchema, insertKnowledgeBaseSchema, knowledgePages, insertEnterpriseLeadSchema, enterpriseLeads, insertAppointmentSlotSchema, type InsertChatPaymentLink, type InsertAppointment } from "@shared/schema";
 import { sendContactNotification, sendOfflineNotification, sendChatInviteEmail } from "./email";
@@ -3106,7 +3107,9 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
   };
 
   const generatePublicToken = (): string => {
-    return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    // Cryptographically secure 24-char URL-safe token (16 random bytes -> base64url)
+    const buf = nodeCrypto.randomBytes(16);
+    return buf.toString("base64url");
   };
 
   // Zod validators
@@ -3134,6 +3137,10 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
     try {
+      const tenant = await storage.getTenantById(auth.id);
+      if (!checkConnectPlan(tenant)) {
+        return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+      }
       const stats = await storage.getCapptaConnectStats(auth.id);
       res.json(stats);
     } catch (e: any) {
@@ -3146,6 +3153,10 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
   app.get("/api/tenant-panel/connect/slots", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
+    const tenant = await storage.getTenantById(auth.id);
+    if (!checkConnectPlan(tenant)) {
+      return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+    }
     const slots = await storage.getAppointmentSlots(auth.id);
     res.json(slots);
   });
@@ -3191,7 +3202,15 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
   app.get("/api/tenant-panel/connect/appointments", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
-    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const tenant = await storage.getTenantById(auth.id);
+    if (!checkConnectPlan(tenant)) {
+      return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+    }
+    const allowedApptStatus = ["scheduled", "confirmed", "cancelled", "completed", "no_show"] as const;
+    const rawStatus = typeof req.query.status === "string" ? req.query.status : undefined;
+    const status = (allowedApptStatus as readonly string[]).includes(rawStatus || "")
+      ? (rawStatus as typeof allowedApptStatus[number])
+      : undefined;
     const list = await storage.getAppointments(auth.id, { status });
     res.json(list);
   });
@@ -3247,7 +3266,15 @@ Para personalizar tu chatbot, visita https://www.cappta.ai/dashboard
   app.get("/api/tenant-panel/connect/payment-links", async (req, res) => {
     const auth = requireTenantAuth(req, res);
     if (!auth) return;
-    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const tenant = await storage.getTenantById(auth.id);
+    if (!checkConnectPlan(tenant)) {
+      return res.status(403).json({ message: "Cappta Connect requiere un plan de pago" });
+    }
+    const allowedLinkStatus = ["pending", "paid", "expired", "cancelled"] as const;
+    const rawStatus = typeof req.query.status === "string" ? req.query.status : undefined;
+    const status = (allowedLinkStatus as readonly string[]).includes(rawStatus || "")
+      ? (rawStatus as typeof allowedLinkStatus[number])
+      : undefined;
     const list = await storage.getChatPaymentLinks(auth.id, { status, limit: 200 });
     res.json(list);
   });
